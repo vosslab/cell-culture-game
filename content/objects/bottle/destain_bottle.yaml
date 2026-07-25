@@ -7,7 +7,7 @@ state_fields:
     allowed:
       - empty
       - destain
-    default: empty
+    default: destain
     description: Contents currently in the bottle.
   - field_name: material_volume
     type: float
@@ -27,8 +27,11 @@ visual_states:
         output:
           asset_name: bottle_green
   material_volume:
-    kind: composite
-    formula: fill_height(state(material_volume), capacity_ml=250)
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ml: 250
 capabilities:
   - clickable
   - material_container

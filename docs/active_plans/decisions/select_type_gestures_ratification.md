@@ -1,14 +1,43 @@
-# Decision: select and type gestures ratified (WS-M5-ST)
+# Decision: select and type gestures ratification reopened (WS-M5-ST)
+
+Status: REOPENED on 2026-07-24. This file records the June implementation,
+but its `select` interpretation is no longer an accepted owner decision.
+
+## Owner clarification (2026-07-24)
+
+The repo owner initially recalled `select` as a more specialized decision
+gesture, but then clarified that multiple-choice controls can use ordinary
+browser clicks and that the intended distinct role of `select` is not
+remembered. The worked decision example in
+[PROTOCOL_AUTHORING_GUIDE.md](../../specs/PROTOCOL_AUTHORING_GUIDE.md) and the
+protocol vocabulary immediately before commit `d5493bd0` are therefore
+historical evidence, not a recovered owner decision.
+
+The June implementation instead broadened `select` to choosing among all
+clickable scene objects and removed the answer-choice-list concept. Current
+content provides no deciding evidence because it authors zero `select`
+interactions. Do not treat the June interpretation below as ratified.
+
+No vocabulary or runtime rewrite is authorized by this clarification alone.
+Resolve the design later by comparing real decision tasks against the existing
+compositional `click` model. A click can produce different semantic results
+through the target capabilities and response operations, including
+`CursorAttach`, `ObjectStateChange`, `SceneChange`, and `TimedWait`. Only retain
+or redefine `select` if a bounded prototype demonstrates a distinct need.
+Then update the canonical primary specification with explicit owner approval.
+
+The cross-layer evidence and experiment boundary are recorded in
+`docs/specs/GESTURE_MODEL.md`.
 
 ## Summary
 
-The repo owner authorized implementing the `select` and `type` gestures outside
-the original Solid-renderer-migration plan (WS-M4). This work was tracked as
-workstream WS-M5-ST.
+The June workstream implemented the then-recorded `select` and `type` behavior
+outside the original Solid-renderer-migration plan (WS-M4). This work was
+tracked as workstream WS-M5-ST.
 
 ## Decision
 
-`select` and `type` are now fully implemented and supported by the walker.
+The June implementation recorded these behaviors:
 
 - `select`: means "choose the correct next-step scene object among those present
   in the active scene." It reuses the visible click affordance (no separate

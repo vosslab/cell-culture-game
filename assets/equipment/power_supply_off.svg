@@ -1,9 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 130 88">
-  <defs>
-    <style>
-      .placeholder-border { fill: none; stroke: #999; stroke-width: 2; stroke-dasharray: 4,2; }
-      .placeholder-text { font-family: Arial, sans-serif; font-size: 8; fill: #666; text-anchor: middle; }
-    </style>
-  </defs>
-  <rect class="placeholder-border" x="5" y="5" width="120" height="60" rx="4" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 185.75 97.5" role="img">
+  <path d="M 20 83 L 160 83 L 169 90 L 11 90 Z" fill="#4b5660" stroke="#29323a" stroke-width="2"/>
+  <path d="M 16 8 L 164 8 Q 172 8 172 16 L 172 78 Q 172 84 166 84 L 14 84 Q 8 84 8 78 L 8 16 Q 8 8 16 8 Z" fill="#d9d7cf" stroke="#38434c" stroke-width="3"/>
+  <path d="M 14 16 Q 14 12 19 12 L 161 12 Q 166 12 166 16 L 166 24 L 14 24 Z" fill="#50636c"/>
+  <path d="M 23 19 L 157 19" fill="none" stroke="#9eabb0" stroke-linecap="round" stroke-width="1.5"/>
+  <path fill="#1e282d" stroke="#43545c" stroke-width="2" d="M 23 31 L 89 31 A 3 3 0 0 1 92 34 L 92 62 A 3 3 0 0 1 89 65 L 23 65 A 3 3 0 0 1 20 62 L 20 34 A 3 3 0 0 1 23 31 Z"/>
+  <path fill="#101719" stroke="#68777b" stroke-width="1" d="M 26.5 36 L 85.5 36 A 1.5 1.5 0 0 1 87 37.5 L 87 54.5 A 1.5 1.5 0 0 1 85.5 56 L 26.5 56 A 1.5 1.5 0 0 1 25 54.5 L 25 37.5 A 1.5 1.5 0 0 1 26.5 36 Z"/>
+  <path d="M 31 42 L 47 42 M 31 47 L 41 47 M 31 52 L 47 52 M 54 42 L 70 42 M 60 47 L 70 47 M 54 52 L 70 52" fill="none" stroke="#334045" stroke-linecap="round" stroke-width="2.4"/>
+  <path d="M 28 60 L 50 60 M 57 60 L 83 60" fill="none" stroke="#526167" stroke-linecap="round" stroke-width="2"/>
+  <path fill="#c4c8c5" stroke="#5a6266" stroke-width="1.5" d="M 104 32 L 154 32 A 3 3 0 0 1 157 35 L 157 62 A 3 3 0 0 1 154 65 L 104 65 A 3 3 0 0 1 101 62 L 101 35 A 3 3 0 0 1 104 32 Z"/>
+  <path d="M 107 37 L 124 37 M 107 41 L 118 41 M 107 60 L 126 60" fill="none" stroke="#718087" stroke-linecap="round" stroke-width="1.8"/>
+  <path fill="#782724" stroke="#4e1c1b" stroke-width="2" d="M 134 44 A 7 7 0 1 0 148 44 A 7 7 0 1 0 134 44 Z"/>
+  <path fill="#b65b55" d="M 138 44 A 3 3 0 1 0 144 44 A 3 3 0 1 0 138 44 Z"/>
+  <path d="M 138 44 L 144 44 M 141 41 L 141 47" fill="none" stroke="#f4d1cb" stroke-linecap="round" stroke-width="1.1"/>
+  <path fill="#252c31" stroke="#11171a" stroke-width="2" d="M 134 57 A 7 7 0 1 0 148 57 A 7 7 0 1 0 134 57 Z"/>
+  <path fill="#76858a" d="M 138 57 A 3 3 0 1 0 144 57 A 3 3 0 1 0 138 57 Z"/>
+  <path d="M 138 57 L 144 57" fill="none" stroke="#d6dfe1" stroke-linecap="round" stroke-width="1.1"/>
+  <path fill="#e5e2d8" stroke="#59636a" stroke-width="1.2" d="M 101 70 L 110 70 A 2 2 0 0 1 112 72 L 112 76 A 2 2 0 0 1 110 78 L 101 78 A 2 2 0 0 1 99 76 L 99 72 A 2 2 0 0 1 101 70 Z"/>
+  <path d="M 104 72 L 104 76 M 102 74 L 106 74" fill="none" stroke="#59636a" stroke-width="1"/>
+  <path fill="#4c302d" stroke="#3e1515" stroke-width="1.3" d="M 118.8 74 A 5.2 5.2 0 1 0 129.2 74 A 5.2 5.2 0 1 0 118.8 74 Z"/>
+  <path fill="#722822" d="M 121 74 A 3 3 0 1 0 127 74 A 3 3 0 1 0 121 74 Z"/>
+  <path d="M 147 44 C 162 44 163 63 175 66" fill="none" stroke="#8d3b37" stroke-linecap="round" stroke-width="3.5"/>
+  <path d="M 147 57 C 158 57 158 74 172 78" fill="none" stroke="#20282d" stroke-linecap="round" stroke-width="3.5"/>
+  <path d="M 174 63 L 179 66 L 174 69 Z" fill="#9c4a45" stroke="#551d1a" stroke-width="1"/>
+  <path d="M 171 75 L 177 78 L 172 81 Z" fill="#303b42" stroke="#11191d" stroke-width="1"/>
+  <path d="M 18 84 L 18 88 M 162 84 L 162 88" fill="none" stroke="#283138" stroke-linecap="round" stroke-width="3"/>
 </svg>

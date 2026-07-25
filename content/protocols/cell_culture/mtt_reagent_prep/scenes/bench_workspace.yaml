@@ -15,9 +15,6 @@ remove_placements:
   - rear_center_pbs
   - center_water_bath
   - center_centrifuge
-  # Inherited 96-well plate is never targeted here; remove so it does not crowd
-  # the center band and squeeze the mtt_solution_tube working vessel.
-  - center_well_plate_96
   - rear_right_heat_block
 
 add_placements:

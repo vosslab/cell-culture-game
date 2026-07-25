@@ -23,8 +23,11 @@ visual_states:
       - when: carboplatin
         output: { asset_name: falcon_50ml }
   material_volume:
-    kind: composite
-    formula: fill_height(state(material_volume), capacity_ml=50)
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ml: 50
 
 capabilities: [clickable, material_container, cursor_attachable]
 

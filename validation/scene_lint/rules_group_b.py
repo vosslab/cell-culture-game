@@ -1098,33 +1098,30 @@ def check_zone_overlap(
 	dump_data: dict[str, Any],
 ) -> list[Finding]:
 	"""
-	B10: Predict zone-zone collision per SCENE_LINT_PLAN.md §B10.
+	B10: Predict zone-zone collision per SCENE_LINT_PLAN.md section B10.
 
-	For each pair of zones in the scene, checks if their bounds rects have
+	For each pair of rendered zones, checks if their bounds rects have
 	a non-zero intersection area. Overlapping zones cause cross-zone collisions
-	per spec §10. This rule has NO SIM dependency (static geometry on zone
-	bounds); it is included here for cohesion with Group B even though it
-	could run in Group A. B10 is asserted (in unit test) to not invoke dump.
+	per spec §10. Zone geometry belongs to the rendered dump, never source YAML.
 
 	Per the rule spec:
 	  For each pair (Za, Zb) in scene.zones:
 	    if area(Za.bounds &cap; Zb.bounds) > 0: ESCAPE_REQUIRED
 
 	Args:
-		scene: Parsed scene YAML dict (uses scene.zones directly).
+		scene: Parsed source YAML dict, unused because it carries no geometry.
 		scene_name: Scene name string for finding attribution.
-		dump_data: Output of dump_scene_geometry() (not used; kept for API parity).
+		dump_data: Output of dump_scene_geometry(), including computed zones.
 
 	Returns:
 		List of ESCAPE_REQUIRED findings, one per overlapping zone pair.
 	"""
 	findings: list[Finding] = []
 
-	# Scenes without zones (e.g. row-slot format) emit nothing; this is not a
-	# B10 failure mode. zone_name and bounds are required per SCENE_DESIGN_CHECKLIST
-	# rule 25 (_name suffix on authored handles); missing fields would have already
-	# been flagged by Group A scene_base_validator.
-	zones = scene.get('zones', [])
+	# The source scene is intentionally not inspected here. Computed zones are
+	# emitted by the real TypeScript layout pipeline and loaded by dump.py.
+	_ = scene
+	zones = dump_data.get('zones', [])
 	n = len(zones)
 
 	# Check every pair of zones.
@@ -1133,8 +1130,8 @@ def check_zone_overlap(
 			zone_a = zones[i]
 			zone_b = zones[j]
 
-			zone_a_name = zone_a['zone_name']
-			zone_b_name = zone_b['zone_name']
+			zone_a_name = zone_a.get('name', zone_a.get('zone_name', f'zone[{i}]'))
+			zone_b_name = zone_b.get('name', zone_b.get('zone_name', f'zone[{j}]'))
 
 			bounds_a = zone_a['bounds']
 			bounds_b = zone_b['bounds']

@@ -1,6 +1,6 @@
 // test_svg_id_namespacing.spec.ts
 //
-// M1 verification: per-render-instance SVG id namespacing.
+// Per-render-instance SVG id namespacing verification.
 //
 // Converted from the library-model tests/playwright/test_svg_id_namespacing.mjs
 // (that .mjs stays in place this phase; the batch migration reconciles the set).
@@ -22,7 +22,7 @@
 //      cross-clip, the same markup injected twice with different keys does not
 //      collide, <style> text url(#id) is rewritten, and there are no duplicate
 //      ids among injected SVG descendants. There is no bundled SVG_REGISTRY
-//      after the M5 cutover; namespacing mechanics are proven on inline markup.
+//      in this runtime; namespacing mechanics are proven on inline markup.
 //
 //   2. Integration layer: loads the four real wedge pages from dist/ under a
 //      GitHub-Pages-style repo subpath in Firefox, asserts no duplicate ids
@@ -61,12 +61,6 @@ type ServerHandle = {
 //============================================
 // Small helpers
 //============================================
-
-// A polite random settle delay before screenshot steps (repo style: add a
-// small random delay before network/screenshot steps).
-function randomSettleMs(): number {
-  return 120 + Math.floor(Math.random() * 180);
-}
 
 function ensureArtifactDir(): void {
   fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
@@ -400,6 +394,216 @@ function runUnitChecksInPage(): UnitReport {
   return out;
 }
 
+// Exercise the anchor material renderer through the real injection seam. The
+// assertions are lifecycle behavior: the same stable overlay rect is hidden on
+// clear and error, then reused on recovery; the injection boundary applies the
+// concrete local clip reference rather than material code rebuilding it.
+function runAnchorMaterialLifecycleChecksInPage(): UnitReport {
+  const H = (window as unknown as { svgHarness: Record<string, unknown> }).svgHarness;
+  const out: UnitReport = { ok: true, failures: [], samples: {} };
+
+  function fail(message: string): void {
+    out.ok = false;
+    out.failures.push(message);
+  }
+
+  type AnchorEffect = {
+    type: "anchor_material";
+    field_name: string;
+    render_effect: "fill_height";
+    target: "anchor_liquid_bounds" | "subpart_geometry";
+    clip: "anchor_liquid_clip";
+    fill_percent: number;
+    material_name: string;
+    color: string;
+  };
+  type SvgAnchorHandle = {
+    element: Element;
+    applyClipPath(target: SVGElement): void;
+  };
+  const inject = H.injectSvgMarkupInto as (
+    host: HTMLDivElement,
+    asset: string,
+    markup: string,
+    key: string,
+  ) => void;
+  const render = H.renderAnchorMaterialEffects as (
+    host: HTMLElement,
+    effects: readonly AnchorEffect[],
+  ) => void;
+  const resolve = H.resolveSvgAnchor as (
+    host: HTMLElement,
+    bareTarget: string,
+  ) => SvgAnchorHandle | null;
+
+  const markup =
+    "<svg xmlns='http://www.w3.org/2000/svg'><defs>" +
+    "<clipPath id='anchor_liquid_clip'><rect x='2' y='4' width='10' height='20'/></clipPath>" +
+    "</defs><rect id='anchor_liquid_bounds' x='2' y='4' width='10' height='20' display='none'/>" +
+    "<g id='overlay_root'></g><path id='foreground_identity' d='M0 0h1v1z'/>" +
+    "</svg>";
+  const host = document.createElement("div");
+  document.body.appendChild(host);
+  inject(host, "vessel", markup, "scene__vessel");
+
+  const visible: AnchorEffect = {
+    type: "anchor_material",
+    field_name: "material_volume",
+    render_effect: "fill_height",
+    target: "anchor_liquid_bounds",
+    clip: "anchor_liquid_clip",
+    fill_percent: 50,
+    material_name: "pbs",
+    color: "#076dad",
+  };
+  render(host, [visible]);
+  const overlayGroup = host.querySelector("[data-anchor-material-overlay='true']");
+  const overlayRoot = resolve(host, "overlay_root")?.element;
+  const foregroundIdentity = resolve(host, "foreground_identity")?.element;
+  if (!(overlayGroup instanceof SVGGElement) || !(overlayRoot instanceof SVGGElement)) {
+    fail("overlay_root fixture did not create an SVG overlay group");
+    return out;
+  }
+  if (overlayGroup.parentNode !== overlayRoot) {
+    fail("material overlay did not mount inside the authored overlay_root");
+  }
+  if (
+    !(foregroundIdentity instanceof SVGPathElement) ||
+    (overlayGroup.compareDocumentPosition(foregroundIdentity) &
+      Node.DOCUMENT_POSITION_FOLLOWING) ===
+      0
+  ) {
+    fail("material overlay does not remain before the foreground identity marker");
+  }
+  const firstRect = host.querySelector("[data-anchor-material-field='material_volume']");
+  if (!(firstRect instanceof SVGRectElement)) {
+    fail("visible material effect did not create a stable SVG rect");
+    return out;
+  }
+  if (firstRect.getAttribute("display") !== "inline") {
+    fail("visible material effect was not displayed");
+  }
+  const clipPath = firstRect.getAttribute("clip-path");
+  if (clipPath === null) {
+    fail("injection seam did not apply a concrete local clip reference");
+  } else {
+    const clipId = clipPath.match(/^url\(#([^)]*)\)$/)?.[1];
+    const clipTarget = firstRect.ownerSVGElement?.querySelector(`[id="${clipId}"]`);
+    if (clipId === undefined || clipTarget === null) {
+      fail("material clip reference does not resolve inside its own SVG instance");
+    }
+  }
+
+  const clipAnchor = resolve(host, "anchor_liquid_clip");
+  const seamProbe = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+  if (clipAnchor === null) {
+    fail("injection seam could not resolve the bare clip anchor");
+  } else {
+    clipAnchor.applyClipPath(seamProbe);
+    if (seamProbe.getAttribute("clip-path") !== firstRect.getAttribute("clip-path")) {
+      fail("injection seam did not own the concrete clip-path reference");
+    }
+  }
+
+  render(host, []);
+  if (firstRect.getAttribute("display") !== "none") {
+    fail("clearing effects left a stale visible material fill");
+  }
+
+  render(host, [{ ...visible, fill_percent: 25, color: "#cc0066" }]);
+  const recoveredRect = host.querySelector("[data-anchor-material-field='material_volume']");
+  if (recoveredRect !== firstRect) {
+    fail("material recovery replaced the static overlay rect");
+  }
+  if (
+    firstRect.getAttribute("display") !== "inline" ||
+    firstRect.getAttribute("fill") !== "#cc0066"
+  ) {
+    fail("material recovery did not update the existing overlay rect");
+  }
+  if (host.querySelector("[data-anchor-material-overlay='true']") !== overlayGroup) {
+    fail("material recovery replaced the authored overlay group");
+  }
+
+  let errorSeen = false;
+  try {
+    render(host, [{ ...visible, target: "subpart_geometry" }]);
+  } catch {
+    errorSeen = true;
+  }
+  if (!errorSeen) {
+    fail("invalid anchor effect did not fail loudly");
+  }
+  if (firstRect.getAttribute("display") !== "none") {
+    fail("a failed effect left the prior material fill visible");
+  }
+  out.samples.overlayNodeStable = recoveredRect === firstRect;
+
+  inject(host, "vessel", markup, "scene__vessel_reinjected");
+  render(host, [visible]);
+  const reinjectedGroup = host.querySelector("[data-anchor-material-overlay='true']");
+  const reinjectedRoot = resolve(host, "overlay_root")?.element;
+  if (!(reinjectedGroup instanceof SVGGElement) || !(reinjectedRoot instanceof SVGGElement)) {
+    fail("reinjected SVG fixture did not recreate an SVG overlay group");
+  } else if (reinjectedGroup === overlayGroup || reinjectedGroup.parentNode !== reinjectedRoot) {
+    fail("reinjected SVG did not recreate the material overlay below its new overlay_root");
+  }
+
+  const fallbackMarkup =
+    "<svg xmlns='http://www.w3.org/2000/svg'><defs>" +
+    "<clipPath id='anchor_liquid_clip'><rect x='2' y='4' width='10' height='20'/></clipPath>" +
+    "</defs><rect id='anchor_liquid_bounds' x='2' y='4' width='10' height='20' display='none'/>" +
+    "</svg>";
+  const fallbackHost = document.createElement("div");
+  document.body.appendChild(fallbackHost);
+  inject(fallbackHost, "legacy_vessel", fallbackMarkup, "scene__legacy_vessel");
+  render(fallbackHost, [visible]);
+  const fallbackSvg = fallbackHost.querySelector("svg");
+  const fallbackGroup = fallbackHost.querySelector("[data-anchor-material-overlay='true']");
+  if (!(fallbackSvg instanceof SVGSVGElement) || !(fallbackGroup instanceof SVGGElement)) {
+    fail("legacy SVG fixture did not create an SVG root overlay group");
+  } else if (fallbackGroup.parentNode !== fallbackSvg) {
+    fail("legacy SVG without overlay_root did not retain the root-overlay fallback");
+  }
+
+  const invalidRootMarkup =
+    "<svg xmlns='http://www.w3.org/2000/svg'><defs>" +
+    "<clipPath id='anchor_liquid_clip'><rect x='2' y='4' width='10' height='20'/></clipPath>" +
+    "</defs><rect id='anchor_liquid_bounds' x='2' y='4' width='10' height='20' display='none'/>" +
+    "<rect id='overlay_root' x='0' y='0' width='1' height='1'/></svg>";
+  const invalidRootHost = document.createElement("div");
+  document.body.appendChild(invalidRootHost);
+  inject(invalidRootHost, "invalid_root", invalidRootMarkup, "scene__invalid_root");
+  let invalidRootError = false;
+  try {
+    render(invalidRootHost, [visible]);
+  } catch {
+    invalidRootError = true;
+  }
+  if (!invalidRootError) {
+    fail("a non-group overlay_root did not fail loudly");
+  }
+
+  const foreignRootMarkup =
+    "<svg xmlns='http://www.w3.org/2000/svg'><defs>" +
+    "<clipPath id='anchor_liquid_clip'><rect x='2' y='4' width='10' height='20'/></clipPath>" +
+    "</defs><rect id='anchor_liquid_bounds' x='2' y='4' width='10' height='20' display='none'/>" +
+    "<svg><g id='overlay_root'></g></svg></svg>";
+  const foreignRootHost = document.createElement("div");
+  document.body.appendChild(foreignRootHost);
+  inject(foreignRootHost, "foreign_root", foreignRootMarkup, "scene__foreign_root");
+  let foreignRootError = false;
+  try {
+    render(foreignRootHost, [visible]);
+  } catch {
+    foreignRootError = true;
+  }
+  if (!foreignRootError) {
+    fail("an overlay_root from another SVG root did not fail loudly");
+  }
+  return out;
+}
+
 type WedgeReport = {
   ok: boolean;
   failures: string[];
@@ -461,7 +665,7 @@ type NegativeReport = { ok: boolean; failures: string[] };
 
 // Negative-path checks: injectSvgMarkupInto must throw loudly for each invalid
 // markup case. Uses the harness-exposed injectRawMarkup helper to feed raw
-// markup through all guards. There is no missing-key case after the M5 cutover:
+// markup through all guards. There is no missing-key case:
 // markup is passed by value, never looked up by key. Each check captures the
 // thrown error message and verifies the expected stable prefix substring.
 function runNegativePathChecksInPage(): NegativeReport {
@@ -660,6 +864,30 @@ test.describe("svg id namespacing", () => {
     await page.close();
   });
 
+  test("unit: anchor material overlay hides stale state and recovers through injection seam", async () => {
+    const page = await browser.newPage({ viewport: { width: 800, height: 600 } });
+    const errors: string[] = [];
+    page.on("pageerror", (e) => errors.push(String(e)));
+    await page.goto(`${serverHandle.base}/harness/`, { waitUntil: "load" });
+    await page.waitForFunction(
+      () => (window as unknown as { svgHarness?: unknown }).svgHarness !== undefined,
+      {
+        timeout: 5000,
+      },
+    );
+
+    const report = await page.evaluate(runAnchorMaterialLifecycleChecksInPage);
+    if (report.failures.length > 0) {
+      console.error("ANCHOR MATERIAL FAILURES:\n  " + report.failures.join("\n  "));
+    }
+    expect(errors, `page errors: ${errors.join("; ")}`).toEqual([]);
+    expect(
+      report.ok,
+      `anchor material lifecycle checks failed: ${report.failures.join("; ")}`,
+    ).toBe(true);
+    await page.close();
+  });
+
   test("integration: four wedge pages render cleanly with no duplicate injected-SVG ids", async () => {
     for (const slug of WEDGE_PAGES) {
       const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
@@ -668,18 +896,12 @@ test.describe("svg id namespacing", () => {
       const url = `${serverHandle.base}/${REPO_SUBPATH}/${slug}.html`;
       await page.goto(url, { waitUntil: "networkidle" });
       await page.waitForSelector("[data-placement-name] svg", { timeout: 8000 });
-      await page.waitForTimeout(randomSettleMs());
+      await page.waitForFunction(() => document.fonts.status === "loaded");
 
-      // before/after screenshots (state does not change here, but the contract
-      // asks for evidence before and after the meaningful read; the "after" shot
-      // is taken post-settle so any late render is captured).
-      await page.screenshot({ path: path.join(ARTIFACT_DIR, `wedge_${slug}_before.png`) });
+      await page.screenshot({ path: path.join(ARTIFACT_DIR, `wedge_${slug}.png`) });
 
       const wedge = await page.evaluate(runWedgePageChecksInPage);
       const shaker = await page.evaluate(runShakerClipCheckInPage);
-
-      await page.waitForTimeout(randomSettleMs());
-      await page.screenshot({ path: path.join(ARTIFACT_DIR, `wedge_${slug}_after.png`) });
 
       if (wedge.failures.length > 0) {
         console.error(`[${slug}] WEDGE FAILURES:\n  ` + wedge.failures.join("\n  "));

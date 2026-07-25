@@ -1,0 +1,43 @@
+object_name: electrophoresis_inner_chamber
+kind: equipment
+label: Inner buffer chamber
+
+state_fields:
+  - field_name: material_name
+    type: enum
+    allowed: [empty, running_buffer_1x, running_buffer_1x_used]
+    default: empty
+    description: Contents currently in the inner electrophoresis buffer chamber.
+  - field_name: material_volume
+    type: float
+    unit: ml
+    min: 0
+    max: 800
+    default: 0
+    description: Buffer volume currently in the inner chamber, in milliliters.
+
+visual_states:
+  material_name:
+    kind: svg
+    cases:
+      - when: empty
+        output: { asset_name: electrophoresis_tank_inner_chamber }
+      - when: running_buffer_1x
+        output: { asset_name: electrophoresis_tank_inner_chamber }
+      - when: running_buffer_1x_used
+        output: { asset_name: electrophoresis_tank_inner_chamber }
+  material_volume:
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ml: 800
+
+capabilities: [clickable, material_container]
+
+layout:
+  default_width: 18
+  # Enlarged in its focused protocol scenes so students can read the inner
+  # reservoir as a distinct compartment rather than infer it from tank context.
+  display_width_cm: 28
+  label_width: 13

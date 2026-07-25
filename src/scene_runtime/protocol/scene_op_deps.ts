@@ -8,18 +8,17 @@
 //
 // Mapping (PRIMARY_SPEC.md "Scene operations"):
 //   - ObjectStateChange -> scene_store.set_object_state (partial merge of
-//     declared state fields; subpart targets like "plate.A1" are seeded on
-//     first write since the subpart instance set is not enumerable from the
-//     PipelineResult).
+//     declared state fields; mounted scenes seed declared subparts up front,
+//     with first-write seeding retained as a no-op safety net).
 //   - CursorAttach      -> scene_store.set_cursor (attach/detach). The op
 //     carries no material, so only the cursor_attached flag is driven; held
 //     material is set by an ObjectStateChange on the held tool's
 //     held_material_* fields.
 //   - SceneChange       -> re-render the target scene through the same
-//     generated YAML pipeline as the initial mount, applying the reset policy
-//     (scene-local vessel state clears; cursor-held tool/material persists;
-//     active-target + selected flags clear; subpart state clears on leaving
-//     the scene) and disposing the prior Solid root.
+//     generated YAML pipeline as the initial mount. Exact target identities
+//     present in both scenes retain declared state; new targets seed defaults;
+//     absent targets drop; transient flags reset; cursor-held tool/material is
+//     then restored for a carried target.
 //   - LayoutMove        -> fails loudly until the layout engine exposes a
 //     placement-override write surface. Accepting an operation without moving
 //     the object would report false success.
@@ -27,9 +26,9 @@
 //     layer and delegates elapsed scheduling to the host.
 //
 // References:
-//   - docs/PRIMARY_SPEC.md (scene operations, reset policy)
+//   - docs/PRIMARY_SPEC.md (scene operations)
 //   - docs/active_plans/active/ (LayoutMove Option A decision,
-//     reset policy test matrix, walker debug surface)
+//     walker debug surface)
 //   - src/scene_runtime/state/scene_store.ts (store API)
 //   - src/scene_runtime/protocol/scene_operations.ts (SceneOpDeps interface)
 
@@ -45,12 +44,12 @@ import { expand_subpart_group_target } from "../state/subpart_group_expand.js";
 import type { SceneOpDeps } from "./scene_operations.js";
 
 //============================================
-// Cursor-held snapshot (reset-policy carry)
+// Cursor-held snapshot (transition carry)
 //============================================
 
-// One cursor-held target carried across a SceneChange. The reset policy keeps
-// cursor-held tool + held material; everything else (vessel state, flags,
-// subpart state) is dropped by reseeding the next scene's targets.
+// One cursor-held target carried across a SceneChange. Declared object state is
+// reconciled by the store; cursor attachment lives in transient runtime flags,
+// so it is snapshotted separately and restored after the scene mount.
 interface CursorCarry {
   target: string;
   held_material_name: string | null;
@@ -58,7 +57,7 @@ interface CursorCarry {
 }
 
 // Capture every cursor-attached target's held state from the store so it can
-// be reapplied after a SceneChange reseed. Reads only; no mutation.
+// be reapplied after SceneChange reconciliation. Reads only; no mutation.
 function snapshot_cursor_carry(store: SceneStore): CursorCarry[] {
   const carry: CursorCarry[] = [];
   for (const target of Object.keys(store.state)) {
@@ -95,11 +94,10 @@ function object_segment(target: string): string {
 // Build the store-driven SceneOpDeps.
 //
 // store              the reactive scene store shared with the Solid renderer.
-// render_scene       re-render a named scene into the scene root, applying the
-//                    reset policy. The caller (protocol_host) owns the actual
-//                    pipeline + mountScene call and the prior-root dispose; it
-//                    passes a closure that performs the reseed-and-mount. The
-//                    cursor carry is applied here AFTER that closure runs.
+// render_scene       re-render a named scene into the scene root. The caller
+//                    (protocol_host) owns reconciliation, mountScene, and the
+//                    prior-root dispose. Cursor carry is applied here AFTER
+//                    that closure runs.
 export function build_store_scene_op_deps(
   store: SceneStore,
   render_scene: (scene_name: string) => void,
@@ -125,10 +123,9 @@ export function build_store_scene_op_deps(
       // special-cased.
       const write_targets = expand_subpart_group_target(op.target);
       for (const write_target of write_targets) {
-        // Subpart targets ("treatment_plate.A1") are not enumerated from the
-        // PipelineResult, so seed the subpart instance on first write before the
-        // partial-merge. The seed uses the object segment as the object_name so
-        // the store resolves the subpart state schema.
+        // Mounted scenes seed declared subparts in build_seed_list. Retain this
+        // idempotent first-write seed as a safety net for valid targets reached
+        // outside normal mounting; it never resets an existing target.
         const obj = object_segment(write_target);
         if (write_target !== obj) {
           // Subpart target: ensure the instance is seeded WITHOUT disturbing any
@@ -164,11 +161,9 @@ export function build_store_scene_op_deps(
 
     //----------------------------------------
     apply_scene_change(op: SceneChangeOp): void {
-      // Reset policy: capture cursor-held tool/material BEFORE the reseed, run
-      // the caller's reseed-and-mount (which drops scene-local vessel state,
-      // active-target/selected flags, and subpart state via seed_from_scene),
-      // then reapply the cursor carry so the held tool/material survives the
-      // transition.
+      // Capture cursor-held tool/material BEFORE reconciliation resets runtime
+      // flags, then reapply it after the caller mounts the new scene. Declared
+      // state continuity and the destination target set are owned by the store.
       const carry = snapshot_cursor_carry(store);
       render_scene(op.to_scene);
       for (const c of carry) {

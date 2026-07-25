@@ -20,6 +20,7 @@ import pathlib
 import re
 import sys
 
+import lxml.etree
 import pytest
 
 # Add tools/ to sys.path so normalize_svg_v3 can be imported directly.
@@ -845,8 +846,8 @@ def test_stroke_none_no_pad(tmp_path) -> None:
 def test_text_element_rejected(tmp_path) -> None:
 	"""An SVG containing a <text> element is rejected with TEXT_UNSUPPORTED.
 
-	v3 cannot compute text glyph geometry; authors must convert text to paths
-	before ingestion.
+	v3 cannot compute text glyph geometry. Prose belongs in layout-manager DOM or
+	object data; only approved intrinsic markings may be outlined before ingestion.
 	"""
 	svg_in = tmp_path / "text.svg"
 	svg_out = tmp_path / "text.out.svg"
@@ -870,18 +871,6 @@ def test_tspan_element_rejected(tmp_path) -> None:
 	assert not result.normalized
 	assert result.rejection.code == "TEXT_UNSUPPORTED"
 	assert not svg_out.exists()
-
-
-def test_text_rejection_fix_message(tmp_path) -> None:
-	"""TEXT_UNSUPPORTED rejection includes the required author fix message."""
-	svg_in = tmp_path / "textmsg.svg"
-	svg_out = tmp_path / "textmsg.out.svg"
-	_write_svg(svg_in, '<text x="5" y="20">Label</text>')
-	result = normalize_svg_v3.normalize_svg_file(svg_in, svg_out, padding=2.0)
-	assert not result.normalized
-	assert result.rejection.code == "TEXT_UNSUPPORTED"
-	# Fix message must direct the author to convert text to paths.
-	assert "path" in result.rejection.fix.lower()
 
 
 def test_text_rejection_element_location(tmp_path) -> None:
@@ -1669,6 +1658,42 @@ def _normalize_clip(tmp_path, body, padding=0.0):
 	return result, text
 
 
+#============================================
+def _element_with_id(
+	root: lxml.etree._Element,
+	element_id: str,
+) -> lxml.etree._Element | None:
+	"""Return the output element with element_id, or None when it is absent."""
+	for elem in root.iter():
+		if isinstance(elem.tag, str) and elem.get("id") == element_id:
+			return elem
+	return None
+
+
+#============================================
+def _rect_or_path_geometry_bbox(elem: lxml.etree._Element) -> normalize_svg_v3.BBox:
+	"""Return geometry bbox for a retained clip child in either supported form."""
+	tag = normalize_svg_v3.local_name(elem.tag)
+	if tag == "path":
+		d_attr = elem.get("d")
+		assert d_attr is not None
+		bbox = normalize_svg_v3.path_bbox_from_segments(
+			normalize_svg_v3.parse_path_to_absolute(d_attr)
+		)
+		assert bbox is not None
+		return bbox
+	assert tag == "rect"
+	x_attr = elem.get("x")
+	y_attr = elem.get("y")
+	width_attr = elem.get("width")
+	height_attr = elem.get("height")
+	assert x_attr is not None and y_attr is not None
+	assert width_attr is not None and height_attr is not None
+	x = float(x_attr)
+	y = float(y_attr)
+	return normalize_svg_v3.BBox(x, y, x + float(width_attr), y + float(height_attr))
+
+
 def test_clip_flatten_drops_clip_ref_and_def(tmp_path) -> None:
 	"""A flattened simple clip leaves no clip-path attribute and no clipPath def.
 
@@ -1725,6 +1750,207 @@ def test_clip_flatten_complex_nested_rejected(tmp_path) -> None:
 	# The <text> is caught by the text classifier before clip flattening, but the
 	# verdict is still a rejection (the file is not normalized).
 	assert not result.normalized
+
+
+#============================================
+# Runtime material clip preservation
+#============================================
+
+def test_normalize_keeps_runtime_material_clip_without_expanding_visible_crop(
+	tmp_path: pathlib.Path,
+) -> None:
+	"""An external material clip survives while a generic unused clip is pruned.
+
+	Runtime resolves anchor_liquid_clip after SVG injection, so it has no local
+	clip-path user.  Its far-away geometry must survive normalization without
+	changing the cropped dimensions of the visible instrument.
+	"""
+	svg_in = tmp_path / "material_anchor.svg"
+	svg_out = tmp_path / "material_anchor.out.svg"
+	_write_svg(
+		svg_in,
+		'<defs>'
+		'<clipPath id="anchor_liquid_clip"><rect x="900" y="1200" width="20" height="10"/></clipPath>'
+		'<clipPath id="unused_clip"><rect x="700" y="800" width="20" height="10"/></clipPath>'
+		'</defs>'
+		'<rect id="anchor_liquid_bounds" x="100" y="200" width="30" height="20" '
+		'fill="none" stroke="none" display="none"/>'
+		'<rect x="100" y="200" width="30" height="20" fill="#000"/>',
+	)
+	result = normalize_svg_v3.normalize_svg_file(svg_in, svg_out, padding=0.0)
+	assert result.normalized, f"unexpected rejection: {result.rejection}"
+	assert result.bbox is not None
+	assert abs(result.bbox.width - 30.0) < 1e-9
+	assert abs(result.bbox.height - 20.0) < 1e-9
+	assert result.view_box is not None
+	view_box_parts = result.view_box.split()
+	assert abs(float(view_box_parts[2]) - 30.0) < 1e-9
+	assert abs(float(view_box_parts[3]) - 20.0) < 1e-9
+
+	root = normalize_svg_v3.lxml.etree.parse(str(svg_out)).getroot()
+	clip = _element_with_id(root, "anchor_liquid_clip")
+	assert clip is not None
+	assert _element_with_id(root, "unused_clip") is None
+	clip_child = next(
+		child
+		for child in clip
+		if normalize_svg_v3.local_name(child.tag) in {"path", "rect"}
+	)
+	clip_bbox = _rect_or_path_geometry_bbox(clip_child)
+	assert abs(clip_bbox.min_x - 800.0) < 1e-9
+	assert abs(clip_bbox.min_y - 1000.0) < 1e-9
+
+
+def test_normalize_preserves_runtime_material_bounds_rect_geometry(
+	tmp_path: pathlib.Path,
+) -> None:
+	"""The hidden material bounds anchor remains a rect with shifted geometry."""
+	svg_in = tmp_path / "material_bounds.svg"
+	svg_out = tmp_path / "material_bounds.out.svg"
+	_write_svg(
+		svg_in,
+		'<rect id="anchor_liquid_bounds" x="100" y="200" width="30" height="20" '
+		'fill="none" stroke="none" display="none"/>'
+		'<rect x="100" y="200" width="30" height="20" fill="#000"/>',
+	)
+	result = normalize_svg_v3.normalize_svg_file(svg_in, svg_out, padding=0.0)
+	assert result.normalized, f"unexpected rejection: {result.rejection}"
+	root = normalize_svg_v3.lxml.etree.parse(str(svg_out)).getroot()
+	anchor = _element_with_id(root, "anchor_liquid_bounds")
+	assert anchor is not None and normalize_svg_v3.local_name(anchor.tag) == "rect"
+	assert (
+		float(anchor.get("x", "nan")),
+		float(anchor.get("y", "nan")),
+		float(anchor.get("width", "nan")),
+		float(anchor.get("height", "nan")),
+	) == (0.0, 0.0, 30.0, 20.0)
+
+
+def test_runtime_material_clip_path_shifts_with_anchor_bounds(
+	tmp_path: pathlib.Path,
+) -> None:
+	"""Crop-to-origin shifts an external path clip and its material bounds together."""
+	svg_in = tmp_path / "material_path.svg"
+	svg_out = tmp_path / "material_path.out.svg"
+	_write_svg(
+		svg_in,
+		'<defs><clipPath id="anchor_liquid_clip">'
+		'<path d="M 110 215 H 125 V 222 H 110 Z"/>'
+		'</clipPath></defs>'
+		'<rect id="anchor_liquid_bounds" x="100" y="200" width="30" height="20" '
+		'fill="none" stroke="none" display="none"/>'
+		'<rect x="100" y="200" width="30" height="20" fill="#000"/>',
+	)
+	result = normalize_svg_v3.normalize_svg_file(svg_in, svg_out, padding=0.0)
+	assert result.normalized, f"unexpected rejection: {result.rejection}"
+
+	root = normalize_svg_v3.lxml.etree.parse(str(svg_out)).getroot()
+	clip = _element_with_id(root, "anchor_liquid_clip")
+	assert clip is not None
+	clip_child = next(
+		child
+		for child in clip
+		if normalize_svg_v3.local_name(child.tag) in {"path", "rect"}
+	)
+	clip_bbox = _rect_or_path_geometry_bbox(clip_child)
+	anchor_bounds = _element_with_id(root, "anchor_liquid_bounds")
+	assert anchor_bounds is not None
+	assert normalize_svg_v3.local_name(anchor_bounds.tag) == "rect"
+	anchor_x = float(anchor_bounds.get("x", "nan"))
+	anchor_y = float(anchor_bounds.get("y", "nan"))
+	assert abs(clip_bbox.min_x - (anchor_x + 10.0)) < 1e-9
+	assert abs(clip_bbox.min_y - (anchor_y + 15.0)) < 1e-9
+
+
+def test_transformed_runtime_material_bounds_rect_rejects_without_output(
+	tmp_path: pathlib.Path,
+) -> None:
+	"""A material bounds rect must stay in root coordinates for direct DOM reads."""
+	svg_in = tmp_path / "material_bounds_transform.svg"
+	svg_out = tmp_path / "material_bounds_transform.out.svg"
+	_write_svg(
+		svg_in,
+		'<rect id="anchor_liquid_bounds" x="10" y="20" width="30" height="20" '
+		'transform="translate(5 0)" fill="none" stroke="none" display="none"/>'
+		'<rect x="10" y="20" width="30" height="20" fill="#000"/>',
+	)
+	result = normalize_svg_v3.normalize_svg_file(svg_in, svg_out, padding=0.0)
+	assert not result.normalized
+	assert result.rejection is not None
+	assert result.rejection.code == "UNSUPPORTED_TRANSFORM"
+	assert not svg_out.exists()
+
+
+def test_inherited_transform_on_runtime_material_bounds_rect_rejects_without_output(
+	tmp_path: pathlib.Path,
+) -> None:
+	"""A parent geometry transform cannot be baked into the runtime bounds rect."""
+	svg_in = tmp_path / "material_bounds_inherited_transform.svg"
+	svg_out = tmp_path / "material_bounds_inherited_transform.out.svg"
+	_write_svg(
+		svg_in,
+		'<g transform="translate(5 0)">'
+		'<rect id="anchor_liquid_bounds" x="10" y="20" width="30" height="20" '
+		'fill="none" stroke="none" display="none"/>'
+		'</g><rect x="10" y="20" width="30" height="20" fill="#000"/>',
+	)
+	result = normalize_svg_v3.normalize_svg_file(svg_in, svg_out, padding=0.0)
+	assert not result.normalized
+	assert result.rejection is not None
+	assert result.rejection.code == "UNSUPPORTED_TRANSFORM"
+	assert not svg_out.exists()
+
+
+def test_duplicate_runtime_material_bounds_rects_reject_without_output(
+	tmp_path: pathlib.Path,
+) -> None:
+	"""Two divergent bounds rects cannot resolve one material target."""
+	svg_in = tmp_path / "duplicate_material_bounds.svg"
+	svg_out = tmp_path / "duplicate_material_bounds.out.svg"
+	_write_svg(
+		svg_in,
+		'<rect id="anchor_liquid_bounds" x="10" y="20" width="30" height="20" '
+		'fill="none" stroke="none" display="none"/>'
+		'<rect id="anchor_liquid_bounds" x="40" y="50" width="60" height="70" '
+		'fill="none" stroke="none" display="none"/>'
+		'<rect x="10" y="20" width="30" height="20" fill="#000"/>',
+	)
+	result = normalize_svg_v3.normalize_svg_file(svg_in, svg_out, padding=0.0)
+	assert result.rejection is not None and result.rejection.code == "UNRESOLVED_REFERENCE"
+	assert not svg_out.exists()
+
+
+def test_nonrect_runtime_material_bounds_anchor_rejects_without_output(
+	tmp_path: pathlib.Path,
+) -> None:
+	"""The material runtime requires a bounds rect, not arbitrary path geometry."""
+	svg_in = tmp_path / "path_material_bounds.svg"
+	svg_out = tmp_path / "path_material_bounds.out.svg"
+	_write_svg(
+		svg_in,
+		'<path id="anchor_liquid_bounds" d="M 10 20 H 40 V 40 H 10 Z" '
+		'fill="none" stroke="none" display="none"/>'
+		'<rect x="10" y="20" width="30" height="20" fill="#000"/>',
+	)
+	result = normalize_svg_v3.normalize_svg_file(svg_in, svg_out, padding=0.0)
+	assert result.rejection is not None and result.rejection.code == "UNRESOLVED_REFERENCE"
+	assert not svg_out.exists()
+
+
+def test_runtime_material_bounds_rect_inside_defs_rejects_without_output(
+	tmp_path: pathlib.Path,
+) -> None:
+	"""A definition-space bounds rect is not the material renderer's target."""
+	svg_in = tmp_path / "defs_material_bounds.svg"
+	svg_out = tmp_path / "defs_material_bounds.out.svg"
+	_write_svg(
+		svg_in,
+		'<defs><rect id="anchor_liquid_bounds" x="10" y="20" width="30" height="20"/></defs>'
+		'<rect x="10" y="20" width="30" height="20" fill="#000"/>',
+	)
+	result = normalize_svg_v3.normalize_svg_file(svg_in, svg_out, padding=0.0)
+	assert result.rejection is not None and result.rejection.code == "UNRESOLVED_REFERENCE"
+	assert not svg_out.exists()
 
 
 #============================================

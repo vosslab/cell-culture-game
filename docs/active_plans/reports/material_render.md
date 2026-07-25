@@ -1,327 +1,727 @@
-# Material-render regression guard report
+# Material rendering evidence
 
-This report explains what the material-render test learned, not just whether it passed.
-It records how much of each `fill_height()` overlay's item bbox the overlay paints, and
-uses that geometry as a regression guard. It does not claim that any measured percentage
-is the ideal visual answer.
+This report measures the initial authored scene of each emitted protocol host, where the active protocol material registry is present. It does not use `scene_viewer.html` for material-color claims because that viewer deliberately runs without a registry.
 
-## What the test measures
+The browser capture discovers generic SVG-anchor, temporary legacy-bbox, and structured-subpart material surfaces. For each visible surface it records owner placement, driving field or subpart, material identity, computed fill, geometry, and a visible-versus-hidden pixel diff within that surface's own rendered bounds.
 
-Each item's bbox is rendered twice:
+Post-interaction material transitions are not synthesized here. They remain evidenced by visible protocol walkers, which execute the authored student path.
 
-1. once with its fill overlay(s) visible
-2. once with them hidden
+- **Mode:** verify
+- **Material surfaces observed:** 702
+- **Diff threshold:** 15 per-channel max-abs difference
+- **Footprint drift threshold:** 5.0 percentage points
+- **Relative geometry tolerance:** 1.0 percentage points
 
-The measurement is the pixel difference between those two images, isolated per driving
-field so a two-overlay object is never diffed against itself. A pixel counts toward the
-overlay area when its color changes by more than the diff threshold between the two shots.
-Glass, background, outline, and label pixels are identical in both shots and drop out by
-construction.
+## Verification summary
 
-The diff method is the important methodological result from this test run. Flat-color pixel
-matching was not reliable because the overlay color is often translucent and composited per
-pixel over the underlying art. The visible-vs-hidden diff is the robust segmentation.
+- unchanged: 702
+- regressed: 0
+- new: 0
+- missing: 0
 
-## What we learned
+## Current initial-state corpus
 
-### 1. The fill overlay currently paints the full object bbox
-
-The measured percentages show that the current fill overlay behaves like bbox coverage, not
-liquid-interior clipping. Full containers land around the mid-to-high 90s, partial containers
-land in the middle, and empty containers land at 0. That pattern is consistent with a volume
-proxy, but it also confirms the deferred bug in `docs/ROADMAP.md:183`: the overlay is not yet
-constrained to the SVG liquid interior.
-
-This is the structural issue the guard is meant to pin. The report is intentionally labeled as
-"no worse than baseline" rather than "correct rendering."
-
-### 2. The material color path is currently falling back to grey
-
-Every measured fill rendered as the same neutral grey fallback (`rgba(120, 120, 120, 0.35)`),
-not as a material identity color. That means the renderer is not showing PBS as PBS, media as
-media, waste as waste, and so on. The test did not uncover a content-authoring mistake; it
-exposed a renderer-side color-path gap.
-
-That makes the color problem distinct from the geometry problem:
-
-- geometry: how much of the bbox is being painted
-- color identity: whether the painted region is using the material's declared color at all
-
-### 3. The percentage is a coarse proxy, not a correctness proof
-
-The measured percentage tracks how high the fill rises, so it behaves like a volume proxy. It
-does not prove that the painted shape is clipped correctly, nor that the color path is correct.
-In other words, the metric can tell us when fill got bigger or smaller, but not whether the fill
-has the right interior shape or the right material identity.
-
-## Baseline status
-
-**Baseline status: `known-bad-current-state`.**
-
-Every fill_height overlay in this baseline currently paints the full object item bbox rather than
-being constrained to the SVG liquid interior. The guard only blocks this state from getting worse.
-The per-entry `tag` field stays empty and is reserved for future targeted annotation once the
-renderer fix lands.
-
-## Run summary
-
-**Mode:** verify
-**Items measured:** 231
-**Diff threshold:** 15 (per-channel max-abs-diff)
-**Regression threshold:** +5.0 percentage points above baseline
-
-| Outcome | Count |
-| --- | --- |
-| unchanged (within threshold) | 231 |
-| regressed | 0 |
-| new (no baseline entry yet) | 0 |
-| missing (baseline entry, no longer captured) | 0 |
-
-## Interpretation
-
-The test tells us two things with confidence:
-
-- the current renderer behavior is stable relative to the saved baseline
-- the renderer is still wrong in two separate ways: full-bbox fill behavior and grey fallback
-
-The test does not tell us that the current state is acceptable. It tells us that the current
-incorrect behavior is now measured and guarded.
-
-## Full measured corpus
-
-Every row below is known-bad current-state geometry. The `tag` column stays empty and is reserved
-for future targeted annotation once the render fix for `docs/ROADMAP.md:183` lands.
-
-| Key | Object | Declared fill color | Measured % | Tag |
-| --- | --- | --- | --- | --- |
-| `bench_basic::base_right_micropipette::held_material_volume` | `micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `bench_basic::rear_center_ethanol::material_volume` | `ethanol_bottle` | `rgba(120, 120, 120, 0.35)` | 96.95 | |
-| `bench_basic::rear_center_pbs::material_volume` | `pbs_bottle` | `rgba(120, 120, 120, 0.35)` | 95.16 | |
-| `bench_basic::rear_left_media_bottle::material_volume` | `media_bottle` | `rgba(120, 120, 120, 0.35)` | 97.35 | |
-| `bench_basic::rear_left_waste::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `cell_counter_basic::rear_cell_suspension_tube::material_volume` | `cell_suspension_tube` | `rgba(120, 120, 120, 0.35)` | 73.90 | |
-| `cell_counter_basic::rear_trypan_blue_tube::material_volume` | `trypan_blue_tube` | `rgba(120, 120, 120, 0.35)` | 63.22 | |
-| `cell_counter_workspace::rear_cell_suspension_tube::material_volume` | `cell_suspension_tube` | `rgba(120, 120, 120, 0.35)` | 74.29 | |
-| `cell_counter_workspace::rear_trypan_blue_tube::material_volume` | `trypan_blue_tube` | `rgba(120, 120, 120, 0.35)` | 61.52 | |
-| `cell_counter_workspace::right_micropipette::held_material_volume` | `micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `centrifuge_workspace::base_right_micropipette::held_material_volume` | `micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `centrifuge_workspace::rear_left_conical_tube::material_volume` | `conical_15ml` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `centrifuge_workspace::rear_left_media_bottle_reseed::material_volume` | `media_bottle` | `rgba(120, 120, 120, 0.35)` | 96.13 | |
-| `centrifuge_workspace::rear_left_waste::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `centrifuge_workspace::rear_right_biohazard_decant::material_volume` | `biohazard_decant` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `centrifuge_workspace::rear_right_pbs::material_volume` | `pbs_bottle` | `rgba(120, 120, 120, 0.35)` | 94.03 | |
-| `centrifuge_workspace::right_aspirating_pipette::held_material_volume` | `aspirating_pipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `dilution_workspace::base_right_micropipette::held_material_volume` | `micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `dilution_workspace::carb_intermediate::material_volume` | `microtube_15ml_intermediate` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `dilution_workspace::carb_stock::material_volume` | `carboplatin_stock_tube` | `rgba(120, 120, 120, 0.35)` | 93.99 | |
-| `dilution_workspace::met_stock::material_volume` | `metformin_stock_tube` | `rgba(120, 120, 120, 0.35)` | 91.77 | |
-| `dilution_workspace::met_working_tube::material_volume` | `metformin_working_tube` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `dilution_workspace::rear_left_media_bottle::material_volume` | `media_bottle` | `rgba(120, 120, 120, 0.35)` | 95.72 | |
-| `dilution_workspace::rear_left_waste::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `drug_dilution_setup_bench_setup::base_right_micropipette::held_material_volume` | `micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `drug_dilution_setup_bench_setup::center_metformin_working_tube::material_volume` | `metformin_working_tube` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `drug_dilution_setup_bench_setup::center_microtube_intermediate::material_volume` | `microtube_15ml_intermediate` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `drug_dilution_setup_bench_setup::rear_center_metformin_stock::material_volume` | `metformin_stock_tube` | `rgba(120, 120, 120, 0.35)` | 94.32 | |
-| `drug_dilution_setup_bench_setup::rear_left_carboplatin_stock::material_volume` | `carboplatin_stock_tube` | `rgba(120, 120, 120, 0.35)` | 94.30 | |
-| `drug_dilution_setup_bench_setup::rear_left_waste::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `electrophoresis_bench::center_ddh2o_bottle::material_volume` | `ddh2o_bottle` | `rgba(120, 120, 120, 0.35)` | 94.25 | |
-| `electrophoresis_bench::center_p200_micropipette::held_material_volume` | `p200_micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `electrophoresis_bench::center_running_buffer_1x_carboy::material_volume` | `running_buffer_1x_carboy` | `rgba(120, 120, 120, 0.35)` | 95.55 | |
-| `electrophoresis_bench::center_serological_pipette::held_material_volume` | `serological_pipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `electrophoresis_bench::front_center_waste_container::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `electrophoresis_bench::rear_center_electrophoresis_tank::inner_chamber_material_volume` | `electrophoresis_tank` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `electrophoresis_bench::rear_center_electrophoresis_tank::outer_chamber_material_volume` | `electrophoresis_tank` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `electrophoresis_bench::rear_left_protein_ladder_tube::material_volume` | `protein_ladder_tube` | `rgba(120, 120, 120, 0.35)` | 95.10 | |
-| `electrophoresis_bench::rear_left_recycle_buffer_bottle::material_volume` | `recycle_buffer_bottle` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `electrophoresis_bench::rear_left_running_buffer_10x::material_volume` | `running_buffer_10x_bottle` | `rgba(120, 120, 120, 0.35)` | 95.77 | |
-| `extraction_workspace::center_ddh2o_bottle::material_volume` | `ddh2o_bottle` | `rgba(120, 120, 120, 0.35)` | 94.25 | |
-| `extraction_workspace::center_p200_micropipette::held_material_volume` | `p200_micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `extraction_workspace::center_running_buffer_1x_carboy::material_volume` | `running_buffer_1x_carboy` | `rgba(120, 120, 120, 0.35)` | 95.55 | |
-| `extraction_workspace::center_serological_pipette::held_material_volume` | `serological_pipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `extraction_workspace::front_center_staining_tray::material_volume` | `staining_tray` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `extraction_workspace::front_center_waste_container::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `extraction_workspace::rear_center_electrophoresis_tank::inner_chamber_material_volume` | `electrophoresis_tank` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `extraction_workspace::rear_center_electrophoresis_tank::outer_chamber_material_volume` | `electrophoresis_tank` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `extraction_workspace::rear_left_protein_ladder_tube::material_volume` | `protein_ladder_tube` | `rgba(120, 120, 120, 0.35)` | 95.10 | |
-| `extraction_workspace::rear_left_recycle_buffer_bottle::material_volume` | `recycle_buffer_bottle` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `extraction_workspace::rear_left_running_buffer_10x::material_volume` | `running_buffer_10x_bottle` | `rgba(120, 120, 120, 0.35)` | 95.77 | |
-| `heat_block_bench::front_micropipette::held_material_volume` | `micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `heat_block_bench::mid_microtube_sample::material_volume` | `microtube` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `heat_block_bench::rear_center_bme::material_volume` | `bme_tube` | `rgba(120, 120, 120, 0.35)` | 31.24 | |
-| `heat_block_bench::rear_center_laemmli::material_volume` | `laemmli_4x_tube` | `rgba(120, 120, 120, 0.35)` | 63.86 | |
-| `heat_block_bench::rear_left_protein_ladder::material_volume` | `protein_ladder_tube` | `rgba(120, 120, 120, 0.35)` | 93.55 | |
-| `heat_block_bench::rear_left_protein_sample::material_volume` | `protein_sample_tube` | `rgba(120, 120, 120, 0.35)` | 93.39 | |
-| `heat_block_bench::rear_right_ddh2o::material_volume` | `ddh2o_bottle` | `rgba(120, 120, 120, 0.35)` | 95.34 | |
-| `heat_block_bench::rear_right_waste::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `hemocytometer_view::left_cell_suspension::material_volume` | `cell_suspension_tube` | `rgba(120, 120, 120, 0.35)` | 74.01 | |
-| `hemocytometer_view::rear_ethanol_bottle::material_volume` | `ethanol_bottle` | `rgba(120, 120, 120, 0.35)` | 97.95 | |
-| `hemocytometer_view::right_microtube_left::material_volume` | `microtube` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `hemocytometer_view::staining_tubes::material_volume` | `trypan_blue_tube` | `rgba(120, 120, 120, 0.35)` | 61.42 | |
-| `hood_basic::base_rear_center_pbs::material_volume` | `pbs_bottle` | `rgba(120, 120, 120, 0.35)` | 95.47 | |
-| `hood_basic::base_rear_right_media::material_volume` | `media_bottle` | `rgba(120, 120, 120, 0.35)` | 96.17 | |
-| `hood_basic::base_rear_right_sterile_water::material_volume` | `sterile_water_bottle` | `rgba(120, 120, 120, 0.35)` | 95.49 | |
-| `hood_basic::base_right_serological_pipette::held_material_volume` | `serological_pipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `hood_basic::rear_center_waste::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `hood_basic::rear_left_ethanol::material_volume` | `ethanol_bottle` | `rgba(120, 120, 120, 0.35)` | 97.63 | |
-| `hood_basic::right_aspirating_pipette::held_material_volume` | `aspirating_pipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `hood_workspace::base_rear_center_pbs::material_volume` | `pbs_bottle` | `rgba(120, 120, 120, 0.35)` | 93.43 | |
-| `hood_workspace::center_t75_flask::material_volume` | `t75_flask` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `hood_workspace::rear_center_conical_tube::material_volume` | `conical_15ml` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `hood_workspace::rear_center_waste::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `hood_workspace::rear_left_ethanol::material_volume` | `ethanol_bottle` | `rgba(120, 120, 120, 0.35)` | 96.94 | |
-| `hood_workspace::rear_left_fresh_media::material_volume` | `media_bottle` | `rgba(120, 120, 120, 0.35)` | 95.83 | |
-| `hood_workspace::right_aspirating_pipette::held_material_volume` | `aspirating_pipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `imaging_bench::center_staining_tray::material_volume` | `staining_tray` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `imaging_bench::left_microtube::material_volume` | `microtube` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `imaging_bench::rear_coomassie::material_volume` | `coomassie_stain_bottle` | `rgba(120, 120, 120, 0.35)` | 93.73 | |
-| `imaging_bench::rear_ddh2o::material_volume` | `ddh2o_bottle` | `rgba(120, 120, 120, 0.35)` | 94.81 | |
-| `imaging_bench::rear_destain::material_volume` | `destain_bottle` | `rgba(120, 120, 120, 0.35)` | 94.84 | |
-| `imaging_bench::rear_ethanol_bottle::material_volume` | `ethanol_bottle` | `rgba(120, 120, 120, 0.35)` | 96.13 | |
-| `imaging_bench::right_micropipette::held_material_volume` | `micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `imaging_bench::right_waste_container::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `incubator_workspace::base_right_micropipette::held_material_volume` | `micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `incubator_workspace::hazard_waste_bin::material_volume` | `biohazard_decant_bin` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `incubator_workspace::mtt_solution::material_volume` | `mtt_stock_tube` | `rgba(120, 120, 120, 0.35)` | 18.64 | |
-| `incubator_workspace::pipette_multichannel::held_material_volume` | `multichannel_pipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `incubator_workspace::rear_left_waste::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `microscope_basic::left_cell_suspension::material_volume` | `cell_suspension_tube` | `rgba(120, 120, 120, 0.35)` | 72.23 | |
-| `microscope_basic::rear_ethanol_bottle::material_volume` | `ethanol_bottle` | `rgba(120, 120, 120, 0.35)` | 96.45 | |
-| `microscope_basic::right_microtube::material_volume` | `microtube` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `mtt_reagent_prep_bench_workspace::base_right_micropipette::held_material_volume` | `micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `mtt_reagent_prep_bench_workspace::center_mtt_solution_tube::material_volume` | `mtt_solution_tube` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `mtt_reagent_prep_bench_workspace::rear_center_pbs_bottle::material_volume` | `pbs_bottle` | `rgba(120, 120, 120, 0.35)` | 93.56 | |
-| `mtt_reagent_prep_bench_workspace::rear_left_mtt_powder::material_volume` | `mtt_powder_container` | `rgba(120, 120, 120, 0.35)` | 43.58 | |
-| `mtt_reagent_prep_bench_workspace::rear_left_waste::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `mtt_solubilization_readout_bench_workspace::base_right_micropipette::held_material_volume` | `micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `mtt_solubilization_readout_bench_workspace::rear_center_pbs::material_volume` | `pbs_bottle` | `rgba(120, 120, 120, 0.35)` | 95.04 | |
-| `mtt_solubilization_readout_bench_workspace::rear_left_dmso::material_volume` | `dmso_tube` | `rgba(120, 120, 120, 0.35)` | 92.70 | |
-| `mtt_solubilization_readout_bench_workspace::rear_left_waste::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `mtt_solubilization_readout_plate_reader_workspace::base_right_micropipette::held_material_volume` | `micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `mtt_solubilization_readout_plate_reader_workspace::rear_center_pbs::material_volume` | `pbs_bottle` | `rgba(120, 120, 120, 0.35)` | 95.26 | |
-| `mtt_solubilization_readout_plate_reader_workspace::rear_left_waste::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `passage_hood_detachment_hood_workspace::center_flask::material_volume` | `t75_flask` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `passage_hood_detachment_hood_workspace::rear_center_media::material_volume` | `media_bottle` | `rgba(120, 120, 120, 0.35)` | 97.50 | |
-| `passage_hood_detachment_hood_workspace::rear_center_trypsin::material_volume` | `trypsin_bottle` | `rgba(120, 120, 120, 0.35)` | 96.28 | |
-| `passage_hood_detachment_hood_workspace::rear_left_ethanol::material_volume` | `ethanol_bottle` | `rgba(120, 120, 120, 0.35)` | 96.66 | |
-| `passage_hood_detachment_hood_workspace::rear_left_pbs::material_volume` | `pbs_bottle` | `rgba(120, 120, 120, 0.35)` | 94.40 | |
-| `passage_hood_detachment_hood_workspace::right_aspirating_pipette::held_material_volume` | `aspirating_pipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `passage_hood_detachment_microscope_view::instrument_t75_flask::material_volume` | `t75_flask` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `passage_hood_detachment_microscope_view::left_cell_suspension::material_volume` | `cell_suspension_tube` | `rgba(120, 120, 120, 0.35)` | 72.28 | |
-| `plate_drug_treatment_media_adjustment_plate_workspace::base_rear_right_sterile_water::material_volume` | `sterile_water_bottle` | `rgba(120, 120, 120, 0.35)` | 96.19 | |
-| `plate_drug_treatment_media_adjustment_plate_workspace::rear_center_media::material_volume` | `media_bottle` | `rgba(120, 120, 120, 0.35)` | 97.36 | |
-| `plate_drug_treatment_media_adjustment_plate_workspace::rear_center_pbs_decor::material_volume` | `pbs_bottle` | `rgba(120, 120, 120, 0.35)` | 95.00 | |
-| `plate_drug_treatment_media_adjustment_plate_workspace::rear_center_waste_decor::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `plate_drug_treatment_media_adjustment_plate_workspace::rear_left_ethanol::material_volume` | `ethanol_bottle` | `rgba(120, 120, 120, 0.35)` | 98.20 | |
-| `plate_drug_treatment_media_adjustment_plate_workspace::right_tool_multichannel::held_material_volume` | `multichannel_pipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `plate_workspace::base_rear_right_media::material_volume` | `media_bottle` | `rgba(120, 120, 120, 0.35)` | 96.05 | |
-| `plate_workspace::base_rear_right_sterile_water::material_volume` | `sterile_water_bottle` | `rgba(120, 120, 120, 0.35)` | 95.04 | |
-| `plate_workspace::rear_center_metformin_stock::material_volume` | `metformin_working_tube` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `plate_workspace::rear_left_ethanol::material_volume` | `ethanol_bottle` | `rgba(120, 120, 120, 0.35)` | 98.77 | |
-| `plate_workspace::rear_left_pbs_decor::material_volume` | `pbs_bottle` | `rgba(120, 120, 120, 0.35)` | 94.12 | |
-| `plate_workspace::rear_right_waste_decor::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `plate_workspace::right_micropipette::held_material_volume` | `micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sample_prep_bench::center_micropipette::held_material_volume` | `micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sample_prep_bench::mid_microtube_sample::material_volume` | `microtube` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sample_prep_bench::rear_center_ddh2o::material_volume` | `ddh2o_bottle` | `rgba(120, 120, 120, 0.35)` | 96.15 | |
-| `sample_prep_bench::rear_center_laemmli::material_volume` | `laemmli_4x_tube` | `rgba(120, 120, 120, 0.35)` | 63.79 | |
-| `sample_prep_bench::rear_left_protein_ladder::material_volume` | `protein_ladder_tube` | `rgba(120, 120, 120, 0.35)` | 93.49 | |
-| `sample_prep_bench::rear_left_protein_sample::material_volume` | `protein_sample_tube` | `rgba(120, 120, 120, 0.35)` | 93.33 | |
-| `sample_prep_bench::rear_right_bme::material_volume` | `bme_tube` | `rgba(120, 120, 120, 0.35)` | 31.17 | |
-| `sample_prep_bench::rear_right_waste::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_attach_lid_and_leads_workspace::center_ddh2o_bottle::material_volume` | `ddh2o_bottle` | `rgba(120, 120, 120, 0.35)` | 94.25 | |
-| `sdspage_attach_lid_and_leads_workspace::center_p200_micropipette::held_material_volume` | `p200_micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_attach_lid_and_leads_workspace::center_running_buffer_1x_carboy::material_volume` | `running_buffer_1x_carboy` | `rgba(120, 120, 120, 0.35)` | 95.55 | |
-| `sdspage_attach_lid_and_leads_workspace::center_serological_pipette::held_material_volume` | `serological_pipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_attach_lid_and_leads_workspace::front_center_waste_container::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_attach_lid_and_leads_workspace::rear_center_electrophoresis_tank::inner_chamber_material_volume` | `electrophoresis_tank` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_attach_lid_and_leads_workspace::rear_center_electrophoresis_tank::outer_chamber_material_volume` | `electrophoresis_tank` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_attach_lid_and_leads_workspace::rear_left_protein_ladder_tube::material_volume` | `protein_ladder_tube` | `rgba(120, 120, 120, 0.35)` | 95.10 | |
-| `sdspage_attach_lid_and_leads_workspace::rear_left_recycle_buffer_bottle::material_volume` | `recycle_buffer_bottle` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_attach_lid_and_leads_workspace::rear_left_running_buffer_10x::material_volume` | `running_buffer_10x_bottle` | `rgba(120, 120, 120, 0.35)` | 95.77 | |
-| `sdspage_destain_gel_rock_workspace::center_staining_tray::material_volume` | `staining_tray` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_destain_gel_rock_workspace::rear_center_destain::material_volume` | `destain_bottle` | `rgba(120, 120, 120, 0.35)` | 96.80 | |
-| `sdspage_destain_gel_rock_workspace::rear_center_destain_waste::material_volume` | `destain_waste_bottle` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_destain_gel_rock_workspace::rear_left_coomassie_recycle::material_volume` | `coomassie_recycle_bottle` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_destain_gel_rock_workspace::rear_left_coomassie_stain::material_volume` | `coomassie_stain_bottle` | `rgba(120, 120, 120, 0.35)` | 96.80 | |
-| `sdspage_destain_gel_rock_workspace::rear_right_ddh2o::material_volume` | `ddh2o_bottle` | `rgba(120, 120, 120, 0.35)` | 95.95 | |
-| `sdspage_destain_gel_rock_workspace::right_tool_area_waste::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_fill_tank_buffer_workspace::center_ddh2o_bottle::material_volume` | `ddh2o_bottle` | `rgba(120, 120, 120, 0.35)` | 94.25 | |
-| `sdspage_fill_tank_buffer_workspace::center_p200_micropipette::held_material_volume` | `p200_micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_fill_tank_buffer_workspace::center_running_buffer_1x_carboy::material_volume` | `running_buffer_1x_carboy` | `rgba(120, 120, 120, 0.35)` | 95.55 | |
-| `sdspage_fill_tank_buffer_workspace::center_serological_pipette::held_material_volume` | `serological_pipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_fill_tank_buffer_workspace::front_center_waste_container::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_fill_tank_buffer_workspace::rear_center_electrophoresis_tank::inner_chamber_material_volume` | `electrophoresis_tank` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_fill_tank_buffer_workspace::rear_center_electrophoresis_tank::outer_chamber_material_volume` | `electrophoresis_tank` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_fill_tank_buffer_workspace::rear_left_protein_ladder_tube::material_volume` | `protein_ladder_tube` | `rgba(120, 120, 120, 0.35)` | 95.10 | |
-| `sdspage_fill_tank_buffer_workspace::rear_left_recycle_buffer_bottle::material_volume` | `recycle_buffer_bottle` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_fill_tank_buffer_workspace::rear_left_running_buffer_10x::material_volume` | `running_buffer_10x_bottle` | `rgba(120, 120, 120, 0.35)` | 95.77 | |
-| `sdspage_heat_denature_samples_workspace::front_micropipette::held_material_volume` | `micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_heat_denature_samples_workspace::mid_microtube_sample::material_volume` | `microtube` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_heat_denature_samples_workspace::rear_center_bme::material_volume` | `bme_tube` | `rgba(120, 120, 120, 0.35)` | 31.24 | |
-| `sdspage_heat_denature_samples_workspace::rear_center_laemmli::material_volume` | `laemmli_4x_tube` | `rgba(120, 120, 120, 0.35)` | 63.86 | |
-| `sdspage_heat_denature_samples_workspace::rear_left_protein_ladder::material_volume` | `protein_ladder_tube` | `rgba(120, 120, 120, 0.35)` | 93.55 | |
-| `sdspage_heat_denature_samples_workspace::rear_left_protein_sample::material_volume` | `protein_sample_tube` | `rgba(120, 120, 120, 0.35)` | 93.39 | |
-| `sdspage_heat_denature_samples_workspace::rear_right_ddh2o::material_volume` | `ddh2o_bottle` | `rgba(120, 120, 120, 0.35)` | 95.34 | |
-| `sdspage_heat_denature_samples_workspace::rear_right_waste::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_load_sample_single_lane_workspace::center_ddh2o_bottle::material_volume` | `ddh2o_bottle` | `rgba(120, 120, 120, 0.35)` | 94.25 | |
-| `sdspage_load_sample_single_lane_workspace::center_p200_micropipette::held_material_volume` | `p200_micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_load_sample_single_lane_workspace::center_running_buffer_1x_carboy::material_volume` | `running_buffer_1x_carboy` | `rgba(120, 120, 120, 0.35)` | 95.55 | |
-| `sdspage_load_sample_single_lane_workspace::center_serological_pipette::held_material_volume` | `serological_pipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_load_sample_single_lane_workspace::front_center_microtube::material_volume` | `microtube` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_load_sample_single_lane_workspace::front_center_waste_container::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_load_sample_single_lane_workspace::rear_center_electrophoresis_tank::inner_chamber_material_volume` | `electrophoresis_tank` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_load_sample_single_lane_workspace::rear_center_electrophoresis_tank::outer_chamber_material_volume` | `electrophoresis_tank` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_load_sample_single_lane_workspace::rear_left_protein_ladder_tube::material_volume` | `protein_ladder_tube` | `rgba(120, 120, 120, 0.35)` | 95.10 | |
-| `sdspage_load_sample_single_lane_workspace::rear_left_recycle_buffer_bottle::material_volume` | `recycle_buffer_bottle` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_load_sample_single_lane_workspace::rear_left_running_buffer_10x::material_volume` | `running_buffer_10x_bottle` | `rgba(120, 120, 120, 0.35)` | 95.77 | |
-| `sdspage_prepare_running_buffer_workspace::center_ddh2o_bottle::material_volume` | `ddh2o_bottle` | `rgba(120, 120, 120, 0.35)` | 94.25 | |
-| `sdspage_prepare_running_buffer_workspace::center_p200_micropipette::held_material_volume` | `p200_micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_prepare_running_buffer_workspace::center_running_buffer_1x_carboy::material_volume` | `running_buffer_1x_carboy` | `rgba(120, 120, 120, 0.35)` | 95.55 | |
-| `sdspage_prepare_running_buffer_workspace::center_serological_pipette::held_material_volume` | `serological_pipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_prepare_running_buffer_workspace::front_center_waste_container::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_prepare_running_buffer_workspace::rear_center_electrophoresis_tank::inner_chamber_material_volume` | `electrophoresis_tank` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_prepare_running_buffer_workspace::rear_center_electrophoresis_tank::outer_chamber_material_volume` | `electrophoresis_tank` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_prepare_running_buffer_workspace::rear_left_protein_ladder_tube::material_volume` | `protein_ladder_tube` | `rgba(120, 120, 120, 0.35)` | 95.10 | |
-| `sdspage_prepare_running_buffer_workspace::rear_left_recycle_buffer_bottle::material_volume` | `recycle_buffer_bottle` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_prepare_running_buffer_workspace::rear_left_running_buffer_10x::material_volume` | `running_buffer_10x_bottle` | `rgba(120, 120, 120, 0.35)` | 95.77 | |
-| `sdspage_prepare_sample_mix_single_lane_workspace::center_micropipette::held_material_volume` | `micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_prepare_sample_mix_single_lane_workspace::eppendorf_tube::material_volume` | `microtube` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_prepare_sample_mix_single_lane_workspace::rear_center_ddh2o::material_volume` | `ddh2o_bottle` | `rgba(120, 120, 120, 0.35)` | 94.93 | |
-| `sdspage_prepare_sample_mix_single_lane_workspace::rear_center_laemmli::material_volume` | `laemmli_4x_tube` | `rgba(120, 120, 120, 0.35)` | 64.54 | |
-| `sdspage_prepare_sample_mix_single_lane_workspace::rear_left_protein_ladder::material_volume` | `protein_ladder_tube` | `rgba(120, 120, 120, 0.35)` | 96.54 | |
-| `sdspage_prepare_sample_mix_single_lane_workspace::rear_left_protein_sample::material_volume` | `protein_sample_tube` | `rgba(120, 120, 120, 0.35)` | 91.95 | |
-| `sdspage_prepare_sample_mix_single_lane_workspace::rear_right_bme::material_volume` | `bme_tube` | `rgba(120, 120, 120, 0.35)` | 31.28 | |
-| `sdspage_prepare_sample_mix_single_lane_workspace::rear_right_waste::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_recycle_buffer_workspace::center_ddh2o_bottle::material_volume` | `ddh2o_bottle` | `rgba(120, 120, 120, 0.35)` | 94.25 | |
-| `sdspage_recycle_buffer_workspace::center_p200_micropipette::held_material_volume` | `p200_micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_recycle_buffer_workspace::center_running_buffer_1x_carboy::material_volume` | `running_buffer_1x_carboy` | `rgba(120, 120, 120, 0.35)` | 95.55 | |
-| `sdspage_recycle_buffer_workspace::center_serological_pipette::held_material_volume` | `serological_pipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_recycle_buffer_workspace::front_center_waste_container::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_recycle_buffer_workspace::rear_center_electrophoresis_tank::inner_chamber_material_volume` | `electrophoresis_tank` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_recycle_buffer_workspace::rear_center_electrophoresis_tank::outer_chamber_material_volume` | `electrophoresis_tank` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_recycle_buffer_workspace::rear_left_protein_ladder_tube::material_volume` | `protein_ladder_tube` | `rgba(120, 120, 120, 0.35)` | 95.10 | |
-| `sdspage_recycle_buffer_workspace::rear_left_recycle_buffer_bottle::material_volume` | `recycle_buffer_bottle` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_recycle_buffer_workspace::rear_left_running_buffer_10x::material_volume` | `running_buffer_10x_bottle` | `rgba(120, 120, 120, 0.35)` | 95.77 | |
-| `sdspage_run_electrophoresis_workspace::center_ddh2o_bottle::material_volume` | `ddh2o_bottle` | `rgba(120, 120, 120, 0.35)` | 94.25 | |
-| `sdspage_run_electrophoresis_workspace::center_p200_micropipette::held_material_volume` | `p200_micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_run_electrophoresis_workspace::center_running_buffer_1x_carboy::material_volume` | `running_buffer_1x_carboy` | `rgba(120, 120, 120, 0.35)` | 95.55 | |
-| `sdspage_run_electrophoresis_workspace::center_serological_pipette::held_material_volume` | `serological_pipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_run_electrophoresis_workspace::front_center_waste_container::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_run_electrophoresis_workspace::rear_center_electrophoresis_tank::inner_chamber_material_volume` | `electrophoresis_tank` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_run_electrophoresis_workspace::rear_center_electrophoresis_tank::outer_chamber_material_volume` | `electrophoresis_tank` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_run_electrophoresis_workspace::rear_left_protein_ladder_tube::material_volume` | `protein_ladder_tube` | `rgba(120, 120, 120, 0.35)` | 95.10 | |
-| `sdspage_run_electrophoresis_workspace::rear_left_recycle_buffer_bottle::material_volume` | `recycle_buffer_bottle` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `sdspage_run_electrophoresis_workspace::rear_left_running_buffer_10x::material_volume` | `running_buffer_10x_bottle` | `rgba(120, 120, 120, 0.35)` | 95.77 | |
-| `seeding_workspace::rear_center_media_bottle::material_volume` | `media_bottle` | `rgba(120, 120, 120, 0.35)` | 96.30 | |
-| `seeding_workspace::rear_left_cell_suspension_tube::material_volume` | `cell_suspension_tube` | `rgba(120, 120, 120, 0.35)` | 72.08 | |
-| `seeding_workspace::rear_left_conical_tube_for_dilution::material_volume` | `conical_tube_for_dilution` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `seeding_workspace::rear_left_ethanol::material_volume` | `ethanol_bottle` | `rgba(120, 120, 120, 0.35)` | 96.47 | |
-| `seeding_workspace::right_micropipette::held_material_volume` | `micropipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `seeding_workspace::right_serological_pipette::held_material_volume` | `serological_pipette` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `staining_bench::center_staining_tray::material_volume` | `staining_tray` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `staining_bench::rear_center_destain::material_volume` | `destain_bottle` | `rgba(120, 120, 120, 0.35)` | 96.80 | |
-| `staining_bench::rear_center_destain_waste::material_volume` | `destain_waste_bottle` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `staining_bench::rear_left_coomassie_recycle::material_volume` | `coomassie_recycle_bottle` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
-| `staining_bench::rear_left_coomassie_stain::material_volume` | `coomassie_stain_bottle` | `rgba(120, 120, 120, 0.35)` | 96.80 | |
-| `staining_bench::rear_right_ddh2o::material_volume` | `ddh2o_bottle` | `rgba(120, 120, 120, 0.35)` | 95.95 | |
-| `staining_bench::right_tool_area_waste::material_volume` | `waste_container` | `rgba(120, 120, 120, 0.35)` | 0.00 | |
+| Surface | Owner | Kind | Field or subpart | Material | Computed fill | Visible | Footprint % |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| `cell_culture_full::passage_hood_detachment_microscope_view::instrument_t75_flask::anchor::material_volume::` | `instrument_t75_flask` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_culture_full::passage_hood_detachment_microscope_view::left_cell_suspension::anchor::material_volume::` | `left_cell_suspension` | `anchor` | `material_volume` | `cell_suspension` | `rgb(204, 0, 102)` | True | 99.94 |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::A1` | `foreground_well_plate_96` | `subpart` | `material_name / A1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::A10` | `foreground_well_plate_96` | `subpart` | `material_name / A10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::A11` | `foreground_well_plate_96` | `subpart` | `material_name / A11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::A12` | `foreground_well_plate_96` | `subpart` | `material_name / A12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::A2` | `foreground_well_plate_96` | `subpart` | `material_name / A2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::A3` | `foreground_well_plate_96` | `subpart` | `material_name / A3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::A4` | `foreground_well_plate_96` | `subpart` | `material_name / A4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::A5` | `foreground_well_plate_96` | `subpart` | `material_name / A5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::A6` | `foreground_well_plate_96` | `subpart` | `material_name / A6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::A7` | `foreground_well_plate_96` | `subpart` | `material_name / A7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::A8` | `foreground_well_plate_96` | `subpart` | `material_name / A8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::A9` | `foreground_well_plate_96` | `subpart` | `material_name / A9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::B1` | `foreground_well_plate_96` | `subpart` | `material_name / B1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::B10` | `foreground_well_plate_96` | `subpart` | `material_name / B10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::B11` | `foreground_well_plate_96` | `subpart` | `material_name / B11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::B12` | `foreground_well_plate_96` | `subpart` | `material_name / B12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::B2` | `foreground_well_plate_96` | `subpart` | `material_name / B2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::B3` | `foreground_well_plate_96` | `subpart` | `material_name / B3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::B4` | `foreground_well_plate_96` | `subpart` | `material_name / B4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::B5` | `foreground_well_plate_96` | `subpart` | `material_name / B5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::B6` | `foreground_well_plate_96` | `subpart` | `material_name / B6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::B7` | `foreground_well_plate_96` | `subpart` | `material_name / B7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::B8` | `foreground_well_plate_96` | `subpart` | `material_name / B8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::B9` | `foreground_well_plate_96` | `subpart` | `material_name / B9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::C1` | `foreground_well_plate_96` | `subpart` | `material_name / C1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::C10` | `foreground_well_plate_96` | `subpart` | `material_name / C10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::C11` | `foreground_well_plate_96` | `subpart` | `material_name / C11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::C12` | `foreground_well_plate_96` | `subpart` | `material_name / C12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::C2` | `foreground_well_plate_96` | `subpart` | `material_name / C2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::C3` | `foreground_well_plate_96` | `subpart` | `material_name / C3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::C4` | `foreground_well_plate_96` | `subpart` | `material_name / C4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::C5` | `foreground_well_plate_96` | `subpart` | `material_name / C5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::C6` | `foreground_well_plate_96` | `subpart` | `material_name / C6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::C7` | `foreground_well_plate_96` | `subpart` | `material_name / C7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::C8` | `foreground_well_plate_96` | `subpart` | `material_name / C8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::C9` | `foreground_well_plate_96` | `subpart` | `material_name / C9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::D1` | `foreground_well_plate_96` | `subpart` | `material_name / D1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::D10` | `foreground_well_plate_96` | `subpart` | `material_name / D10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::D11` | `foreground_well_plate_96` | `subpart` | `material_name / D11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::D12` | `foreground_well_plate_96` | `subpart` | `material_name / D12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::D2` | `foreground_well_plate_96` | `subpart` | `material_name / D2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::D3` | `foreground_well_plate_96` | `subpart` | `material_name / D3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::D4` | `foreground_well_plate_96` | `subpart` | `material_name / D4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::D5` | `foreground_well_plate_96` | `subpart` | `material_name / D5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::D6` | `foreground_well_plate_96` | `subpart` | `material_name / D6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::D7` | `foreground_well_plate_96` | `subpart` | `material_name / D7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::D8` | `foreground_well_plate_96` | `subpart` | `material_name / D8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::D9` | `foreground_well_plate_96` | `subpart` | `material_name / D9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::E1` | `foreground_well_plate_96` | `subpart` | `material_name / E1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::E10` | `foreground_well_plate_96` | `subpart` | `material_name / E10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::E11` | `foreground_well_plate_96` | `subpart` | `material_name / E11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::E12` | `foreground_well_plate_96` | `subpart` | `material_name / E12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::E2` | `foreground_well_plate_96` | `subpart` | `material_name / E2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::E3` | `foreground_well_plate_96` | `subpart` | `material_name / E3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::E4` | `foreground_well_plate_96` | `subpart` | `material_name / E4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::E5` | `foreground_well_plate_96` | `subpart` | `material_name / E5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::E6` | `foreground_well_plate_96` | `subpart` | `material_name / E6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::E7` | `foreground_well_plate_96` | `subpart` | `material_name / E7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::E8` | `foreground_well_plate_96` | `subpart` | `material_name / E8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::E9` | `foreground_well_plate_96` | `subpart` | `material_name / E9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::F1` | `foreground_well_plate_96` | `subpart` | `material_name / F1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::F10` | `foreground_well_plate_96` | `subpart` | `material_name / F10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::F11` | `foreground_well_plate_96` | `subpart` | `material_name / F11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::F12` | `foreground_well_plate_96` | `subpart` | `material_name / F12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::F2` | `foreground_well_plate_96` | `subpart` | `material_name / F2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::F3` | `foreground_well_plate_96` | `subpart` | `material_name / F3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::F4` | `foreground_well_plate_96` | `subpart` | `material_name / F4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::F5` | `foreground_well_plate_96` | `subpart` | `material_name / F5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::F6` | `foreground_well_plate_96` | `subpart` | `material_name / F6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::F7` | `foreground_well_plate_96` | `subpart` | `material_name / F7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::F8` | `foreground_well_plate_96` | `subpart` | `material_name / F8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::F9` | `foreground_well_plate_96` | `subpart` | `material_name / F9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::G1` | `foreground_well_plate_96` | `subpart` | `material_name / G1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::G10` | `foreground_well_plate_96` | `subpart` | `material_name / G10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::G11` | `foreground_well_plate_96` | `subpart` | `material_name / G11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::G12` | `foreground_well_plate_96` | `subpart` | `material_name / G12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::G2` | `foreground_well_plate_96` | `subpart` | `material_name / G2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::G3` | `foreground_well_plate_96` | `subpart` | `material_name / G3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::G4` | `foreground_well_plate_96` | `subpart` | `material_name / G4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::G5` | `foreground_well_plate_96` | `subpart` | `material_name / G5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::G6` | `foreground_well_plate_96` | `subpart` | `material_name / G6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::G7` | `foreground_well_plate_96` | `subpart` | `material_name / G7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::G8` | `foreground_well_plate_96` | `subpart` | `material_name / G8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::G9` | `foreground_well_plate_96` | `subpart` | `material_name / G9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::H1` | `foreground_well_plate_96` | `subpart` | `material_name / H1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::H10` | `foreground_well_plate_96` | `subpart` | `material_name / H10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::H11` | `foreground_well_plate_96` | `subpart` | `material_name / H11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::H12` | `foreground_well_plate_96` | `subpart` | `material_name / H12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::H2` | `foreground_well_plate_96` | `subpart` | `material_name / H2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::H3` | `foreground_well_plate_96` | `subpart` | `material_name / H3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::H4` | `foreground_well_plate_96` | `subpart` | `material_name / H4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::H5` | `foreground_well_plate_96` | `subpart` | `material_name / H5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::H6` | `foreground_well_plate_96` | `subpart` | `material_name / H6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::H7` | `foreground_well_plate_96` | `subpart` | `material_name / H7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::H8` | `foreground_well_plate_96` | `subpart` | `material_name / H8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::foreground_well_plate_96::subpart::material_name::H9` | `foreground_well_plate_96` | `subpart` | `material_name / H9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::rear_center_media_bottle::anchor::material_volume::` | `rear_center_media_bottle` | `anchor` | `material_volume` | `media` | `rgb(108, 108, 0)` | True | 100.00 |
+| `cell_seeding_plate_setup::seeding_workspace::rear_left_cell_suspension_tube::anchor::material_volume::` | `rear_left_cell_suspension_tube` | `anchor` | `material_volume` | `cell_suspension` | `rgb(204, 0, 102)` | True | 100.00 |
+| `cell_seeding_plate_setup::seeding_workspace::rear_left_conical_tube_for_dilution::anchor::material_volume::` | `rear_left_conical_tube_for_dilution` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::right_micropipette::anchor::held_material_volume::` | `right_micropipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `cell_seeding_plate_setup::seeding_workspace::right_serological_pipette::anchor::held_material_volume::` | `right_serological_pipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `drug_dilution_setup::dilution_workspace::base_right_micropipette::anchor::held_material_volume::` | `base_right_micropipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `drug_dilution_setup::dilution_workspace::carb_intermediate::anchor::material_volume::` | `carb_intermediate` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `drug_dilution_setup::dilution_workspace::carb_stock::anchor::material_volume::` | `carb_stock` | `anchor` | `material_volume` | `carboplatin` | `rgb(167, 25, 219)` | True | 99.94 |
+| `drug_dilution_setup::dilution_workspace::dilution_rack::subpart::material_name::tube_A` | `dilution_rack` | `subpart` | `material_name / tube_A` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `drug_dilution_setup::dilution_workspace::dilution_rack::subpart::material_name::tube_B` | `dilution_rack` | `subpart` | `material_name / tube_B` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `drug_dilution_setup::dilution_workspace::dilution_rack::subpart::material_name::tube_C` | `dilution_rack` | `subpart` | `material_name / tube_C` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `drug_dilution_setup::dilution_workspace::dilution_rack::subpart::material_name::tube_D` | `dilution_rack` | `subpart` | `material_name / tube_D` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `drug_dilution_setup::dilution_workspace::dilution_rack::subpart::material_name::tube_E` | `dilution_rack` | `subpart` | `material_name / tube_E` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `drug_dilution_setup::dilution_workspace::dilution_rack::subpart::material_name::tube_F` | `dilution_rack` | `subpart` | `material_name / tube_F` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `drug_dilution_setup::dilution_workspace::dilution_rack::subpart::material_name::tube_G` | `dilution_rack` | `subpart` | `material_name / tube_G` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `drug_dilution_setup::dilution_workspace::dilution_rack::subpart::material_name::tube_H` | `dilution_rack` | `subpart` | `material_name / tube_H` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `drug_dilution_setup::dilution_workspace::met_stock::anchor::material_volume::` | `met_stock` | `anchor` | `material_volume` | `metformin` | `rgb(0, 119, 95)` | True | 99.94 |
+| `drug_dilution_setup::dilution_workspace::met_working_tube::anchor::material_volume::` | `met_working_tube` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `drug_dilution_setup::dilution_workspace::rear_left_media_bottle::anchor::material_volume::` | `rear_left_media_bottle` | `anchor` | `material_volume` | `media` | `rgb(108, 108, 0)` | True | 97.62 |
+| `drug_dilution_setup::dilution_workspace::rear_left_waste::anchor::material_volume::` | `rear_left_waste` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::A1` | `foreground_well_plate_96` | `subpart` | `material_name / A1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::A10` | `foreground_well_plate_96` | `subpart` | `material_name / A10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::A11` | `foreground_well_plate_96` | `subpart` | `material_name / A11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::A12` | `foreground_well_plate_96` | `subpart` | `material_name / A12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::A2` | `foreground_well_plate_96` | `subpart` | `material_name / A2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::A3` | `foreground_well_plate_96` | `subpart` | `material_name / A3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::A4` | `foreground_well_plate_96` | `subpart` | `material_name / A4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::A5` | `foreground_well_plate_96` | `subpart` | `material_name / A5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::A6` | `foreground_well_plate_96` | `subpart` | `material_name / A6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::A7` | `foreground_well_plate_96` | `subpart` | `material_name / A7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::A8` | `foreground_well_plate_96` | `subpart` | `material_name / A8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::A9` | `foreground_well_plate_96` | `subpart` | `material_name / A9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::B1` | `foreground_well_plate_96` | `subpart` | `material_name / B1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::B10` | `foreground_well_plate_96` | `subpart` | `material_name / B10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::B11` | `foreground_well_plate_96` | `subpart` | `material_name / B11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::B12` | `foreground_well_plate_96` | `subpart` | `material_name / B12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::B2` | `foreground_well_plate_96` | `subpart` | `material_name / B2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::B3` | `foreground_well_plate_96` | `subpart` | `material_name / B3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::B4` | `foreground_well_plate_96` | `subpart` | `material_name / B4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::B5` | `foreground_well_plate_96` | `subpart` | `material_name / B5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::B6` | `foreground_well_plate_96` | `subpart` | `material_name / B6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::B7` | `foreground_well_plate_96` | `subpart` | `material_name / B7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::B8` | `foreground_well_plate_96` | `subpart` | `material_name / B8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::B9` | `foreground_well_plate_96` | `subpart` | `material_name / B9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::C1` | `foreground_well_plate_96` | `subpart` | `material_name / C1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::C10` | `foreground_well_plate_96` | `subpart` | `material_name / C10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::C11` | `foreground_well_plate_96` | `subpart` | `material_name / C11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::C12` | `foreground_well_plate_96` | `subpart` | `material_name / C12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::C2` | `foreground_well_plate_96` | `subpart` | `material_name / C2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::C3` | `foreground_well_plate_96` | `subpart` | `material_name / C3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::C4` | `foreground_well_plate_96` | `subpart` | `material_name / C4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::C5` | `foreground_well_plate_96` | `subpart` | `material_name / C5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::C6` | `foreground_well_plate_96` | `subpart` | `material_name / C6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::C7` | `foreground_well_plate_96` | `subpart` | `material_name / C7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::C8` | `foreground_well_plate_96` | `subpart` | `material_name / C8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::C9` | `foreground_well_plate_96` | `subpart` | `material_name / C9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::D1` | `foreground_well_plate_96` | `subpart` | `material_name / D1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::D10` | `foreground_well_plate_96` | `subpart` | `material_name / D10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::D11` | `foreground_well_plate_96` | `subpart` | `material_name / D11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::D12` | `foreground_well_plate_96` | `subpart` | `material_name / D12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::D2` | `foreground_well_plate_96` | `subpart` | `material_name / D2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::D3` | `foreground_well_plate_96` | `subpart` | `material_name / D3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::D4` | `foreground_well_plate_96` | `subpart` | `material_name / D4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::D5` | `foreground_well_plate_96` | `subpart` | `material_name / D5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::D6` | `foreground_well_plate_96` | `subpart` | `material_name / D6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::D7` | `foreground_well_plate_96` | `subpart` | `material_name / D7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::D8` | `foreground_well_plate_96` | `subpart` | `material_name / D8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::D9` | `foreground_well_plate_96` | `subpart` | `material_name / D9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::E1` | `foreground_well_plate_96` | `subpart` | `material_name / E1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::E10` | `foreground_well_plate_96` | `subpart` | `material_name / E10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::E11` | `foreground_well_plate_96` | `subpart` | `material_name / E11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::E12` | `foreground_well_plate_96` | `subpart` | `material_name / E12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::E2` | `foreground_well_plate_96` | `subpart` | `material_name / E2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::E3` | `foreground_well_plate_96` | `subpart` | `material_name / E3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::E4` | `foreground_well_plate_96` | `subpart` | `material_name / E4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::E5` | `foreground_well_plate_96` | `subpart` | `material_name / E5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::E6` | `foreground_well_plate_96` | `subpart` | `material_name / E6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::E7` | `foreground_well_plate_96` | `subpart` | `material_name / E7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::E8` | `foreground_well_plate_96` | `subpart` | `material_name / E8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::E9` | `foreground_well_plate_96` | `subpart` | `material_name / E9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::F1` | `foreground_well_plate_96` | `subpart` | `material_name / F1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::F10` | `foreground_well_plate_96` | `subpart` | `material_name / F10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::F11` | `foreground_well_plate_96` | `subpart` | `material_name / F11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::F12` | `foreground_well_plate_96` | `subpart` | `material_name / F12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::F2` | `foreground_well_plate_96` | `subpart` | `material_name / F2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::F3` | `foreground_well_plate_96` | `subpart` | `material_name / F3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::F4` | `foreground_well_plate_96` | `subpart` | `material_name / F4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::F5` | `foreground_well_plate_96` | `subpart` | `material_name / F5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::F6` | `foreground_well_plate_96` | `subpart` | `material_name / F6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::F7` | `foreground_well_plate_96` | `subpart` | `material_name / F7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::F8` | `foreground_well_plate_96` | `subpart` | `material_name / F8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::F9` | `foreground_well_plate_96` | `subpart` | `material_name / F9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::G1` | `foreground_well_plate_96` | `subpart` | `material_name / G1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::G10` | `foreground_well_plate_96` | `subpart` | `material_name / G10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::G11` | `foreground_well_plate_96` | `subpart` | `material_name / G11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::G12` | `foreground_well_plate_96` | `subpart` | `material_name / G12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::G2` | `foreground_well_plate_96` | `subpart` | `material_name / G2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::G3` | `foreground_well_plate_96` | `subpart` | `material_name / G3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::G4` | `foreground_well_plate_96` | `subpart` | `material_name / G4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::G5` | `foreground_well_plate_96` | `subpart` | `material_name / G5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::G6` | `foreground_well_plate_96` | `subpart` | `material_name / G6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::G7` | `foreground_well_plate_96` | `subpart` | `material_name / G7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::G8` | `foreground_well_plate_96` | `subpart` | `material_name / G8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::G9` | `foreground_well_plate_96` | `subpart` | `material_name / G9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::H1` | `foreground_well_plate_96` | `subpart` | `material_name / H1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::H10` | `foreground_well_plate_96` | `subpart` | `material_name / H10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::H11` | `foreground_well_plate_96` | `subpart` | `material_name / H11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::H12` | `foreground_well_plate_96` | `subpart` | `material_name / H12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::H2` | `foreground_well_plate_96` | `subpart` | `material_name / H2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::H3` | `foreground_well_plate_96` | `subpart` | `material_name / H3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::H4` | `foreground_well_plate_96` | `subpart` | `material_name / H4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::H5` | `foreground_well_plate_96` | `subpart` | `material_name / H5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::H6` | `foreground_well_plate_96` | `subpart` | `material_name / H6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::H7` | `foreground_well_plate_96` | `subpart` | `material_name / H7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::H8` | `foreground_well_plate_96` | `subpart` | `material_name / H8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::foreground_well_plate_96::subpart::material_name::H9` | `foreground_well_plate_96` | `subpart` | `material_name / H9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::hazard_waste_bin::anchor::material_volume::` | `hazard_waste_bin` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_plate_reaction::incubator_workspace::mtt_solution::anchor::material_volume::` | `mtt_solution` | `anchor` | `material_volume` | `mtt` | `rgb(108, 108, 0)` | True | 93.75 |
+| `mtt_plate_reaction::incubator_workspace::pipette_multichannel::anchor::held_material_volume::` | `pipette_multichannel` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_reagent_prep::mtt_reagent_prep_bench_workspace::base_right_micropipette::anchor::held_material_volume::` | `base_right_micropipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_reagent_prep::mtt_reagent_prep_bench_workspace::center_mtt_solution_tube::anchor::material_volume::` | `center_mtt_solution_tube` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_reagent_prep::mtt_reagent_prep_bench_workspace::rear_center_pbs_bottle::anchor::material_volume::` | `rear_center_pbs_bottle` | `anchor` | `material_volume` | `pbs` | `rgb(7, 109, 173)` | True | 99.12 |
+| `mtt_reagent_prep::mtt_reagent_prep_bench_workspace::rear_left_waste::anchor::material_volume::` | `rear_left_waste` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::A1` | `foreground_well_plate_96` | `subpart` | `material_name / A1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::A10` | `foreground_well_plate_96` | `subpart` | `material_name / A10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::A11` | `foreground_well_plate_96` | `subpart` | `material_name / A11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::A12` | `foreground_well_plate_96` | `subpart` | `material_name / A12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::A2` | `foreground_well_plate_96` | `subpart` | `material_name / A2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::A3` | `foreground_well_plate_96` | `subpart` | `material_name / A3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::A4` | `foreground_well_plate_96` | `subpart` | `material_name / A4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::A5` | `foreground_well_plate_96` | `subpart` | `material_name / A5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::A6` | `foreground_well_plate_96` | `subpart` | `material_name / A6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::A7` | `foreground_well_plate_96` | `subpart` | `material_name / A7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::A8` | `foreground_well_plate_96` | `subpart` | `material_name / A8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::A9` | `foreground_well_plate_96` | `subpart` | `material_name / A9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::B1` | `foreground_well_plate_96` | `subpart` | `material_name / B1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::B10` | `foreground_well_plate_96` | `subpart` | `material_name / B10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::B11` | `foreground_well_plate_96` | `subpart` | `material_name / B11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::B12` | `foreground_well_plate_96` | `subpart` | `material_name / B12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::B2` | `foreground_well_plate_96` | `subpart` | `material_name / B2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::B3` | `foreground_well_plate_96` | `subpart` | `material_name / B3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::B4` | `foreground_well_plate_96` | `subpart` | `material_name / B4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::B5` | `foreground_well_plate_96` | `subpart` | `material_name / B5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::B6` | `foreground_well_plate_96` | `subpart` | `material_name / B6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::B7` | `foreground_well_plate_96` | `subpart` | `material_name / B7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::B8` | `foreground_well_plate_96` | `subpart` | `material_name / B8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::B9` | `foreground_well_plate_96` | `subpart` | `material_name / B9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::C1` | `foreground_well_plate_96` | `subpart` | `material_name / C1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::C10` | `foreground_well_plate_96` | `subpart` | `material_name / C10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::C11` | `foreground_well_plate_96` | `subpart` | `material_name / C11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::C12` | `foreground_well_plate_96` | `subpart` | `material_name / C12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::C2` | `foreground_well_plate_96` | `subpart` | `material_name / C2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::C3` | `foreground_well_plate_96` | `subpart` | `material_name / C3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::C4` | `foreground_well_plate_96` | `subpart` | `material_name / C4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::C5` | `foreground_well_plate_96` | `subpart` | `material_name / C5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::C6` | `foreground_well_plate_96` | `subpart` | `material_name / C6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::C7` | `foreground_well_plate_96` | `subpart` | `material_name / C7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::C8` | `foreground_well_plate_96` | `subpart` | `material_name / C8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::C9` | `foreground_well_plate_96` | `subpart` | `material_name / C9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::D1` | `foreground_well_plate_96` | `subpart` | `material_name / D1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::D10` | `foreground_well_plate_96` | `subpart` | `material_name / D10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::D11` | `foreground_well_plate_96` | `subpart` | `material_name / D11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::D12` | `foreground_well_plate_96` | `subpart` | `material_name / D12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::D2` | `foreground_well_plate_96` | `subpart` | `material_name / D2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::D3` | `foreground_well_plate_96` | `subpart` | `material_name / D3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::D4` | `foreground_well_plate_96` | `subpart` | `material_name / D4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::D5` | `foreground_well_plate_96` | `subpart` | `material_name / D5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::D6` | `foreground_well_plate_96` | `subpart` | `material_name / D6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::D7` | `foreground_well_plate_96` | `subpart` | `material_name / D7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::D8` | `foreground_well_plate_96` | `subpart` | `material_name / D8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::D9` | `foreground_well_plate_96` | `subpart` | `material_name / D9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::E1` | `foreground_well_plate_96` | `subpart` | `material_name / E1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::E10` | `foreground_well_plate_96` | `subpart` | `material_name / E10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::E11` | `foreground_well_plate_96` | `subpart` | `material_name / E11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::E12` | `foreground_well_plate_96` | `subpart` | `material_name / E12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::E2` | `foreground_well_plate_96` | `subpart` | `material_name / E2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::E3` | `foreground_well_plate_96` | `subpart` | `material_name / E3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::E4` | `foreground_well_plate_96` | `subpart` | `material_name / E4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::E5` | `foreground_well_plate_96` | `subpart` | `material_name / E5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::E6` | `foreground_well_plate_96` | `subpart` | `material_name / E6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::E7` | `foreground_well_plate_96` | `subpart` | `material_name / E7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::E8` | `foreground_well_plate_96` | `subpart` | `material_name / E8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::E9` | `foreground_well_plate_96` | `subpart` | `material_name / E9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::F1` | `foreground_well_plate_96` | `subpart` | `material_name / F1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::F10` | `foreground_well_plate_96` | `subpart` | `material_name / F10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::F11` | `foreground_well_plate_96` | `subpart` | `material_name / F11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::F12` | `foreground_well_plate_96` | `subpart` | `material_name / F12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::F2` | `foreground_well_plate_96` | `subpart` | `material_name / F2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::F3` | `foreground_well_plate_96` | `subpart` | `material_name / F3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::F4` | `foreground_well_plate_96` | `subpart` | `material_name / F4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::F5` | `foreground_well_plate_96` | `subpart` | `material_name / F5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::F6` | `foreground_well_plate_96` | `subpart` | `material_name / F6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::F7` | `foreground_well_plate_96` | `subpart` | `material_name / F7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::F8` | `foreground_well_plate_96` | `subpart` | `material_name / F8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::F9` | `foreground_well_plate_96` | `subpart` | `material_name / F9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::G1` | `foreground_well_plate_96` | `subpart` | `material_name / G1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::G10` | `foreground_well_plate_96` | `subpart` | `material_name / G10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::G11` | `foreground_well_plate_96` | `subpart` | `material_name / G11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::G12` | `foreground_well_plate_96` | `subpart` | `material_name / G12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::G2` | `foreground_well_plate_96` | `subpart` | `material_name / G2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::G3` | `foreground_well_plate_96` | `subpart` | `material_name / G3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::G4` | `foreground_well_plate_96` | `subpart` | `material_name / G4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::G5` | `foreground_well_plate_96` | `subpart` | `material_name / G5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::G6` | `foreground_well_plate_96` | `subpart` | `material_name / G6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::G7` | `foreground_well_plate_96` | `subpart` | `material_name / G7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::G8` | `foreground_well_plate_96` | `subpart` | `material_name / G8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::G9` | `foreground_well_plate_96` | `subpart` | `material_name / G9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::H1` | `foreground_well_plate_96` | `subpart` | `material_name / H1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::H10` | `foreground_well_plate_96` | `subpart` | `material_name / H10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::H11` | `foreground_well_plate_96` | `subpart` | `material_name / H11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::H12` | `foreground_well_plate_96` | `subpart` | `material_name / H12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::H2` | `foreground_well_plate_96` | `subpart` | `material_name / H2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::H3` | `foreground_well_plate_96` | `subpart` | `material_name / H3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::H4` | `foreground_well_plate_96` | `subpart` | `material_name / H4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::H5` | `foreground_well_plate_96` | `subpart` | `material_name / H5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::H6` | `foreground_well_plate_96` | `subpart` | `material_name / H6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::H7` | `foreground_well_plate_96` | `subpart` | `material_name / H7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::H8` | `foreground_well_plate_96` | `subpart` | `material_name / H8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::foreground_well_plate_96::subpart::material_name::H9` | `foreground_well_plate_96` | `subpart` | `material_name / H9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::rear_left_dmso::anchor::material_volume::` | `rear_left_dmso` | `anchor` | `material_volume` | `dmso` | `rgb(0, 117, 118)` | True | 98.99 |
+| `mtt_solubilization_readout::mtt_solubilization_readout_bench_workspace::right_micropipette::anchor::held_material_volume::` | `right_micropipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_hood_detachment::passage_hood_detachment_microscope_view::instrument_t75_flask::anchor::material_volume::` | `instrument_t75_flask` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_hood_detachment::passage_hood_detachment_microscope_view::left_cell_suspension::anchor::material_volume::` | `left_cell_suspension` | `anchor` | `material_volume` | `cell_suspension` | `rgb(204, 0, 102)` | True | 99.94 |
+| `passage_pellet_reseed::hood_workspace::center_t75_flask::anchor::material_volume::` | `center_t75_flask` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::A1` | `foreground_well_plate_96` | `subpart` | `material_name / A1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::A10` | `foreground_well_plate_96` | `subpart` | `material_name / A10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::A11` | `foreground_well_plate_96` | `subpart` | `material_name / A11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::A12` | `foreground_well_plate_96` | `subpart` | `material_name / A12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::A2` | `foreground_well_plate_96` | `subpart` | `material_name / A2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::A3` | `foreground_well_plate_96` | `subpart` | `material_name / A3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::A4` | `foreground_well_plate_96` | `subpart` | `material_name / A4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::A5` | `foreground_well_plate_96` | `subpart` | `material_name / A5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::A6` | `foreground_well_plate_96` | `subpart` | `material_name / A6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::A7` | `foreground_well_plate_96` | `subpart` | `material_name / A7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::A8` | `foreground_well_plate_96` | `subpart` | `material_name / A8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::A9` | `foreground_well_plate_96` | `subpart` | `material_name / A9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::B1` | `foreground_well_plate_96` | `subpart` | `material_name / B1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::B10` | `foreground_well_plate_96` | `subpart` | `material_name / B10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::B11` | `foreground_well_plate_96` | `subpart` | `material_name / B11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::B12` | `foreground_well_plate_96` | `subpart` | `material_name / B12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::B2` | `foreground_well_plate_96` | `subpart` | `material_name / B2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::B3` | `foreground_well_plate_96` | `subpart` | `material_name / B3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::B4` | `foreground_well_plate_96` | `subpart` | `material_name / B4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::B5` | `foreground_well_plate_96` | `subpart` | `material_name / B5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::B6` | `foreground_well_plate_96` | `subpart` | `material_name / B6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::B7` | `foreground_well_plate_96` | `subpart` | `material_name / B7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::B8` | `foreground_well_plate_96` | `subpart` | `material_name / B8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::B9` | `foreground_well_plate_96` | `subpart` | `material_name / B9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::C1` | `foreground_well_plate_96` | `subpart` | `material_name / C1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::C10` | `foreground_well_plate_96` | `subpart` | `material_name / C10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::C11` | `foreground_well_plate_96` | `subpart` | `material_name / C11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::C12` | `foreground_well_plate_96` | `subpart` | `material_name / C12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::C2` | `foreground_well_plate_96` | `subpart` | `material_name / C2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::C3` | `foreground_well_plate_96` | `subpart` | `material_name / C3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::C4` | `foreground_well_plate_96` | `subpart` | `material_name / C4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::C5` | `foreground_well_plate_96` | `subpart` | `material_name / C5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::C6` | `foreground_well_plate_96` | `subpart` | `material_name / C6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::C7` | `foreground_well_plate_96` | `subpart` | `material_name / C7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::C8` | `foreground_well_plate_96` | `subpart` | `material_name / C8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::C9` | `foreground_well_plate_96` | `subpart` | `material_name / C9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::D1` | `foreground_well_plate_96` | `subpart` | `material_name / D1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::D10` | `foreground_well_plate_96` | `subpart` | `material_name / D10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::D11` | `foreground_well_plate_96` | `subpart` | `material_name / D11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::D12` | `foreground_well_plate_96` | `subpart` | `material_name / D12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::D2` | `foreground_well_plate_96` | `subpart` | `material_name / D2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::D3` | `foreground_well_plate_96` | `subpart` | `material_name / D3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::D4` | `foreground_well_plate_96` | `subpart` | `material_name / D4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::D5` | `foreground_well_plate_96` | `subpart` | `material_name / D5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::D6` | `foreground_well_plate_96` | `subpart` | `material_name / D6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::D7` | `foreground_well_plate_96` | `subpart` | `material_name / D7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::D8` | `foreground_well_plate_96` | `subpart` | `material_name / D8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::D9` | `foreground_well_plate_96` | `subpart` | `material_name / D9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::E1` | `foreground_well_plate_96` | `subpart` | `material_name / E1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::E10` | `foreground_well_plate_96` | `subpart` | `material_name / E10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::E11` | `foreground_well_plate_96` | `subpart` | `material_name / E11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::E12` | `foreground_well_plate_96` | `subpart` | `material_name / E12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::E2` | `foreground_well_plate_96` | `subpart` | `material_name / E2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::E3` | `foreground_well_plate_96` | `subpart` | `material_name / E3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::E4` | `foreground_well_plate_96` | `subpart` | `material_name / E4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::E5` | `foreground_well_plate_96` | `subpart` | `material_name / E5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::E6` | `foreground_well_plate_96` | `subpart` | `material_name / E6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::E7` | `foreground_well_plate_96` | `subpart` | `material_name / E7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::E8` | `foreground_well_plate_96` | `subpart` | `material_name / E8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::E9` | `foreground_well_plate_96` | `subpart` | `material_name / E9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::F1` | `foreground_well_plate_96` | `subpart` | `material_name / F1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::F10` | `foreground_well_plate_96` | `subpart` | `material_name / F10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::F11` | `foreground_well_plate_96` | `subpart` | `material_name / F11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::F12` | `foreground_well_plate_96` | `subpart` | `material_name / F12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::F2` | `foreground_well_plate_96` | `subpart` | `material_name / F2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::F3` | `foreground_well_plate_96` | `subpart` | `material_name / F3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::F4` | `foreground_well_plate_96` | `subpart` | `material_name / F4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::F5` | `foreground_well_plate_96` | `subpart` | `material_name / F5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::F6` | `foreground_well_plate_96` | `subpart` | `material_name / F6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::F7` | `foreground_well_plate_96` | `subpart` | `material_name / F7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::F8` | `foreground_well_plate_96` | `subpart` | `material_name / F8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::F9` | `foreground_well_plate_96` | `subpart` | `material_name / F9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::G1` | `foreground_well_plate_96` | `subpart` | `material_name / G1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::G10` | `foreground_well_plate_96` | `subpart` | `material_name / G10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::G11` | `foreground_well_plate_96` | `subpart` | `material_name / G11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::G12` | `foreground_well_plate_96` | `subpart` | `material_name / G12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::G2` | `foreground_well_plate_96` | `subpart` | `material_name / G2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::G3` | `foreground_well_plate_96` | `subpart` | `material_name / G3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::G4` | `foreground_well_plate_96` | `subpart` | `material_name / G4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::G5` | `foreground_well_plate_96` | `subpart` | `material_name / G5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::G6` | `foreground_well_plate_96` | `subpart` | `material_name / G6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::G7` | `foreground_well_plate_96` | `subpart` | `material_name / G7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::G8` | `foreground_well_plate_96` | `subpart` | `material_name / G8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::G9` | `foreground_well_plate_96` | `subpart` | `material_name / G9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::H1` | `foreground_well_plate_96` | `subpart` | `material_name / H1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::H10` | `foreground_well_plate_96` | `subpart` | `material_name / H10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::H11` | `foreground_well_plate_96` | `subpart` | `material_name / H11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::H12` | `foreground_well_plate_96` | `subpart` | `material_name / H12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::H2` | `foreground_well_plate_96` | `subpart` | `material_name / H2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::H3` | `foreground_well_plate_96` | `subpart` | `material_name / H3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::H4` | `foreground_well_plate_96` | `subpart` | `material_name / H4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::H5` | `foreground_well_plate_96` | `subpart` | `material_name / H5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::H6` | `foreground_well_plate_96` | `subpart` | `material_name / H6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::H7` | `foreground_well_plate_96` | `subpart` | `material_name / H7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::H8` | `foreground_well_plate_96` | `subpart` | `material_name / H8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::foreground_well_plate_96::subpart::material_name::H9` | `foreground_well_plate_96` | `subpart` | `material_name / H9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::rear_center_conical_tube::anchor::material_volume::` | `rear_center_conical_tube` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `passage_pellet_reseed::hood_workspace::rear_left_fresh_media::anchor::material_volume::` | `rear_left_fresh_media` | `anchor` | `material_volume` | `media` | `rgb(108, 108, 0)` | True | 98.65 |
+| `passage_pellet_reseed::hood_workspace::right_aspirating_pipette::anchor::held_material_volume::` | `right_aspirating_pipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::A1` | `foreground_well_plate_96` | `subpart` | `material_name / A1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::A10` | `foreground_well_plate_96` | `subpart` | `material_name / A10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::A11` | `foreground_well_plate_96` | `subpart` | `material_name / A11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::A12` | `foreground_well_plate_96` | `subpart` | `material_name / A12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::A2` | `foreground_well_plate_96` | `subpart` | `material_name / A2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::A3` | `foreground_well_plate_96` | `subpart` | `material_name / A3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::A4` | `foreground_well_plate_96` | `subpart` | `material_name / A4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::A5` | `foreground_well_plate_96` | `subpart` | `material_name / A5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::A6` | `foreground_well_plate_96` | `subpart` | `material_name / A6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::A7` | `foreground_well_plate_96` | `subpart` | `material_name / A7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::A8` | `foreground_well_plate_96` | `subpart` | `material_name / A8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::A9` | `foreground_well_plate_96` | `subpart` | `material_name / A9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::B1` | `foreground_well_plate_96` | `subpart` | `material_name / B1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::B10` | `foreground_well_plate_96` | `subpart` | `material_name / B10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::B11` | `foreground_well_plate_96` | `subpart` | `material_name / B11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::B12` | `foreground_well_plate_96` | `subpart` | `material_name / B12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::B2` | `foreground_well_plate_96` | `subpart` | `material_name / B2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::B3` | `foreground_well_plate_96` | `subpart` | `material_name / B3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::B4` | `foreground_well_plate_96` | `subpart` | `material_name / B4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::B5` | `foreground_well_plate_96` | `subpart` | `material_name / B5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::B6` | `foreground_well_plate_96` | `subpart` | `material_name / B6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::B7` | `foreground_well_plate_96` | `subpart` | `material_name / B7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::B8` | `foreground_well_plate_96` | `subpart` | `material_name / B8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::B9` | `foreground_well_plate_96` | `subpart` | `material_name / B9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::C1` | `foreground_well_plate_96` | `subpart` | `material_name / C1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::C10` | `foreground_well_plate_96` | `subpart` | `material_name / C10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::C11` | `foreground_well_plate_96` | `subpart` | `material_name / C11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::C12` | `foreground_well_plate_96` | `subpart` | `material_name / C12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::C2` | `foreground_well_plate_96` | `subpart` | `material_name / C2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::C3` | `foreground_well_plate_96` | `subpart` | `material_name / C3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::C4` | `foreground_well_plate_96` | `subpart` | `material_name / C4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::C5` | `foreground_well_plate_96` | `subpart` | `material_name / C5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::C6` | `foreground_well_plate_96` | `subpart` | `material_name / C6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::C7` | `foreground_well_plate_96` | `subpart` | `material_name / C7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::C8` | `foreground_well_plate_96` | `subpart` | `material_name / C8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::C9` | `foreground_well_plate_96` | `subpart` | `material_name / C9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::D1` | `foreground_well_plate_96` | `subpart` | `material_name / D1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::D10` | `foreground_well_plate_96` | `subpart` | `material_name / D10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::D11` | `foreground_well_plate_96` | `subpart` | `material_name / D11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::D12` | `foreground_well_plate_96` | `subpart` | `material_name / D12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::D2` | `foreground_well_plate_96` | `subpart` | `material_name / D2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::D3` | `foreground_well_plate_96` | `subpart` | `material_name / D3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::D4` | `foreground_well_plate_96` | `subpart` | `material_name / D4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::D5` | `foreground_well_plate_96` | `subpart` | `material_name / D5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::D6` | `foreground_well_plate_96` | `subpart` | `material_name / D6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::D7` | `foreground_well_plate_96` | `subpart` | `material_name / D7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::D8` | `foreground_well_plate_96` | `subpart` | `material_name / D8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::D9` | `foreground_well_plate_96` | `subpart` | `material_name / D9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::E1` | `foreground_well_plate_96` | `subpart` | `material_name / E1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::E10` | `foreground_well_plate_96` | `subpart` | `material_name / E10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::E11` | `foreground_well_plate_96` | `subpart` | `material_name / E11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::E12` | `foreground_well_plate_96` | `subpart` | `material_name / E12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::E2` | `foreground_well_plate_96` | `subpart` | `material_name / E2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::E3` | `foreground_well_plate_96` | `subpart` | `material_name / E3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::E4` | `foreground_well_plate_96` | `subpart` | `material_name / E4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::E5` | `foreground_well_plate_96` | `subpart` | `material_name / E5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::E6` | `foreground_well_plate_96` | `subpart` | `material_name / E6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::E7` | `foreground_well_plate_96` | `subpart` | `material_name / E7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::E8` | `foreground_well_plate_96` | `subpart` | `material_name / E8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::E9` | `foreground_well_plate_96` | `subpart` | `material_name / E9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::F1` | `foreground_well_plate_96` | `subpart` | `material_name / F1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::F10` | `foreground_well_plate_96` | `subpart` | `material_name / F10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::F11` | `foreground_well_plate_96` | `subpart` | `material_name / F11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::F12` | `foreground_well_plate_96` | `subpart` | `material_name / F12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::F2` | `foreground_well_plate_96` | `subpart` | `material_name / F2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::F3` | `foreground_well_plate_96` | `subpart` | `material_name / F3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::F4` | `foreground_well_plate_96` | `subpart` | `material_name / F4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::F5` | `foreground_well_plate_96` | `subpart` | `material_name / F5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::F6` | `foreground_well_plate_96` | `subpart` | `material_name / F6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::F7` | `foreground_well_plate_96` | `subpart` | `material_name / F7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::F8` | `foreground_well_plate_96` | `subpart` | `material_name / F8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::F9` | `foreground_well_plate_96` | `subpart` | `material_name / F9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::G1` | `foreground_well_plate_96` | `subpart` | `material_name / G1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::G10` | `foreground_well_plate_96` | `subpart` | `material_name / G10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::G11` | `foreground_well_plate_96` | `subpart` | `material_name / G11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::G12` | `foreground_well_plate_96` | `subpart` | `material_name / G12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::G2` | `foreground_well_plate_96` | `subpart` | `material_name / G2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::G3` | `foreground_well_plate_96` | `subpart` | `material_name / G3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::G4` | `foreground_well_plate_96` | `subpart` | `material_name / G4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::G5` | `foreground_well_plate_96` | `subpart` | `material_name / G5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::G6` | `foreground_well_plate_96` | `subpart` | `material_name / G6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::G7` | `foreground_well_plate_96` | `subpart` | `material_name / G7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::G8` | `foreground_well_plate_96` | `subpart` | `material_name / G8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::G9` | `foreground_well_plate_96` | `subpart` | `material_name / G9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::H1` | `foreground_well_plate_96` | `subpart` | `material_name / H1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::H10` | `foreground_well_plate_96` | `subpart` | `material_name / H10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::H11` | `foreground_well_plate_96` | `subpart` | `material_name / H11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::H12` | `foreground_well_plate_96` | `subpart` | `material_name / H12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::H2` | `foreground_well_plate_96` | `subpart` | `material_name / H2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::H3` | `foreground_well_plate_96` | `subpart` | `material_name / H3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::H4` | `foreground_well_plate_96` | `subpart` | `material_name / H4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::H5` | `foreground_well_plate_96` | `subpart` | `material_name / H5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::H6` | `foreground_well_plate_96` | `subpart` | `material_name / H6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::H7` | `foreground_well_plate_96` | `subpart` | `material_name / H7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::H8` | `foreground_well_plate_96` | `subpart` | `material_name / H8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::foreground_well_plate_96::subpart::material_name::H9` | `foreground_well_plate_96` | `subpart` | `material_name / H9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::rear_center_carb_stocks::subpart::material_name::tube_A` | `rear_center_carb_stocks` | `subpart` | `material_name / tube_A` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::rear_center_carb_stocks::subpart::material_name::tube_B` | `rear_center_carb_stocks` | `subpart` | `material_name / tube_B` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::rear_center_carb_stocks::subpart::material_name::tube_C` | `rear_center_carb_stocks` | `subpart` | `material_name / tube_C` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::rear_center_carb_stocks::subpart::material_name::tube_D` | `rear_center_carb_stocks` | `subpart` | `material_name / tube_D` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::rear_center_carb_stocks::subpart::material_name::tube_E` | `rear_center_carb_stocks` | `subpart` | `material_name / tube_E` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::rear_center_carb_stocks::subpart::material_name::tube_F` | `rear_center_carb_stocks` | `subpart` | `material_name / tube_F` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::rear_center_carb_stocks::subpart::material_name::tube_G` | `rear_center_carb_stocks` | `subpart` | `material_name / tube_G` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::rear_center_carb_stocks::subpart::material_name::tube_H` | `rear_center_carb_stocks` | `subpart` | `material_name / tube_H` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::rear_center_metformin_stock::anchor::material_volume::` | `rear_center_metformin_stock` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_drug_addition::plate_workspace::right_micropipette::anchor::held_material_volume::` | `right_micropipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::A1` | `foreground_well_plate_96` | `subpart` | `material_name / A1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::A10` | `foreground_well_plate_96` | `subpart` | `material_name / A10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::A11` | `foreground_well_plate_96` | `subpart` | `material_name / A11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::A12` | `foreground_well_plate_96` | `subpart` | `material_name / A12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::A2` | `foreground_well_plate_96` | `subpart` | `material_name / A2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::A3` | `foreground_well_plate_96` | `subpart` | `material_name / A3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::A4` | `foreground_well_plate_96` | `subpart` | `material_name / A4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::A5` | `foreground_well_plate_96` | `subpart` | `material_name / A5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::A6` | `foreground_well_plate_96` | `subpart` | `material_name / A6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::A7` | `foreground_well_plate_96` | `subpart` | `material_name / A7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::A8` | `foreground_well_plate_96` | `subpart` | `material_name / A8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::A9` | `foreground_well_plate_96` | `subpart` | `material_name / A9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::B1` | `foreground_well_plate_96` | `subpart` | `material_name / B1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::B10` | `foreground_well_plate_96` | `subpart` | `material_name / B10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::B11` | `foreground_well_plate_96` | `subpart` | `material_name / B11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::B12` | `foreground_well_plate_96` | `subpart` | `material_name / B12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::B2` | `foreground_well_plate_96` | `subpart` | `material_name / B2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::B3` | `foreground_well_plate_96` | `subpart` | `material_name / B3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::B4` | `foreground_well_plate_96` | `subpart` | `material_name / B4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::B5` | `foreground_well_plate_96` | `subpart` | `material_name / B5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::B6` | `foreground_well_plate_96` | `subpart` | `material_name / B6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::B7` | `foreground_well_plate_96` | `subpart` | `material_name / B7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::B8` | `foreground_well_plate_96` | `subpart` | `material_name / B8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::B9` | `foreground_well_plate_96` | `subpart` | `material_name / B9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::C1` | `foreground_well_plate_96` | `subpart` | `material_name / C1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::C10` | `foreground_well_plate_96` | `subpart` | `material_name / C10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::C11` | `foreground_well_plate_96` | `subpart` | `material_name / C11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::C12` | `foreground_well_plate_96` | `subpart` | `material_name / C12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::C2` | `foreground_well_plate_96` | `subpart` | `material_name / C2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::C3` | `foreground_well_plate_96` | `subpart` | `material_name / C3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::C4` | `foreground_well_plate_96` | `subpart` | `material_name / C4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::C5` | `foreground_well_plate_96` | `subpart` | `material_name / C5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::C6` | `foreground_well_plate_96` | `subpart` | `material_name / C6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::C7` | `foreground_well_plate_96` | `subpart` | `material_name / C7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::C8` | `foreground_well_plate_96` | `subpart` | `material_name / C8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::C9` | `foreground_well_plate_96` | `subpart` | `material_name / C9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::D1` | `foreground_well_plate_96` | `subpart` | `material_name / D1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::D10` | `foreground_well_plate_96` | `subpart` | `material_name / D10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::D11` | `foreground_well_plate_96` | `subpart` | `material_name / D11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::D12` | `foreground_well_plate_96` | `subpart` | `material_name / D12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::D2` | `foreground_well_plate_96` | `subpart` | `material_name / D2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::D3` | `foreground_well_plate_96` | `subpart` | `material_name / D3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::D4` | `foreground_well_plate_96` | `subpart` | `material_name / D4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::D5` | `foreground_well_plate_96` | `subpart` | `material_name / D5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::D6` | `foreground_well_plate_96` | `subpart` | `material_name / D6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::D7` | `foreground_well_plate_96` | `subpart` | `material_name / D7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::D8` | `foreground_well_plate_96` | `subpart` | `material_name / D8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::D9` | `foreground_well_plate_96` | `subpart` | `material_name / D9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::E1` | `foreground_well_plate_96` | `subpart` | `material_name / E1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::E10` | `foreground_well_plate_96` | `subpart` | `material_name / E10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::E11` | `foreground_well_plate_96` | `subpart` | `material_name / E11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::E12` | `foreground_well_plate_96` | `subpart` | `material_name / E12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::E2` | `foreground_well_plate_96` | `subpart` | `material_name / E2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::E3` | `foreground_well_plate_96` | `subpart` | `material_name / E3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::E4` | `foreground_well_plate_96` | `subpart` | `material_name / E4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::E5` | `foreground_well_plate_96` | `subpart` | `material_name / E5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::E6` | `foreground_well_plate_96` | `subpart` | `material_name / E6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::E7` | `foreground_well_plate_96` | `subpart` | `material_name / E7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::E8` | `foreground_well_plate_96` | `subpart` | `material_name / E8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::E9` | `foreground_well_plate_96` | `subpart` | `material_name / E9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::F1` | `foreground_well_plate_96` | `subpart` | `material_name / F1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::F10` | `foreground_well_plate_96` | `subpart` | `material_name / F10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::F11` | `foreground_well_plate_96` | `subpart` | `material_name / F11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::F12` | `foreground_well_plate_96` | `subpart` | `material_name / F12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::F2` | `foreground_well_plate_96` | `subpart` | `material_name / F2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::F3` | `foreground_well_plate_96` | `subpart` | `material_name / F3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::F4` | `foreground_well_plate_96` | `subpart` | `material_name / F4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::F5` | `foreground_well_plate_96` | `subpart` | `material_name / F5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::F6` | `foreground_well_plate_96` | `subpart` | `material_name / F6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::F7` | `foreground_well_plate_96` | `subpart` | `material_name / F7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::F8` | `foreground_well_plate_96` | `subpart` | `material_name / F8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::F9` | `foreground_well_plate_96` | `subpart` | `material_name / F9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::G1` | `foreground_well_plate_96` | `subpart` | `material_name / G1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::G10` | `foreground_well_plate_96` | `subpart` | `material_name / G10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::G11` | `foreground_well_plate_96` | `subpart` | `material_name / G11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::G12` | `foreground_well_plate_96` | `subpart` | `material_name / G12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::G2` | `foreground_well_plate_96` | `subpart` | `material_name / G2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::G3` | `foreground_well_plate_96` | `subpart` | `material_name / G3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::G4` | `foreground_well_plate_96` | `subpart` | `material_name / G4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::G5` | `foreground_well_plate_96` | `subpart` | `material_name / G5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::G6` | `foreground_well_plate_96` | `subpart` | `material_name / G6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::G7` | `foreground_well_plate_96` | `subpart` | `material_name / G7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::G8` | `foreground_well_plate_96` | `subpart` | `material_name / G8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::G9` | `foreground_well_plate_96` | `subpart` | `material_name / G9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::H1` | `foreground_well_plate_96` | `subpart` | `material_name / H1` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::H10` | `foreground_well_plate_96` | `subpart` | `material_name / H10` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::H11` | `foreground_well_plate_96` | `subpart` | `material_name / H11` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::H12` | `foreground_well_plate_96` | `subpart` | `material_name / H12` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::H2` | `foreground_well_plate_96` | `subpart` | `material_name / H2` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::H3` | `foreground_well_plate_96` | `subpart` | `material_name / H3` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::H4` | `foreground_well_plate_96` | `subpart` | `material_name / H4` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::H5` | `foreground_well_plate_96` | `subpart` | `material_name / H5` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::H6` | `foreground_well_plate_96` | `subpart` | `material_name / H6` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::H7` | `foreground_well_plate_96` | `subpart` | `material_name / H7` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::H8` | `foreground_well_plate_96` | `subpart` | `material_name / H8` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::foreground_well_plate_96::subpart::material_name::H9` | `foreground_well_plate_96` | `subpart` | `material_name / H9` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::rear_center_media::anchor::material_volume::` | `rear_center_media` | `anchor` | `material_volume` | `media` | `rgb(108, 108, 0)` | True | 98.82 |
+| `plate_drug_treatment_media_adjustment::plate_drug_treatment_media_adjustment_plate_workspace::right_tool_multichannel::anchor::held_material_volume::` | `right_tool_multichannel` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `routine_passage::passage_hood_detachment_microscope_view::instrument_t75_flask::anchor::material_volume::` | `instrument_t75_flask` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `routine_passage::passage_hood_detachment_microscope_view::left_cell_suspension::anchor::material_volume::` | `left_cell_suspension` | `anchor` | `material_volume` | `cell_suspension` | `rgb(204, 0, 102)` | True | 99.94 |
+| `sdspage_assemble_electrode_module::electrophoresis_bench::center_ddh2o_bottle::anchor::material_volume::` | `center_ddh2o_bottle` | `anchor` | `material_volume` | `ddh2o` | `rgb(240, 249, 255)` | True | 75.57 |
+| `sdspage_assemble_electrode_module::electrophoresis_bench::center_p200_micropipette::anchor::held_material_volume::` | `center_p200_micropipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_assemble_electrode_module::electrophoresis_bench::center_running_buffer_1x_carboy::anchor::material_volume::` | `center_running_buffer_1x_carboy` | `anchor` | `material_volume` | `running_buffer_1x` | `rgb(232, 220, 192)` | True | 100.00 |
+| `sdspage_assemble_electrode_module::electrophoresis_bench::center_serological_pipette::anchor::held_material_volume::` | `center_serological_pipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_assemble_electrode_module::electrophoresis_bench::front_center_waste_container::anchor::material_volume::` | `front_center_waste_container` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_assemble_electrode_module::electrophoresis_bench::rear_left_protein_ladder_tube::anchor::material_volume::` | `rear_left_protein_ladder_tube` | `anchor` | `material_volume` | `protein_ladder` | `rgb(6, 182, 212)` | True | 92.59 |
+| `sdspage_assemble_electrode_module::electrophoresis_bench::rear_left_recycle_buffer_bottle::anchor::material_volume::` | `rear_left_recycle_buffer_bottle` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_assemble_electrode_module::electrophoresis_bench::rear_left_running_buffer_10x::anchor::material_volume::` | `rear_left_running_buffer_10x` | `anchor` | `material_volume` | `running_buffer_10x` | `rgb(212, 196, 168)` | True | 100.00 |
+| `sdspage_destain_gel_rock::sdspage_destain_gel_rock_workspace::center_staining_tray::anchor::material_volume::` | `center_staining_tray` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_destain_gel_rock::sdspage_destain_gel_rock_workspace::rear_center_destain_waste::anchor::material_volume::` | `rear_center_destain_waste` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_destain_gel_setup::sdspage_destain_gel_setup_workspace::center_staining_tray::anchor::material_volume::` | `center_staining_tray` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_destain_gel_setup::sdspage_destain_gel_setup_workspace::rear_center_destain::anchor::material_volume::` | `rear_center_destain` | `anchor` | `material_volume` | `destain` | `rgb(219, 234, 254)` | True | 79.96 |
+| `sdspage_destain_gel_setup::sdspage_destain_gel_setup_workspace::rear_right_ddh2o::anchor::material_volume::` | `rear_right_ddh2o` | `anchor` | `material_volume` | `ddh2o` | `rgb(240, 249, 255)` | True | 75.40 |
+| `sdspage_destain_gel_setup::sdspage_destain_gel_setup_workspace::right_tool_area_waste::anchor::material_volume::` | `right_tool_area_waste` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_extract_gel_from_cassette::extraction_workspace::front_center_staining_tray::anchor::material_volume::` | `front_center_staining_tray` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_fill_tank_buffer::sdspage_fill_tank_buffer_workspace::center_running_buffer_1x_carboy::anchor::material_volume::` | `center_running_buffer_1x_carboy` | `anchor` | `material_volume` | `running_buffer_1x` | `rgb(232, 220, 192)` | True | 99.42 |
+| `sdspage_fill_tank_buffer::sdspage_fill_tank_buffer_workspace::center_serological_pipette::anchor::held_material_volume::` | `center_serological_pipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_fill_tank_buffer::sdspage_fill_tank_buffer_workspace::front_left_electrophoresis_inner_chamber::anchor::material_volume::` | `front_left_electrophoresis_inner_chamber` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_fill_tank_buffer::sdspage_fill_tank_buffer_workspace::front_right_electrophoresis_outer_chamber::anchor::material_volume::` | `front_right_electrophoresis_outer_chamber` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_full::sdspage_prepare_running_buffer_workspace::center_ddh2o_carboy::anchor::material_volume::` | `center_ddh2o_carboy` | `anchor` | `material_volume` | `ddh2o` | `rgb(240, 249, 255)` | True | 77.15 |
+| `sdspage_full::sdspage_prepare_running_buffer_workspace::center_p200_micropipette::anchor::held_material_volume::` | `center_p200_micropipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_full::sdspage_prepare_running_buffer_workspace::center_running_buffer_preparation_carboy::anchor::material_volume::` | `center_running_buffer_preparation_carboy` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_full::sdspage_prepare_running_buffer_workspace::center_serological_pipette::anchor::held_material_volume::` | `center_serological_pipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_full::sdspage_prepare_running_buffer_workspace::front_center_waste_container::anchor::material_volume::` | `front_center_waste_container` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_full::sdspage_prepare_running_buffer_workspace::rear_left_protein_ladder_tube::anchor::material_volume::` | `rear_left_protein_ladder_tube` | `anchor` | `material_volume` | `protein_ladder` | `rgb(6, 182, 212)` | True | 97.06 |
+| `sdspage_full::sdspage_prepare_running_buffer_workspace::rear_left_recycle_buffer_bottle::anchor::material_volume::` | `rear_left_recycle_buffer_bottle` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_full::sdspage_prepare_running_buffer_workspace::rear_left_running_buffer_10x::anchor::material_volume::` | `rear_left_running_buffer_10x` | `anchor` | `material_volume` | `running_buffer_10x` | `rgb(212, 196, 168)` | True | 100.00 |
+| `sdspage_image_gel::sdspage_image_gel_workspace::center_staining_tray::anchor::material_volume::` | `center_staining_tray` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_image_gel::sdspage_image_gel_workspace::rear_ddh2o::anchor::material_volume::` | `rear_ddh2o` | `anchor` | `material_volume` | `ddh2o` | `rgb(240, 249, 255)` | True | 76.65 |
+| `sdspage_image_gel::sdspage_image_gel_workspace::right_waste_container::anchor::material_volume::` | `right_waste_container` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_load_protein_ladder::sdspage_load_protein_ladder_workspace::center_p200_micropipette::anchor::held_material_volume::` | `center_p200_micropipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_load_protein_ladder::sdspage_load_protein_ladder_workspace::rear_left_protein_ladder_tube::anchor::material_volume::` | `rear_left_protein_ladder_tube` | `anchor` | `material_volume` | `protein_ladder` | `rgb(6, 182, 212)` | True | 98.04 |
+| `sdspage_load_sample_single_lane::sdspage_load_sample_single_lane_workspace::center_p200_micropipette::anchor::held_material_volume::` | `center_p200_micropipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_load_sample_single_lane::sdspage_load_sample_single_lane_workspace::front_center_microtube::anchor::material_volume::` | `front_center_microtube` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_load_sample_single_lane::sdspage_load_sample_single_lane_workspace::front_center_waste_container::anchor::material_volume::` | `front_center_waste_container` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_load_samples_batch::sdspage_load_sample_single_lane_workspace::center_p200_micropipette::anchor::held_material_volume::` | `center_p200_micropipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_load_samples_batch::sdspage_load_sample_single_lane_workspace::front_center_microtube::anchor::material_volume::` | `front_center_microtube` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_load_samples_batch::sdspage_load_sample_single_lane_workspace::front_center_waste_container::anchor::material_volume::` | `front_center_waste_container` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_prepare_gel_cassette::electrophoresis_bench::center_ddh2o_bottle::anchor::material_volume::` | `center_ddh2o_bottle` | `anchor` | `material_volume` | `ddh2o` | `rgb(240, 249, 255)` | True | 75.57 |
+| `sdspage_prepare_gel_cassette::electrophoresis_bench::center_p200_micropipette::anchor::held_material_volume::` | `center_p200_micropipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_prepare_gel_cassette::electrophoresis_bench::center_running_buffer_1x_carboy::anchor::material_volume::` | `center_running_buffer_1x_carboy` | `anchor` | `material_volume` | `running_buffer_1x` | `rgb(232, 220, 192)` | True | 100.00 |
+| `sdspage_prepare_gel_cassette::electrophoresis_bench::center_serological_pipette::anchor::held_material_volume::` | `center_serological_pipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_prepare_gel_cassette::electrophoresis_bench::front_center_waste_container::anchor::material_volume::` | `front_center_waste_container` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_prepare_gel_cassette::electrophoresis_bench::rear_left_protein_ladder_tube::anchor::material_volume::` | `rear_left_protein_ladder_tube` | `anchor` | `material_volume` | `protein_ladder` | `rgb(6, 182, 212)` | True | 92.59 |
+| `sdspage_prepare_gel_cassette::electrophoresis_bench::rear_left_recycle_buffer_bottle::anchor::material_volume::` | `rear_left_recycle_buffer_bottle` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_prepare_gel_cassette::electrophoresis_bench::rear_left_running_buffer_10x::anchor::material_volume::` | `rear_left_running_buffer_10x` | `anchor` | `material_volume` | `running_buffer_10x` | `rgb(212, 196, 168)` | True | 100.00 |
+| `sdspage_prepare_running_buffer::sdspage_prepare_running_buffer_workspace::center_ddh2o_carboy::anchor::material_volume::` | `center_ddh2o_carboy` | `anchor` | `material_volume` | `ddh2o` | `rgb(240, 249, 255)` | True | 77.15 |
+| `sdspage_prepare_running_buffer::sdspage_prepare_running_buffer_workspace::center_p200_micropipette::anchor::held_material_volume::` | `center_p200_micropipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_prepare_running_buffer::sdspage_prepare_running_buffer_workspace::center_running_buffer_preparation_carboy::anchor::material_volume::` | `center_running_buffer_preparation_carboy` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_prepare_running_buffer::sdspage_prepare_running_buffer_workspace::center_serological_pipette::anchor::held_material_volume::` | `center_serological_pipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_prepare_running_buffer::sdspage_prepare_running_buffer_workspace::front_center_waste_container::anchor::material_volume::` | `front_center_waste_container` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_prepare_running_buffer::sdspage_prepare_running_buffer_workspace::rear_left_protein_ladder_tube::anchor::material_volume::` | `rear_left_protein_ladder_tube` | `anchor` | `material_volume` | `protein_ladder` | `rgb(6, 182, 212)` | True | 97.06 |
+| `sdspage_prepare_running_buffer::sdspage_prepare_running_buffer_workspace::rear_left_recycle_buffer_bottle::anchor::material_volume::` | `rear_left_recycle_buffer_bottle` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_prepare_running_buffer::sdspage_prepare_running_buffer_workspace::rear_left_running_buffer_10x::anchor::material_volume::` | `rear_left_running_buffer_10x` | `anchor` | `material_volume` | `running_buffer_10x` | `rgb(212, 196, 168)` | True | 100.00 |
+| `sdspage_prepare_sample_mix_batch::sdspage_prepare_sample_mix_single_lane_workspace::center_micropipette::anchor::held_material_volume::` | `center_micropipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_prepare_sample_mix_batch::sdspage_prepare_sample_mix_single_lane_workspace::eppendorf_tube::anchor::material_volume::` | `eppendorf_tube` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_prepare_sample_mix_batch::sdspage_prepare_sample_mix_single_lane_workspace::rear_center_laemmli::anchor::material_volume::` | `rear_center_laemmli` | `anchor` | `material_volume` | `laemmli_4x` | `rgb(30, 58, 138)` | True | 98.86 |
+| `sdspage_prepare_sample_mix_batch::sdspage_prepare_sample_mix_single_lane_workspace::rear_left_protein_sample::anchor::material_volume::` | `rear_left_protein_sample` | `anchor` | `material_volume` | `protein_sample_raw` | `rgb(245, 243, 255)` | True | 98.01 |
+| `sdspage_prepare_sample_mix_batch::sdspage_prepare_sample_mix_single_lane_workspace::rear_right_bme::anchor::material_volume::` | `rear_right_bme` | `anchor` | `material_volume` | `bme` | `rgb(254, 243, 199)` | True | 98.64 |
+| `sdspage_prepare_sample_mix_single_lane::sdspage_prepare_sample_mix_single_lane_workspace::center_micropipette::anchor::held_material_volume::` | `center_micropipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_prepare_sample_mix_single_lane::sdspage_prepare_sample_mix_single_lane_workspace::eppendorf_tube::anchor::material_volume::` | `eppendorf_tube` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_prepare_sample_mix_single_lane::sdspage_prepare_sample_mix_single_lane_workspace::rear_center_laemmli::anchor::material_volume::` | `rear_center_laemmli` | `anchor` | `material_volume` | `laemmli_4x` | `rgb(30, 58, 138)` | True | 98.86 |
+| `sdspage_prepare_sample_mix_single_lane::sdspage_prepare_sample_mix_single_lane_workspace::rear_left_protein_sample::anchor::material_volume::` | `rear_left_protein_sample` | `anchor` | `material_volume` | `protein_sample_raw` | `rgb(245, 243, 255)` | True | 98.01 |
+| `sdspage_prepare_sample_mix_single_lane::sdspage_prepare_sample_mix_single_lane_workspace::rear_right_bme::anchor::material_volume::` | `rear_right_bme` | `anchor` | `material_volume` | `bme` | `rgb(254, 243, 199)` | True | 98.64 |
+| `sdspage_recycle_buffer::sdspage_recycle_buffer_workspace::front_left_electrophoresis_inner_chamber::anchor::material_volume::` | `front_left_electrophoresis_inner_chamber` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_recycle_buffer::sdspage_recycle_buffer_workspace::front_right_electrophoresis_outer_chamber::anchor::material_volume::` | `front_right_electrophoresis_outer_chamber` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_recycle_buffer::sdspage_recycle_buffer_workspace::rear_left_recycle_buffer_bottle::anchor::material_volume::` | `rear_left_recycle_buffer_bottle` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_stain_gel::sdspage_stain_gel_workspace::center_staining_tray::anchor::material_volume::` | `center_staining_tray` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_stain_gel::sdspage_stain_gel_workspace::rear_left_coomassie_recycle::anchor::material_volume::` | `rear_left_coomassie_recycle` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `sdspage_stain_gel::sdspage_stain_gel_workspace::rear_left_coomassie_stain::anchor::material_volume::` | `rear_left_coomassie_stain` | `anchor` | `material_volume` | `coomassie_stain` | `rgb(30, 64, 175)` | True | 99.98 |
+| `sdspage_stain_gel::sdspage_stain_gel_workspace::rear_right_ddh2o::anchor::material_volume::` | `rear_right_ddh2o` | `anchor` | `material_volume` | `ddh2o` | `rgb(240, 249, 255)` | True | 76.65 |
+| `sdspage_stain_gel::sdspage_stain_gel_workspace::right_tool_area_waste::anchor::material_volume::` | `right_tool_area_waste` | `anchor` | `material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |
+| `trypan_blue_counting::cell_counter_workspace::rear_cell_suspension_tube::anchor::material_volume::` | `rear_cell_suspension_tube` | `anchor` | `material_volume` | `cell_suspension` | `rgb(204, 0, 102)` | True | 99.87 |
+| `trypan_blue_counting::cell_counter_workspace::rear_trypan_blue_tube::anchor::material_volume::` | `rear_trypan_blue_tube` | `anchor` | `material_volume` | `trypan_blue` | `rgb(0, 103, 204)` | True | 99.15 |
+| `trypan_blue_counting::cell_counter_workspace::right_micropipette::anchor::held_material_volume::` | `right_micropipette` | `anchor` | `held_material_volume` | `empty` | `rgba(0, 0, 0, 0)` | False |  |

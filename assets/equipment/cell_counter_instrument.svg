@@ -1,73 +1,49 @@
-<svg xmlns="http://www.w3.org/2000/svg" version="1.0" viewBox="0 0 400 280">
-  <!-- Benchtop automated cell counter: a compact box with screen, LED display, slide slot, and control buttons -->
-  <!-- Main body: dark grey housing -->
-  <rect x="20" y="60" width="360" height="200" rx="12" ry="12" fill="#3a3a3a" stroke="#222" stroke-width="2"/>
-  <!-- Body highlight (top face) -->
-  <rect x="22" y="60" width="356" height="40" rx="10" ry="10" fill="#484848" stroke="none"/>
-  <!-- Front panel lighter area -->
-  <rect x="30" y="100" width="340" height="152" rx="6" ry="6" fill="#2d2d2d" stroke="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 372 213">
+  <path fill="#3a3a3a" stroke="#222" stroke-width="2" d="M 18 6 L 354 6 A 12 12 0 0 1 366 18 L 366 194 A 12 12 0 0 1 354 206 L 18 206 A 12 12 0 0 1 6 194 L 6 18 A 12 12 0 0 1 18 6 Z"/>
+  <path fill="#484848" d="M 18 6 L 354 6 A 10 10 0 0 1 364 16 L 364 36 A 10 10 0 0 1 354 46 L 18 46 A 10 10 0 0 1 8 36 L 8 16 A 10 10 0 0 1 18 6 Z"/>
+  <path fill="#2d2d2d" d="M 22 46 L 350 46 A 6 6 0 0 1 356 52 L 356 192 A 6 6 0 0 1 350 198 L 22 198 A 6 6 0 0 1 16 192 L 16 52 A 6 6 0 0 1 22 46 Z"/>
+  <g fill="#86aeba">
+    <path d="M 167 26 A 4 4 0 1 0 175 26 A 4 4 0 1 0 167 26 Z"/><path d="M 182 26 A 4 4 0 1 0 190 26 A 4 4 0 1 0 182 26 Z"/><path d="M 197 26 A 4 4 0 1 0 205 26 A 4 4 0 1 0 197 26 Z"/>
+    <path d="M 161 35 L 211 35" stroke="#6d9aa8" stroke-width="3" stroke-linecap="round"/>
+  </g>
 
-  <!-- Large LCD/LED screen (left 2/3 of front panel) -->
-  <rect x="42" y="112" width="200" height="110" rx="5" ry="5" fill="#111820" stroke="#555" stroke-width="1.5"/>
-  <!-- Screen glow / inner display area -->
-  <rect x="46" y="116" width="192" height="102" rx="3" ry="3" fill="#0a1a2e" stroke="none"/>
-  <!-- Screen content: count display -->
-  <rect x="50" y="122" width="180" height="28" rx="2" ry="2" fill="#001a33" stroke="none"/>
-  <text x="140" y="141" font-family="monospace" font-size="14" fill="#00ccff" text-anchor="middle" font-weight="bold">Cell Count: 8.50e5</text>
-  <!-- Screen viability row -->
-  <rect x="50" y="155" width="180" height="24" rx="2" ry="2" fill="#001a33" stroke="none"/>
-  <text x="140" y="171" font-family="monospace" font-size="13" fill="#00ff88" text-anchor="middle">Viability: 92.5%</text>
-  <!-- Status row -->
-  <rect x="50" y="184" width="180" height="20" rx="2" ry="2" fill="#001a33" stroke="none"/>
-  <text x="140" y="198" font-family="monospace" font-size="11" fill="#ffcc00" text-anchor="middle">READY</text>
+  <path fill="#111820" stroke="#555" stroke-width="1.5" d="M 33 58 L 223 58 A 5 5 0 0 1 228 63 L 228 163 A 5 5 0 0 1 223 168 L 33 168 A 5 5 0 0 1 28 163 L 28 63 A 5 5 0 0 1 33 58 Z"/>
+  <path fill="#0a1a2e" d="M 35 62 L 221 62 A 3 3 0 0 1 224 65 L 224 161 A 3 3 0 0 1 221 164 L 35 164 A 3 3 0 0 1 32 161 L 32 65 A 3 3 0 0 1 35 62 Z"/>
+  <path fill="#001a33" d="M 38 68 L 214 68 A 2 2 0 0 1 216 70 L 216 94 A 2 2 0 0 1 214 96 L 38 96 A 2 2 0 0 1 36 94 L 36 70 A 2 2 0 0 1 38 68 Z"/>
+  <g fill="#5d8da0" opacity=".85">
+    <path d="M 85 78 A 5 5 0 1 0 95 78 A 5 5 0 1 0 85 78 Z"/><path d="M 104 76 A 3 3 0 1 0 110 76 A 3 3 0 1 0 104 76 Z"/><path d="M 119 82 A 4 4 0 1 0 127 82 A 4 4 0 1 0 119 82 Z"/>
+    <path d="M 139 75 A 4 4 0 1 0 147 75 A 4 4 0 1 0 139 75 Z"/><path d="M 157 81 A 5 5 0 1 0 167 81 A 5 5 0 1 0 157 81 Z"/>
+  </g>
+  <g fill="none" stroke="#82aebb" stroke-width="1">
+    <path d="M 81 78 A 9 9 0 1 0 99 78 A 9 9 0 1 0 81 78 Z"/><path d="M 115 82 A 8 8 0 1 0 131 82 A 8 8 0 1 0 115 82 Z"/><path d="M 153 81 A 9 9 0 1 0 171 81 A 9 9 0 1 0 153 81 Z"/>
+  </g>
+  <path fill="#001a33" d="M 38 101 L 214 101 A 2 2 0 0 1 216 103 L 216 123 A 2 2 0 0 1 214 125 L 38 125 A 2 2 0 0 1 36 123 L 36 103 A 2 2 0 0 1 38 101 Z"/>
+  <g fill="#355b70"><path d="M 56 108 L 74 108 A 2 2 0 0 1 76 110 L 76 116 A 2 2 0 0 1 74 118 L 56 118 A 2 2 0 0 1 54 116 L 54 110 A 2 2 0 0 1 56 108 Z"/><path d="M 84 108 L 102 108 A 2 2 0 0 1 104 110 L 104 116 A 2 2 0 0 1 102 118 L 84 118 A 2 2 0 0 1 82 116 L 82 110 A 2 2 0 0 1 84 108 Z"/><path d="M 112 108 L 130 108 A 2 2 0 0 1 132 110 L 132 116 A 2 2 0 0 1 130 118 L 112 118 A 2 2 0 0 1 110 116 L 110 110 A 2 2 0 0 1 112 108 Z"/><path d="M 140 108 L 158 108 A 2 2 0 0 1 160 110 L 160 116 A 2 2 0 0 1 158 118 L 140 118 A 2 2 0 0 1 138 116 L 138 110 A 2 2 0 0 1 140 108 Z"/></g>
+  <path fill="#001a33" d="M 38 130 L 214 130 A 2 2 0 0 1 216 132 L 216 148 A 2 2 0 0 1 214 150 L 38 150 A 2 2 0 0 1 36 148 L 36 132 A 2 2 0 0 1 38 130 Z"/>
+  <path d="M 62 140 L 150 140" stroke="#44788e" stroke-width="3" stroke-linecap="round" stroke-dasharray="5 5"/>
+  <path fill="#28536a" d="M 167 140 A 4 4 0 1 0 175 140 A 4 4 0 1 0 167 140 Z"/><path fill="#28536a" d="M 183 140 A 4 4 0 1 0 191 140 A 4 4 0 1 0 183 140 Z"/>
 
-  <!-- Right control panel -->
-  <!-- CAPTURE button (large green) -->
-  <rect x="260" y="114" width="94" height="36" rx="8" ry="8" fill="#1a7a1a" stroke="#0d5a0d" stroke-width="1.5"/>
-  <rect x="263" y="116" width="88" height="16" rx="4" ry="4" fill="#2aaa2a" stroke="none"/>
-  <text x="307" y="137" font-family="sans-serif" font-size="11" fill="#fff" text-anchor="middle" font-weight="bold">CAPTURE</text>
+  <path fill="#1a7a1a" stroke="#0d5a0d" stroke-width="1.5" d="M 254 60 L 332 60 A 8 8 0 0 1 340 68 L 340 88 A 8 8 0 0 1 332 96 L 254 96 A 8 8 0 0 1 246 88 L 246 68 A 8 8 0 0 1 254 60 Z"/>
+  <path fill="#2aaa2a" d="M 253 62 L 333 62 A 4 4 0 0 1 337 66 L 337 74 A 4 4 0 0 1 333 78 L 253 78 A 4 4 0 0 1 249 74 L 249 66 A 4 4 0 0 1 253 62 Z"/>
+  <g fill="none" stroke="#fff" stroke-width="2" stroke-linejoin="round"><path d="M 282 70 L 303 70 A 2 2 0 0 1 305 72 L 305 83 A 2 2 0 0 1 303 85 L 282 85 A 2 2 0 0 1 280 83 L 280 72 A 2 2 0 0 1 282 70 Z"/><path d="M 286 70 L 289 66 L 296 66 L 299 70"/><path d="M 288.5 77.5 A 4 4 0 1 0 296.5 77.5 A 4 4 0 1 0 288.5 77.5 Z"/></g>
+  <path fill="#1a4a8a" stroke="#0d3560" stroke-width="1.5" d="M 252 104 L 284 104 A 6 6 0 0 1 290 110 L 290 126 A 6 6 0 0 1 284 132 L 252 132 A 6 6 0 0 1 246 126 L 246 110 A 6 6 0 0 1 252 104 Z"/>
+  <path fill="#2a6ab0" d="M 251 106 L 285 106 A 3 3 0 0 1 288 109 L 288 115 A 3 3 0 0 1 285 118 L 251 118 A 3 3 0 0 1 248 115 L 248 109 A 3 3 0 0 1 251 106 Z"/>
+  <g fill="none" stroke="#fff" stroke-width="1.5"><path d="M 261 118 A 7 7 0 1 0 275 118 A 7 7 0 1 0 261 118 Z"/><path d="M 265 118 A 3 3 0 1 0 271 118 A 3 3 0 1 0 265 118 Z"/><path d="M 268 108 L 268 112 M 268 124 L 268 128 M 258 118 L 262 118 M 274 118 L 278 118"/></g>
+  <path fill="#5a5a5a" stroke="#3a3a3a" stroke-width="1.5" d="M 302 104 L 334 104 A 6 6 0 0 1 340 110 L 340 126 A 6 6 0 0 1 334 132 L 302 132 A 6 6 0 0 1 296 126 L 296 110 A 6 6 0 0 1 302 104 Z"/>
+  <path fill="#7a7a7a" d="M 301 106 L 335 106 A 3 3 0 0 1 338 109 L 338 115 A 3 3 0 0 1 335 118 L 301 118 A 3 3 0 0 1 298 115 L 298 109 A 3 3 0 0 1 301 106 Z"/>
+  <g fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M 318 110 L 318 121 M 313 116 L 318 121 L 323 116 M 313 125 L 323 125"/></g>
 
-  <!-- FOCUS button (blue) -->
-  <rect x="260" y="158" width="44" height="28" rx="6" ry="6" fill="#1a4a8a" stroke="#0d3560" stroke-width="1.5"/>
-  <rect x="262" y="160" width="40" height="12" rx="3" ry="3" fill="#2a6ab0" stroke="none"/>
-  <text x="282" y="177" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">FOCUS</text>
+  <path fill="#00ee44" stroke="#006622" d="M 259 151 A 5 5 0 1 0 269 151 A 5 5 0 1 0 259 151 Z"/><path fill="#44ff88" d="M 261 151 A 3 3 0 1 0 267 151 A 3 3 0 1 0 261 151 Z"/>
+  <path fill="#0088ff" stroke="#004488" d="M 279 151 A 5 5 0 1 0 289 151 A 5 5 0 1 0 279 151 Z"/><path fill="#44aaff" d="M 281 151 A 3 3 0 1 0 287 151 A 3 3 0 1 0 281 151 Z"/>
+  <path d="M 256 165 L 292 165" stroke="#596b72" stroke-width="2" stroke-linecap="round" stroke-dasharray="2 4"/>
 
-  <!-- EJECT button (grey) -->
-  <rect x="310" y="158" width="44" height="28" rx="6" ry="6" fill="#5a5a5a" stroke="#3a3a3a" stroke-width="1.5"/>
-  <rect x="312" y="160" width="40" height="12" rx="3" ry="3" fill="#7a7a7a" stroke="none"/>
-  <text x="332" y="177" font-family="sans-serif" font-size="9" fill="#fff" text-anchor="middle">EJECT</text>
-
-  <!-- Power LED indicator (green dot) -->
-  <circle cx="278" cy="205" r="5" fill="#00ee44" stroke="#006622" stroke-width="1"/>
-  <circle cx="278" cy="205" r="3" fill="#44ff88" stroke="none"/>
-
-  <!-- Status LED (blue) -->
-  <circle cx="298" cy="205" r="5" fill="#0088ff" stroke="#004488" stroke-width="1"/>
-  <circle cx="298" cy="205" r="3" fill="#44aaff" stroke="none"/>
-
-  <!-- Label under LEDs -->
-  <text x="288" y="220" font-family="sans-serif" font-size="8" fill="#999" text-anchor="middle">STATUS</text>
-
-  <!-- Slide slot: horizontal opening at bottom front -->
-  <rect x="42" y="232" width="300" height="14" rx="3" ry="3" fill="#111" stroke="#555" stroke-width="1.5"/>
-  <rect x="44" y="234" width="296" height="10" rx="2" ry="2" fill="#080808" stroke="none"/>
-  <!-- Slide slot label -->
-  <text x="192" y="264" font-family="sans-serif" font-size="9" fill="#888" text-anchor="middle">SLIDE INSERT</text>
-  <!-- Arrow indicators for slot -->
-  <polygon points="130,249 138,244 138,254" fill="#666" stroke="none"/>
-  <polygon points="250,249 242,244 242,254" fill="#666" stroke="none"/>
-
-  <!-- Instrument label on top -->
-  <text x="200" y="92" font-family="sans-serif" font-size="11" fill="#ccc" text-anchor="middle" font-weight="bold">AUTOMATED CELL COUNTER</text>
-
-  <!-- Base feet -->
-  <rect x="40" y="255" width="30" height="8" rx="3" ry="3" fill="#222" stroke="#111" stroke-width="1"/>
-  <rect x="330" y="255" width="30" height="8" rx="3" ry="3" fill="#222" stroke="#111" stroke-width="1"/>
-
-  <!-- Overlay root for runtime compositing -->
+  <path fill="#111" stroke="#555" stroke-width="1.5" d="M 31 178 L 325 178 A 3 3 0 0 1 328 181 L 328 189 A 3 3 0 0 1 325 192 L 31 192 A 3 3 0 0 1 28 189 L 28 181 A 3 3 0 0 1 31 178 Z"/>
+  <path fill="#080808" d="M 32 180 L 324 180 A 2 2 0 0 1 326 182 L 326 188 A 2 2 0 0 1 324 190 L 32 190 A 2 2 0 0 1 30 188 L 30 182 A 2 2 0 0 1 32 180 Z"/>
+  <path fill="#466878" stroke="#85a8b3" d="M 146 181 L 210 181 A 2 2 0 0 1 212 183 L 212 187 A 2 2 0 0 1 210 189 L 146 189 A 2 2 0 0 1 144 187 L 144 183 A 2 2 0 0 1 146 181 Z"/>
+  <path d="M 116 195 L 124 190 L 124 200 Z M 236 195 L 228 190 L 228 200 Z" fill="#778993"/>
+  <path fill="#222" stroke="#111" d="M 29 201 L 53 201 A 3 3 0 0 1 56 204 L 56 206 A 3 3 0 0 1 53 209 L 29 209 A 3 3 0 0 1 26 206 L 26 204 A 3 3 0 0 1 29 201 Z"/>
+  <path fill="#222" stroke="#111" d="M 319 201 L 343 201 A 3 3 0 0 1 346 204 L 346 206 A 3 3 0 0 1 343 209 L 319 209 A 3 3 0 0 1 316 206 L 316 204 A 3 3 0 0 1 319 201 Z"/>
   <g id="overlay_root"/>
-
-  <!-- ANCHORS: invisible positioning elements -->
-  <rect id="anchor_label" x="40" y="196" width="320" height="42" fill="none" stroke="none" display="none"/>
-  <rect id="anchor_error" x="340" y="176" width="16" height="16" fill="none" stroke="none" display="none"/>
+  <path id="anchor_label" fill="none" stroke="none" display="none" d="M 26 142 L 346 142 L 346 184 L 26 184 Z"/>
+  <path id="anchor_error" fill="none" stroke="none" display="none" d="M 326 122 L 342 122 L 342 138 L 326 138 Z"/>
 </svg>

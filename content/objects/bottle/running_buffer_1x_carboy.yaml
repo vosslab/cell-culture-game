@@ -7,8 +7,7 @@ state_fields:
     allowed:
       - empty
       - running_buffer_1x
-      - ddh2o
-    default: empty
+    default: running_buffer_1x
     description: Contents currently in the carboy.
   - field_name: material_volume
     type: float
@@ -16,7 +15,7 @@ state_fields:
     min: 0
     max: 1000
     default: 1000
-    description: Volume of contents remaining, in milliliters.
+    description: Volume of 1x running buffer remaining, in milliliters.
 visual_states:
   material_name:
     kind: svg
@@ -27,12 +26,12 @@ visual_states:
       - when: running_buffer_1x
         output:
           asset_name: bottle_green
-      - when: ddh2o
-        output:
-          asset_name: bottle_green
   material_volume:
-    kind: composite
-    formula: fill_height(state(material_volume), capacity_ml=1000)
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ml: 1000
 capabilities:
   - clickable
   - material_container

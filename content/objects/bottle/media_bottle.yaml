@@ -7,7 +7,7 @@ state_fields:
     allowed:
       - empty
       - media
-    default: empty
+    default: media
     description: Contents currently in the bottle.
   - field_name: material_volume
     type: float
@@ -25,8 +25,11 @@ state_fields:
     description: Whether the media has been warmed in the water bath.
 visual_states:
   material_volume:
-    kind: composite
-    formula: fill_height(state(material_volume), capacity_ml=500)
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ml: 500
   temperature_status:
     kind: composite
     composite: []

@@ -4,9 +4,9 @@
 // M16-D target-existence check in create_step_machine:
 //   - Invariant 1: reject an ambiguous interaction target (an object placed
 //     more than once in the active scene) -> AmbiguousAuthoredTargetError.
-//   - Invariant 2: reject an ObjectStateChange / CursorAttach scene_operation
-//     target that is not seeded in the active scene -> UnseededSceneOpTargetError,
-//     with the narrowed held-tool exemption.
+//   - Invariant 2: reject a store-writing scene operation target that is not
+//     seeded in the active scene -> UnseededSceneOperationTargetError, with the
+//     narrowed held-tool exemption.
 //
 // Configs are constructed inline in each test body (repo no-fixtures rule); the
 // scene adapter is built from an inline placement list via build_target_adapter,
@@ -24,7 +24,7 @@ import {
 import { build_target_adapter } from "../src/scene_runtime/protocol/target_adapter.ts";
 import {
   AmbiguousAuthoredTargetError,
-  UnseededSceneOpTargetError,
+  UnseededSceneOperationTargetError,
   UnknownAuthoredSubpartTargetError,
 } from "../src/scene_runtime/protocol/target_existence_check.ts";
 
@@ -115,7 +115,7 @@ describe("load-time invariant: scene-op target seeded", () => {
       { type: "ObjectStateChange", target: "ghost", state: { open: true } },
     ]);
     const bindings = [{ object_name: "clicker", placement_name: "clicker" }];
-    assert.throws(construct(cfg, bindings), UnseededSceneOpTargetError);
+    assert.throws(construct(cfg, bindings), UnseededSceneOperationTargetError);
   });
 
   test("does not throw when the ObjectStateChange target is seeded", () => {
@@ -147,7 +147,7 @@ describe("load-time invariant: scene-op target seeded", () => {
       { type: "CursorAttach", target: "conical", operation: "attach" },
     ]);
     const bindings = [{ object_name: "clicker", placement_name: "clicker" }];
-    assert.throws(construct(cfg, bindings), UnseededSceneOpTargetError);
+    assert.throws(construct(cfg, bindings), UnseededSceneOperationTargetError);
   });
 });
 

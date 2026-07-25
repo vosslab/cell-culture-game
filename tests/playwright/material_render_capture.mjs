@@ -1,47 +1,19 @@
 // tests/playwright/material_render_capture.mjs
 //
-// Render every emitted scene through the real production scene viewer
-// (dist/scene_viewer.html, same page tools/scene_to_png.mjs renders) and
-// collect, for every rendered object-level fill overlay ([data-overlay="fill"],
-// the bottom-anchored fill_height() overlay from scene_item.tsx), a BEFORE
-// (overlay visible) and AFTER (overlay hidden) screenshot of the same scene.
-// No object is named here and no state is written: every object renders at
-// its OWN authored default state, so this reads the content that already
-// exists (content-is-the-fixture, docs/specs/NO_FIXTURE_POLICY.md), never a
-// synthetic scenario.
+// Capture the material surfaces that a student sees at the authoritative
+// initial state of every emitted protocol-host page.  A standalone scene viewer
+// deliberately has no active protocol material registry, so it is useful for
+// scene geometry but is not evidence for material identity colors.
 //
-// Why before/after rather than a single flat-color match: the overlay's
-// resolved fill can be a translucent color (the neutral "no material"
-// fallback, rgba(120,120,120,0.35)) composited OVER the base asset's own
-// artwork, so the rendered pixel is a per-pixel BLEND of the overlay color
-// and whatever glass/background color sits beneath it at that point -- there
-// is no single flat RGB triple every filled pixel matches. Diffing the same
-// item's bbox with the overlay hidden vs shown isolates exactly the pixels
-// the overlay itself painted (glass, background, outline, and label pixels
-// are identical in both shots and drop out of the diff by construction; only
-// a thin anti-aliased edge band partially survives, which is accounted for
-// by tests/e2e/e2e_material_render.py's documented per-channel diff
-// tolerance), independent of whether that color happens to be opaque or
-// translucent.
+// The capture is declarative: it discovers the three generic renderer surfaces
+// rather than naming objects or protocols:
+//   - anchor: authored-SVG anchor rects
+//   - legacy_bbox: temporary item-box fill divs
+//   - subpart: generated structured-subpart material shapes
 //
-// An item can carry MORE than one fill overlay (an object tracking two
-// independent liquid levels, e.g. an electrophoresis tank's inner/outer
-// chamber). Each distinct data-overlay-field gets its OWN isolated "after"
-// screenshot (only that field's overlays hidden, siblings left visible), so
-// two stacked overlays on one item never get diffed against each other.
-//
-// Companion analysis lives in tests/e2e/e2e_material_render.py: this script
-// only captures pixels + DOM facts; PIL-based pixel classification and the
-// baseline compare happen there.
-//
-// Output (all under the directory passed as argv[2]):
-//   capture.json  -- {generated_at, viewport, scenes:[{scene, png_before, items}]}
-//                    each item carries its own png_after (per driving field).
-//   <scene_name>.png                    -- full-viewport shot, all overlays visible
-//   <scene_name>.nofill_<field>.png     -- same scene, only <field>'s overlay(s) hidden
-//
-// Run:
-//   node --import tsx tests/playwright/material_render_capture.mjs <out_dir>
+// Each visible surface gets a before/after pair with only that one surface
+// hidden.  The Python companion uses that pair to measure the actual painted
+// footprint without assuming a flat RGB color or a particular SVG silhouette.
 
 import fs from "node:fs";
 import http from "node:http";
@@ -52,46 +24,41 @@ import { chromium } from "playwright";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
-
 const DIST_DIR = path.join(REPO_ROOT, "dist");
-const MANIFEST_PATH = path.join(REPO_ROOT, "generated", "scene_manifest.json");
-
-// Fixed capture viewport. Item bboxes are read straight off getBoundingClientRect
-// in this same coordinate frame, so no clip-rect math is needed to map a bbox
-// back onto its screenshot.
+const PROTOCOLS_PATH = path.join(REPO_ROOT, "generated", "protocols.ts");
 const VIEWPORT = { width: 1920, height: 1080 };
-const READY_TIMEOUT_MS = 5000;
-const SETTLE_MS = 150;
+const READY_TIMEOUT_MS = 10000;
 
 const MIME_MAP = {
+  ".css": "text/css",
   ".html": "text/html",
   ".js": "application/javascript",
+  ".json": "application/json",
   ".mjs": "application/javascript",
-  ".css": "text/css",
-  ".map": "application/json",
   ".png": "image/png",
   ".svg": "image/svg+xml",
-  ".json": "application/json",
   ".woff2": "font/woff2",
 };
 
-//============================================
-// Inline static server for dist/
-//============================================
-
 function start_server(dist_dir) {
+  const dist_root = path.resolve(dist_dir);
   const server = http.createServer((req, res) => {
-    const url_path = req.url ? req.url.split("?")[0] : "/";
-    const norm = url_path === "/" ? "/index.html" : url_path;
-    const file_path = path.join(dist_dir, norm);
-    const ext = path.extname(file_path);
-    fs.readFile(file_path, (err, data) => {
-      if (err) {
+    const request_url = new URL(req.url ?? "/", "http://127.0.0.1");
+    const relative_path = request_url.pathname === "/" ? "/index.html" : request_url.pathname;
+    const file_path = path.resolve(dist_root, `.${relative_path}`);
+    if (file_path !== dist_root && !file_path.startsWith(`${dist_root}${path.sep}`)) {
+      res.writeHead(403, { "Content-Type": "text/plain" });
+      res.end("Path escapes the built artifact directory");
+      return;
+    }
+    const extension = path.extname(file_path);
+    fs.readFile(file_path, (error, data) => {
+      if (error) {
         res.writeHead(404, { "Content-Type": "text/plain" });
-        res.end(`Not found: ${norm}`);
+        res.end(`Not found: ${relative_path}`);
         return;
       }
-      res.writeHead(200, { "Content-Type": MIME_MAP[ext] ?? "application/octet-stream" });
+      res.writeHead(200, { "Content-Type": MIME_MAP[extension] ?? "application/octet-stream" });
       res.end(data);
     });
   });
@@ -101,160 +68,289 @@ function start_server(dist_dir) {
   });
 }
 
-//============================================
-// Manifest
-//============================================
-
-function read_emitted_scene_names() {
-  if (!fs.existsSync(MANIFEST_PATH)) {
-    throw new Error(`Scene manifest not found: ${MANIFEST_PATH}\nRun: bash build_github_pages.sh`);
+function read_emitted_protocol_names() {
+  if (!fs.existsSync(PROTOCOLS_PATH)) {
+    throw new Error(`Protocol index not found: ${PROTOCOLS_PATH}`);
   }
-  const parsed = JSON.parse(fs.readFileSync(MANIFEST_PATH, "utf8"));
-  return parsed.scenes.filter((s) => s.outcome === "emitted").map((s) => s.name);
+  const source = fs.readFileSync(PROTOCOLS_PATH, "utf8");
+  const index_start = source.indexOf("export const PROTOCOLS_INDEX");
+  const index_end = source.indexOf("] as const", index_start);
+  if (index_start < 0 || index_end < 0) {
+    throw new Error("Could not locate PROTOCOLS_INDEX in generated/protocols.ts");
+  }
+  const names = [
+    ...source.slice(index_start, index_end).matchAll(/protocol_name:\s*'([a-z0-9_]+)'/g),
+  ].map((match) => match[1]);
+  if (names.length === 0 || names.some((name) => name === undefined)) {
+    throw new Error("PROTOCOLS_INDEX has no emitted protocol names");
+  }
+  for (const name of names) {
+    if (!fs.existsSync(path.join(DIST_DIR, `${name}.html`))) {
+      throw new Error(
+        `Protocol host page missing: dist/${name}.html; run bash build_github_pages.sh`,
+      );
+    }
+  }
+  return names;
 }
 
-//============================================
-// One scene: load, wait, collect fill overlays, screenshot
-//============================================
+function sanitize_for_filename(value) {
+  return value.replace(/[^a-zA-Z0-9_-]/g, "_");
+}
 
-// Collects every [data-overlay="fill"] element's parent-item geometry + the
-// live computed fill color + its driving field name (data-overlay-field).
-// Runs entirely inside the page; no object name or field name is hardcoded
-// on the Node side. A single item CAN carry more than one fill overlay (an
-// object tracking two independent liquid levels, e.g. an electrophoresis
-// tank's inner/outer chamber); the field name is what disambiguates them.
-async function collect_fill_items(page) {
-  return page.evaluate(() => {
-    const fills = Array.from(document.querySelectorAll('[data-overlay="fill"]'));
-    const out = [];
-    for (const fill_el of fills) {
-      const item_el = fill_el.parentElement;
-      if (item_el === null) continue;
-      const rect = item_el.getBoundingClientRect();
-      if (rect.width <= 0 || rect.height <= 0) continue;
-      out.push({
-        placement_name: item_el.getAttribute("data-placement-name") ?? "",
-        object_name: item_el.getAttribute("data-object-name") ?? "",
-        field_name: fill_el.getAttribute("data-overlay-field") ?? "",
-        bbox: { x: rect.x, y: rect.y, w: rect.width, h: rect.height },
-        css_color: window.getComputedStyle(fill_el).backgroundColor,
-      });
-    }
-    return out;
+function surface_selector() {
+  return [
+    "rect[data-anchor-material-field][data-material-name]",
+    "[data-overlay='fill'][data-overlay-field]",
+    "[data-subpart-name][data-material-field][data-material-name]",
+  ].join(", ");
+}
+
+async function wait_for_protocol_scene(page) {
+  await page.waitForSelector("#scene-root[data-active-scene] [data-placement-name]", {
+    state: "attached",
+    timeout: READY_TIMEOUT_MS,
+  });
+  await page.evaluate(async () => {
+    await document.fonts.ready;
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await new Promise((resolve) => requestAnimationFrame(resolve));
   });
 }
 
-// Hides every fill overlay whose data-overlay-field matches field_name (no
-// layout shift: the overlay is position:absolute/pointer-events:none, so
-// hiding it never moves a sibling). Overlays for OTHER fields on the same
-// item are left visible, so a multi-field item's fields can each be isolated
-// in their own before/after pair.
-async function set_field_overlays_hidden(page, field_name, hidden) {
-  await page.evaluate(
-    ({ field, hide }) => {
-      const fills = Array.from(
-        document.querySelectorAll(`[data-overlay="fill"][data-overlay-field="${field}"]`),
+async function assert_scene_not_degraded(page, protocol_name, browser_diagnostics) {
+  const degradation = await page.evaluate(() => {
+    const root = document.querySelector("#scene-root");
+    const items = Array.from(document.querySelectorAll("[data-resolver-degraded]")).map(
+      (element) => ({
+        placement_name: element.getAttribute("data-placement-name") ?? "",
+        message: element.getAttribute("data-resolver-degraded") ?? "",
+      }),
+    );
+    return {
+      scene_degraded: root?.getAttribute("data-scene-degraded") ?? "",
+      structural_violation_count: root?.getAttribute("data-degraded-violation-count") ?? "",
+      items,
+    };
+  });
+  if (degradation.scene_degraded === "true" || degradation.items.length > 0) {
+    const resolver_details = degradation.items
+      .map((item) => `${item.placement_name}: ${item.message}`)
+      .join("; ");
+    const details = [
+      degradation.structural_violation_count === ""
+        ? ""
+        : `structural violations=${degradation.structural_violation_count}`,
+      resolver_details === "" ? "" : `resolver failures=${resolver_details}`,
+      browser_diagnostics.length === 0
+        ? ""
+        : `browser diagnostics=${browser_diagnostics.join(" | ")}`,
+    ]
+      .filter((detail) => detail !== "")
+      .join("; ");
+    throw new Error(`Protocol ${protocol_name} rendered a degraded material scene: ${details}`);
+  }
+}
+
+async function collect_surfaces(page) {
+  return page.evaluate((selector) => {
+    function rect_to_record(rect) {
+      return { x: rect.x, y: rect.y, w: rect.width, h: rect.height };
+    }
+    function kind_for(element) {
+      if (element.matches("rect[data-anchor-material-field][data-material-name]")) return "anchor";
+      if (element.matches("[data-overlay='fill'][data-overlay-field]")) return "legacy_bbox";
+      return "subpart";
+    }
+    function fill_for(element, style) {
+      if (element instanceof SVGElement) return style.fill;
+      return style.backgroundColor;
+    }
+    function has_visible_paint(element, style, geometry) {
+      const fill = fill_for(element, style);
+      const rgba_match = /^rgba\(([^)]+)\)$/.exec(fill);
+      const rgba_parts = rgba_match === null ? [] : rgba_match[1].split(",");
+      const alpha = rgba_parts.length === 4 ? Number(rgba_parts[3]) : 1;
+      return (
+        geometry.width > 0 &&
+        geometry.height > 0 &&
+        style.display !== "none" &&
+        style.visibility !== "hidden" &&
+        style.opacity !== "0" &&
+        fill !== "none" &&
+        fill !== "transparent" &&
+        alpha > 0
       );
-      for (const el of fills) {
-        el.style.display = hide ? "none" : "";
+    }
+
+    const missing_field_shapes = document.querySelectorAll(
+      "[data-subpart-overlay] [data-subpart-name][data-material-name]:not([data-material-field])",
+    );
+    if (missing_field_shapes.length > 0) {
+      throw new Error("Structured material shapes are missing their declared material field");
+    }
+
+    const surfaces = [];
+    for (const [index, element] of Array.from(document.querySelectorAll(selector)).entries()) {
+      const owner = element.closest("[data-placement-name][data-object-name]");
+      if (owner === null) {
+        throw new Error("Material surface is not owned by a declared scene placement");
+      }
+      const geometry = element.getBoundingClientRect();
+      const owner_geometry = owner.getBoundingClientRect();
+      if (owner_geometry.width <= 0 || owner_geometry.height <= 0) {
+        throw new Error("Material surface owner has no rendered geometry");
+      }
+      const style = window.getComputedStyle(element);
+      const kind = kind_for(element);
+      const driving_field =
+        kind === "anchor"
+          ? (element.getAttribute("data-anchor-material-field") ?? "")
+          : kind === "subpart"
+            ? (element.getAttribute("data-material-field") ?? "")
+            : (element.getAttribute("data-overlay-field") ?? "");
+      const subpart_name =
+        kind === "subpart" ? (element.getAttribute("data-subpart-name") ?? "") : "";
+      const material_name =
+        element.getAttribute("data-material-name") ?? owner.getAttribute("data-material") ?? "";
+      const visible = has_visible_paint(element, style, geometry);
+      if (driving_field === "") {
+        throw new Error("Material surface has no declared driving field");
+      }
+      if (visible && material_name === "") {
+        throw new Error("Visible material surface has no material identity");
+      }
+      surfaces.push({
+        capture_id: `surface_${index}`,
+        kind,
+        placement_name:
+          owner.getAttribute("data-placement-name") ?? owner.getAttribute("data-item-id") ?? "",
+        object_name: owner.getAttribute("data-object-name") ?? "",
+        driving_field,
+        subpart_name,
+        material_name,
+        computed_fill: fill_for(element, style),
+        visible,
+        geometry: rect_to_record(geometry),
+        owner_geometry: rect_to_record(owner_geometry),
+      });
+    }
+    return surfaces;
+  }, surface_selector());
+}
+
+async function hide_surface(page, capture_id, hidden) {
+  await page.evaluate(
+    ({ selector, id, hide }) => {
+      const elements = Array.from(document.querySelectorAll(selector));
+      const element = elements[Number(id.slice("surface_".length))];
+      if (!(element instanceof HTMLElement || element instanceof SVGElement)) {
+        throw new Error(`Material surface ${id} disappeared before capture`);
+      }
+      element.setAttribute("data-material-capture-hidden", hide ? "true" : "false");
+      if (hide) {
+        element.setAttribute("data-material-capture-original-visibility", element.style.visibility);
+        element.style.setProperty("visibility", "hidden");
+      } else {
+        const original = element.getAttribute("data-material-capture-original-visibility") ?? "";
+        element.style.setProperty("visibility", original);
+        element.removeAttribute("data-material-capture-original-visibility");
       }
     },
-    { field: field_name, hide: hidden },
+    { selector: surface_selector(), id: capture_id, hide: hidden },
   );
 }
 
-// Sanitizes a field name into a filesystem-safe filename fragment.
-function sanitize_for_filename(name) {
-  return name.replace(/[^a-zA-Z0-9_-]/g, "_");
-}
-
-async function capture_scene(page, base_url, scene_name, out_dir) {
-  const url = `${base_url}/scene_viewer.html?scene=${encodeURIComponent(scene_name)}`;
-  await page.goto(url, { waitUntil: "load" });
-  // state:"attached" (not the default "visible") because #scene-root itself
-  // reports as Playwright-hidden even once ready; the ready marker is a DOM
-  // attribute, not a visibility contract.
-  await page.waitForSelector("#scene-root[data-viewer-ready='true']", {
-    timeout: READY_TIMEOUT_MS,
-    state: "attached",
-  });
-  await page.waitForTimeout(SETTLE_MS);
-
-  const items = await collect_fill_items(page);
-  if (items.length === 0) {
-    return { scene: scene_name, png_before: null, items: [] };
+async function capture_protocol(page, base_url, protocol_name, out_dir) {
+  const browser_diagnostics = [];
+  const on_console = (message) => {
+    if (message.type() === "warning" || message.type() === "error") {
+      browser_diagnostics.push(`${message.type()}: ${message.text()}`);
+    }
+  };
+  const on_page_error = (error) => {
+    browser_diagnostics.push(`pageerror: ${error.message}`);
+  };
+  page.on("console", on_console);
+  page.on("pageerror", on_page_error);
+  try {
+    await page.goto(`${base_url}/${protocol_name}.html?shell=off`, { waitUntil: "load" });
+    await wait_for_protocol_scene(page);
+    await assert_scene_not_degraded(page, protocol_name, browser_diagnostics);
+    const active_scene = await page.locator("#scene-root").getAttribute("data-active-scene");
+    if (active_scene === null || active_scene === "") {
+      throw new Error(`Protocol ${protocol_name} reached no active initial scene`);
+    }
+    const surfaces = await collect_surfaces(page);
+    const visible_surfaces = surfaces.filter((surface) => surface.visible);
+    let png_before = null;
+    if (visible_surfaces.length > 0) {
+      png_before = `${protocol_name}.initial.png`;
+      await page.screenshot({ path: path.join(out_dir, png_before) });
+    }
+    for (const surface of visible_surfaces) {
+      await hide_surface(page, surface.capture_id, true);
+      const png_after = `${protocol_name}.initial.no_${sanitize_for_filename(surface.capture_id)}.png`;
+      await page.screenshot({ path: path.join(out_dir, png_after) });
+      await hide_surface(page, surface.capture_id, false);
+      surface.png_after = png_after;
+    }
+    return { protocol_name, initial_scene: active_scene, png_before, surfaces };
+  } finally {
+    page.off("console", on_console);
+    page.off("pageerror", on_page_error);
   }
-
-  const png_before = `${scene_name}.png`;
-  await page.screenshot({ path: path.join(out_dir, png_before) });
-
-  // One isolated "after" screenshot per DISTINCT driving field in this scene:
-  // hide only that field's overlays, shoot, then restore before the next one.
-  const distinct_fields = [...new Set(items.map((it) => it.field_name))];
-  const png_after_by_field = {};
-  for (const field_name of distinct_fields) {
-    await set_field_overlays_hidden(page, field_name, true);
-    const png_after = `${scene_name}.nofill_${sanitize_for_filename(field_name)}.png`;
-    await page.screenshot({ path: path.join(out_dir, png_after) });
-    await set_field_overlays_hidden(page, field_name, false);
-    png_after_by_field[field_name] = png_after;
-  }
-
-  const items_with_after = items.map((it) => ({
-    ...it,
-    png_after: png_after_by_field[it.field_name],
-  }));
-
-  return { scene: scene_name, png_before, items: items_with_after };
 }
-
-//============================================
-// Entry point
-//============================================
 
 async function main() {
   const out_dir = process.argv[2];
-  if (!out_dir) {
-    throw new Error("Usage: material_render_capture.mjs <out_dir>");
-  }
-  if (!fs.existsSync(path.join(DIST_DIR, "scene_viewer.html"))) {
-    throw new Error("dist/scene_viewer.html not found. Run: bash build_github_pages.sh");
+  if (!out_dir) throw new Error("Usage: material_render_capture.mjs <out_dir>");
+  if (!fs.existsSync(path.join(DIST_DIR, "protocol_host.js"))) {
+    throw new Error("dist/protocol_host.js not found. Run: bash build_github_pages.sh");
   }
   fs.mkdirSync(out_dir, { recursive: true });
-
-  const scene_names = read_emitted_scene_names();
-  console.log(`Capturing material fill overlays across ${scene_names.length} emitted scenes...`);
-
+  const protocol_names = read_emitted_protocol_names();
   const server = await start_server(DIST_DIR);
   const address = server.address();
   const base_url = `http://127.0.0.1:${address.port}`;
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: VIEWPORT });
-
-  const scenes = [];
+  let browser = null;
   try {
-    for (const scene_name of scene_names) {
-      const result = await capture_scene(page, base_url, scene_name, out_dir);
-      scenes.push(result);
-      console.log(`  ${scene_name}: ${result.items.length} fill overlay(s)`);
+    browser = await chromium.launch({ headless: true });
+    const page = await browser.newPage({ viewport: VIEWPORT });
+    const protocols = [];
+    const failures = [];
+    for (const protocol_name of protocol_names) {
+      try {
+        const record = await capture_protocol(page, base_url, protocol_name, out_dir);
+        protocols.push(record);
+        console.log(`${protocol_name}: ${record.surfaces.length} material surface(s)`);
+      } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        failures.push(`${protocol_name}: ${message}`);
+        console.error(`${protocol_name}: CAPTURE FAILED: ${message}`);
+      }
     }
+    if (failures.length > 0) {
+      throw new Error(
+        `Material capture failed for ${failures.length} protocol(s):\n${failures.join("\n")}`,
+      );
+    }
+    const payload = {
+      schema_version: "protocol-host-material-surfaces-v2",
+      generated_at: new Date().toISOString(),
+      viewport: VIEWPORT,
+      protocols,
+    };
+    fs.writeFileSync(path.join(out_dir, "capture.json"), JSON.stringify(payload, null, 2));
   } finally {
-    await browser.close();
-    await server.close();
+    if (browser !== null) {
+      await browser.close();
+    }
+    await new Promise((resolve) => server.close(resolve));
   }
-
-  const payload = {
-    generated_at: new Date().toISOString(),
-    viewport: VIEWPORT,
-    scenes,
-  };
-  fs.writeFileSync(path.join(out_dir, "capture.json"), JSON.stringify(payload, null, 2));
-
-  const total_items = scenes.reduce((sum, s) => sum + s.items.length, 0);
-  console.log(`Capture done: ${total_items} fill overlay(s) across ${scenes.length} scene(s).`);
 }
 
-main().catch((err) => {
-  console.error("material_render_capture error:", err);
+main().catch((error) => {
+  console.error("material_render_capture error:", error);
   process.exit(1);
 });

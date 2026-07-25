@@ -45,8 +45,8 @@
 // SEPARATE <svg> built from generated geometry. It references NO base-SVG id,
 // builds NO DOM id, does NO anchor lookup, and queries NO arbitrary DOM. It sits
 // over the base art with pointer-events: none so it never intercepts clicks. Each
-// shape carries data-subpart-name and data-material-name for spatial-correspondence
-// assertions (D11).
+// shape carries data-subpart-name, the declaration's data-material-field, and
+// data-material-name for spatial-correspondence assertions (D11).
 
 import type { JSXElement } from "solid-js";
 import { createMemo, createEffect, For } from "solid-js";
@@ -54,7 +54,11 @@ import { createMemo, createEffect, For } from "solid-js";
 import type { ObjectDef, SubpartGeometry, ViewBox } from "../layout/types.js";
 import type { SceneStore } from "../state/scene_store.js";
 import type { MaterialRegistry } from "./visual_state_resolver.js";
-import { resolve_color_result } from "./material_color.js";
+import {
+  circle_fill_path,
+  resolve_subpart_material_state,
+  type SubpartMaterialState,
+} from "./subpart_material_state.js";
 
 // The pure dispatch predicate lives in subpart_dispatch.ts (no JSX, importable
 // without the Solid runtime). Both this component and scene_item.tsx import it
@@ -63,47 +67,6 @@ import { resolve_color_result } from "./material_color.js";
 //============================================
 // Per-subpart fill resolution
 //============================================
-
-// One resolved fill for a subpart: the SVG fill value plus the material name to
-// stamp as data-material-name. degraded carries a non-empty message when the
-// color resolver failed for this subpart (routed to the degrade sink).
-interface SubpartFill {
-  fill: string;
-  material_name: string;
-  degraded: string;
-}
-
-// The fill used when a subpart has no painted material: the single no-fill
-// success (empty / sentinel / unseeded) and also the safe value for a failure
-// (a failure is NEVER a painted region; the failure is surfaced via the sink).
-const NO_FILL = "transparent";
-
-// Resolve one subpart's fill from the store + color resolver. PURE: it reads the
-// reactive store accessor (subscribing this subpart's slot) and the color source,
-// and returns a value. It performs no side effects; the degrade message it
-// returns is forwarded to the sink by the caller's effect-free render path.
-//
-// material_name: the raw declared driving-field value (or undefined when the
-//   subpart is unseeded). Coerced to a string name for the resolver; an unseeded
-//   subpart is treated as no material (null), the no-fill success.
-function resolve_subpart_fill(
-  raw_value: string | number | boolean | undefined,
-  registry: MaterialRegistry | null,
-): SubpartFill {
-  // An unseeded subpart (no write yet) has no material: the no-fill success.
-  // A non-string declared value cannot be a material name; treat it as no
-  // material rather than guessing. (The driving field is an enum -> string.)
-  const material_name: string | null = typeof raw_value === "string" ? raw_value : null;
-  const result = resolve_color_result(material_name, registry);
-  if (!result.ok) {
-    // A content defect: never paint, surface the failure through the sink.
-    return { fill: NO_FILL, material_name: material_name ?? "", degraded: result.reason };
-  }
-  // ok:true. color === null is the empty/sentinel no-fill success (transparent);
-  // a color string is the painted material identity.
-  const fill = result.color === null ? NO_FILL : result.color;
-  return { fill, material_name: material_name ?? "", degraded: "" };
-}
 
 //============================================
 // One subpart shape
@@ -123,17 +86,34 @@ function SubpartShape(props: {
   geometry: SubpartGeometry;
   store: SceneStore;
   placement_id: string;
-  field_name: string;
+  identity_field_name: string;
+  amount_field_name: string | null;
+  capacity: number | null;
+  capacity_error: string;
   registry: MaterialRegistry | null;
   on_degrade: (subpart_name: string, message: string) => void;
 }): JSXElement {
-  const resolved = createMemo<SubpartFill>(() => {
-    const raw = props.store.getSubpartStateField(
+  const resolved = createMemo<SubpartMaterialState>(() => {
+    const raw_identity = props.store.getSubpartStateField(
       props.placement_id,
       props.subpart_name,
-      props.field_name,
+      props.identity_field_name,
     );
-    return resolve_subpart_fill(raw, props.registry);
+    const raw_amount =
+      props.amount_field_name === null
+        ? undefined
+        : props.store.getSubpartStateField(
+            props.placement_id,
+            props.subpart_name,
+            props.amount_field_name,
+          );
+    return resolve_subpart_material_state(
+      raw_identity,
+      raw_amount,
+      props.capacity,
+      props.capacity_error,
+      props.registry,
+    );
   });
 
   // Report this subpart's degrade state to the sink whenever it changes. A
@@ -148,12 +128,12 @@ function SubpartShape(props: {
   // rectangular subparts (gel lanes, rack slots). No object-name branch.
   if (geometry.shape === "circle") {
     return (
-      <circle
+      <path
         data-subpart-name={props.subpart_name}
+        data-material-field={props.identity_field_name}
         data-material-name={resolved().material_name}
-        cx={geometry.cx}
-        cy={geometry.cy}
-        r={geometry.r}
+        data-fill-percent={resolved().fill_percent}
+        d={circle_fill_path(geometry, resolved().fill_percent)}
         fill={resolved().fill}
       />
     );
@@ -162,11 +142,13 @@ function SubpartShape(props: {
   return (
     <rect
       data-subpart-name={props.subpart_name}
+      data-material-field={props.identity_field_name}
       data-material-name={resolved().material_name}
+      data-fill-percent={resolved().fill_percent}
       x={geometry.x}
-      y={geometry.y}
+      y={geometry.y + geometry.h * (1 - resolved().fill_percent / 100)}
       width={geometry.w}
-      height={geometry.h}
+      height={geometry.h * (resolved().fill_percent / 100)}
       fill={resolved().fill}
     />
   );
@@ -193,7 +175,10 @@ export function SubpartVisualStateOverlay(props: {
   // target ("well_plate_96" -> "well_plate_96.A1"). Passed from SceneItem; this
   // component hardcodes no object name.
   placement_id: string;
-  field_name: string;
+  identity_field_name: string;
+  amount_field_name: string | null;
+  capacity: number | null;
+  capacity_error: string;
   registry: MaterialRegistry | null;
   // Per-subpart degrade sink. SceneItem forwards this up to SceneView's onDegrade
   // with a subpart-qualified target so a failed well is observable on the scene
@@ -251,7 +236,10 @@ export function SubpartVisualStateOverlay(props: {
               geometry={geometry}
               store={props.store}
               placement_id={props.placement_id}
-              field_name={props.field_name}
+              identity_field_name={props.identity_field_name}
+              amount_field_name={props.amount_field_name}
+              capacity={props.capacity}
+              capacity_error={props.capacity_error}
               registry={props.registry}
               on_degrade={props.on_subpart_degrade}
             />

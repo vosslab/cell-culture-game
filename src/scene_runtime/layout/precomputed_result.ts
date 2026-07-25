@@ -20,8 +20,15 @@
 import { OBJECT_LIBRARY, ASSET_SPECS } from "../../../generated/object_library.js";
 import { PRECOMPUTED_LAYOUT } from "../../../generated/precomputed_layout.js";
 import { buildDecisionMetadata } from "./diagnostics/decision_metadata.js";
+import { lowerSceneZones } from "./lower_semantic_zones.js";
 import type { UnifiedDiagnostic } from "./diagnostics/unified.js";
-import type { ComputedItem, PipelineResult, SceneA } from "./types.js";
+import type {
+  ComputedItem,
+  ComputedZoneBand,
+  PipelineResult,
+  ResolvedScene,
+  SceneA,
+} from "./types.js";
 
 //============================================
 // Precomputed PipelineResult assembly
@@ -37,10 +44,12 @@ import type { ComputedItem, PipelineResult, SceneA } from "./types.js";
 export function makePrecomputedResult(
   scene: SceneA,
   final: ComputedItem[],
+  zoneBands: ComputedZoneBand[],
   unifiedDiagnostics: UnifiedDiagnostic[],
+  resolvedScene: ResolvedScene,
 ): PipelineResult {
   const result: PipelineResult = {
-    scene,
+    scene: resolvedScene,
     sourceScene: scene,
     diagnostics: [],
     passes: [],
@@ -69,17 +78,17 @@ export function makePrecomputedResult(
     // pipeline/precompute_layout.mjs) so report tooling reading a resolved
     // PipelineResult sees the same findings the build-time engine produced.
     unifiedDiagnostics,
-    // The renderer reads only `final` and `scene`; the computed zone bands are a
-    // build-time layout-engine artifact consumed at precompute time, unused at
-    // render time, so the production path fills an explicit empty map.
-    zoneBands: new Map(),
+    // Renderer evidence exports the final reflowed zone bands alongside final
+    // item geometry. This avoids comparing rendered items to pre-reflow seed
+    // bounds in validation.
+    zoneBands: new Map(zoneBands.map((band) => [band.id, band])),
     // The reflow overflow report is a build-time layout-engine artifact consumed
     // at precompute time, unused at render time. The production path fills coherent
     // empty defaults: no overflow, zero content, scene_bounds range.
     reflowOverflow: false,
     reflowTotalContent: 0,
-    reflowSceneRangeTop: scene.scene_bounds.top,
-    reflowSceneRangeBottom: scene.scene_bounds.bottom,
+    reflowSceneRangeTop: resolvedScene.scene_bounds.top,
+    reflowSceneRangeBottom: resolvedScene.scene_bounds.bottom,
     // The terminal-rescale outputs are build-time layout-engine artifacts, unused
     // at render time (the renderer reads only `final`). The production path fills
     // coherent empty defaults: no rescale (scale 1), no scene overflow, no label
@@ -105,6 +114,36 @@ export function resolvePrecomputedResult(scene_name: string, scene: SceneA): Pip
         "rebuild generated/precomputed_layout.ts (pipeline/precompute_layout.mjs)",
     );
   }
-  const result = makePrecomputedResult(scene, precomputed.final, precomputed.unifiedDiagnostics);
+  const storedScene = (precomputed as { scene?: ResolvedScene }).scene;
+  const resolvedScene = resolvePrecomputedScene(scene_name, scene, precomputed.final, storedScene);
+  const result = makePrecomputedResult(
+    scene,
+    precomputed.final,
+    precomputed.zoneBands,
+    precomputed.unifiedDiagnostics,
+    resolvedScene,
+  );
   return result;
+}
+
+// The browser consumes the exact build-time resolved scene. Recomputing a
+// semantic scene from final/shrunk items would make production guards observe
+// geometry that differs from the placement pipeline. Legacy input is safe to
+// reconstruct exactly because it already carries every coordinate.
+export function resolvePrecomputedScene(
+  sceneName: string,
+  scene: SceneA,
+  final: ComputedItem[],
+  storedScene: ResolvedScene | undefined,
+): ResolvedScene {
+  if (storedScene !== undefined) return storedScene;
+  if (hasLegacyGeometry(scene)) return lowerSceneZones(scene, final);
+  throw new Error(
+    `precomputed_result: scene "${sceneName}" lacks resolved geometry; ` +
+      "rebuild generated/precomputed_layout.ts (pipeline/precompute_layout.mjs)",
+  );
+}
+
+function hasLegacyGeometry(scene: SceneA): boolean {
+  return scene.scene_bounds !== undefined && scene.zones.every((zone) => zone.bounds !== undefined);
 }

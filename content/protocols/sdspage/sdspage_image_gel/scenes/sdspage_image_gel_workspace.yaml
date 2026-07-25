@@ -1,0 +1,18 @@
+scene_name: sdspage_image_gel_workspace
+extends: imaging_bench
+
+remove_placements:
+  # Imaging uses the rinsed tray, ddH2O context, waste, and lightbox. Staining
+  # reagents and sample-preparation tools are intentionally absent.
+  - rear_coomassie
+  - rear_destain
+  - rear_ethanol_bottle
+  - rear_center_rocking_shaker
+  - rear_tip_box
+  - rear_microtube_rack
+  - left_microtube
+  - right_micropipette
+
+scene_notes: |
+  Focused final-rinse and lightbox workspace. The tray and lightbox dominate;
+  water and waste remain as the only secondary supplies.

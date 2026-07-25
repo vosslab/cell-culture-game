@@ -19,8 +19,10 @@
 import { runPipeline } from "../../src/scene_runtime/layout/index.js";
 import { mountScene } from "../../src/scene_runtime/renderer/index.js";
 import { create_scene_store, type SceneStore } from "../../src/scene_runtime/state/scene_store.js";
+import { type MaterialRegistry } from "../../src/scene_runtime/renderer/visual_state_resolver.js";
 import { SCENES } from "../../generated/scenes.js";
 import { OBJECT_LIBRARY, ASSET_SPECS } from "../../generated/object_library.js";
+import { PROTOCOL_MATERIALS } from "../../generated/protocol_materials.js";
 
 interface Harness {
   mount(scene_name: string): void;
@@ -44,7 +46,20 @@ function get_root(): HTMLElement {
   return root;
 }
 
-const store = create_scene_store();
+// This harness exercises the seeding protocol scene, so it must use that
+// protocol's generated material registry just as the student-facing host does.
+// A null registry intentionally means "diagnostic scene viewer": non-sentinel
+// materials then have no color and anchor fills are correctly hidden.
+function get_material_registry(): MaterialRegistry {
+  const material_registry = PROTOCOL_MATERIALS.cell_seeding_plate_setup;
+  if (material_registry === undefined) {
+    throw new Error("harness: missing generated material registry for cell_seeding_plate_setup");
+  }
+  return material_registry;
+}
+
+const material_registry: MaterialRegistry = get_material_registry();
+const store = create_scene_store(material_registry);
 let current_dispose: (() => void) | null = null;
 
 function mount(scene_name: string): void {
@@ -53,7 +68,7 @@ function mount(scene_name: string): void {
     throw new Error(`harness: unknown scene ${scene_name}`);
   }
   const result = runPipeline(scene, { library: OBJECT_LIBRARY, assets: ASSET_SPECS });
-  current_dispose = mountScene(get_root(), result, { store, materialRegistry: null });
+  current_dispose = mountScene(get_root(), result, { store, materialRegistry: material_registry });
 }
 
 function dispose(): void {

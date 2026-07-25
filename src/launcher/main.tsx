@@ -4,7 +4,7 @@
 
 import { render } from "solid-js/web";
 import { PROTOCOLS_INDEX_SLIM } from "../../generated/protocols_index_slim.js";
-import { Launcher } from "./Launcher.js";
+import { Launcher } from "./protocol_launcher.js";
 
 //============================================
 

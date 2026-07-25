@@ -10,16 +10,15 @@ learning:
   outcomes:
     Students completing this mini-protocol will be able to disconnect the
     power supply leads from the electrode module, open and remove the electrophoresis
-    tank lid, lift the electrode module out of the tank, pour the used running buffer
-    into a recycle container, pry open the gel cassette plates using a specialized
-    gel-opening tool, and transfer the intact gel to a staining tray for post-electrophoresis
-    processing.
+    tank lid, lift the electrode module out of the tank, pry open the gel cassette
+    plates using a specialized gel-opening tool, and transfer the intact gel to a
+    staining tray for post-electrophoresis processing.
   goals:
     "Overall, this mini-protocol aims to accomplish the gel extraction phase
     of SDS-PAGE: transitioning from the closed electrophoresis chamber (powered down)
     to a gel ready for staining. This step comes immediately after the run is complete
     and power is off; it bridges the completed electrophoresis chamber to the staining
-    workflow by safely recovering the gel and recycling the buffer."
+    workflow by safely recovering the gel."
 steps:
   - step_name: disconnect_power_and_remove_lid
     prompt:
@@ -91,39 +90,6 @@ steps:
               target: electrophoresis_tank
               state:
                 module_present: false
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: empty_tank_buffer
-  - step_name: empty_tank_buffer
-    prompt:
-      Disconnect electrode leads and prepare to remove cassette. Prepare the tank
-      for buffer recycling in the next step.
-    sequence:
-      - target: electrophoresis_tank
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: electrophoresis_tank
-              state:
-                inner_chamber_material_name: empty
-                inner_chamber_material_volume: 0
-      - target: electrophoresis_tank
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: electrophoresis_tank
-              state:
-                outer_chamber_material_name: empty
-                outer_chamber_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:

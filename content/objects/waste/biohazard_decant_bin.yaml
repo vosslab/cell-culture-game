@@ -14,25 +14,28 @@ state_fields:
     type: float
     unit: ml
     min: 0
-    max: 2000
+    max: 100
     default: 0
-    description: Volume of accumulated liquid waste, in milliliters.
+    description: Volume of accumulated liquid waste in the 100 mL collection bin, in milliliters.
 visual_states:
   material_name:
     kind: svg
     cases:
       - when: empty
         output:
-          asset_name: waste_container
+          asset_name: biohazard_decant_bin
       - when: mixed
         output:
-          asset_name: waste_container
+          asset_name: biohazard_decant_bin
       - when: waste_mtt
         output:
-          asset_name: waste_container
+          asset_name: biohazard_decant_bin
   material_volume:
-    kind: composite
-    formula: fill_height(state(material_volume), capacity_ml=2000)
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ml: 100
 capabilities:
   - clickable
   - material_container

@@ -23,8 +23,11 @@ visual_states:
       - when: water
         output: { asset_name: bottle_green }
   material_volume:
-    kind: composite
-    formula: fill_height(state(material_volume), capacity_ml=500)
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ml: 500
 
 capabilities: [clickable, material_container, cursor_attachable]
 

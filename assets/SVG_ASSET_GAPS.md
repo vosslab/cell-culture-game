@@ -16,7 +16,6 @@ placeholder box. Each needs real art sourced or imported.
 | power_supply | Orange placeholder box | Real lab power-supply SVG imported and normalized | [ ] |
 | electrode_module | Orange placeholder box | Real electrode-module SVG imported and normalized | [ ] |
 | gel_opening_tool | Orange placeholder box | Real gel-opening-tool SVG imported and normalized | [ ] |
-| kimwipe_pad | Orange placeholder box | Real kimwipe-pad SVG imported and normalized | [ ] |
 
 ## Interim or hand-authored art
 
@@ -25,6 +24,12 @@ These work today but should be swapped for a real icon if a good source turns up
 | Object | Asset | Current state | Done looks like | Status |
 | --- | --- | --- | --- | --- |
 | cell_counter | cell_counter_instrument.svg | Hand-authored by a subagent | Replaced with a real benchtop cell-counter icon | [ ] |
+
+The protocol-facing tissue family is complete: `kimwipe_pad.svg` depicts four
+loosely knotted Kimwipes for gel destaining, `lens_tissue.svg` depicts a
+lint-free slide-edge wipe, and `paper_towel_pad.svg` depicts an absorbent
+stack beneath a 96-well plate. These are distinct hand-authored scientific
+silhouettes, not placeholders or interchangeable proxy art.
 
 ## Color proxies
 

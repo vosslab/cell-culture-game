@@ -2,12 +2,6 @@ scene_name: bench_basic
 workspace: bench
 capabilities:
   - item_workspace
-scene_bounds:
-  left: 1
-  right: 99
-  top: 5
-  bottom: 95
-
 background:
   type: gradient
   from: "#E8E2D0"
@@ -15,52 +9,22 @@ background:
   angle: 180
 
 zones:
-  # Rear shelf band (~top 8-36%): reagent bottles and context items
+  # Rear shelf: reagent bottles and context items
   - zone_name: rear_left
-    bounds:
-      left: 5
-      right: 33
-      top: 5
-      bottom: 36
-    baseline: 32
     align: tab-stops
     label: Rear left zone
   - zone_name: rear_center
-    bounds:
-      left: 34
-      right: 66
-      top: 5
-      bottom: 36
-    baseline: 32
     align: tab-stops
     label: Rear center zone
   - zone_name: rear_right
-    bounds:
-      left: 67
-      right: 95
-      top: 5
-      bottom: 36
-    baseline: 32
     align: tab-stops
     label: Rear right zone
-  # Center working-surface band (~38-88%): primary instruments center-stage
+  # Center working surface: primary instruments center-stage
   - zone_name: center
-    bounds:
-      left: 5
-      right: 68
-      top: 38
-      bottom: 94
-    baseline: 84
     align: tab-stops
     label: Bench work surface
-  # Right tool area: mirrors center band vertically
+  # Right tool area
   - zone_name: right_tool_area
-    bounds:
-      left: 70
-      right: 97
-      top: 38
-      bottom: 94
-    baseline: 84
     align: tab-stops
     label: Right tool rack
 
@@ -122,16 +86,6 @@ placements:
     zone: center
     depth_tier: 1
     align_stop: right
-
-  # Center working surface: 96-well plate at the center stop, between the
-  # water bath (left) and centrifuge (right). Replaces the per-protocol
-  # microtube_rack_24 placeholders; protocols target well_plate_96.* and resolve
-  # against this single inherited placement. align_stop center is otherwise free.
-  - placement_name: center_well_plate_96
-    object_name: well_plate_96
-    zone: center
-    depth_tier: 2
-    align_stop: center
 
   # Right tool area: tip box and micropipette
   - placement_name: base_right_tip_box

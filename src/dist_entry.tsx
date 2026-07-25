@@ -97,17 +97,23 @@ async function mount_scene_viewer(root: HTMLElement, scene_name: string): Promis
 // it to window so the render tool can read pipeline-truth values (scale_source,
 // intended aspect, resolved zone bounds) that are not present as DOM attributes.
 function attachSceneGeometry(result: PipelineResult): void {
-  const zones = result.scene.zones.map((zone) => ({
-    name: zone.id,
-    // Zone bounds are scene-percent (0..100 per axis). Pixel conversion happens
-    // in the render tool against the rendered #scene-root box.
-    bounds: {
-      left: zone.bounds.left,
-      right: zone.bounds.right,
-      top: zone.bounds.top,
-      bottom: zone.bounds.bottom,
-    },
-  }));
+  const zones = result.scene.zones.map((zone) => {
+    const band = result.zoneBands.get(zone.id);
+    if (band === undefined) {
+      throw new Error(`scene geometry missing final reflow band for zone "${zone.id}"`);
+    }
+    return {
+      name: zone.id,
+      // Final reflow bands are scene-percent (0..100 per axis). Pixel conversion
+      // happens in the render tool against #scene-root, matching item placement.
+      bounds: {
+        left: zone.bounds.left,
+        right: zone.bounds.right,
+        top: band.top,
+        bottom: band.bottom,
+      },
+    };
+  });
   const placements = result.final.map((item) => ({
     placement_name: item.placement_name,
     kind: item.kind,
@@ -133,7 +139,7 @@ function attachSceneGeometry(result: PipelineResult): void {
 async function mount_launcher(root: HTMLElement): Promise<void> {
   const { render } = await import("solid-js/web");
   const { PROTOCOLS_INDEX_SLIM } = await import("../generated/protocols_index_slim.js");
-  const { Launcher } = await import("./launcher/Launcher.js");
+  const { Launcher } = await import("./launcher/protocol_launcher.js");
   render(() => <Launcher index={PROTOCOLS_INDEX_SLIM} />, root);
 }
 

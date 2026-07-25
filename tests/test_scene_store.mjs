@@ -6,6 +6,7 @@
 //   - partial-merge writes at object level (one field changes, others hold)
 //   - partial-merge writes at subpart level (e.g. rack.slot_0)
 //   - subpart writes validate against the SUBPART schema, not the object one
+//   - scene reconciliation preserves shared scientific state and resets flags
 //   - cursor attach carries held material; detach clears it
 //   - reset returns the store to empty
 //   - an undeclared-key write throws (ObjectStateChange hard error)
@@ -116,6 +117,47 @@ describe("scene_store seeding", () => {
 });
 
 //============================================
+// Scene reconciliation
+//============================================
+
+describe("scene_store reconciliation", () => {
+  test("preserves shared state while replacing membership and resetting flags", () => {
+    const store = seeded_store();
+    store.set_object_state("bme_tube", { material_name: "bme", material_volume: 2.5 });
+    store.set_flags("bme_tube", { is_selected: true });
+
+    store.reconcile_scene([
+      { target: "bme_tube", object_name: "bme_tube" },
+      { target: "micropipette", object_name: "micropipette" },
+    ]);
+
+    assert.strictEqual(store.state["bme_tube"].state.material_name, "bme");
+    assert.strictEqual(store.state["bme_tube"].state.material_volume, 2.5);
+    assert.strictEqual(store.state["bme_tube"].flags.is_selected, false);
+    assert.notStrictEqual(store.state["micropipette"], undefined);
+    assert.strictEqual(store.state["centrifuge"], undefined);
+  });
+
+  test("rejects a malformed destination without partially replacing the scene", () => {
+    const store = seeded_store();
+    store.set_object_state("centrifuge", { running: true });
+
+    assert.throws(
+      () =>
+        store.reconcile_scene([
+          { target: "bme_tube", object_name: "bme_tube" },
+          { target: "centrifuge", object_name: "micropipette" },
+        ]),
+      /does not match declared object_name/,
+    );
+
+    assert.strictEqual(store.state["centrifuge"].state.running, true);
+    assert.notStrictEqual(store.state["conical_15ml_rack.slot_0"], undefined);
+    assert.strictEqual(store.state["micropipette"], undefined);
+  });
+});
+
+//============================================
 // Partial-merge writes (object level)
 //============================================
 
@@ -139,10 +181,11 @@ describe("scene_store object-level partial merge", () => {
 
   test("material fields merge on a material container", () => {
     const store = seeded_store();
+    const name_default = OBJECT_LIBRARY["bme_tube"].state_schema["material_name"].default;
     store.set_object_state("bme_tube", { material_volume: 2.5 });
     assert.strictEqual(store.state["bme_tube"].state.material_volume, 2.5);
     // material_name stays at its seeded default.
-    assert.strictEqual(store.state["bme_tube"].state.material_name, "empty");
+    assert.strictEqual(store.state["bme_tube"].state.material_name, name_default);
   });
 });
 
@@ -318,12 +361,13 @@ describe("scene_store enum membership", () => {
 
   test("a rejected enum write leaves the target untouched", () => {
     const store = seeded_store();
+    const seeded_state = { ...store.state["bme_tube"].state };
     try {
       store.set_object_state("bme_tube", { material_name: "not_real" });
     } catch {
       // expected
     }
-    assert.strictEqual(store.state["bme_tube"].state.material_name, "empty");
+    assert.deepStrictEqual(store.state["bme_tube"].state, seeded_state);
   });
 });
 

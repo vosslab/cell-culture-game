@@ -277,10 +277,10 @@ the only override category.
 | Field                    | Required | Purpose                                                                                                             |
 | ------------------------ | -------- | ------------------------------------------------------------------------------------------------------------------- |
 | `layout.default_width`   | yes      | Default visual width in layout units.                                                                               |
+| `layout.display_width_cm` | no      | Object-owned real-world display width used by the scaling model.                                                     |
 | `layout.label_width`     | no       | Width budget for the label.                                                                                         |
 | `layout.anchor_y_offset` | no       | Vertical anchor adjustment; observed on pipette assets.                                                             |
-| `layout.width_scale`     | no       | Per-object width multiplier; observed mainly on equipment.                                                          |
-| `layout.anchor_y`        | no       | One of `bottom`, `tip`, or `top` (engine fallback, centers on the baseline). A serological pipette is anchored at its tip wherever it is placed. A scene may override. |
+| `layout.anchor_y`        | no       | One of `bottom`, `tip`, or `top` (engine fallback, centers on the derived baseline). A serological pipette is anchored at its tip wherever it is placed. |
 
 ## Object ownership of SVG manipulation
 
@@ -324,15 +324,15 @@ The three-way boundary names what each vocabulary owns:
   names where it goes in any one scene.
 - **Scene** names where things appear and how the space is arranged.
   A scene references objects by object_name, places them inside named zones,
-  declares the outer scene bounds and the layout rules the layout
-  engine consumes, and declares the static background backdrop. A
+  supplies ordered semantic zones and bounded layout hints, and declares the
+  static background backdrop. The layout manager derives scene and zone
+  geometry. A
   scene never declares object identity, `state_fields`, `visual_states`,
   or `capabilities`. Canonical doc:
   [SCENE_VOCABULARY.md](SCENE_VOCABULARY.md).
 
-A scene placement may carry exactly one bounded set of instance
-overrides: the object's layout hints (`default_width`, `label_width`,
-`anchor_y_offset`, `width_scale`, `anchor_y`). A placement may not
+A scene placement may carry only the categorical `layout.anchor_y` and
+`layout.label_placement` hints. A placement may not
 override identity (`object_name`, `kind`, `label`), `state_fields`,
 `visual_states`, or `capabilities`.
 
@@ -502,5 +502,5 @@ serological pipette is tip-anchored wherever it is placed.
 | `state_field`       | One declared, typed flat-primitive state variable on an object or per subpart; the contract between the protocol and the object.                                                                                                                         |
 | `visual_states`     | The object's state-to-visual function; resolves a `state_field` value to an SVG asset name, overlay name, or composite.                                                                                                                                  |
 | capability          | A closed-vocabulary affordance tag declared on the object: `clickable`, `material_container`, `instrument_with_setpoint`, `structured_surface`, `cursor_attachable`, `decoration_only`.                                                                  |
-| layout hint         | An object-default visual metric the layout engine consumes (`default_width`, `label_width`, `anchor_y_offset`, `width_scale`, `anchor_y`).                                                                                                               |
+| layout hint         | An object-owned visual metric or anchor the layout engine consumes (`display_width_cm`, `default_width`, `label_width`, `anchor_y_offset`, `anchor_y`). Scene placements cannot override intrinsic metrics. |
 | `ObjectStateChange` | The protocol-level primitive that mutates declared `state_fields` on an object; defined in [PROTOCOL_VOCABULARY.md](PROTOCOL_VOCABULARY.md).                                                                                                             |

@@ -1,4 +1,8 @@
 materials:
+  media:
+    label: "Growth media"
+    display_color: "#6c6c00"
+
   carboplatin:
     label: "Carboplatin solution"
     display_color: "#a719db"

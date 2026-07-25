@@ -16,7 +16,7 @@
 // harness (a Solid render sandbox exposing window.__subpart_harness), not the
 // shipped app the shared config webServer serves.
 //
-// The harness mounts the REAL generated bench_basic scene (which places
+// The harness mounts the REAL generated plate_focus_bench scene (which places
 // well_plate_96). The well subpart material_name enum is the closed sentinel
 // FLOOR [empty, mixed]; runtime acceptance is registry-backed (D1, task #26), so
 // the harness store carries a registry that registers carboplatin (#a719db). This
@@ -40,6 +40,7 @@
 //   5. no page errors.
 
 import { test, expect } from "@playwright/test";
+import type { Page } from "@playwright/test";
 import * as esbuild from "esbuild";
 import { solidPlugin } from "esbuild-plugin-solid";
 import http from "node:http";
@@ -50,6 +51,7 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const SHOT_DIR = path.join(REPO_ROOT, "test-results", "subpart_render");
+const BUILT_ASSETS_DIR = path.join(REPO_ROOT, "dist", "assets");
 
 const PLATE = "well_plate_96";
 // The spec-fixed built-in color for the `mixed` sentinel (MATERIAL_CONVENTION.md).
@@ -125,6 +127,61 @@ async function buildHarness(): Promise<string> {
 
 type ServerHandle = { server: http.Server; port: number };
 
+const ASSET_MIME_TYPES: Record<string, string> = {
+  ".css": "text/css; charset=utf-8",
+  ".js": "text/javascript; charset=utf-8",
+  ".svg": "image/svg+xml",
+  ".woff2": "font/woff2",
+};
+
+function respondNotFound(res: http.ServerResponse): void {
+  res.writeHead(404, { "Content-Type": "text/plain; charset=utf-8" });
+  res.end("Not found");
+}
+
+function serveBuiltAsset(urlPath: string, res: http.ServerResponse): boolean {
+  if (!urlPath.startsWith("/assets/")) {
+    return false;
+  }
+
+  let relativePath: string;
+  try {
+    relativePath = decodeURIComponent(urlPath.slice("/assets/".length));
+  } catch {
+    respondNotFound(res);
+    return true;
+  }
+  const pathParts = relativePath.split(/[\\/]/u);
+  if (
+    relativePath.length === 0 ||
+    path.isAbsolute(relativePath) ||
+    pathParts.some((part) => part.length === 0 || part === "." || part === "..")
+  ) {
+    respondNotFound(res);
+    return true;
+  }
+
+  const assetPath = path.resolve(BUILT_ASSETS_DIR, relativePath);
+  const assetRootPrefix = `${BUILT_ASSETS_DIR}${path.sep}`;
+  if (!assetPath.startsWith(assetRootPrefix)) {
+    respondNotFound(res);
+    return true;
+  }
+  fs.readFile(assetPath, (error, data) => {
+    if (error !== null) {
+      respondNotFound(res);
+      return;
+    }
+    const contentType = ASSET_MIME_TYPES[path.extname(assetPath).toLowerCase()];
+    res.writeHead(200, {
+      "Content-Type": contentType ?? "application/octet-stream",
+      "X-Content-Type-Options": "nosniff",
+    });
+    res.end(data);
+  });
+  return true;
+}
+
 function startServer(bundleJs: string): Promise<ServerHandle> {
   const html =
     "<!doctype html><html><head><meta charset='utf-8'><style>" +
@@ -133,14 +190,21 @@ function startServer(bundleJs: string): Promise<ServerHandle> {
     "<script type='module' src='/harness.js'></script></body></html>";
   return new Promise((resolve) => {
     const server = http.createServer((req, res) => {
-      const url = (req.url ?? "/").split("?")[0];
-      if (url === "/harness.js") {
+      const urlPath = new URL(req.url ?? "/", "http://127.0.0.1").pathname;
+      if (urlPath === "/harness.js") {
         res.writeHead(200, { "Content-Type": "application/javascript" });
         res.end(bundleJs);
         return;
       }
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(html);
+      if (serveBuiltAsset(urlPath, res)) {
+        return;
+      }
+      if (urlPath === "/") {
+        res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+        res.end(html);
+        return;
+      }
+      respondNotFound(res);
     });
     server.listen(0, "127.0.0.1", () => {
       const address = server.address();
@@ -155,6 +219,32 @@ function startServer(bundleJs: string): Promise<ServerHandle> {
 //============================================
 
 type FillReport = { present: boolean; fill: string | null; material: string | null };
+
+type SvgReadyReport = { state: "ready" | "failed"; detail: string };
+
+async function waitForPlateBaseSvg(page: Page): Promise<void> {
+  const readiness = await page.waitForFunction((plate) => {
+    const root = document.getElementById("scene-root");
+    const item = root?.querySelector(`[data-object-name='${plate}']`);
+    const domHost = item?.querySelector<HTMLElement>("[data-svg-render-mode='dom-svg']");
+    if (domHost === null || domHost === undefined) {
+      return null;
+    }
+    const loadError = domHost.getAttribute("data-svg-load-error");
+    if (loadError !== null) {
+      return { state: "failed", detail: loadError };
+    }
+    if (domHost.querySelector("svg") !== null) {
+      return { state: "ready", detail: "" };
+    }
+    return null;
+  }, PLATE);
+  const report = (await readiness.jsonValue()) as SvgReadyReport;
+  expect(report, `plate base SVG load failed: ${report.detail}`).toEqual({
+    state: "ready",
+    detail: "",
+  });
+}
 
 // Read the fill attribute of one subpart shape by data-subpart-name. Runs in the
 // page. Takes a single [plate, subpart] array because page.evaluate passes one
@@ -212,11 +302,12 @@ test.describe("subpart well plate render", () => {
       { timeout: 5000 },
     );
 
-    // Mount the real bench_basic scene (places well_plate_96).
+    // Mount the real plate_focus_bench scene (places well_plate_96).
     await page.evaluate(() =>
       (window as unknown as { __subpart_harness: { mount: () => void } }).__subpart_harness.mount(),
     );
     await page.waitForSelector(`#scene-root [data-subpart-overlay='${PLATE}']`, { timeout: 5000 });
+    await waitForPlateBaseSvg(page);
 
     //----------------------------------------
     // 1. Exactly 96 subpart shapes render.
@@ -273,11 +364,23 @@ test.describe("subpart well plate render", () => {
       // H12: intentionally NOT seeded/written -> stays the unseeded transparent
       // control, proving an unwritten well renders no fill.
     });
-    // Let Solid flush the reactive updates. There is no other visible readiness
-    // signal for a reactive fill-attribute change on an existing SVG shape, so a
-    // short settle wait stands in for the (already-passed) selector-appearance
-    // wait above.
-    await page.waitForTimeout(50);
+    await page.waitForFunction(
+      ({ plate, mixedColor, carboplatinColor }) => {
+        const root = document.getElementById("scene-root");
+        const overlay =
+          root !== null ? root.querySelector(`[data-subpart-overlay='${plate}']`) : null;
+        const fillFor = (subpart: string): string | null =>
+          overlay?.querySelector(`[data-subpart-name='${subpart}']`)?.getAttribute("fill") ?? null;
+        return (
+          fillFor("A1") === mixedColor &&
+          fillFor("A2") === "transparent" &&
+          fillFor("H1") === mixedColor &&
+          fillFor("D6") === carboplatinColor &&
+          fillFor("H12") === "transparent"
+        );
+      },
+      { plate: PLATE, mixedColor: MIXED_COLOR, carboplatinColor: CARBOPLATIN_COLOR },
+    );
 
     const a1 = await page.evaluate(readFillPage, [PLATE, "A1"]);
     const a2 = await page.evaluate(readFillPage, [PLATE, "A2"]);

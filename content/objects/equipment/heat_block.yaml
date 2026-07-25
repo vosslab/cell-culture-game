@@ -30,10 +30,16 @@ visual_states:
       - when: false
         output: { asset_name: heat_block_closed }
       - when: true
-        output: { asset_name: heat_block_closed }
+        output: { asset_name: heat_block_open }
   rack_present:
     kind: composite
-    composite: []
+    cases:
+      - when: false
+        output: { composite: [] }
+      - when: true
+        output:
+          composite:
+            - { asset_name: heat_block_rack }
 
 capabilities: [clickable, instrument_with_setpoint]
 

@@ -17,7 +17,6 @@ remove_placements:
   # Remove them so the center band holds the working tubes, not idle instruments.
   - center_water_bath
   - center_centrifuge
-  - center_well_plate_96
 
 add_placements:
   # Carboplatin stock at rear left (right stop beside waste)

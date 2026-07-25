@@ -1,36 +1,7 @@
 scene_name: plate_drug_treatment_media_adjustment_plate_workspace
-extends: hood_basic
-
-# Single remove_placements list. A YAML mapping may hold a key only once, so the
-# previous file's two separate remove_placements blocks silently dropped the
-# first (the serological-pipette removal never applied). All intended removals
-# now live in one list.
-remove_placements:
-  # Media adjustment across a 96-well plate uses the multichannel pipette added
-  # below. Both inherited single-channel pipettes (serological and aspirating)
-  # are non-targets whose footprints crowd the multichannel in the right tool
-  # band, so remove them (fully, not deactivate: a deactivated placement is
-  # still laid out and rendered) to leave the multichannel as the lone tool.
-  - base_right_serological_pipette
-  - right_aspirating_pipette
-  # The base PBS and waste bottles are context decoration here (not protocol
-  # targets). Their labels ran under the waste-container art in the crowded
-  # rear_center band, and the waste label dropped onto the tall multichannel
-  # pipette. align_stop cannot be changed by reposition, so remove and re-add
-  # them at explicit, non-colliding stops in the rear_center band beside the
-  # media bottle.
-  - base_rear_center_pbs
-  - rear_center_waste
-  # hood_basic contributes an inherited media bottle (base_rear_right_media) and
-  # this scene adds its own rear_center_media. Two media_bottle placements make a
-  # bare media_bottle target ambiguous, so remove the inherited one and keep the
-  # rear_center media bottle that reads with the plate work.
-  - base_rear_right_media
+extends: plate_focus_hood
 
 add_placements:
-  # well_plate_96 is now placed in the inherited hood_basic center band (single
-  # plate); the former microtube_rack_24 placeholder was removed here.
-
   # Media bottle in rear_center (protocol-specific)
   - placement_name: rear_center_media
     object_name: media_bottle
@@ -45,25 +16,8 @@ add_placements:
     depth_tier: 1
     align_stop: center
 
-  # PBS re-added at the rear_center left stop (context decoration), beside the
-  # media bottle, clear of the tip box and the multichannel pipette.
-  - placement_name: rear_center_pbs_decor
-    object_name: pbs_bottle
-    zone: rear_center
-    depth_tier: 1
-    align_stop: left
-
-  # Waste container re-added at the rear_center right stop (context decoration),
-  # well to the left of the tall multichannel pipette so its label no longer
-  # drops onto the pipette art.
-  - placement_name: rear_center_waste_decor
-    object_name: waste_container
-    zone: rear_center
-    depth_tier: 1
-    align_stop: right
-
 scene_notes: |
   Hood-side plate-workspace scene for plate_drug_treatment_media_adjustment.
-  96-well plate (inherited from hood_basic) in center, media bottle in
+  96-well plate (inherited as the foreground teaching surface), media bottle in
   rear center, multichannel pipette in right tool area. Protocols target
   well_plate_96.* against the inherited plate placement.

@@ -140,11 +140,11 @@ will still fail the walker (M6).
 Load-time and diagnosability context:
 
 - The M16-D load-time target-existence invariant
-  ([src/scene_runtime/protocol/target_existence_check.ts](../../../src/scene_runtime/protocol/target_existence_check.ts))
+  ([target_existence_check.ts](../../../src/scene_runtime/protocol/target_existence_check.ts))
   now makes bugs 1-3 below (missing placements) fail loud at protocol load
   instead of trapping a student mid-walk.
 - The walker `pageerror` listener
-  ([tests/playwright/e2e/walker_helpers.mjs](../../../tests/playwright/e2e/walker_helpers.mjs)
+  ([walker_helpers.mjs](../../../tests/playwright/e2e/walker_helpers.mjs)
   line 45) now surfaces bug 4's `AmbiguousTargetError` (thrown during
   next-target resolution) as the real exception, instead of a bare
   `waitForFunction` timeout.
@@ -157,7 +157,7 @@ the loud-and-owned rows the load-time invariants below make fail at load.
 O1. **`conical_15ml` not seeded in `hood_workspace` (passage_pellet_reseed).**
     The `transfer_to_conical` step attaches `conical_15ml` as a CursorAttach held
     tool and mutates it with `ObjectStateChange`, but
-    [content/protocols/cell_culture/passage_pellet_reseed/scenes/hood_workspace.yaml](../../../content/protocols/cell_culture/passage_pellet_reseed/scenes/hood_workspace.yaml)
+    [hood_workspace.yaml](../../../content/protocols/cell_culture/passage_pellet_reseed/scenes/hood_workspace.yaml)
     seeds only `conical_15ml_rack`, not the `conical_15ml` tube itself (the tube
     exists in `centrifuge_workspace`). Clearing action: seed `conical_15ml`
     (`clickable`) in `hood_workspace.yaml`. This row WILL red at LOAD once
@@ -167,7 +167,7 @@ O1. **`conical_15ml` not seeded in `hood_workspace` (passage_pellet_reseed).**
 O2. **`microtube_rack_24` placed twice in `heat_block_bench.yaml`.** Two distinct
     racks share `object_name: microtube_rack_24` -- placements `front_microtube_rack`
     (line 140) and `mid_eppendorf_rack` (line 118) in
-    [content/base_scenes/heat_block_bench.yaml](../../../content/base_scenes/heat_block_bench.yaml).
+    [heat_block_bench.yaml](../../../content/base_scenes/heat_block_bench.yaml).
     A bare `microtube_rack_24` target is ambiguous. Durable clearing action: give
     the two racks distinct `object_name`s. Owner: scene-manager plan. (Protocol-side
     placement-name disambiguation is the in-scope per-protocol relief already
@@ -176,7 +176,7 @@ O2. **`microtube_rack_24` placed twice in `heat_block_bench.yaml`.** Two distinc
 O3. **`microtube_rack_24` placed twice in `sample_prep_bench.yaml`.** Same
     `object_name` collision class -- placements `center_microtube_rack` (line 143)
     and `mid_eppendorf_rack` (line 120) in
-    [content/base_scenes/sample_prep_bench.yaml](../../../content/base_scenes/sample_prep_bench.yaml).
+    [sample_prep_bench.yaml](../../../content/base_scenes/sample_prep_bench.yaml).
     Durable clearing action: distinct `object_name`s. Owner: scene-manager plan.
     This scene backs `sdspage_prepare_sample_mix_single_lane`, whose content-side
     relief is tracked as OC1 below.
@@ -191,7 +191,7 @@ O4. **Hood pointer-overlap: `right_hemocytometer_slide_clear` over
 O5. **`gel_cassette` / `dilution_tube_rack_8` per-subpart material has no
     visible per-area rendering.** Surfaced by the material-area walker oracle
     (see the 2026-07-04 material-oracle entry in
-    [docs/CHANGELOG.md](../../CHANGELOG.md)): tube and lane material
+    [CHANGELOG.md](../../CHANGELOG.md)): tube and lane material
     writes fire zero "Material-area verified" lines, and a DOM probe found
     `data-subpart-overlay` present only for `well_plate_96`. Root cause: the
     `gel_cassette` lane renders material via `kind: svg` whose three material
@@ -261,20 +261,20 @@ OP1. **Discrimination-bearing subpart-click class (PEDAGOGY-HELD).** Any
 
 R1. **`hood_surface` return affordance (passage_hood_detachment).** RESOLVED. Was
     handshake item 1. The `passage_hood_detachment` microscope view
-    ([content/protocols/cell_culture/passage_hood_detachment/scenes/microscope_view.yaml](../../../content/protocols/cell_culture/passage_hood_detachment/scenes/microscope_view.yaml))
+    ([microscope_view.yaml](../../../content/protocols/cell_culture/passage_hood_detachment/scenes/microscope_view.yaml))
     now places `hood_surface` (`clickable`, line 31) as the hood-return affordance
     the `inspect_confluence` step clicks. Also cleared the wrapper sequence runners
     `cell_culture_full` and `routine_passage`.
 
 R2. **`plate_reader` doorway (mtt_solubilization_readout).** RESOLVED. Was handshake
     item 2. The bench workspace
-    ([content/protocols/cell_culture/mtt_solubilization_readout/scenes/bench_workspace.yaml](../../../content/protocols/cell_culture/mtt_solubilization_readout/scenes/bench_workspace.yaml))
+    ([bench_workspace.yaml](../../../content/protocols/cell_culture/mtt_solubilization_readout/scenes/bench_workspace.yaml))
     now places `plate_reader` (`clickable`, line 31) as the reader doorway before
     its `SceneChange` to the reader workspace.
 
 R3. **`kimwipe_pad` on the staining bench.** RESOLVED. Was handshake item 3. The
     shared base scene
-    ([content/base_scenes/staining_bench.yaml](../../../content/base_scenes/staining_bench.yaml))
+    ([staining_bench.yaml](../../../content/base_scenes/staining_bench.yaml))
     now places a real `kimwipe_pad` (`clickable`, line 116) that
     `sdspage_destain_gel_setup` (`place_kimwipes`) and `sdspage_destain_gel_rock`
     (`remove_kimwipes`) click. Also cleared the wrapper sequence runner
@@ -282,10 +282,10 @@ R3. **`kimwipe_pad` on the staining bench.** RESOLVED. Was handshake item 3. The
 
 R4. **Duplicate `media_bottle` / `laemmli_4x_bottle` -> `AmbiguousTargetError`.**
     RESOLVED. Was handshake item 4.
-    [content/protocols/cell_culture/plate_drug_treatment_media_adjustment/scenes/plate_workspace.yaml](../../../content/protocols/cell_culture/plate_drug_treatment_media_adjustment/scenes/plate_workspace.yaml)
+    [plate_workspace.yaml](../../../content/protocols/cell_culture/plate_drug_treatment_media_adjustment/scenes/plate_workspace.yaml)
     now `remove_placements` the inherited `media_bottle` and keeps `rear_center_media`
     (lines 25-36), and
-    [content/base_scenes/sample_prep_bench.yaml](../../../content/base_scenes/sample_prep_bench.yaml)
+    [sample_prep_bench.yaml](../../../content/base_scenes/sample_prep_bench.yaml)
     now places `laemmli_4x_bottle` once (`rear_center_laemmli`). The live
     duplicate-placement class today is `microtube_rack_24` (see O2, O3).
 
@@ -306,7 +306,7 @@ R6. **`microscope_basic` base scene failed generalization assertions F (item
     overlap) and I (label-label overlap), scoring 7/11.** RESOLVED. Was open item
     O6. Surfaced by the content-derived base-scene discovery widening in
     `tests/playwright/test_generalization_render.mjs` (see the 2026-07-04
-    "Base-scene test sets" entry in [docs/CHANGELOG.md](../../CHANGELOG.md));
+    "Base-scene test sets" entry in [CHANGELOG.md](../../CHANGELOG.md));
     `microscope_basic` was one of the 4 base scenes the stale hand list had never
     exercised. Initially suspected as the same shared-base-zone placement-overlap
     family as O4, but the actual root cause was different: `groupVerticalBands` in

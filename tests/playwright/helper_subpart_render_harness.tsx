@@ -8,7 +8,7 @@
 // SubpartVisualStateOverlay).
 //
 // This harness mounts the SAME production mountScene + scene_store, using the
-// REAL generated bench_basic scene (which places well_plate_96). It drives
+// REAL generated plate_focus_bench scene (which places well_plate_96). It drives
 // per-well state ONLY through the store's normal seed/write path:
 //   - seed_subpart  -> store.seed_target  (the scene-op layer's subpart seed)
 //   - write_subpart -> store.set_object_state (the ObjectStateChange write)
@@ -34,8 +34,9 @@ import { SCENES } from "../../generated/scenes.js";
 import { OBJECT_LIBRARY, ASSET_SPECS } from "../../generated/object_library.js";
 import type { MaterialRegistry } from "../../src/scene_runtime/renderer/visual_state_resolver.js";
 
-// The scene that places well_plate_96 (placement center_well_plate_96).
-const SCENE_NAME = "bench_basic";
+// The plate-focused production scene that places well_plate_96
+// (placement foreground_well_plate_96).
+const SCENE_NAME = "plate_focus_bench";
 const PLATE_OBJECT = "well_plate_96";
 
 // A small material registry. carboplatin is the registered drug the drug-color
@@ -61,7 +62,7 @@ function get_scene_root(): HTMLElement {
   return el;
 }
 
-// Mount the real bench_basic scene through the production path. seed_from_scene
+// Mount the real plate_focus_bench scene through the production path. seed_from_scene
 // (run inside mountScene) seeds object-level targets only; subpart targets are
 // seeded on demand by seed_subpart below, exactly as the scene-op layer will.
 function do_mount(): void {

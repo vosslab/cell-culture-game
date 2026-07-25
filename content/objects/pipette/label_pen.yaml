@@ -25,9 +25,9 @@ visual_states:
     kind: svg
     cases:
       - when: false
-        output: { asset_name: bottle }
+        output: { asset_name: label_pen }
       - when: true
-        output: { asset_name: bottle }
+        output: { asset_name: label_pen }
   held_material_name:
     kind: composite
     composite: []

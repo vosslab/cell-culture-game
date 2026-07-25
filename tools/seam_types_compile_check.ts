@@ -86,6 +86,7 @@ const _snapshot_shape_check: ShellViewSnapshot = {
   current_interaction_index: 0,
   progress: { completed_step_count: 0, total_step_count: 0 },
   last_outcome: null,
+  last_rejection: null,
   pending_validator_kind: null,
   modal: {
     is_open: false,

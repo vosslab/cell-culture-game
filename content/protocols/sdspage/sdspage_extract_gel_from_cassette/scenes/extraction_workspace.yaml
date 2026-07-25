@@ -8,9 +8,18 @@ add_placements:
     depth_tier: 2
     align_stop: center
 
-reposition_placements:
-  # Not a target in this protocol; moved off the front working row so it does
-  # not crowd the two front-row targets (gel_cassette, staining_tray).
-  - placement_name: front_center_waste_container
-    zone: right_tool_area
-    depth_tier: 2
+remove_placements:
+  # This extraction block uses the electrical assembly, gel cassette, opening
+  # tool, and destination tray. Reagent vessels and loading supplies belong to
+  # their own learning blocks and can carry unrelated default materials.
+  - rear_left_running_buffer_10x
+  - center_running_buffer_1x_carboy
+  - center_ddh2o_bottle
+  - center_serological_pipette
+  - center_p200_micropipette
+  - right_tool_area_p10_gel_loading_tip_box
+  - rear_left_protein_ladder_tube
+  - rear_left_recycle_buffer_bottle
+  - front_left_mini_protean_gel
+  - front_center_waste_container
+  - front_right_gel_comb

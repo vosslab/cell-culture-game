@@ -15,7 +15,10 @@ import {
   create_snapshot_reducer,
 } from "../src/scene_runtime/protocol/step_machine.ts";
 import { UnaffordancedGestureError } from "../src/scene_runtime/protocol/gesture_affordance_check.ts";
-import { UnknownAuthoredTargetError } from "../src/scene_runtime/protocol/target_existence_check.ts";
+import {
+  UnknownAuthoredTargetError,
+  UnseededSceneOperationTargetError,
+} from "../src/scene_runtime/protocol/target_existence_check.ts";
 import {
   StepCountClaimMismatchError,
   PromptTargetDriftError,
@@ -220,6 +223,17 @@ describe("step machine - wrong target", () => {
     // No interaction_validated should have fired.
     assert.ok(!events.some((e) => e.kind === "interaction_validated"));
   });
+
+  test("a correct interaction clears an earlier rejection within the same step", () => {
+    const cfg = make_config([make_two_click_step("a", "t1", "t2", null)], "a");
+    const { machine, emitter } = build_harness(cfg);
+    machine.start();
+    machine.handle_click("oops", "click");
+    assert.ok(emitter.get_snapshot().last_rejection);
+
+    machine.handle_click("t1", "click");
+    assert.strictEqual(emitter.get_snapshot().last_rejection, null);
+  });
 });
 
 describe("step machine - step completion and next_step", () => {
@@ -237,6 +251,24 @@ describe("step machine - step completion and next_step", () => {
     // step_started for "b" must follow.
     const started_b = events.find((e) => e.kind === "step_started" && e.step_name === "b");
     assert.ok(started_b);
+  });
+
+  test("starting the next step clears the previous outcome and rejection", () => {
+    const cfg = make_config(
+      [make_click_step("a", "obj_a", "b"), make_click_step("b", "obj_b", null)],
+      "a",
+    );
+    const { machine, emitter } = build_harness(cfg);
+    machine.start();
+    machine.handle_click("not_obj_a", "click");
+    assert.ok(emitter.get_snapshot().last_rejection);
+
+    machine.handle_click("obj_a", "click");
+    const snapshot = emitter.get_snapshot();
+    assert.deepStrictEqual(
+      [snapshot.current_step_name, snapshot.last_outcome, snapshot.last_rejection],
+      ["b", null, null],
+    );
   });
 });
 
@@ -735,30 +767,53 @@ describe("step machine - drag commit", () => {
 });
 
 describe("step machine - reducer snapshot derivation", () => {
-  test("snapshot tracks current_step_name, progress, last_outcome, is_complete", () => {
+  function two_step_harness() {
     const cfg = make_config(
       [make_click_step("a", "obj_a", "b"), make_click_step("b", "obj_b", null)],
       "a",
     );
-    const { machine, emitter } = build_harness(cfg);
+    return build_harness(cfg);
+  }
+
+  test("opening a protocol exposes its first learner step", () => {
+    const { machine, emitter } = two_step_harness();
     machine.start();
-    let snap = emitter.get_snapshot();
-    assert.strictEqual(snap.current_step_name, "a");
-    assert.strictEqual(snap.progress.total_step_count, 2);
-    assert.strictEqual(snap.is_complete, false);
+    const snapshot = emitter.get_snapshot();
 
+    assert.deepStrictEqual(
+      [snapshot.current_step_name, snapshot.progress.total_step_count, snapshot.is_complete],
+      ["a", 2, false],
+    );
+  });
+
+  test("moving to the next learner step clears transient feedback", () => {
+    const { machine, emitter } = two_step_harness();
+    machine.start();
     machine.handle_click("obj_a", "click");
-    snap = emitter.get_snapshot();
-    assert.strictEqual(snap.current_step_name, "b");
-    assert.ok(snap.last_outcome);
-    assert.strictEqual(snap.last_outcome.step_name, "a");
-    assert.strictEqual(snap.last_outcome.resolution, "complete");
-    assert.strictEqual(snap.progress.completed_step_count, 1);
+    const snapshot = emitter.get_snapshot();
 
+    assert.deepStrictEqual(
+      [
+        snapshot.current_step_name,
+        snapshot.progress.completed_step_count,
+        snapshot.last_outcome,
+        snapshot.last_rejection,
+      ],
+      ["b", 1, null, null],
+    );
+  });
+
+  test("finishing the authored flow marks the protocol complete", () => {
+    const { machine, emitter } = two_step_harness();
+    machine.start();
+    machine.handle_click("obj_a", "click");
     machine.handle_click("obj_b", "click");
-    snap = emitter.get_snapshot();
-    assert.strictEqual(snap.is_complete, true);
-    assert.strictEqual(snap.progress.completed_step_count, 2);
+    const snapshot = emitter.get_snapshot();
+
+    assert.deepStrictEqual(
+      [snapshot.is_complete, snapshot.progress.completed_step_count, snapshot.last_rejection],
+      [true, 2, null],
+    );
   });
 });
 
@@ -1587,6 +1642,72 @@ describe("step machine - load-time target-existence invariant", () => {
     );
     assert.ok(String(thrown.message).includes("bench_item"), "missing offending target");
     assert.ok(String(thrown.message).includes("scene_b"), "missing offending scene");
+  });
+});
+
+//============================================
+// Load-time seeded scene-operation target invariant
+//============================================
+
+describe("step machine - load-time seeded scene-operation target invariant", () => {
+  function make_timed_wait_config() {
+    const step = make_click_step("start_incubation", "start_control", null);
+    step.sequence[0].response.scene_operations = [
+      {
+        type: "TimedWait",
+        target: "incubator",
+        duration_min: 30,
+        display: "Incubating",
+      },
+    ];
+    return make_config([step], "start_incubation");
+  }
+
+  function create_seeded_operation_machine(cfg, adapter) {
+    const start_snapshot = initial_snapshot(cfg.protocol_name);
+    const reducer = create_snapshot_reducer(cfg);
+    const emitter = createProtocolShellEmitter(start_snapshot, reducer);
+    return create_step_machine(cfg, emitter, () => {}, {
+      lookup_state_field: stub_lookup_state_field,
+      read_object_state: () => ({}),
+      target_adapter: adapter,
+      initial_scene: "incubation_scene",
+    });
+  }
+
+  test("an unseeded TimedWait fails protocol initialization", () => {
+    const cfg = make_timed_wait_config();
+    const adapter = build_target_adapter([
+      { object_name: "start_control", placement_name: "start_control" },
+    ]);
+    assert.throws(
+      () => create_seeded_operation_machine(cfg, adapter),
+      UnseededSceneOperationTargetError,
+    );
+  });
+
+  test("a TimedWait accepts a target seeded in the active scene", () => {
+    const cfg = make_timed_wait_config();
+    const adapter = build_target_adapter([
+      { object_name: "start_control", placement_name: "start_control" },
+      { object_name: "incubator", placement_name: "incubator" },
+    ]);
+    assert.doesNotThrow(() => create_seeded_operation_machine(cfg, adapter));
+  });
+
+  test("ObjectStateChange remains subject to the same seeded-target invariant", () => {
+    const step = make_click_step("start", "start_control", null);
+    step.sequence[0].response.scene_operations = [
+      { type: "ObjectStateChange", target: "incubator", state: { running: true } },
+    ];
+    const cfg = make_config([step], "start");
+    const adapter = build_target_adapter([
+      { object_name: "start_control", placement_name: "start_control" },
+    ]);
+    assert.throws(
+      () => create_seeded_operation_machine(cfg, adapter),
+      UnseededSceneOperationTargetError,
+    );
   });
 });
 

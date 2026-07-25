@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 258 353" role="img" aria-labelledby="title desc">
+  <title id="title">Running benchtop microcentrifuge</title>
+  <desc id="desc">A closed round-lid laboratory microcentrifuge, with an obscured circular rotor window, front controls, and a green running indicator.</desc>
+
+  <!-- A round, front-facing lid keeps the closed state visibly related to the open rotor centrifuge. -->
+  <path d="M 14 161 C 14 137 32 119 56 119 L 202 119 C 226 119 244 137 244 161 L 244 310 C 244 328 233 339 215 339 L 43 339 C 25 339 14 328 14 310 Z" fill="#b7cbd2" stroke="#35454b" stroke-width="6"/>
+  <path d="M 27 169 C 27 151 40 139 58 139 L 200 139 C 218 139 231 151 231 169 L 231 314 L 27 314 Z" fill="#dce9ec" stroke="#7a929a" stroke-width="3"/>
+
+  <!-- The locked lid is a circular microcentrifuge lid, not a rectangular heated-lid enclosure. -->
+  <path fill="#9eb9c1" stroke="#35454b" stroke-width="7" d="M 24 110 A 105 94 0 1 0 234 110 A 105 94 0 1 0 24 110 Z"/>
+  <path fill="#dce9ec" stroke="#6f919b" stroke-width="4" d="M 40 110 A 89 78 0 1 0 218 110 A 89 78 0 1 0 40 110 Z"/>
+  <path fill="#31464d" stroke="#35454b" stroke-width="5" d="M 59 110 A 70 59 0 1 0 199 110 A 70 59 0 1 0 59 110 Z"/>
+  <path fill="#47636c" d="M 70 110 A 59 49 0 1 0 188 110 A 59 49 0 1 0 70 110 Z"/>
+
+  <!-- Dark safety window: the rotor is only a muted radial cue under the closed lid. -->
+  <path fill="#24373d" stroke="#a8ccd4" stroke-width="3" d="M 111 110 A 18 15 0 1 0 147 110 A 18 15 0 1 0 111 110 Z"/>
+  <g fill="#88b3c0" stroke="#24373d" stroke-width="3">
+    <path d="M 120 71 A 9 14 0 1 0 138 71 A 9 14 0 1 0 120 71 Z"/>
+    <path d="M 158.5 82.2058 A 14 9 150 1 0 167.5 97.794 A 14 9 150 1 0 158.5 82.2058 Z"/>
+    <path d="M 167.5 122.206 A 14 9 -150 1 0 158.5 137.794 A 14 9 -150 1 0 167.5 122.206 Z"/>
+    <path d="M 120 149 A 9 14 0 1 0 138 149 A 9 14 0 1 0 120 149 Z"/>
+    <path d="M 90.5 122.206 A 14 9 150 1 0 99.5 137.794 A 14 9 150 1 0 90.5 122.206 Z"/>
+    <path d="M 99.5 82.2058 A 14 9 -150 1 0 90.5 97.794 A 14 9 -150 1 0 99.5 82.2058 Z"/>
+  </g>
+  <g fill="none" stroke="#d7edf1" stroke-width="4" stroke-linecap="round" opacity="0.7">
+    <path d="M 84 64 C 100 46 127 39 151 47"/>
+    <path d="M 174 75 C 190 93 191 119 179 137"/>
+    <path d="M 150 166 C 127 177 100 169 85 153"/>
+  </g>
+  <path d="M 109 27 C 122 20 138 20 151 27" fill="none" stroke="#edf7f8" stroke-width="7" stroke-linecap="round"/>
+  <path d="M 113 195 L 145 195" fill="none" stroke="#35454b" stroke-width="9" stroke-linecap="round"/>
+  <path d="M 112 190 L 146 190" fill="none" stroke="#eaf4f5" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Front panel gives the instrument an ordinary centrifuge control face without invented setpoint text. -->
+  <path d="M 50 230 L 179 230 C 185 230 190 235 190 241 L 190 283 C 190 289 185 294 179 294 L 50 294 C 44 294 39 289 39 283 L 39 241 C 39 235 44 230 50 230 Z" fill="#273a40" stroke="#35454b" stroke-width="4"/>
+  <path fill="#6f9fac" d="M 59 244 L 142 244 A 4 4 0 0 1 146 248 L 146 259 A 4 4 0 0 1 142 263 L 59 263 A 4 4 0 0 1 55 259 L 55 248 A 4 4 0 0 1 59 244 Z"/>
+  <path d="M 61 253 L 140 253" fill="none" stroke="#c4e4e9" stroke-width="3" stroke-linecap="round"/>
+  <path fill="#9eb9c1" d="M 61 277 A 7 7 0 1 0 75 277 A 7 7 0 1 0 61 277 Z"/>
+  <path fill="#9eb9c1" d="M 87 277 A 7 7 0 1 0 101 277 A 7 7 0 1 0 87 277 Z"/>
+  <path fill="#9eb9c1" d="M 113 277 A 7 7 0 1 0 127 277 A 7 7 0 1 0 113 277 Z"/>
+  <path fill="#35b85a" stroke="#1d6e38" stroke-width="4" d="M 147 254 A 16 16 0 1 0 179 254 A 16 16 0 1 0 147 254 Z"/>
+  <path d="M 155 254 L 161 260 L 172 247" fill="none" stroke="#f4fff6" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <path fill="#35454b" d="M 199 260 A 11 11 0 1 0 221 260 A 11 11 0 1 0 199 260 Z"/>
+  <path fill="#f0c94b" d="M 205 260 A 5 5 0 1 0 215 260 A 5 5 0 1 0 205 260 Z"/>
+  <path d="M 33 318 L 71 318 L 65 346 L 39 346 Z" fill="#35454b"/>
+  <path d="M 187 318 L 225 318 L 219 346 L 193 346 Z" fill="#35454b"/>
+
+  <g id="overlay_root"/>
+  <path id="anchor_label" fill="none" stroke="none" display="none" d="M 37 227 L 197 227 L 197 297 L 37 297 Z"/>
+  <path id="anchor_error" fill="none" stroke="none" display="none" d="M 203 277 L 223 277 L 223 297 L 203 297 Z"/>
+</svg>

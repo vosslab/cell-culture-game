@@ -37,6 +37,7 @@ Output ordering: PROTOCOLS_INDEX sorted by cluster then protocol_name (determini
 
 # Standard Library
 import os
+import re
 import subprocess
 
 # PIP3 modules
@@ -496,17 +497,73 @@ def compute_step_count(protocol_data: dict, all_protocols: dict) -> int:
 	raise ValueError(f"compute_step_count: unsupported protocol_type {protocol_type}")
 
 
+LEARNING_HOOK_MAX_LENGTH = 128
+LEARNING_OUTCOME_PREFIXES = (
+	"Students completing this mini-protocol will be able to",
+	"Students completing this protocol will be able to",
+)
+
+
+def normalize_learning_text(value: str) -> str:
+	"""Collapse authored line wrapping into one launcher-card line."""
+	normalized = " ".join(value.split())
+	return normalized
+
+
+def strip_learning_outcome_prefix(outcome: str) -> str:
+	"""Remove an exact required learning-block lead-in when it is present."""
+	for prefix in LEARNING_OUTCOME_PREFIXES:
+		if outcome == prefix:
+			return ""
+		if outcome.startswith(f"{prefix} "):
+			stripped = outcome[len(prefix):].strip()
+			return stripped
+	return outcome
+
+
+def first_complete_sentence(text: str) -> str:
+	"""Keep the first authored sentence when its terminal punctuation is present."""
+	match = re.search(r"[.!?]+(?=\s|$)", text)
+	if match is None:
+		return text
+	first_sentence = text[:match.end()]
+	return first_sentence
+
+
+def truncate_learning_hook(text: str) -> str:
+	"""Bound a hook at a word boundary while making omitted text explicit."""
+	if len(text) <= LEARNING_HOOK_MAX_LENGTH:
+		return text
+	words = text.split()
+	truncated_words = []
+	for word in words:
+		candidate_words = [*truncated_words, word]
+		candidate = " ".join(candidate_words)
+		if len(candidate) + 3 > LEARNING_HOOK_MAX_LENGTH:
+			break
+		truncated_words = candidate_words
+	if not truncated_words:
+		return "..."
+	hook = " ".join(truncated_words) + "..."
+	return hook
+
+
 def extract_learning_hook(learning: dict | None) -> str | None:
-	"""Extract a one-liner hook from the learning.goals field."""
-	if not learning:
+	"""Extract a concise, outcome-led hook from a protocol learning block."""
+	if not isinstance(learning, dict):
 		return None
-	goals = learning["goals"]
-	if not goals or not isinstance(goals, str):
+	outcomes = learning.get("outcomes")
+	if not isinstance(outcomes, str):
 		return None
-	# Return first 80 chars (fit in most UI layouts)
-	hook = goals.strip()
-	if len(hook) > 80:
-		hook = hook[:77] + "..."
+	normalized = normalize_learning_text(outcomes)
+	if normalized == "":
+		return None
+	stripped = strip_learning_outcome_prefix(normalized)
+	if stripped == "":
+		return None
+	capitalized = stripped[0].upper() + stripped[1:]
+	first_sentence = first_complete_sentence(capitalized)
+	hook = truncate_learning_hook(first_sentence)
 	return hook
 
 

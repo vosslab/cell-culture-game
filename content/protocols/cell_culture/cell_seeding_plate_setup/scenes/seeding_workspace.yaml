@@ -1,44 +1,13 @@
 scene_name: seeding_workspace
-extends: hood_basic
+extends: plate_focus_hood
 scene_notes: |
   Workspace for cell seeding (A29-A31): prepare diluted suspension and seed
-  96-well plate. The well_plate_96 object is placed in the inherited hood_basic
-  center; protocols target well_plate_96.* against that inherited placement.
-
-remove_placements:
-  # Base serological pipette removed; protocol adds its own at a specific slot
-  - base_right_serological_pipette
-  # Remove base rear-right bottles to make room for the incubator. These were
-  # previously only deactivated, which left them rendered and crowding the
-  # center band; removing them frees the space the incubator needs.
-  - base_rear_right_media
-  - base_rear_right_sterile_water
-  # The inherited aspirating pipette is not a target of this mini-protocol
-  # (seeding uses the micropipette and serological pipette only). Its
-  # right_tool_area slot sat under the large incubator and overlapped it; remove
-  # it to declutter the right tool band.
-  - right_aspirating_pipette
-  # Inherited rear-shelf decoration the seeding protocol never clicks (tip box,
-  # PBS, waste). Removed to lift the whole-scene scale off the packing floor and
-  # free rear_center for the relocated vortex; every child-added object (tubes,
-  # vortex, pipettes, media, incubator) is a target and is kept.
-  - base_rear_left_tip_box
-  - base_rear_center_pbs
-  - rear_center_waste
+  96-well plate. The inherited foreground plate is deliberately enlarged for
+  well-level teaching; every supporting item below is an authored protocol target.
 
 add_placements:
-  # The incubator (40cm) sits in the widened rear_right band. The two hood
-  # pipettes return to the right tool band on a SINGLE shallow row, which keeps
-  # that band short enough for the incubator column directly above it to extend
-  # downward instead of forcing a hard scene-wide shrink. The sample tubes move
-  # to the rear_left prep shelf and the vortex to rear_center, so the center band
-  # holds just the plate and hood surface and the whole scene reads at a legible
-  # scale.
-
-  # Sample tubes on the rear_left prep shelf beside the ethanol: cell suspension
-  # at the center stop, dilution conical at the right stop. Keeping the right
-  # tool band to a single shallow row (the two pipettes) lets the tall incubator
-  # column beside it extend downward, which lifts the whole-scene scale.
+  # The two preparation vessels occupy the rear-left context station. The plate
+  # remains unobscured in the foreground teaching zone.
   - placement_name: rear_left_cell_suspension_tube
     object_name: cell_suspension_tube
     zone: rear_left
@@ -51,49 +20,34 @@ add_placements:
     depth_tier: 2
     align_stop: right
 
-  # well_plate_96 is now placed in the inherited hood_basic center band (single
-  # plate); the former microtube_rack_24 placeholder was removed here.
-
-  # Media bottle: rear_center, left stop. The inherited PBS and waste bottles
-  # that shared this band are removed, so it sits beside the relocated vortex.
+  # Media and vortex are the two protocol targets needed to prepare the
+  # suspension before dispensing into the foreground plate.
   - placement_name: rear_center_media_bottle
     object_name: media_bottle
     zone: rear_center
     depth_tier: 1
     align_stop: left
 
-  # Vortex: rear_center, right stop, beside the media bottle. Relocated out of
-  # the center band (which now holds just the plate and the two sample tubes) to
-  # relieve the center shrink; the rear shelf freed by removing PBS and waste
-  # gives it room.
   - placement_name: rear_center_vortex
     object_name: vortex
     zone: rear_center
     depth_tier: 2
     align_stop: right
 
-  # Incubator in the widened rear_right band. At 40cm it fits the appliance
-  # slot; align_stop center keeps it clear of the zone edges. It no longer
-  # covers the right_tool_area, so the two hood pipettes live there (above).
+  # Incubator is the post-seeding destination in the rear-right context station.
   - placement_name: rear_right_incubator
     object_name: incubator
     zone: rear_right
     depth_tier: 1
     align_stop: center
 
-  # Micropipette: right tool band, front row. With the incubator resized to 40cm
-  # and rear_right widened, the incubator no longer covers the right_tool_area
-  # X-range, so the two hood pipettes return to their natural tool-rack home.
-  # This thins the center band from 7 objects to 5, relieving the shrink.
+  # The two authored pipettes share the deliberately narrow secondary tool rack.
   - placement_name: right_micropipette
     object_name: micropipette
     zone: right_tool_area
     depth_tier: 1
     align_stop: left
 
-  # Serological pipette: right tool band, same front row as the micropipette
-  # (right stop). Keeping both pipettes on one shallow row leaves the right tool
-  # band short enough for the incubator column beside it to extend downward.
   - placement_name: right_serological_pipette
     object_name: serological_pipette
     zone: right_tool_area

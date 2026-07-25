@@ -31,11 +31,11 @@ visual_states:
     applies_to: subpart
     cases:
       - when: empty
-        output: { asset_name: tube_rack }
+        output: { asset_name: dilution_tube_rack }
       - when: carboplatin
-        output: { asset_name: tube_rack }
+        output: { asset_name: dilution_tube_rack }
       - when: media
-        output: { asset_name: tube_rack }
+        output: { asset_name: dilution_tube_rack }
   material_volume:
     kind: composite
     applies_to: subpart

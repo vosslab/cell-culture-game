@@ -56,33 +56,44 @@ import { SceneItem } from "./scene_item.js";
 // Seed-list derivation from a PipelineResult
 //============================================
 
-// Build the store seed list from a pipeline result. One object-level seed per
-// rendered placement whose object declares a state schema (object targets only;
-// subpart targets like "plate.A1" are seeded by the scene-op layer when an
-// ObjectStateChange first writes them, since the subpart instance set is not
-// enumerable from PipelineResult). Placeholder/missing-object placements and
-// objects with no declared state fields are skipped: there is nothing to seed.
+// Build the store seed list from a pipeline result. Each unique rendered object
+// whose real definition declares object-level state gets one bare-object seed.
+// Structured objects with declared subpart state also seed every declared
+// subpart in definition order. The generated `subparts` vocabulary is the
+// authoritative enumerable set; it is deliberately not inferred from rendered
+// geometry because some structured objects have no subpart overlay geometry.
+// Placeholder/missing-object placements and state-free targets are skipped.
 export function build_seed_list(result: PipelineResult): TargetSeed[] {
   const seeds: TargetSeed[] = [];
-  const seen = new Set<string>();
+  const seenObjects = new Set<string>();
+  const seenTargets = new Set<string>();
   for (const item of result.final) {
     const object_name = item.object_name;
-    // Skip duplicates: the store is keyed by object_name, so two placements of
-    // the same object share one seed.
-    if (seen.has(object_name)) {
+    // The store is keyed by object_name, so repeated placements share seeds.
+    if (seenObjects.has(object_name)) {
       continue;
     }
+    seenObjects.add(object_name);
     const def = OBJECT_LIBRARY[object_name];
     if (def === undefined) {
       // missing-object placeholder: no schema to seed.
       continue;
     }
-    // Only seed objects that declare at least one object-level state field.
-    if (Object.keys(def.state_schema).length === 0) {
+    if (Object.keys(def.state_schema).length > 0 && !seenTargets.has(object_name)) {
+      seenTargets.add(object_name);
+      seeds.push({ target: object_name, object_name });
+    }
+    if (Object.keys(def.subpart_state_schema).length === 0) {
       continue;
     }
-    seen.add(object_name);
-    seeds.push({ target: object_name, object_name });
+    for (const subpart of def.subparts ?? []) {
+      const target = `${object_name}.${subpart}`;
+      if (seenTargets.has(target)) {
+        continue;
+      }
+      seenTargets.add(target);
+      seeds.push({ target, object_name });
+    }
   }
   return seeds;
 }

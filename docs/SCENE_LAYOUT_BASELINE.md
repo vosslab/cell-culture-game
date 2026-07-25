@@ -16,7 +16,9 @@ corpus composition changes meaningfully. Do not auto-regenerate it as part of th
 ```bash
 ./build_github_pages.sh
 node --import tsx pipeline/precompute_layout.mjs
-source source_me.sh && python3 run_scene_health.py
+npm run scene:png -- --all
+source source_me.sh && python3 -m validation.scene_lint.cli
+source source_me.sh && python3 -m validation.scene_design.cli --markdown
 node --import tsx tests/e2e/e2e_layout_diagnostics_baseline.mjs
 ```
 
@@ -26,9 +28,9 @@ node --import tsx tests/e2e/e2e_layout_diagnostics_baseline.mjs
   (viewport 1920x1080). Exit code 0.
 - `countBuildFailures` on every non-exempt scene: 0. The failBuild gate passes clean.
 - `build_github_pages.sh`: exit code 0.
-- `run_scene_health.py`: 38 scenes analyzed (health scorecard is a fill/shrink/label
-  proxy, not the failBuild gate itself; see `docs/active_plans/reports/
-  layout_diagnostics_baseline.md` for the live engine diagnostics this baseline reflects).
+- Historical health scorecard: 38 scenes analyzed by the now-retired proxy report.
+  The count is preserved as snapshot evidence only; current refreshes use rendered
+  evidence plus `validation.scene_lint` and `validation.scene_design` above.
 
 ## Health scorecard (worst-first, top 10 of 38)
 
@@ -45,8 +47,9 @@ node --import tsx tests/e2e/e2e_layout_diagnostics_baseline.mjs
 | 9 | `hood_workspace` | 28.58 | authoring | shrink-stressed, crowded |
 | 10 | `passage_hood_detachment_microscope_view` | 28.32 | intentional | crowded, label-stressed |
 
-Full 38-scene scorecard: `test-results/layout_health/health_report.md` (regenerated,
-gitignored). Category totals for this run: `high-empty-space-plus-shrink`=4,
+Historical full scorecard: `test-results/layout_health/health_report.md` (the retired
+report's regenerated, gitignored output). Category totals for this run:
+`high-empty-space-plus-shrink`=4,
 `shrink-stressed`=17, `crowded`=8, `label-stressed`=18, `healthy`=13, `sparse`=5.
 
 ## layout_diagnostics Error table

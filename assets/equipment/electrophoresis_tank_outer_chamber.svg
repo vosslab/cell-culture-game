@@ -10,10 +10,8 @@
 	<g id="body">
 		<!-- outer chamber wall (wide base), darker rim for definition -->
 		<path d="M 2 7 L 2 87 Q 2 97 12 97 L 102 97 Q 112 97 112 87 L 112 7 Q 112 2 107 2 L 7 2 Q 2 2 2 7 Z" fill="#dfe6ea" stroke="#5a6b73" stroke-width="2" />
-		<!-- inner surface: buffer-blue tint so the chamber reads as filled tank -->
-		<path d="M 7 12 L 7 82 Q 7 92 17 92 L 97 92 Q 107 92 107 82 L 107 12 Z" fill="#cfe6f2" stroke="#7fa6b8" stroke-width="0.8" />
-		<!-- standing buffer surface line near top of fill -->
-		<path d="M 9 22 L 105 22" stroke="#9cc3d6" stroke-width="1" fill="none" opacity="0.7" />
+		<!-- Neutral interior: the runtime material overlay alone shows liquid. -->
+		<path d="M 7 12 L 7 82 Q 7 92 17 92 L 97 92 Q 107 92 107 82 L 107 12 Z" fill="#f7fbfc" stroke="#8a9aa1" stroke-width="0.8" />
 		<!-- electrode hint: dark cathode bar near left wall -->
 		<rect x="11" y="16" width="3" height="70" rx="1" fill="#3a3a3a" opacity="0.65" />
 		<!-- electrode hint: red anode bar near right wall -->

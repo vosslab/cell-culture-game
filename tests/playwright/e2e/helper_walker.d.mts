@@ -17,7 +17,26 @@ export interface WalkOutcome {
   isComplete: boolean;
   failureReason: string | null;
   errorCount: number;
+  checkpointManifest: TargetCheckpoint[];
+  checkpointManifestValid: boolean;
   diagnostics: string;
+}
+
+export interface TargetCheckpoint {
+  protocol: string;
+  step: string;
+  target: string;
+  gesture: string;
+  interactionIndex: number;
+  screenshot: string;
+  visibleTargetBounds: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    viewportWidth: number;
+    viewportHeight: number;
+  };
 }
 
 export declare function runProtocolWalk(page: Page, options: WalkOptions): Promise<WalkOutcome>;

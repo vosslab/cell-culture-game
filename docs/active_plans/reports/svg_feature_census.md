@@ -13,8 +13,8 @@ first-wins verdict). Inside-pipeline reject codes (`EMPTY_GEOMETRY`,
 file's reasons list from the verdict because they are not standalone
 detectors, so zero reasons means the file truly normalizes.
 
-Normalized: 1757 / 3125 (raw 56.2%)
-Normalized (excluding intentional raster rejects): 1757 / (3125 - 73) = 1757 / 3052 (adjusted 57.6%)
+Normalized: 1733 / 3125 (raw 55.5%)
+Normalized (excluding intentional raster rejects): 1733 / (3125 - 73) = 1733 / 3052 (adjusted 56.8%)
 Raster-embedding SVGs (verdict `EMBEDDED_RASTER_UNSUPPORTED`) are
 intentionally unsupported and excluded from the adjusted denominator.
 
@@ -33,8 +33,8 @@ so these columns do NOT sum to the corpus total of 3125 files.
 | FOREIGNOBJECT_UNSUPPORTED | 164 | 5.2% |
 | EXTERNAL_RESOURCE_UNSUPPORTED | 143 | 4.6% |
 | EMBEDDED_RASTER_UNSUPPORTED | 111 | 3.6% |
+| CLIPPATH_UNSUPPORTED_COMPLEX | 108 | 3.5% |
 | USE_OR_SYMBOL_UNSUPPORTED | 102 | 3.3% |
-| CLIPPATH_UNSUPPORTED_COMPLEX | 84 | 2.7% |
 | FILTER_UNSUPPORTED | 57 | 1.8% |
 | MARKER_UNSUPPORTED | 38 | 1.2% |
 | UNSUPPORTED_TRANSFORM | 34 | 1.1% |
@@ -53,13 +53,13 @@ means the file normalizes.
 
 | Distinct reasons | Files | Percent |
 | --- | --- | --- |
-| 0 (normalized) | 1757 | 56.2% |
-| 1 | 999 | 32.0% |
+| 0 (normalized) | 1733 | 55.5% |
+| 1 | 1023 | 32.7% |
 | 2 | 156 | 5.0% |
 | 3 | 125 | 4.0% |
 | 4+ | 88 | 2.8% |
 
-Normalized (zero reasons): 1757 of 3125 files (56.2%).
+Normalized (zero reasons): 1733 of 3125 files (55.5%).
 
 ## Stacked-blocker co-occurrence
 
@@ -106,11 +106,11 @@ normalize even if that one bucket were fully solved.
 
 | Verdict | Files | Percent |
 | --- | --- | --- |
-| normalized | 1757 | 56.2% |
+| normalized | 1733 | 55.5% |
 | STYLE_GEOMETRY_UNSUPPORTED | 482 | 15.4% |
 | TEXT_UNSUPPORTED | 295 | 9.4% |
 | DOCTYPE_OR_ENTITY | 234 | 7.5% |
-| CLIPPATH_UNSUPPORTED_COMPLEX | 84 | 2.7% |
+| CLIPPATH_UNSUPPORTED_COMPLEX | 108 | 3.5% |
 | EMBEDDED_RASTER_UNSUPPORTED | 73 | 2.3% |
 | USE_OR_SYMBOL_UNSUPPORTED | 38 | 1.2% |
 | UNSUPPORTED_TRANSFORM | 34 | 1.1% |
@@ -134,9 +134,9 @@ Verdict among clipPath-bearing files:
 
 | Verdict | Files |
 | --- | --- |
-| normalized | 1094 |
+| normalized | 1070 |
+| CLIPPATH_UNSUPPORTED_COMPLEX | 107 |
 | TEXT_UNSUPPORTED | 96 |
-| CLIPPATH_UNSUPPORTED_COMPLEX | 83 |
 | DOCTYPE_OR_ENTITY | 59 |
 | USE_OR_SYMBOL_UNSUPPORTED | 23 |
 | STYLE_GEOMETRY_UNSUPPORTED | 15 |
@@ -157,11 +157,11 @@ Verdict among transform-bearing files:
 | Verdict | Files |
 | --- | --- |
 | TEXT_UNSUPPORTED | 277 |
-| normalized | 223 |
+| normalized | 214 |
 | DOCTYPE_OR_ENTITY | 142 |
+| CLIPPATH_UNSUPPORTED_COMPLEX | 64 |
 | EMBEDDED_RASTER_UNSUPPORTED | 63 |
 | STYLE_GEOMETRY_UNSUPPORTED | 62 |
-| CLIPPATH_UNSUPPORTED_COMPLEX | 55 |
 | UNSUPPORTED_TRANSFORM | 34 |
 | FILTER_UNSUPPORTED | 30 |
 | USE_OR_SYMBOL_UNSUPPORTED | 23 |

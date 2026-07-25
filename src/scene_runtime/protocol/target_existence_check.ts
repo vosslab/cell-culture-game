@@ -130,35 +130,41 @@ export class AmbiguousAuthoredTargetError extends Error {
   }
 }
 
-// Locating fields the scene-op-seeded error carries. op_type names which
-// scene_operation primitive referenced the unseeded target.
-interface SceneOpTargetLocation {
+// Scene-operation primitives that write to the scene store and therefore need
+// a target seeded in the active scene. CursorAttach is included because its
+// non-held targets update cursor/store state; TimedWait sets render flags
+// before the host schedules the elapsed event.
+type SeededSceneOperationType = "ObjectStateChange" | "CursorAttach" | "TimedWait";
+
+// Locating fields the seeded-scene-operation error carries. operation_type
+// names which primitive referenced the unseeded target.
+interface SeededSceneOperationTargetLocation {
   readonly protocol_name: string;
   readonly step_name: string;
   readonly scene_name: string;
-  readonly op_type: "ObjectStateChange" | "CursorAttach";
+  readonly operation_type: SeededSceneOperationType;
   readonly interaction_index: number;
   readonly target: string;
 }
 
-// A scene_operation (ObjectStateChange or CursorAttach) names a `target` that is
-// not seeded in the scene active at the point the operation executes, so the
-// operation would throw a `scene_store: ... not seeded` error mid-walk. This
+// A scene operation that writes to the scene store names a `target` that is
+// not seeded in the scene active at the point the operation executes. The
+// runtime would otherwise throw `scene_store: ... not seeded` mid-walk. This
 // invariant promotes that to a named load-time error. The fix is to seed the
 // object in that scene (scene layer) or correct the authored flow; never a
 // per-protocol runtime branch.
-export class UnseededSceneOpTargetError extends Error {
-  constructor(location: SceneOpTargetLocation) {
+export class UnseededSceneOperationTargetError extends Error {
+  constructor(location: SeededSceneOperationTargetLocation) {
     let message = `Scene operation target is not seeded in the active scene`;
     message += ` in protocol "${location.protocol_name}",`;
     message += ` step "${location.step_name}",`;
     message += ` scene "${location.scene_name}",`;
-    message += ` scene_operation "${location.op_type}"`;
+    message += ` scene_operation "${location.operation_type}"`;
     message += ` at interaction index ${location.interaction_index},`;
     message += ` target "${location.target}".`;
     message += ` No placement_name or object_name in that scene matches it.`;
     super(message);
-    this.name = "UnseededSceneOpTargetError";
+    this.name = "UnseededSceneOperationTargetError";
   }
 }
 
@@ -218,16 +224,16 @@ interface TargetReference {
   readonly target: string;
 }
 
-// One point in the flow graph where a scene_operation (ObjectStateChange or
-// CursorAttach) names a target, tagged with the scene CURRENT when that
-// operation executes. A response's scene_operations run in the scene active at
-// the START of their interaction (any SceneChange in the same response only
-// takes effect for the NEXT interaction), so a scene-op reference shares its
-// interaction target's scene.
-interface SceneOpReference {
+// One point in the flow graph where a store-writing scene operation names a
+// target, tagged with the scene CURRENT when that operation executes. A
+// response's scene_operations run in the scene active at the START of their
+// interaction (any SceneChange in the same response only takes effect for the
+// NEXT interaction), so a scene-operation reference shares its interaction
+// target's scene.
+interface SeededSceneOperationReference {
   readonly step_name: string;
   readonly scene_name: string;
-  readonly op_type: "ObjectStateChange" | "CursorAttach";
+  readonly operation_type: SeededSceneOperationType;
   readonly interaction_index: number;
   readonly target: string;
 }
@@ -235,16 +241,17 @@ interface SceneOpReference {
 // Both reference streams produced by the single reachable-graph traversal.
 interface ProtocolReferences {
   readonly targets: TargetReference[];
-  readonly scene_ops: SceneOpReference[];
+  readonly seeded_scene_operations: SeededSceneOperationReference[];
 }
 
 // Walk the reachable step graph (entry_step -> next_step, cycle-safe via a
 // visited set, identical reachability rule to count_reachable_steps) and
-// collect one TargetReference per authored target plus one SceneOpReference per
-// seeded-checkable scene_operation, each tagged with the scene active at that
-// point. This is the single traversal collect_reachable_scene_names,
-// validate_target_existence, and validate_scene_op_targets_seeded build on, so
-// they never drift out of sync on how scene transitions are tracked.
+// collect one TargetReference per authored target plus one
+// SeededSceneOperationReference per store-writing scene operation, each tagged
+// with the scene active at that point. This is the single traversal
+// collect_reachable_scene_names, validate_target_existence, and
+// validate_seeded_scene_operation_targets build on, so they never drift out of
+// sync on how scene transitions are tracked.
 //
 // Scene tracking mirrors the runtime exactly:
 //   - enter_step: if the step declares a non-empty `scene` different from the
@@ -260,10 +267,10 @@ function walk_protocol_references(
   initial_scene: string | null,
 ): ProtocolReferences {
   const targets: TargetReference[] = [];
-  const scene_ops: SceneOpReference[] = [];
+  const seeded_scene_operations: SeededSceneOperationReference[] = [];
   const steps = config.steps ?? [];
   if (steps.length === 0) {
-    return { targets, scene_ops };
+    return { targets, seeded_scene_operations };
   }
   const by_name: Map<string, ProtocolStep> = new Map();
   for (const step of steps) {
@@ -295,15 +302,20 @@ function walk_protocol_references(
         interaction_index,
         target: interaction.target,
       });
-      // Scene-op targets execute in the scene active at the start of this
-      // interaction, BEFORE any SceneChange in the same response. Record them
-      // at scene_name (the pre-change scene) for the seeded invariant.
+      // Store-writing scene-operation targets execute in the scene active at
+      // the start of this interaction, BEFORE any SceneChange in the same
+      // response. Record them at scene_name (the pre-change scene) for the
+      // seeded-target invariant.
       for (const op of interaction.response.scene_operations) {
-        if (op.type === "ObjectStateChange" || op.type === "CursorAttach") {
-          scene_ops.push({
+        if (
+          op.type === "ObjectStateChange" ||
+          op.type === "CursorAttach" ||
+          op.type === "TimedWait"
+        ) {
+          seeded_scene_operations.push({
             step_name: step.step_name,
             scene_name,
-            op_type: op.type,
+            operation_type: op.type,
             interaction_index,
             target: op.target,
           });
@@ -336,7 +348,7 @@ function walk_protocol_references(
     cursor = step.next_step;
   }
 
-  return { targets, scene_ops };
+  return { targets, seeded_scene_operations };
 }
 
 //============================================
@@ -362,19 +374,18 @@ function collect_cursor_attached_targets(config: ProtocolConfig): Set<string> {
   return held;
 }
 
-// Collect every target that is ever the subject of an ObjectStateChange
-// anywhere in the protocol's steps. The seeded invariant narrows the held-tool
-// exemption with this set: a held tool that is ALSO the subject of an
-// ObjectStateChange must still be seeded (the state mutation needs a real store
-// entry to write), so it is NOT exempt. A tool that is only ever cursor-attached
-// (never state-mutated) stays exempt because it renders through the
-// tray/cursor-overlay affordance, not a static scene placement.
-function collect_object_state_change_targets(config: ProtocolConfig): Set<string> {
+// Collect every target that is ever the subject of a store-writing scene
+// operation that requires a seeded entry even when it is cursor-attached.
+// TimedWait belongs here because start_timed_wait sets flags on its target
+// before scheduling the elapsed event. A tool that is only cursor-attached
+// remains exempt because it renders through the tray/cursor-overlay affordance,
+// not a static scene placement.
+function collect_seed_required_scene_operation_targets(config: ProtocolConfig): Set<string> {
   const subjects: Set<string> = new Set();
   for (const step of config.steps ?? []) {
     for (const interaction of step.sequence) {
       for (const op of interaction.response.scene_operations) {
-        if (op.type === "ObjectStateChange") {
+        if (op.type === "ObjectStateChange" || op.type === "TimedWait") {
           subjects.add(op.target);
         }
       }
@@ -470,34 +481,35 @@ export function validate_target_existence(
 }
 
 //============================================
-// Scene-op seeded invariant (pass entry point)
+// Seeded scene-operation target invariant (pass entry point)
 //============================================
 
-// Validate that every ObjectStateChange and CursorAttach scene_operation target
-// is seeded (known) in the scene active at the point the operation executes.
-// Throws UnseededSceneOpTargetError on the first miss; returns normally when
-// every scene-op target resolves (or when its scene has no resolver entry, or
-// when it is an exempt held-only tool).
+// Validate that every store-writing scene-operation target is seeded (known) in
+// the scene active at the point the operation executes. Throws
+// UnseededSceneOperationTargetError on the first miss; returns normally when
+// every target resolves (or when its scene has no resolver entry, or when it is
+// an exempt held-only tool).
 //
 // Held-tool exemption, narrowed: a target that is cursor-attached somewhere in
-// the protocol AND is never the subject of an ObjectStateChange is exempt (it
-// renders through the tray/cursor-overlay affordance, not a static placement).
-// A held tool that IS an ObjectStateChange subject is NOT exempt: the state
-// mutation needs a real store entry, so it must be seeded in the active scene.
+// the protocol AND is never the subject of ObjectStateChange or TimedWait is
+// exempt (it renders through the tray/cursor-overlay affordance, not a static
+// placement). A held tool that IS an ObjectStateChange or TimedWait subject is
+// NOT exempt: the operation writes a real store entry, so it must be seeded in
+// the active scene.
 //
 // Called inside create_step_machine, beside validate_target_existence.
-export function validate_scene_op_targets_seeded(
+export function validate_seeded_scene_operation_targets(
   config: ProtocolConfig,
   initial_scene: string | null,
   resolve_scene_adapter: SceneTargetAdapterResolver,
 ): void {
   const protocol_name = config.protocol_name;
   const held_targets = collect_cursor_attached_targets(config);
-  const state_change_subjects = collect_object_state_change_targets(config);
+  const seed_required_targets = collect_seed_required_scene_operation_targets(config);
 
-  for (const reference of walk_protocol_references(config, initial_scene).scene_ops) {
-    // Exempt only a held tool that is never state-mutated (see above).
-    if (held_targets.has(reference.target) && !state_change_subjects.has(reference.target)) {
+  for (const reference of walk_protocol_references(config, initial_scene).seeded_scene_operations) {
+    // Exempt only a held tool that never needs a seeded store entry (see above).
+    if (held_targets.has(reference.target) && !seed_required_targets.has(reference.target)) {
       continue;
     }
     const adapter = resolve_scene_adapter(reference.scene_name);
@@ -506,15 +518,15 @@ export function validate_scene_op_targets_seeded(
       continue;
     }
     if (!adapter.has_target(reference.target)) {
-      const location: SceneOpTargetLocation = {
+      const location: SeededSceneOperationTargetLocation = {
         protocol_name,
         step_name: reference.step_name,
         scene_name: reference.scene_name,
-        op_type: reference.op_type,
+        operation_type: reference.operation_type,
         interaction_index: reference.interaction_index,
         target: reference.target,
       };
-      throw new UnseededSceneOpTargetError(location);
+      throw new UnseededSceneOperationTargetError(location);
     }
   }
 }
@@ -594,14 +606,14 @@ function check_subpart_suffix(
 
 // Validate that every authored "<object>.<suffix>" target names a declared
 // subpart instance or subpart_group of that object. Covers interaction targets,
-// final_state_matches step_validator targets, and ObjectStateChange /
-// CursorAttach scene_operation targets, each checked against the object resolved
-// in the scene active at that point in the reachable flow. This is what makes a
+// final_state_matches step_validator targets, and store-writing scene-operation
+// targets, each checked against the object resolved in the scene active at that
+// point in the reachable flow. This is what makes a
 // group write (well_plate_96.all_wells) and a per-well write (well_plate_96.A1)
 // prove their subpart addressing at load instead of silently writing a
 // non-rendered pseudo-node mid-walk. Throws UnknownAuthoredSubpartTargetError on
 // the first miss. Called inside create_step_machine, beside
-// validate_target_existence and validate_scene_op_targets_seeded.
+// validate_target_existence and validate_seeded_scene_operation_targets.
 export function validate_authored_subpart_targets(
   config: ProtocolConfig,
   initial_scene: string | null,
@@ -621,7 +633,7 @@ export function validate_authored_subpart_targets(
       resolve_scene_adapter(reference.scene_name),
     );
   }
-  for (const reference of references.scene_ops) {
+  for (const reference of references.seeded_scene_operations) {
     check_subpart_suffix(
       protocol_name,
       reference.step_name,

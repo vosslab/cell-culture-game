@@ -18,11 +18,11 @@ state_fields:
   - field_name: cathode_lead_attached
     type: bool
     default: false
-    description: Whether the red (positive) lead is attached to the electrode.
+    description: Whether the black (negative) lead is attached to the cathode.
   - field_name: anode_lead_attached
     type: bool
     default: false
-    description: Whether the black (negative) lead is attached to the electrode.
+    description: Whether the red (positive) lead is attached to the anode.
 
 visual_states:
   set_voltage:
@@ -32,7 +32,7 @@ visual_states:
     kind: svg
     cases:
       - when: false
-        output: { asset_name: power_supply_on }
+        output: { asset_name: power_supply_off }
       - when: true
         output: { asset_name: power_supply_on }
   cathode_lead_attached:

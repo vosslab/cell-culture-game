@@ -15,6 +15,7 @@ export {
 
 export * from "./types.js";
 export { normalizeSchema } from "./normalize_schema.js";
+export { lowerSceneZones } from "./lower_semantic_zones.js";
 export { resolveInheritance } from "./resolve_inheritance.js";
 export { bindObjects } from "./bind_objects.js";
 export { scaleToRealWorld } from "./scale_to_real_world.js";

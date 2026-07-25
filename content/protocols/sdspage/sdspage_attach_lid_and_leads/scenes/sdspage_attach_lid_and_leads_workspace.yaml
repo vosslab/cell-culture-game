@@ -1,6 +1,24 @@
 scene_name: sdspage_attach_lid_and_leads_workspace
 extends: electrophoresis_bench
 
+remove_placements:
+  # This learning block is the electrical-assembly close-up. Keep the tank,
+  # electrode module, gel cassette, and power supply; reagent and preparation
+  # supplies belong to their own mini-protocol scenes.
+  - rear_left_running_buffer_10x
+  - center_running_buffer_1x_carboy
+  - center_ddh2o_bottle
+  - center_serological_pipette
+  - center_p200_micropipette
+  - right_tool_area_p10_gel_loading_tip_box
+  - rear_left_protein_ladder_tube
+  - rear_left_recycle_buffer_bottle
+  - rear_right_gel_opening_tool
+  - front_left_mini_protean_gel
+  - front_center_waste_container
+  - front_right_gel_comb
+
 scene_notes: |
-  Electrophoresis bench workspace for securing apparatus with lid and leads.
-  Extends electrophoresis_bench which provides electrophoresis_tank and power_supply.
+  Focused electrophoresis workspace for securing the assembled apparatus with
+  its lid and leads. The tank, electrode module, gel cassette, and power supply
+  remain visible as one coherent electrical system.

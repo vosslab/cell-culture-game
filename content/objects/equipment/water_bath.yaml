@@ -15,6 +15,10 @@ state_fields:
     type: bool
     default: false
     description: Whether the water bath is currently running.
+  - field_name: vessels_present
+    type: bool
+    default: false
+    description: Whether vessels are immersed in the water bath.
   - field_name: stage
     type: enum
     allowed: [idle, warming, warmed]
@@ -26,14 +30,18 @@ visual_states:
     kind: overlay
     formula: label(state(set_temperature_c), format="{value} C")
   running:
+    kind: composite
+    composite: []
+  vessels_present:
     kind: svg
     cases:
       - when: false
         output: { asset_name: water_bath }
       - when: true
-        output: { asset_name: water_bath }
+        output: { asset_name: water_bath_occupied }
   stage:
     kind: composite
+    composite: []
 
 capabilities: [clickable, instrument_with_setpoint]
 

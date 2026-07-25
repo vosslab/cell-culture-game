@@ -32,7 +32,11 @@
 
 import { mountScene } from "../../src/scene_runtime/renderer/index.js";
 import { create_scene_store, type SceneStore } from "../../src/scene_runtime/state/scene_store.js";
-import { OBJECT_LIBRARY, OBJECT_STATE_SCHEMAS } from "../../generated/object_library.js";
+import {
+  ASSET_SPECS,
+  OBJECT_LIBRARY,
+  OBJECT_STATE_SCHEMAS,
+} from "../../generated/object_library.js";
 import type {
   ComputedItem,
   ObjectDef,
@@ -81,6 +85,23 @@ const SHARED_STATE_SCHEMA = {
 
 const DEGRADE_OBJ_NAME = "test_degrade_obj";
 const HAPPY_OBJ_NAME = "test_happy_obj";
+const HARNESS_ASSET = "waste_container";
+const HARNESS_VIEWPORT = { w: 1200, h: 675 };
+const HARNESS_VISUAL_WIDTH = 10;
+
+// Keep this synthetic PipelineResult aligned with the generated asset contract,
+// rather than copying a viewBox aspect that can legitimately change when the
+// scientific asset is redesigned. Structural guard 5 consumes this same
+// generated aspect at runtime.
+function get_harness_asset_aspect(): number {
+  const asset_spec = ASSET_SPECS[HARNESS_ASSET];
+  if (asset_spec === undefined) {
+    throw new Error(`degrade harness: missing generated asset spec for ${HARNESS_ASSET}`);
+  }
+  return asset_spec.aspect;
+}
+
+const HARNESS_ASSET_ASPECT = get_harness_asset_aspect();
 
 // Both maps must be patched: OBJECT_LIBRARY is read by SceneItem (visual_states)
 // and OBJECT_STATE_SCHEMAS by scene_store.seed_from_scene (default seeding).
@@ -93,7 +114,7 @@ const HAPPY_OBJ_NAME = "test_happy_obj";
   object_name: DEGRADE_OBJ_NAME,
   kind: "waste",
   label: "Test Degrade Object",
-  asset: "waste_container",
+  asset: HARNESS_ASSET,
   capabilities: ["clickable"],
   layout: { default_width: 5, label_width: 8, anchor_y: "bottom", anchor_y_offset: 0 },
   state_schema: SHARED_STATE_SCHEMA,
@@ -105,7 +126,7 @@ const HAPPY_OBJ_NAME = "test_happy_obj";
   object_name: HAPPY_OBJ_NAME,
   kind: "waste",
   label: "Test Happy Object",
-  asset: "waste_container",
+  asset: HARNESS_ASSET,
   capabilities: ["clickable"],
   layout: { default_width: 5, label_width: 8, anchor_y: "bottom", anchor_y_offset: 0 },
   state_schema: SHARED_STATE_SCHEMA,
@@ -118,9 +139,16 @@ const HAPPY_OBJ_NAME = "test_happy_obj";
 //============================================
 
 // Build one computed item placed well inside scene_bounds with NO label (so the
-// label structural guards are skipped) and an aspect matching the bound asset's
-// registered aspect (so the aspect guard stays clean for the chosen viewport).
+// label structural guards are skipped) and an aspect derived from the bound
+// asset's generated specification (so the aspect guard stays clean when the
+// asset artwork evolves).
 function make_item(object_name: string, x_offset: number): ComputedItem {
+  // Structural guard 5 calculates rendered aspect as
+  // (_visualWidth / _height) * viewportAspect. Solve that formula for height
+  // using the generated viewBox aspect so this hand-built item follows the
+  // same geometry contract as a PipelineResult.
+  const viewport_aspect = HARNESS_VIEWPORT.w / HARNESS_VIEWPORT.h;
+  const visual_height = (HARNESS_VISUAL_WIDTH * viewport_aspect) / HARNESS_ASSET_ASPECT;
   return {
     placement_name: object_name,
     object_name,
@@ -128,7 +156,7 @@ function make_item(object_name: string, x_offset: number): ComputedItem {
     depth: "mid",
     kind: "waste",
     label: object_name,
-    asset: "waste_container",
+    asset: HARNESS_ASSET,
     capabilities: ["clickable"],
     aspect: 1.0,
     layout: { default_width: 5, label_width: 8, anchor_y: "bottom", anchor_y_offset: 0 },
@@ -139,11 +167,9 @@ function make_item(object_name: string, x_offset: number): ComputedItem {
     _centerX: x_offset,
     _baselineY: 40,
     _top: 40,
-    // waste_container aspect is 0.6027; viewport 1200/675 = 1.7778; need
-    // (_visualWidth/_height)*1.7778 ~= 0.6027 => _visualWidth/_height ~= 0.339.
-    _visualWidth: 10,
-    _height: 29.5,
-    _footprint: 10,
+    _visualWidth: HARNESS_VISUAL_WIDTH,
+    _height: visual_height,
+    _footprint: HARNESS_VISUAL_WIDTH,
     _labelX: x_offset + 5,
     _labelY: 80,
     // Empty label list skips the label structural guards (7 and 8).
@@ -211,8 +237,8 @@ function do_mount(): void {
   dispose_fn = mountScene(get_scene_root(), make_result(), {
     store,
     materialRegistry: null,
-    skipSeed: true,
-    viewport: { w: 1200, h: 675 },
+    seedMode: "none",
+    viewport: HARNESS_VIEWPORT,
   });
 }
 

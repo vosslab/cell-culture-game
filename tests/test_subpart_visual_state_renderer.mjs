@@ -21,7 +21,14 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
-import { find_material_tint_subpart_field } from "../src/scene_runtime/renderer/subpart_dispatch.ts";
+import {
+  find_material_tint_subpart_field,
+  find_subpart_material_contract,
+} from "../src/scene_runtime/renderer/subpart_dispatch.ts";
+import {
+  circle_fill_path,
+  resolve_subpart_material_state,
+} from "../src/scene_runtime/renderer/subpart_material_state.ts";
 
 //============================================
 // Def builders (minimal ObjectDef shapes)
@@ -179,5 +186,101 @@ describe("predicate returns null when any contract part is missing", () => {
       view_box: { min_x: 0, min_y: 0, width: 100, height: 100 },
     };
     assert.equal(find_material_tint_subpart_field(def), null);
+  });
+});
+
+describe("per-subpart amount contract and behavior", () => {
+  test("renamed identity and amount fields dispatch with declared capacity", () => {
+    const def = make_def({
+      object_name: "rack",
+      field_name: "tube_identity",
+      shape: "rect",
+    });
+    def.visual_states.tube_amount = {
+      applies_to: "subpart",
+      render_effect: "fill_height",
+      target: "subpart_geometry",
+      capacity_ul: 100,
+    };
+    const contract = find_subpart_material_contract(def);
+    assert.equal(contract?.identity_field_name, "tube_identity");
+    assert.equal(contract?.amount.capacity, 100);
+  });
+
+  test("invalid capacities stay declared and fail loudly", () => {
+    const def = make_def({ object_name: "rack", field_name: "identity", shape: "rect" });
+    def.visual_states.amount = {
+      applies_to: "subpart",
+      render_effect: "fill_height",
+      target: "subpart_geometry",
+      capacity_ul: 0,
+      capacity_ml: 1,
+    };
+    const contract = find_subpart_material_contract(def);
+    assert.notEqual(contract, null);
+    const state = resolve_subpart_material_state("media", 5, null, contract.amount.capacity_error, {
+      media: { label: "Media", display_color: "#123456" },
+    });
+    assert.match(state.degraded, /exactly one positive/);
+  });
+
+  test("capacity requires one declared finite positive value", () => {
+    const invalid_capacities = [
+      { capacity_ul: Number.NaN },
+      { capacity_ul: Number.POSITIVE_INFINITY },
+      { capacity_ul: -1 },
+      { capacity_ul: 100, capacity_ml: "malformed" },
+    ];
+    for (const capacity_fields of invalid_capacities) {
+      const def = make_def({ object_name: "rack", field_name: "identity", shape: "rect" });
+      def.visual_states.amount = {
+        applies_to: "subpart",
+        render_effect: "fill_height",
+        target: "subpart_geometry",
+        ...capacity_fields,
+      };
+      const contract = find_subpart_material_contract(def);
+      assert.notEqual(contract, null);
+      assert.match(contract.amount.capacity_error, /exactly one positive/);
+    }
+  });
+
+  test("amounts above capacity remain visibly full", () => {
+    const state = resolve_subpart_material_state("media", 150, 100, "", {
+      media: { label: "Media", display_color: "#123456" },
+    });
+    assert.equal(state.fill_percent, 100);
+  });
+
+  test("circle amount emits no artwork when empty and a closed fill when nonempty", () => {
+    const circle = { shape: "circle", cx: 10, cy: 10, r: 5 };
+    assert.equal(circle_fill_path(circle, 0), "");
+    assert.match(circle_fill_path(circle, 25), /12\.5/);
+    assert.match(circle_fill_path(circle, 75), /7\.5/);
+  });
+
+  test("a malformed material state degrades without corrupting a valid sibling", () => {
+    const registry = { media: { label: "Media", display_color: "#123456" } };
+    const failed = resolve_subpart_material_state("media", 0, 100, "", registry);
+    const sibling = resolve_subpart_material_state("media", 50, 100, "", registry);
+    assert.match(failed.degraded, /zero amount/);
+    assert.deepEqual(
+      { fill: sibling.fill, percent: sibling.fill_percent },
+      { fill: "#123456", percent: 50 },
+    );
+  });
+
+  test("empty plus zero is transparent success while malformed state degrades", () => {
+    const empty = resolve_subpart_material_state("empty", 0, 100, "", {});
+    const malformed = resolve_subpart_material_state("media", "50", 100, "", {});
+    assert.equal(empty.degraded, "");
+    assert.match(malformed.degraded, /not numeric/);
+  });
+
+  test("wrong identity type and registry failure degrade without a fallback color", () => {
+    const wrong_identity = resolve_subpart_material_state(7, 50, 100, "", {});
+    const unknown_material = resolve_subpart_material_state("unknown", 50, 100, "", {});
+    assert.match(wrong_identity.degraded, /identity is missing/);
+    assert.match(unknown_material.degraded, /not in protocol material registry/);
   });
 });

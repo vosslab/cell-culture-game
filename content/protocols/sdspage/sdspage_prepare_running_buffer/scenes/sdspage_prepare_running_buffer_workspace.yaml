@@ -3,4 +3,22 @@ extends: electrophoresis_bench
 
 scene_notes: |
   Electrophoresis bench workspace for preparing running buffer. Extends electrophoresis_bench
-  which provides serological_pipette, running_buffer_10x_bottle, running_buffer_1x_carboy, and ddh2o_bottle.
+  for the serological pipette and 10x concentrate bottle. This protocol replaces the inherited
+  filled 1x-buffer and 500 mL water vessels with an empty 1 L preparation carboy and a full 1 L
+  ddH2O carboy so each visible transfer has a truthful source and receiver.
+
+remove_placements:
+  - center_running_buffer_1x_carboy
+  - center_ddh2o_bottle
+
+add_placements:
+  - placement_name: center_running_buffer_preparation_carboy
+    object_name: running_buffer_preparation_carboy
+    zone: center
+    depth_tier: 2
+    align_stop: left
+  - placement_name: center_ddh2o_carboy
+    object_name: ddh2o_carboy
+    zone: center
+    depth_tier: 2
+    align_stop: left

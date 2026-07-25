@@ -2,7 +2,7 @@
 //
 // Single gesture-affordance registry keyed by the closed Gesture union. One row
 // per gesture co-locates the five things the frozen affordance contract fixes
-// for every gesture (docs/active_plans/decisions/affordance_contract.md, M10):
+// for every gesture:
 //
 //   1. render      -- the visible control the student sees.
 //   2. selectors   -- the stable data-* selectors the walker drives.
@@ -39,7 +39,7 @@ import type { StepMachineHandle } from "./step_machine.js";
 
 // Render shape of a gesture's affordance. Descriptive marker, not a widget:
 // the concrete control lives in its own module (rendered scene object, the
-// TypeInput overlay, and the M12 SetPointEditor / host drag surface).
+// TypeInput control, the SetPointEditor, and the host drag surface).
 export type GestureRenderKind =
   "rendered_scene_object" | "type_input_overlay" | "set_point_editor_overlay" | "host_drag_surface";
 
@@ -103,7 +103,7 @@ export const GESTURE_REGISTRY: Readonly<Record<Gesture, GestureAffordance>> = {
     wired: true,
     walker_driver: "clickTargetAndWaitProgress",
   },
-  // Entering a value into a visible input and committing it. TypeInput overlay.
+  // Entering a value into a visible input and committing it. TypeInput control.
   type: {
     gesture: "type",
     render: "type_input_overlay",
@@ -119,7 +119,7 @@ export const GESTURE_REGISTRY: Readonly<Record<Gesture, GestureAffordance>> = {
     wired: true,
     walker_driver: "typeCommitAndWaitProgress",
   },
-  // Wired (M12): the SetPointEditor overlay emits an AdjustCommand routed to
+  // The SetPointEditor emits an AdjustCommand routed to
   // handle_adjust_commit. One shared numeric set-point editor serves every
   // set-point field.
   adjust: {
@@ -139,7 +139,7 @@ export const GESTURE_REGISTRY: Readonly<Record<Gesture, GestureAffordance>> = {
     wired: true,
     walker_driver: "adjustCommitAndWaitProgress",
   },
-  // Wired (M12): the host drag surface emits a DragCommand routed to
+  // The host drag surface emits a DragCommand routed to
   // handle_drag_commit. Source is the interaction target; destination is derived
   // from the interaction's authored response (first LayoutMove.zone). No content
   // protocol authors a drag yet, so the wired path is proven by the step-machine

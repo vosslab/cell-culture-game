@@ -1,0 +1,25 @@
+scene_name: sdspage_load_protein_ladder_workspace
+extends: electrophoresis_bench
+
+remove_placements:
+  # This learning block teaches one controlled transfer: ladder tube to the
+  # designated gel lane. Buffer preparation, tank assembly, electrical setup,
+  # and post-run cleanup belong to their own mini-protocol scenes.
+  - rear_left_running_buffer_10x
+  - rear_center_electrophoresis_tank
+  - rear_right_power_supply
+  - center_running_buffer_1x_carboy
+  - center_ddh2o_bottle
+  - center_electrode_module
+  - center_serological_pipette
+  - rear_left_recycle_buffer_bottle
+  - rear_right_gel_opening_tool
+  - front_left_mini_protean_gel
+  - front_center_waste_container
+  - front_right_gel_comb
+
+scene_notes: |
+  Focused SDS-PAGE ladder-loading workspace. The protein ladder tube, p200
+  micropipette, gel-loading tip box, and gel cassette remain visible so the
+  student can follow the complete source-to-lane transfer without unrelated
+  electrophoresis setup supplies competing for attention.

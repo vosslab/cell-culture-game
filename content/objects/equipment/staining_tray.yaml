@@ -31,16 +31,19 @@ visual_states:
       - when: empty
         output: { asset_name: staining_tray_empty }
       - when: running_buffer_1x
-        output: { asset_name: staining_tray_buffer }
+        output: { asset_name: staining_tray_empty }
       - when: coomassie_stain
-        output: { asset_name: staining_tray_stain }
+        output: { asset_name: staining_tray_empty }
       - when: destain
-        output: { asset_name: staining_tray_destain }
+        output: { asset_name: staining_tray_empty }
       - when: ddh2o
-        output: { asset_name: staining_tray_water }
+        output: { asset_name: staining_tray_empty }
   material_volume:
-    kind: composite
-    formula: fill_height(state(material_volume), capacity_ml=500)
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ml: 500
   gel_present:
     kind: composite
     composite: []

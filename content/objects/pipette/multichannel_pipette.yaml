@@ -44,8 +44,11 @@ visual_states:
       - when: metformin
         output: { asset_name: multichannel_pipette }
   held_material_volume:
-    kind: composite
-    formula: fill_height(state(held_material_volume), capacity_ul=300)
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ul: 300
 
 capabilities:
   [clickable, material_container, instrument_with_setpoint, cursor_attachable]

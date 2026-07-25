@@ -10,10 +10,8 @@
 	<g id="body">
 		<!-- chamber outer wall, darker rim for definition -->
 		<rect x="2" y="2" width="70" height="110" rx="3" fill="#dfe6ea" stroke="#5a6b73" stroke-width="2" />
-		<!-- chamber inner region: buffer-blue tint so it reads as a filled tank well -->
-		<rect x="7" y="7" width="60" height="100" rx="2" fill="#cfe6f2" stroke="#7fa6b8" stroke-width="0.8" />
-		<!-- standing buffer surface line near top of well -->
-		<path d="M 9 18 L 65 18" stroke="#9cc3d6" stroke-width="1" fill="none" opacity="0.7" />
+		<!-- Neutral interior: the runtime material overlay alone shows liquid. -->
+		<rect x="7" y="7" width="60" height="100" rx="2" fill="#f7fbfc" stroke="#8a9aa1" stroke-width="0.8" />
 		<!-- gel cassette slot hint: vertical dark guide rails in the central well -->
 		<rect x="24" y="14" width="2.5" height="88" rx="1" fill="#7a8a91" opacity="0.55" />
 		<rect x="47.5" y="14" width="2.5" height="88" rx="1" fill="#7a8a91" opacity="0.55" />

@@ -18,7 +18,6 @@ remove_placements:
   - rear_center_ethanol
   - center_water_bath
   - center_centrifuge
-  - center_well_plate_96
 
 add_placements:
   # Carboplatin stock bottle at rear left

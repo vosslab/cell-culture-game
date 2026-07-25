@@ -30,10 +30,17 @@ import { chromium } from "playwright";
 import * as esbuild from "esbuild";
 import { solidPlugin } from "esbuild-plugin-solid";
 import http from "node:http";
+import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { REPO_ROOT } from "./repo_root.mjs";
+
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+const STATIC_CONTENT_TYPES: Record<string, string> = {
+  ".svg": "image/svg+xml",
+};
 
 const SCENE_NAME = "seeding_workspace";
 const ALT_SCENE_NAME = "dilution_workspace";
@@ -51,6 +58,9 @@ const ALT_SCENE_NAME = "dilution_workspace";
 // Conversion-time fix, not a product defect: split into the two real keys.
 const FILL_TARGET_PLACEMENT = "rear_left_cell_suspension_tube";
 const FILL_TARGET_OBJECT = "cell_suspension_tube";
+// cell_suspension_tube declares an anchor material effect. Its visible fill is
+// an SVG rect owned by anchor_material_renderer, not a legacy CSS box overlay.
+const ANCHOR_MATERIAL_SELECTOR = "[data-anchor-material-field='material_volume']";
 const BBOX_TOL_PX = 1.0;
 
 interface Bbox {
@@ -151,16 +161,51 @@ function startServer(bundleJs: string): Promise<ServerHandle> {
     "#scene-root{position:relative;width:1200px;height:675px;}</style></head>" +
     "<body><div id='scene-root'></div>" +
     "<script type='module' src='/harness.js'></script></body></html>";
+  const distRoot = path.join(REPO_ROOT, "dist");
   return new Promise((resolve) => {
     const server = http.createServer((req, res) => {
-      const url = (req.url ?? "/").split("?")[0];
+      const url = (req.url ?? "/").split("?")[0] ?? "/";
+      if (url === "/" || url === "") {
+        res.writeHead(200, { "Content-Type": "text/html" });
+        res.end(html);
+        return;
+      }
       if (url === "/harness.js") {
         res.writeHead(200, { "Content-Type": "application/javascript" });
         res.end(bundleJs);
         return;
       }
-      res.writeHead(200, { "Content-Type": "text/html" });
-      res.end(html);
+
+      let requestedPath: string;
+      try {
+        requestedPath = decodeURIComponent(url);
+      } catch {
+        res.writeHead(400);
+        res.end();
+        return;
+      }
+      const filePath = path.resolve(distRoot, `.${requestedPath}`);
+      const relativePath = path.relative(distRoot, filePath);
+      if (
+        relativePath.startsWith(`..${path.sep}`) ||
+        relativePath === ".." ||
+        path.isAbsolute(relativePath)
+      ) {
+        res.writeHead(403);
+        res.end();
+        return;
+      }
+      fs.readFile(filePath, (err, data) => {
+        if (err) {
+          res.writeHead(404);
+          res.end(`Not found: ${url}`);
+          return;
+        }
+        const contentType =
+          STATIC_CONTENT_TYPES[path.extname(filePath)] ?? "application/octet-stream";
+        res.writeHead(200, { "Content-Type": contentType });
+        res.end(data);
+      });
     });
     server.listen(0, "127.0.0.1", () => {
       const addr = server.address();
@@ -199,6 +244,13 @@ test.describe("scene reactivity + lifecycle", () => {
     await page
       .locator(`#scene-root [data-item-id="${FILL_TARGET_PLACEMENT}"]`)
       .waitFor({ state: "attached" });
+    // The object uses an injected SVG anchor fill, so wait for the actual
+    // current-contract surface rather than merely its outer item container.
+    const fill = page.locator(
+      `#scene-root [data-item-id="${FILL_TARGET_PLACEMENT}"] ${ANCHOR_MATERIAL_SELECTOR}`,
+    );
+    await fill.waitFor({ state: "attached" });
+    await expect(fill).toHaveAttribute("display", "inline");
   });
 
   test.afterAll(async () => {
@@ -242,28 +294,34 @@ test.describe("scene reactivity + lifecycle", () => {
   test("no-remount on ObjectStateChange: root, affected item, and sibling keep node identity + bbox", async () => {
     // Tag the scene root and the target item so we can prove node identity
     // survives a store write (no remount).
-    const before: BeforeState = await page.evaluate((target: string) => {
-      const root = document.getElementById("scene-root")!;
-      root.setAttribute("data-test-root-token", "root-1");
-      const item = root.querySelector(`[data-item-id="${target}"]`)!;
-      item.setAttribute("data-test-item-token", "item-1");
-      const r = item.getBoundingClientRect();
-      const fill = item.querySelector("[data-overlay='fill']");
-      const fillH = fill ? fill.getBoundingClientRect().height : 0;
-      // Pick an unaffected sibling item.
-      const others = Array.from(root.querySelectorAll("[data-item-id]")).filter(
-        (el) => el.getAttribute("data-item-id") !== target,
-      );
-      const other = others[0]!;
-      other.setAttribute("data-test-other-token", "other-1");
-      const or = other.getBoundingClientRect();
-      return {
-        bbox: { x: r.x, y: r.y, w: r.width, h: r.height },
-        fillH,
-        otherId: other.getAttribute("data-item-id"),
-        otherBbox: { x: or.x, y: or.y, w: or.width, h: or.height },
-      };
-    }, FILL_TARGET_PLACEMENT);
+    const before: BeforeState = await page.evaluate(
+      (args: { target: string; fillSelector: string }) => {
+        const root = document.getElementById("scene-root")!;
+        root.setAttribute("data-test-root-token", "root-1");
+        const item = root.querySelector(`[data-item-id="${args.target}"]`)!;
+        item.setAttribute("data-test-item-token", "item-1");
+        const r = item.getBoundingClientRect();
+        const fill = item.querySelector(args.fillSelector);
+        if (!(fill instanceof SVGRectElement)) {
+          throw new Error("expected the declared anchor material fill SVG rect");
+        }
+        const fillH = fill.getBoundingClientRect().height;
+        // Pick an unaffected sibling item.
+        const others = Array.from(root.querySelectorAll("[data-item-id]")).filter(
+          (el) => el.getAttribute("data-item-id") !== args.target,
+        );
+        const other = others[0]!;
+        other.setAttribute("data-test-other-token", "other-1");
+        const or = other.getBoundingClientRect();
+        return {
+          bbox: { x: r.x, y: r.y, w: r.width, h: r.height },
+          fillH,
+          otherId: other.getAttribute("data-item-id"),
+          otherBbox: { x: or.x, y: or.y, w: or.width, h: or.height },
+        };
+      },
+      { target: FILL_TARGET_PLACEMENT, fillSelector: ANCHOR_MATERIAL_SELECTOR },
+    );
 
     // Write a new material_volume to the target via the store (the reactive
     // path the production scene-op layer will drive). A DECLARED enum value
@@ -279,29 +337,42 @@ test.describe("scene reactivity + lifecycle", () => {
         material_volume: 18,
       });
     }, FILL_TARGET_OBJECT);
-    // Let Solid flush the reactive update.
-    await page.waitForTimeout(50);
+    const fill = page.locator(
+      `#scene-root [data-item-id="${FILL_TARGET_PLACEMENT}"] ${ANCHOR_MATERIAL_SELECTOR}`,
+    );
+    await expect
+      .poll(async () => {
+        const height = await fill.evaluate((element) => element.getBoundingClientRect().height);
+        return height;
+      })
+      .toBeGreaterThan(before.fillH + 1);
 
-    const after: AfterState = await page.evaluate((target: string) => {
-      const root = document.getElementById("scene-root")!;
-      const item = root.querySelector(`[data-item-id="${target}"]`)!;
-      const r = item.getBoundingClientRect();
-      const fill = item.querySelector("[data-overlay='fill']");
-      const fillH = fill ? fill.getBoundingClientRect().height : 0;
-      const other = root.querySelector("[data-test-other-token='other-1']");
-      const or = other ? other.getBoundingClientRect() : null;
-      return {
-        // Node identity proofs: tokens survive only if the SAME node was
-        // reused.
-        rootToken: root.getAttribute("data-test-root-token"),
-        itemToken: item.getAttribute("data-test-item-token"),
-        otherStillTagged: other !== null,
-        bbox: { x: r.x, y: r.y, w: r.width, h: r.height },
-        fillH,
-        itemId: item.getAttribute("data-item-id"),
-        otherBbox: or ? { x: or.x, y: or.y, w: or.width, h: or.height } : null,
-      };
-    }, FILL_TARGET_PLACEMENT);
+    const after: AfterState = await page.evaluate(
+      (args: { target: string; fillSelector: string }) => {
+        const root = document.getElementById("scene-root")!;
+        const item = root.querySelector(`[data-item-id="${args.target}"]`)!;
+        const r = item.getBoundingClientRect();
+        const fill = item.querySelector(args.fillSelector);
+        if (!(fill instanceof SVGRectElement)) {
+          throw new Error("expected the declared anchor material fill SVG rect");
+        }
+        const fillH = fill.getBoundingClientRect().height;
+        const other = root.querySelector("[data-test-other-token='other-1']");
+        const or = other ? other.getBoundingClientRect() : null;
+        return {
+          // Node identity proofs: tokens survive only if the SAME node was
+          // reused.
+          rootToken: root.getAttribute("data-test-root-token"),
+          itemToken: item.getAttribute("data-test-item-token"),
+          otherStillTagged: other !== null,
+          bbox: { x: r.x, y: r.y, w: r.width, h: r.height },
+          fillH,
+          itemId: item.getAttribute("data-item-id"),
+          otherBbox: or ? { x: or.x, y: or.y, w: or.width, h: or.height } : null,
+        };
+      },
+      { target: FILL_TARGET_PLACEMENT, fillSelector: ANCHOR_MATERIAL_SELECTOR },
+    );
 
     expect(after.rootToken, "scene root must NOT remount on ObjectStateChange").toBe("root-1");
     expect(after.itemToken, "affected item must be the SAME node (no remount)").toBe("item-1");
@@ -333,7 +404,8 @@ test.describe("scene reactivity + lifecycle", () => {
     await page.evaluate((scene: string) => {
       (window as unknown as HarnessWindow).__harness.remount(scene);
     }, ALT_SCENE_NAME);
-    await page.waitForTimeout(50);
+    await expect(page.locator("#scene-root [data-test-item-token='item-1']")).toHaveCount(0);
+    await page.locator("#scene-root [data-item-id]").first().waitFor({ state: "attached" });
     const afterRemount: AfterRemountState = await page.evaluate(() => {
       const root = document.getElementById("scene-root")!;
       const oldItem = root.querySelector("[data-test-item-token='item-1']");
@@ -348,7 +420,7 @@ test.describe("scene reactivity + lifecycle", () => {
     await page.evaluate(() => {
       (window as unknown as HarnessWindow).__harness.dispose();
     });
-    await page.waitForTimeout(20);
+    await expect(page.locator("#scene-root [data-item-id]")).toHaveCount(0);
     const afterDispose: AfterDisposeState = await page.evaluate(() => {
       const root = document.getElementById("scene-root")!;
       return {

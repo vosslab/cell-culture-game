@@ -21,8 +21,8 @@ steps:
     prompt:
       Fill the inner chamber of the electrophoresis tank with 1x running buffer.
       Set the serological pipette to 25 mL, and make multiple aspirations and dispersals
-      from the running buffer carboy into the tank's inner chamber until it contains
-      approximately 600 mL of buffer.
+      from the running buffer carboy into the focused inner-chamber view until it
+      contains 600 mL of buffer.
     sequence:
       - target: serological_pipette
         gesture: click
@@ -50,17 +50,22 @@ steps:
           preset: correct_target
         response:
           scene_operations: []
-      - target: electrophoresis_tank
+      - target: electrophoresis_inner_chamber
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: electrophoresis_tank
+              target: electrophoresis_inner_chamber
               state:
-                inner_chamber_material_name: running_buffer_1x
-                inner_chamber_material_volume: 600
+                material_name: running_buffer_1x
+                material_volume: 600
+            - type: ObjectStateChange
+              target: running_buffer_1x_carboy
+              state:
+                material_name: running_buffer_1x
+                material_volume: 400
     step_validator:
       preset: sequence_complete
     outcome:
@@ -71,8 +76,8 @@ steps:
     prompt:
       Fill the outer chamber of the electrophoresis tank with 1x running buffer.
       Set the serological pipette to 25 mL, and make multiple aspirations and dispersals
-      from the running buffer carboy into the tank's outer chamber until it contains
-      approximately 400 mL of buffer.
+      from the running buffer carboy into the focused outer-chamber view until it
+      contains 400 mL of buffer.
     sequence:
       - target: serological_pipette
         gesture: click
@@ -98,17 +103,22 @@ steps:
           preset: correct_target
         response:
           scene_operations: []
-      - target: electrophoresis_tank
+      - target: electrophoresis_outer_chamber
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: electrophoresis_tank
+              target: electrophoresis_outer_chamber
               state:
-                outer_chamber_material_name: running_buffer_1x
-                outer_chamber_material_volume: 400
+                material_name: running_buffer_1x
+                material_volume: 400
+            - type: ObjectStateChange
+              target: running_buffer_1x_carboy
+              state:
+                material_name: empty
+                material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:

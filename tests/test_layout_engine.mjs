@@ -537,7 +537,7 @@ function seedItem(name, opts) {
     _footprint: opts.visualWidth ?? 10,
     _scale: 1,
     _width_scale: 1,
-    depth_tier: 0,
+    depth_tier: opts.depthTier ?? 0,
     layout: {
       default_width: opts.visualWidth ?? 10,
       label_width: opts.labelWidth ?? 8,
@@ -747,6 +747,68 @@ test("layoutLabels: terminal flip stays inside the measured row extent", () => {
 // roomy vertical band keeps the step uncompressed, so expected ladder Ys are
 // exact. WIDE_LABEL is the budget that reliably overflows the SEED_ZONE width.
 const WIDE_LABEL = 60;
+
+test("layoutLabels: vertically separate depth tiers do not share a stagger ladder", () => {
+  const cfg = buildGlobalDefaults();
+  const offset = cfg.labelOffsetY;
+  const lineH = cfg.labelLineHeightPct;
+  // These labels deliberately share x and side, but their object tiers are
+  // vertically separate. Treating them as one horizontal interval graph would
+  // move the lower label upward into the upper tier's artwork.
+  const upper = seedItem("upper", {
+    label: "Upper",
+    centerX: 50,
+    top: 40,
+    labelWidth: WIDE_LABEL,
+    placement: "top",
+    depthTier: 0,
+  });
+  const lower = seedItem("lower", {
+    label: "Lower",
+    centerX: 50,
+    top: 60,
+    labelWidth: WIDE_LABEL,
+    placement: "top",
+    depthTier: 1,
+  });
+  const diags = [];
+  const out = _layoutLabels(new Map([["z", [upper, lower]]]), [SEED_ZONE], {}, diags).get("z");
+  const byName = new Map(out.map((item) => [item.placement_name, item]));
+  assert.equal(byName.get("upper")._labelY, 40 - offset - lineH);
+  assert.equal(byName.get("lower")._labelY, 60 - offset - lineH);
+  assert.equal(
+    diags.some((diagnostic) => diagnostic.kind === "label_row_staggered"),
+    false,
+    "already-clear tiers emit no invented stagger diagnostic",
+  );
+});
+
+test("layoutLabels: same-tier horizontal overlap still receives distinct stagger rows", () => {
+  const a = seedItem("a", {
+    label: "A",
+    centerX: 50,
+    top: 40,
+    labelWidth: WIDE_LABEL,
+    placement: "top",
+    depthTier: 1,
+  });
+  const b = seedItem("b", {
+    label: "B",
+    centerX: 50,
+    top: 40,
+    labelWidth: WIDE_LABEL,
+    placement: "top",
+    depthTier: 1,
+  });
+  const diags = [];
+  const out = _layoutLabels(new Map([["z", [a, b]]]), [SEED_ZONE], {}, diags).get("z");
+  assert.notEqual(out[0]._labelY, out[1]._labelY, "same-tier overlap uses separate rows");
+  assert.equal(
+    diags.some((diagnostic) => diagnostic.kind === "label_row_staggered"),
+    true,
+    "same-tier overlap retains the existing stagger behavior",
+  );
+});
 
 test("layoutLabels: colliding top labels stagger UPWARD (rows above the seed)", () => {
   const cfg = buildGlobalDefaults();
@@ -1144,7 +1206,7 @@ test("runPipeline: heat_block fixture _centerX and _height match Stage 7/8 math"
 });
 
 test("runPipeline: convergence loop shrinks _width_scale on overflow", () => {
-  // Cram 7 instances of a wide item into a narrow center-aligned zone.
+  // Cram 7 same-tier instances of a wide item into one narrow horizontal row.
   const overflowScene = {
     scene_name: "overflow",
     workspace: "bench",
@@ -1161,26 +1223,21 @@ test("runPipeline: convergence loop shrinks _width_scale on overflow", () => {
       placement_name: `p${i}`,
       object_name: "heat_block",
       zone: "tight",
-      depth_tier: i + 1,
+      depth_tier: 1,
     })),
   };
   const result = runPipeline(overflowScene, {
     library: DEMO_OBJECT_LIBRARY,
     assets: DEMO_ASSET_SPECS,
   });
-  // Expect either multiple passes with shrinking, OR max_iterations_reached.
   const shrunkSomewhere = result.passes.some((p) => p.zones_shrunk.includes("tight"));
-  const reachedMax = result.diagnostics.some((d) => d.kind === "max_iterations_reached");
-  assert.ok(shrunkSomewhere || reachedMax, "expected shrink or max_iterations_reached");
-  // _width_scale on at least one placement should be <= cm-derived value.
+  assert.ok(shrunkSomewhere, "same-tier horizontal overflow should trigger convergence shrink");
+  // Every placement in the overfull zone shares the zone-level shrink.
   const cmDerived = (25 * WORKSPACE_PX_PER_CM.bench) / (18 * PX_PER_SCENE_PERCENT);
-  const minObserved = Math.min(...result.stages.scaled.map((p) => p._width_scale));
-  if (shrunkSomewhere) {
-    assert.ok(
-      minObserved < cmDerived,
-      `shrink should reduce width_scale below ${cmDerived}, got ${minObserved}`,
-    );
-  }
+  assert.ok(
+    result.stages.scaled.every((p) => p._width_scale < cmDerived),
+    "convergence shrink should reduce every overfull-zone width scale",
+  );
 });
 
 test("runPipeline: clean scene reports passes.length === 1 with zones_shrunk empty", () => {

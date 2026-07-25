@@ -88,9 +88,20 @@ function measureItem(
 // plus the vertical measures of its member items. A shelf spans one or more of these
 // (the same depth tier across the side-by-side zones of a band).
 interface TierRowMeasures {
+  zone: string;
   rowTop: number;
   rowHeight: number;
-  measures: VerticalMeasure[];
+  members: TierRowMember[];
+}
+
+// A member keeps its own row and anchor information attached to the vertical
+// measure.  A cross-zone shelf can only be adopted when the candidate anchor
+// leaves the COMPLETE object-plus-label extent inside every member's own row.
+// Keeping this association here avoids guessing from a zone or placement name.
+interface TierRowMember {
+  placementName: string;
+  item: ComputedItem;
+  measure: VerticalMeasure;
 }
 
 // The shared baseline (shelf line) every item on one visible shelf anchors to. A
@@ -112,13 +123,49 @@ function shelfBaselineFor(rows: TierRowMeasures[], labelGap: number): number {
   let floor = -Infinity;
   for (const row of rows) {
     if (row.rowTop + row.rowHeight > maxRowBottom) maxRowBottom = row.rowTop + row.rowHeight;
-    for (const m of row.measures) {
+    for (const { measure: m } of row.members) {
       if (m.placement === "bottom") reserve = Math.max(reserve, labelGap + m.labelBoxHeight);
       if (row.rowTop + m.naturalHeight > floor) floor = row.rowTop + m.naturalHeight;
     }
   }
   const shelf = maxRowBottom - reserve;
   return Math.max(shelf, floor);
+}
+
+// True when placing `member` on `baseline` leaves both the artwork and its
+// initial label strip within the member's own computed tier row.  This mirrors
+// place-vertical's anchor formula and place-labels' initial label seed exactly;
+// later collision resolution may move labels, but shelf selection must never
+// start from an extent that already escapes its reflow reservation.
+function memberFitsRow(
+  member: TierRowMember,
+  row: TierRowMeasures,
+  baseline: number,
+  labelGap: number,
+): boolean {
+  const objectTop = anchorTop(member.item, baseline, member.measure.naturalHeight);
+  const objectBottom = objectTop + member.measure.naturalHeight;
+  // Direct stage tests may intentionally skip measure-vertical. A zero-height
+  // label means there is no rendered strip (and therefore no gap to reserve).
+  let labelTop = objectTop;
+  let labelBottom = objectBottom;
+  if (member.measure.labelBoxHeight > 0) {
+    labelTop =
+      member.measure.placement === "top"
+        ? objectTop - labelGap - member.measure.labelBoxHeight
+        : objectBottom + labelGap;
+    labelBottom = labelTop + member.measure.labelBoxHeight;
+  }
+  const extentTop = Math.min(objectTop, labelTop);
+  const extentBottom = Math.max(objectBottom, labelBottom);
+  const rowBottom = row.rowTop + row.rowHeight;
+  return extentTop >= row.rowTop && extentBottom <= rowBottom;
+}
+
+function shelfFitsRows(rows: TierRowMeasures[], baseline: number, labelGap: number): boolean {
+  return rows.every((row) =>
+    row.members.every((member) => memberFitsRow(member, row, baseline, labelGap)),
+  );
 }
 
 // Group the zones' computed bands into shelves by AUTHORED vertical bounds: only
@@ -162,9 +209,11 @@ export function verticalLayout(
   // Measure every item once. placement_name is unique scene-wide, so one global map
   // serves both the shelf pre-pass (which crosses zones) and the placement step.
   const measureByName = new Map<string, VerticalMeasure>();
+  const itemByName = new Map<string, ComputedItem>();
   for (const zone of zones) {
     for (const it of zoneLayouts.get(zone.id) ?? []) {
       measureByName.set(it.placement_name, measureItem(it, viewportAspect, aspectFloor));
+      itemByName.set(it.placement_name, it);
     }
   }
 
@@ -180,21 +229,53 @@ export function verticalLayout(
     const shelvesByTier = new Map<number, { rows: TierRowMeasures[]; names: string[] }>();
     for (const band of bandGroup) {
       for (const row of band.tiers) {
-        const measures: VerticalMeasure[] = [];
+        const members: TierRowMember[] = [];
         for (const name of row.placementNames) {
           const m = measureByName.get(name);
-          if (m !== undefined) measures.push(m);
+          const item = itemByName.get(name);
+          if (m !== undefined && item !== undefined) {
+            members.push({ placementName: name, item, measure: m });
+          }
         }
         const shelf = shelvesByTier.get(row.depthTier) ?? { rows: [], names: [] };
-        shelf.rows.push({ rowTop: row.rowTop, rowHeight: row.rowHeight, measures });
+        shelf.rows.push({
+          zone: band.id,
+          rowTop: row.rowTop,
+          rowHeight: row.rowHeight,
+          members,
+        });
         shelf.names.push(...row.placementNames);
         shelvesByTier.set(row.depthTier, shelf);
       }
     }
     for (const shelf of shelvesByTier.values()) {
-      if (!shelf.rows.some((r) => r.measures.length > 0)) continue;
-      const baseline = shelfBaselineFor(shelf.rows, labelGap);
-      for (const name of shelf.names) baselineByName.set(name, baseline);
+      if (!shelf.rows.some((row) => row.members.length > 0)) continue;
+      const sharedBaseline = shelfBaselineFor(shelf.rows, labelGap);
+      // One row has no cross-zone alignment to trade off, so preserve its
+      // existing baseline exactly. Feasibility is only a cross-zone concern.
+      if (shelf.rows.length === 1 || shelfFitsRows(shelf.rows, sharedBaseline, labelGap)) {
+        for (const name of shelf.names) baselineByName.set(name, sharedBaseline);
+        continue;
+      }
+
+      // A shared shelf is an alignment preference, not permission to consume a
+      // neighbour's row.  Demote this entire depth tier to one shelf per zone row;
+      // members in the same zone remain aligned, while every affected placement
+      // receives a deterministic review warning.
+      for (const row of shelf.rows) {
+        if (row.members.length === 0) continue;
+        const localBaseline = shelfBaselineFor([row], labelGap);
+        for (const member of row.members) {
+          baselineByName.set(member.placementName, localBaseline);
+          diagnostics.push({
+            stage: "vertical",
+            severity: "warn",
+            kind: "item_escapes_zone_vertically",
+            zone: row.zone,
+            placement_name: member.placementName,
+          });
+        }
+      }
     }
   }
 
@@ -241,7 +322,14 @@ export function verticalLayout(
         });
         const rowHeight = naturalHeight + labelGap + measure.labelBoxHeight;
         baseline = shelfBaselineFor(
-          [{ rowTop: zone.bounds.top, rowHeight, measures: [measure] }],
+          [
+            {
+              zone: zone.id,
+              rowTop: zone.bounds.top,
+              rowHeight,
+              members: [{ placementName: it.placement_name, item: it, measure }],
+            },
+          ],
           labelGap,
         );
       }

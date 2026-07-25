@@ -3,81 +3,33 @@ workspace: bench
 capabilities:
   - item_workspace
 
-scene_bounds:
-  left: 1
-  right: 99
-  top: 5
-  bottom: 95
-
 background:
   asset: bench_workspace_bg
 
 zones:
-  # Rear shelf band: bottles and small instruments at top
+  # Rear shelf: bottles and small instruments
   - zone_name: rear_left
-    bounds:
-      left: 5
-      right: 30
-      top: 5
-      bottom: 32
-    baseline: 28
     align: tab-stops
     label: Rear left - reagents
   - zone_name: rear_center
-    bounds:
-      left: 35
-      right: 65
-      top: 5
-      bottom: 32
-    baseline: 28
     align: tab-stops
     label: Rear center - reagents
   - zone_name: rear_right
-    bounds:
-      left: 70
-      right: 95
-      top: 5
-      bottom: 32
-    baseline: 28
     align: tab-stops
     label: Rear right - reagents
-  # Mid working band: racks and tubes staged mid-bench
+  # Mid working area: racks and tubes staged mid-bench
   - zone_name: mid_left
-    bounds:
-      left: 5
-      right: 48
-      top: 38
-      bottom: 62
-    baseline: 58
     align: tab-stops
     label: Mid bench - left
   - zone_name: mid_right
-    bounds:
-      left: 52
-      right: 95
-      top: 38
-      bottom: 62
-    baseline: 58
     align: tab-stops
     label: Mid bench - right
-  # Front working band: heat block center-stage with tools
+  # Front working area: heat block center-stage with tools
   - zone_name: front
-    bounds:
-      left: 8
-      right: 84
-      top: 64
-      bottom: 94
-    baseline: 90
     align: tab-stops
     label: Bench work surface
   # Right tool area
   - zone_name: right_tool_area
-    bounds:
-      left: 84
-      right: 99
-      top: 64
-      bottom: 94
-    baseline: 90
     align: tab-stops
     label: Right tool rack
 

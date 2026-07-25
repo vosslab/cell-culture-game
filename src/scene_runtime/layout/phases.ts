@@ -72,8 +72,8 @@ import type {
   Diagnostics,
   GroupedPlacements,
   LabelPlacement,
+  ResolvedScene,
   ScaledPlacement,
-  SceneA,
 } from "./types.js";
 
 export const PHASE_ORDER = [
@@ -98,7 +98,7 @@ export type PhaseName = (typeof PHASE_ORDER)[number];
 // and fed in via `scaled`; the per-pass context carries the maps each placement
 // phase fills. diagnostics is the per-pass diagnostic sink.
 export interface LayoutContext {
-  readonly scene: SceneA;
+  readonly scene: ResolvedScene;
   readonly viewport: { w: number; h: number };
   // Source placements for this pass (post-shrink in later passes).
   scaled: ScaledPlacement[];

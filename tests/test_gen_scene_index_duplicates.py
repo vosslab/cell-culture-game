@@ -9,22 +9,12 @@ setup is inline, built under tmp_path, no on-disk fixture files.
 
 # Standard Library
 import os
-import sys
 
 # PIP3 modules
 import pytest
 
 # local repo modules
-import file_utils
-
-REPO_ROOT = file_utils.get_repo_root()
-PIPELINE_DIR = os.path.join(REPO_ROOT, "pipeline")
-if PIPELINE_DIR not in sys.path:
-	sys.path.insert(0, PIPELINE_DIR)
-
-# gen_scene_index.py imports its sibling `scene_inheritance` module unqualified,
-# so pipeline/ must be on sys.path before this import, as done above.
-import gen_scene_index  # noqa: E402
+import pipeline.gen_scene_index as gen_scene_index
 
 
 def write_scene_yaml(scenes_dir: str, filename: str, scene_name: str) -> None:

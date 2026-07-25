@@ -4,6 +4,15 @@ extends: sample_prep_bench
 remove_placements:
   # Base microtube removed; protocol adds its own at center (eppendorf_tube)
   - mid_microtube_sample
+  # Keep only this learning block's three reagents, receiving tube, rack, and
+  # micropipette. Ladder, water, waste, spare racks, and tip boxes belong to
+  # other SDS-PAGE tasks and dilute the transfer sequence.
+  - rear_left_protein_ladder
+  - rear_center_ddh2o
+  - rear_right_waste
+  - mid_eppendorf_rack
+  - mid_p10_tip_box
+  - right_tool_area_tip_box
 
 add_placements:
   - placement_name: eppendorf_tube

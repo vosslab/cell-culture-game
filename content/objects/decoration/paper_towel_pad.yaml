@@ -14,10 +14,10 @@ visual_states:
     cases:
       - when: true
         output:
-          asset_name: kimwipe_pad
+          asset_name: paper_towel_pad
       - when: false
         output:
-          asset_name: kimwipe_pad
+          asset_name: paper_towel_pad
 
 capabilities: [clickable]
 

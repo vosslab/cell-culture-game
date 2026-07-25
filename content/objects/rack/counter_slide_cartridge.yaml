@@ -40,7 +40,7 @@ visual_states:
     cases:
       - when: empty
         output:
-          asset_name: tip_box
+          asset_name: counter_slide_cartridge
   material_volume:
     kind: composite
     applies_to: subpart

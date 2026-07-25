@@ -1,58 +1,80 @@
-// src/scene_runtime/renderer/subpart_dispatch.ts
-//
-// The PURE dispatch predicate for the structured-subpart material-tint renderer.
-// It is the SINGLE place that decides whether an object
-// def declares the per-subpart material-tint contract. Both the dispatcher
-// (scene_item.tsx) and the renderer component (subpart_visual_state_renderer.tsx)
-// import it, so the dispatch decision and the render decision can never disagree.
-//
-// This file has NO JSX and NO Solid: it is pure logic over an ObjectDef. Keeping
-// it separate from the .tsx component lets a plain Node test import it without the
-// Solid JSX transform, and it underlines the modularity claim: the predicate keys
-// on the DECLARED contract, never on object identity, field name, or shape.
+// Pure declaration dispatch for structured-subpart material overlays.
 
 import type { ObjectDef, VisualStateDef } from "../layout/types.js";
 
-// The result of inspecting an object def for the subpart material-tint contract.
-// field_name is the DECLARED driving field (read from the visual_states key),
-// never a literal. Returned only when every part of the contract is satisfied.
+export interface SubpartAmountContract {
+  field_name: string;
+  capacity: number | null;
+  capacity_error: string;
+}
+
+export interface SubpartMaterialContract {
+  identity_field_name: string;
+  amount: SubpartAmountContract | null;
+}
+
+function is_subpart_target(vs: VisualStateDef, effect: "material_tint" | "fill_height"): boolean {
+  return (
+    vs.applies_to === "subpart" && vs.render_effect === effect && vs.target === "subpart_geometry"
+  );
+}
+
+function amount_contract(field_name: string, vs: VisualStateDef): SubpartAmountContract {
+  const has_capacity_ul = Object.prototype.hasOwnProperty.call(vs, "capacity_ul");
+  const has_capacity_ml = Object.prototype.hasOwnProperty.call(vs, "capacity_ml");
+  if (has_capacity_ul === has_capacity_ml) {
+    return {
+      field_name,
+      capacity: null,
+      capacity_error: `fill_height '${field_name}' needs exactly one positive capacity_ul/capacity_ml`,
+    };
+  }
+  const capacity = has_capacity_ul ? vs.capacity_ul : vs.capacity_ml;
+  if (typeof capacity !== "number" || !Number.isFinite(capacity) || capacity <= 0) {
+    return {
+      field_name,
+      capacity: null,
+      capacity_error: `fill_height '${field_name}' needs exactly one positive capacity_ul/capacity_ml`,
+    };
+  }
+  return { field_name, capacity, capacity_error: "" };
+}
+
+// Return the declaration-owned material contract. Identity-only declarations
+// remain valid; a compatible amount declaration augments the same overlay.
+export function find_subpart_material_contract(def: ObjectDef): SubpartMaterialContract | null {
+  if (def.subpart_geometry === undefined || def.view_box === undefined) {
+    return null;
+  }
+  let identity_field_name: string | null = null;
+  let amount: SubpartAmountContract | null = null;
+  for (const field_name of Object.keys(def.visual_states)) {
+    const vs = def.visual_states[field_name];
+    if (vs === undefined) {
+      continue;
+    }
+    if (is_subpart_target(vs, "material_tint") && identity_field_name === null) {
+      identity_field_name = field_name;
+    }
+    if (is_subpart_target(vs, "fill_height") && amount === null) {
+      amount = amount_contract(field_name, vs);
+    }
+  }
+  if (identity_field_name === null) {
+    return null;
+  }
+  return { identity_field_name, amount };
+}
+
+// Compatibility export for existing identity-only callers and focused tests.
 export interface SubpartTintContract {
   field_name: string;
 }
 
-// Find the declared material-tint subpart field on an object def, or null when
-// the def does not declare the subpart material-tint contract.
-//
-// The contract (all required):
-//   1. the def carries subpart_geometry AND view_box (typed generated geometry +
-//      its coordinate frame), AND
-//   2. some visual_states entry has applies_to === "subpart",
-//      render_effect === "material_tint", and target === "subpart_geometry".
-//
-// The driving field name is that entry's KEY, returned verbatim. The function
-// hardcodes no object name and no field name; it reads the field name out of the
-// declaration. A second structured object (different name, different field name,
-// rect geometry) dispatches identically with no code change.
 export function find_material_tint_subpart_field(def: ObjectDef): SubpartTintContract | null {
-  // Generated geometry + its coordinate frame are required: with no geometry
-  // there is nothing to draw, and with no view_box the overlay has no frame.
-  if (def.subpart_geometry === undefined || def.view_box === undefined) {
+  const contract = find_subpart_material_contract(def);
+  if (contract === null) {
     return null;
   }
-  const visual_states = def.visual_states;
-  for (const field_name of Object.keys(visual_states)) {
-    const vs: VisualStateDef | undefined = visual_states[field_name];
-    if (vs === undefined) {
-      continue;
-    }
-    // Key on the declared contract tokens, not on the field's name.
-    if (
-      vs.applies_to === "subpart" &&
-      vs.render_effect === "material_tint" &&
-      vs.target === "subpart_geometry"
-    ) {
-      return { field_name };
-    }
-  }
-  return null;
+  return { field_name: contract.identity_field_name };
 }

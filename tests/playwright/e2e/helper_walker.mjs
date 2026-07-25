@@ -40,6 +40,7 @@ import {
   pickWrongOrderItem,
   recordInjection,
   attachPageErrorCapture,
+  captureVisibleTargetCheckpoint,
   readSubpartOverlay,
   verifyMaterialAreaAfterInteraction,
 } from "./walker_helpers.mjs";
@@ -74,6 +75,7 @@ export class WalkerReport {
     this.wrongOrderMode = false;
     this.screenshotMode = "per-step";
     this.entries = [];
+    this.checkpointManifest = [];
     this.summary = {
       stepsWalked: 0,
       stepsPassed: 0,
@@ -105,6 +107,34 @@ export class WalkerReport {
     }
     fs.writeFileSync(filePath, JSON.stringify(this, null, 2));
   }
+
+  addCheckpoint(checkpoint) {
+    this.checkpointManifest.push(checkpoint);
+    this.info(`Checkpoint: ${checkpoint.step} / ${checkpoint.target}`, { checkpoint });
+  }
+}
+
+function checkpointManifestProblems(report) {
+  return report.checkpointManifest.flatMap((checkpoint, index) => {
+    const bounds = checkpoint.visibleTargetBounds;
+    const missing =
+      !checkpoint.protocol ||
+      !checkpoint.step ||
+      !checkpoint.target ||
+      !checkpoint.gesture ||
+      !checkpoint.screenshot ||
+      !fs.existsSync(checkpoint.screenshot) ||
+      !bounds ||
+      bounds.width <= 0 ||
+      bounds.height <= 0 ||
+      bounds.x < 0 ||
+      bounds.y < 0 ||
+      bounds.x + bounds.width > bounds.viewportWidth ||
+      bounds.y + bounds.height > bounds.viewportHeight;
+    return missing
+      ? [`checkpoint ${index} is missing a screenshot or nonempty viewport bounds`]
+      : [];
+  });
 }
 
 //============================================
@@ -195,6 +225,19 @@ async function walkActiveStep(page, step, report, opts) {
         });
       }
     }
+
+    // Capture after any negative probe and immediately before the authored
+    // interaction, so the manifest documents the exact visible target the
+    // student-path action will use.
+    const checkpoint = await captureVisibleTargetCheckpoint(page, {
+      protocol: report.protocol,
+      step: step.id,
+      target,
+      gesture,
+      interactionIndex: gs.interactionIndex,
+      resultsDir,
+    });
+    report.addCheckpoint(checkpoint);
 
     // Structured material-area verification (generic, schema-driven). When the
     // active interaction's response writes a structured object's declared
@@ -452,6 +495,14 @@ export async function runProtocolWalk(page, options) {
       report.error(`Network errors detected: ${networkErrors.length}`, { errors: networkErrors });
     }
 
+    const checkpointProblems = checkpointManifestProblems(report);
+    if (report.checkpointManifest.length === 0) {
+      report.error("Checkpoint manifest is empty after a visible-UI walk");
+    }
+    for (const problem of checkpointProblems) {
+      report.error(`Checkpoint manifest invalid: ${problem}`);
+    }
+
     await page.screenshot({ path: path.join(resultsDir, "final_screen.png") });
 
     const errorCount = report.entries.filter((e) => e.severity === "error").length;
@@ -465,6 +516,9 @@ export async function runProtocolWalk(page, options) {
       isComplete: ending.isComplete,
       failureReason: report.summary.failureReason,
       errorCount,
+      checkpointManifest: report.checkpointManifest,
+      checkpointManifestValid:
+        report.checkpointManifest.length > 0 && checkpointProblems.length === 0,
     };
   } catch (err) {
     report.error(`Walker crashed: ${err.message}`, { stack: err.stack });
@@ -484,6 +538,8 @@ export async function runProtocolWalk(page, options) {
       isComplete: false,
       failureReason: report.summary.failureReason,
       errorCount,
+      checkpointManifest: report.checkpointManifest,
+      checkpointManifestValid: false,
     };
   }
 

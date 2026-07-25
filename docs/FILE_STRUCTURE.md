@@ -11,7 +11,7 @@
 | [LICENSE.LGPL_v3](../LICENSE.LGPL_v3) | Code license |
 | [LICENSE.CC_BY_4_0](../LICENSE.CC_BY_4_0) | Content license |
 | [build_github_pages.sh](../build_github_pages.sh) | Canonical production build into `dist/` |
-| [run_web_server.sh](../run_web_server.sh) | Build then serve `dist/` on local network |
+| [run_web_server.sh](../run_web_server.sh) | Build then serve `dist/` on local loopback |
 | [check_codebase.sh](../check_codebase.sh) | Aggregate lint, typecheck, and test gate |
 | `run_fast_checks.sh` | Umbrella fast gate: build, `check_codebase.sh`, `pytest`, content validation (no browser sweep) |
 | [run_playwright_tests.sh](../run_playwright_tests.sh) | Front door for every browser test: build as needed, then run `npx playwright test` against `playwright.config.ts` (`.spec.ts` files, including the protocol walker sweep spec) |
@@ -42,14 +42,17 @@ src/
 +- style.css                   -- stylesheet (copied to dist/)
 +- launcher/
 |  +- index.html               -- launcher HTML page
-|  +- Launcher.tsx             -- Solid protocol-selector component
+|  +- protocol_launcher.tsx    -- Solid protocol-selector component
 |  `- main.tsx                 -- launcher Solid mount
 +- scene_runtime/
 |  +- layout/                  -- multi-pass layout pipeline
 |  |  +- run_pipeline.ts       -- top-level pipeline runner
 |  |  +- types.ts              -- PipelineResult, ComputedItem, layout types
 |  |  +- constants.ts          -- DEFAULT_VIEWPORT, shrink factor
-|  |  +- phases.ts              -- phase registry: named phase sequence with read/mutate boundaries
+|  |  +- phases.ts             -- phase registry: named phase sequence with read/mutate boundaries
+|  |  +- lower_semantic_zones.ts -- coordinate-free source zones -> internal bounds and baselines
+|  |  +- vertical_footprint.ts -- shared object-plus-label vertical extent measurement
+|  |  +- reflow_zones.ts       -- measured zone bands for vertical placement; no item mutation
 |  |  +- geometry/              -- pure 2D AABB geometry core (no layout state)
 |  |  |  +- types.ts            -- Vector, Aabb, Collision, ResolutionCandidate value types
 |  |  |  `- collision.ts        -- aabbFromBounds, detectCollision, buildResolutionCandidate, sortResolutionOrder
@@ -97,22 +100,24 @@ src/
 |     +- visual_state_resolver.ts -- state + visual_states -> renderable description
 |     +- render_background.ts  -- background (gradient or asset)
 |     +- structural_guards.ts  -- six layout validation guards
-|     +- inject_svg.ts         -- inline SVG injection from ASSET_SPECS
+|     +- inject_svg.ts         -- fetched SVG injection, instance ID namespacing, and anchor resolution
 |     +- svg_manifest_loader.ts -- runtime SVG manifest fetch/cache layer
+|     +- material_acceptance.ts -- shared registry-backed material-name acceptance predicate
+|     +- anchor_material_renderer.ts -- declared SVG-anchor material effects inside injected SVGs
 |     `- index.ts              -- barrel: renderScene, mountScene, SceneView, SceneItem
 `- shell/
    +- adapter/
    |  `- types.ts              -- closed seam: ProtocolConfig, ShellViewSnapshot, events, ops
    +- signals.ts               -- Solid signal helpers + subscribeEmitterToSnapshot
    +- hud/
-   |  +- ProtocolHud.tsx       -- mounts four region components into named DOM targets
+   |  +- protocol_hud.tsx      -- owns the student-facing shell composition
    |  +- type_input.tsx        -- visible type-input affordance (data-type-input / data-type-commit)
    |  `- set_point_editor.tsx  -- shared numeric set-point editor for the adjust gesture (data-adjust-input / data-adjust-commit)
    `- regions/
-      +- StepOutline.tsx       -- read-only ordered step cards
-      +- TipsBubble.tsx        -- professor-tip bubble
-      +- StepCounter.tsx       -- completed/total counter
-      `- GuidanceBar.tsx       -- current-step prompt
+      +- authored_tip.tsx      -- optional authored technique tip
+      +- guidance_bar.tsx      -- current action, recovery, and completion
+      +- step_counter.tsx      -- labeled completed/total counter
+      `- step_outline.tsx      -- read-only ordered step cards
 ```
 
 The framed interface uses six named DOM regions in `src/protocol_host_template.html`:
@@ -263,6 +268,7 @@ Key tools:
 | File | Purpose |
 | --- | --- |
 | `tools/normalize_svg_v3.py` | SVG ingestion-gate normalizer (lxml + tinycss2 + shapely): normalize-or-reject pipeline; run before adding any SVG to `assets/`; see [CODE_ARCHITECTURE.md](CODE_ARCHITECTURE.md) for support contract and ingestion workflow |
+| `tools/outline_svg_text.sh` | Optional, on-demand Inkscape authoring wrapper for approved physically intrinsic markings, including during legacy/import preparation; it never authorizes prose outlining and writes a validated, non-destructive copy before the separate v3 normalization step |
 | [svg_to_html_render.mjs](../tools/svg_to_html_render.mjs) | Renders an SVG on five color swatches via Playwright Firefox and writes `<stem>_render.{html,png}` to CWD; use `--no-open` to skip auto-open |
 | [svg_identity_sweep.py](../tools/svg_identity_sweep.py) | Perceptual-hash duplicate/mislabel sweep over `assets/**/*.svg`; emits a review report |
 | [svg_feature_census.py](../tools/svg_feature_census.py) | Read-only feature census over the wild SVG corpus (`OTHER_REPOS/`); counts clipPath/transform/text/etc. per file, cross-tabbed against the v3 verdict; emits `docs/active_plans/reports/svg_feature_census.{json,md}` |
@@ -270,6 +276,7 @@ Key tools:
 | `tools/layout_metrics.mjs` | `layout:metrics` -- raw per-scene geometry metrics (rectangle-union fill, largest-empty-rect, occupancy, scale proxies, AABB overlap graph, balance) with per-scene overlay |
 | `tools/layout_health_report.mjs` | `layout:health` -- interprets raw geometry metrics into provisional health categories and a worst-first author scorecard; writes `test-results/layout_health/` |
 | `tools/offcanvas_baseline.mjs` | Writes `docs/active_plans/audits/offcanvas_baseline.md` (per-scene off-canvas item counts from `PipelineResult.offCanvasDiagnostics`) |
+| `tools/scene_render_diagnostics.mjs` | Pure classifier for scene-render DOM evidence and asset visual bounding boxes |
 
 ### `devel/` - Maintainer scripts
 
@@ -304,6 +311,7 @@ Key tools:
 | [TYPESCRIPT_STYLE.md](TYPESCRIPT_STYLE.md) | TypeScript conventions |
 | [MARKDOWN_STYLE.md](MARKDOWN_STYLE.md) | Markdown formatting rules |
 | [REPO_STYLE.md](REPO_STYLE.md) | Repo-wide conventions |
+| [HUMAN_GUIDANCE.md](HUMAN_GUIDANCE.md) | Stable human authoring guidance, including language-neutral SVG art |
 | [LAYOUT_REMAINING_WORK.md](LAYOUT_REMAINING_WORK.md) | Scene-by-scene layout and aesthetic remaining work reference |
 | [PRIMARY_CONTRACT.md](PRIMARY_CONTRACT.md) | Hard design invariants |
 | [PRIMARY_DESIGN.md](PRIMARY_DESIGN.md) | Design philosophy |
@@ -312,6 +320,7 @@ Key tools:
 | [specs/PROTOCOL_VOCABULARY.md](specs/PROTOCOL_VOCABULARY.md) | Canonical protocol vocabulary |
 | [specs/PROTOCOL_YAML_FORMAT.md](specs/PROTOCOL_YAML_FORMAT.md) | Protocol YAML schema reference |
 | [specs/PROTOCOL_AUTHORING_GUIDE.md](specs/PROTOCOL_AUTHORING_GUIDE.md) | Worked authoring example |
+| `specs/GESTURE_MODEL.md` | Cross-layer gesture, input, capability, and evidence status reference |
 | [specs/PROTOCOL_STEPS.md](specs/PROTOCOL_STEPS.md) | Step-flow architecture |
 | [specs/SCENE_VOCABULARY.md](specs/SCENE_VOCABULARY.md) | Canonical scene vocabulary |
 | [specs/SCENE_YAML_FORMAT.md](specs/SCENE_YAML_FORMAT.md) | Scene YAML schema reference |
@@ -369,6 +378,7 @@ build. Do not place authored files there.
 | What are the hard rules? | [PRIMARY_CONTRACT.md](PRIMARY_CONTRACT.md) |
 | What is the YAML schema? | [specs/PROTOCOL_YAML_FORMAT.md](specs/PROTOCOL_YAML_FORMAT.md), [specs/SCENE_YAML_FORMAT.md](specs/SCENE_YAML_FORMAT.md), [specs/OBJECT_YAML_FORMAT.md](specs/OBJECT_YAML_FORMAT.md) |
 | How do I author a protocol? | [specs/PROTOCOL_AUTHORING_GUIDE.md](specs/PROTOCOL_AUTHORING_GUIDE.md) |
+| How do gestures map to browser input and object behavior? | `specs/GESTURE_MODEL.md` |
 | How do I set up the repo? | [INSTALL.md](INSTALL.md) |
 | How do I run the game? | [USAGE.md](USAGE.md) |
 | What is planned next? | [ROADMAP.md](ROADMAP.md) and [TODO.md](TODO.md) |
@@ -380,9 +390,9 @@ build. Do not place authored files there.
 | New mini-protocol | `content/protocols/<cluster>/<name>/` with `protocol.yaml`, `scenes/`, `materials.yaml` |
 | New base scene | `content/base_scenes/<name>.yaml` |
 | New lab object | `content/objects/<kind>/<name>.yaml` |
-| New SVG asset | `assets/equipment/<name>.svg` (run `tools/normalize_svg_v3.py` first; plus optional `<name>.colormap.json`) |
+| New SVG asset | `assets/equipment/<name>.svg` (move prose labels to layout-manager DOM or object data; outline only approved physically intrinsic markings, including during legacy/import preparation, with `tools/outline_svg_text.sh`, then run `tools/normalize_svg_v3.py`; provenance never permits prose outlining; plus optional `<name>.colormap.json`) |
 | New pipeline generator | `pipeline/` (register in `package.json` pre-hooks; update these two docs) |
-| New shell region | `src/shell/regions/` (mount in `src/shell/hud/ProtocolHud.tsx`) |
+| New shell region | `src/shell/regions/` (mount in `src/shell/hud/protocol_hud.tsx`) |
 | New runtime module | `src/` (imported from entry or scene runtime) |
 | New validation rule | `validation/yaml_schema/` or `validation/scene_lint/` |
 | Fast pytest test | `tests/test_*.py` |

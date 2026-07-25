@@ -61,8 +61,8 @@ steps:
     prompt:
       Close the heat block lid and start the 5-minute denaturation incubation.
       Heating to 95C drives the protein into its fully unfolded SDS-bound state; the
-      BME-cleaved disulfides cannot re-form at this temperature, which is essential
-      for size-based migration.
+      reducing agent maintains disulfides in their reduced state during preparation,
+      which is essential for size-based migration.
     sequence:
       - target: heat_block
         gesture: click

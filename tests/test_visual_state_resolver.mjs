@@ -12,6 +12,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
 import { resolve_visual_state } from "../src/scene_runtime/renderer/visual_state_resolver.ts";
+import { OBJECT_LIBRARY } from "../generated/object_library.ts";
 
 //============================================
 // Fixture: a simple per-protocol material registry
@@ -112,6 +113,144 @@ describe("fill_height non-ml capacities", () => {
     const state = { material_volume: 5 };
     const out = resolve_visual_state(visual_states, state, {});
     assert.equal(out.overlays[0].fill_percent, 50);
+  });
+});
+
+//============================================
+// Declarative anchor material effects (new modular object path)
+//============================================
+
+describe("declarative anchor material effects", () => {
+  test("pairs scoped volume_ml with scoped material identity and capacity_ml", () => {
+    const visual_states = {
+      inner_chamber_volume_ml: {
+        applies_to: "object",
+        render_effect: "fill_height",
+        target: "anchor_liquid_bounds",
+        clip: "anchor_liquid_clip",
+        capacity_ml: 12,
+      },
+    };
+    const out = resolve_visual_state(
+      visual_states,
+      { inner_chamber_volume_ml: 3, inner_chamber_material_name: "pbs" },
+      MATERIAL_REGISTRY,
+    );
+    assert.equal(out.anchor_material_effects[0].fill_percent, 25);
+    assert.equal(out.anchor_material_effects[0].color, "#076dad");
+  });
+
+  test("empty or zero material effects remain explicit no-fill descriptions", () => {
+    const visual_states = {
+      material_volume: {
+        applies_to: "object",
+        render_effect: "fill_height",
+        target: "anchor_liquid_bounds",
+        clip: "anchor_liquid_clip",
+        capacity_ml: 10,
+      },
+    };
+    const out = resolve_visual_state(
+      visual_states,
+      { material_name: "empty", material_volume: 0 },
+      MATERIAL_REGISTRY,
+    );
+    assert.equal(out.anchor_material_effects[0].color, null);
+    assert.equal(out.anchor_material_effects[0].fill_percent, 0);
+  });
+
+  test("requires the generic paired material field", () => {
+    const visual_states = {
+      held_volume_ul: {
+        applies_to: "object",
+        render_effect: "fill_height",
+        target: "anchor_liquid_bounds",
+        clip: "anchor_liquid_clip",
+        capacity_ul: 200,
+      },
+    };
+    assert.throws(
+      () => resolve_visual_state(visual_states, { held_volume_ul: 10 }, MATERIAL_REGISTRY),
+      /held_material_name/,
+    );
+  });
+
+  test("non-empty material plus zero paired amount degrades loudly", () => {
+    const visual_states = {
+      material_name: {
+        applies_to: "object",
+        render_effect: "material_tint",
+        target: "anchor_liquid_bounds",
+        clip: "anchor_liquid_clip",
+      },
+    };
+    assert.throws(
+      () =>
+        resolve_visual_state(
+          visual_states,
+          { material_name: "pbs", material_volume: 0 },
+          MATERIAL_REGISTRY,
+        ),
+      /non-empty material 'pbs' has zero paired amount/,
+    );
+  });
+
+  test("fill_height rejects non-empty material with a missing amount", () => {
+    const visual_states = {
+      material_volume: {
+        applies_to: "object",
+        render_effect: "fill_height",
+        target: "anchor_liquid_bounds",
+        clip: "anchor_liquid_clip",
+        capacity_ml: 10,
+      },
+    };
+    assert.throws(
+      () => resolve_visual_state(visual_states, { material_name: "pbs" }, MATERIAL_REGISTRY),
+      /non-empty material 'pbs' requires amount field 'material_volume'/,
+    );
+  });
+
+  test("fill_height rejects empty material with a positive amount", () => {
+    const visual_states = {
+      material_volume: {
+        applies_to: "object",
+        render_effect: "fill_height",
+        target: "anchor_liquid_bounds",
+        clip: "anchor_liquid_clip",
+        capacity_ml: 10,
+      },
+    };
+    assert.throws(
+      () =>
+        resolve_visual_state(
+          visual_states,
+          { material_name: "empty", material_volume: 2 },
+          MATERIAL_REGISTRY,
+        ),
+      /empty material has positive amount/,
+    );
+  });
+
+  test("null material identity degrades loudly instead of becoming no fill", () => {
+    const visual_states = {
+      material_volume: {
+        applies_to: "object",
+        render_effect: "fill_height",
+        target: "anchor_liquid_bounds",
+        clip: "anchor_liquid_clip",
+        capacity_ml: 10,
+      },
+    };
+    assert.throws(
+      () =>
+        resolve_visual_state(
+          visual_states,
+          { material_name: null, material_volume: 2 },
+          MATERIAL_REGISTRY,
+        ),
+      /invalid material identity/,
+    );
   });
 });
 
@@ -248,6 +387,28 @@ describe("svg case selection", () => {
     );
     assert.equal(out.asset_name, "tube");
     assert.equal(out.overlays.length, 0);
+  });
+});
+
+describe("authored equipment composite states", () => {
+  test("heat-block rack state adds its declared visual layer", () => {
+    const out = resolve_visual_state(
+      OBJECT_LIBRARY.heat_block.visual_states,
+      { set_temperature: 95, lid_open: false, rack_present: true },
+      null,
+    );
+    assert.equal(out.asset_name, "heat_block_closed");
+    assert.deepEqual(out.asset_layers, ["heat_block_rack"]);
+  });
+
+  test("lightbox tray and capture states add ordered visual evidence", () => {
+    const out = resolve_visual_state(
+      OBJECT_LIBRARY.lightbox.visual_states,
+      { powered_on: true, tray_present: true, image_captured: true },
+      null,
+    );
+    assert.equal(out.asset_name, "lightbox_on");
+    assert.deepEqual(out.asset_layers, ["lightbox_capture_complete", "lightbox_gel_tray"]);
   });
 });
 

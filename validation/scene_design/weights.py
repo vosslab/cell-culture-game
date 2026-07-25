@@ -5,10 +5,10 @@ These are extracted from SCENE_DESIGN_LINT_PLAN.md section "Per-class weight tab
 and are guaranteed to sum to 1.00 per class.
 
 Classes:
-	template - declared via data-scene-mode="template"
+	template - no placements
 	composition - default/fallback classification
 	instrument_heavy - primary placement is instrument/equipment kind
-	zoom_detail - declared via data-scene-mode="zoom_detail"
+	zoom_detail - one placement
 	dense_clutter - >=10 placements after inheritance resolution
 """
 

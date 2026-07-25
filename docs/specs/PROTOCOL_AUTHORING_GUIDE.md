@@ -113,6 +113,8 @@ individual gestures live inside it in the ordered `sequence`. Each
 `response`. The full slot charters and the closed `gesture` value set
 (`click`, `drag`, `adjust`, `select`, `type`) are in
 [PROTOCOL_VOCABULARY.md](PROTOCOL_VOCABULARY.md).
+For cross-layer gesture status and the unresolved role of the currently unused
+`select` value, see `docs/specs/GESTURE_MODEL.md`.
 
 ## Writing materials.yaml
 

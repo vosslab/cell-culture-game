@@ -3,12 +3,6 @@ workspace: cell_counter
 capabilities:
   - item_workspace
 
-scene_bounds:
-  left: 1
-  right: 99
-  top: 5
-  bottom: 95
-
 background:
   type: gradient
   from: "#E8E2D0"
@@ -18,45 +12,21 @@ background:
 zones:
   # Rear shelf: small consumables behind the main instrument, split for spread
   - zone_name: rear_shelf
-    bounds:
-      left: 5
-      right: 95
-      top: 5
-      bottom: 32
-    baseline: 28
     align: tab-stops
     label: Rear shelf - consumables and reagents
 
   # Left bench: consumables flanking the counter
   - zone_name: left_bench
-    bounds:
-      left: 4
-      right: 32
-      top: 40
-      bottom: 92
-    baseline: 86
     align: tab-stops
     label: Left bench - consumables
 
   # Center instrument stage: automated cell counter fills the canvas
   - zone_name: instrument_area
-    bounds:
-      left: 27
-      right: 73
-      top: 40
-      bottom: 92
-    baseline: 90
     align: center
     label: Cell counter display and controls
 
   # Right accessory area: consumables at right
   - zone_name: right_accessory_area
-    bounds:
-      left: 74
-      right: 97
-      top: 40
-      bottom: 92
-    baseline: 86
     align: tab-stops
     label: Right accessory area
 

@@ -127,341 +127,77 @@ def check_duplicate_placement_name(
 
 
 #============================================
-# A3: invalid_scene_bounds
+# A3: forbidden_source_geometry
 #============================================
 
-def check_invalid_scene_bounds(
+def check_forbidden_source_geometry(
 	scene: dict[str, Any],
 	scene_name: str,
 ) -> list[Finding]:
-	"""
-	Validate scene_bounds: l/r/t/b in [0,100], left < right, top < bottom.
+	"""Block source geometry while allowing semantic zones without bounds."""
+	from pipeline.scene_inheritance import (
+		SOURCE_FORBIDDEN_GEOMETRY_KEYS,
+		SOURCE_LAYOUT_ALLOWED_KEYS,
+		SOURCE_PLACEMENT_ALLOWED_KEYS,
+		SOURCE_ZONE_ALLOWED_KEYS,
+	)
 
-	Args:
-		scene: Scene dict to validate.
-		scene_name: Scene identifier for reporting.
-
-	Returns:
-		List of findings (empty if bounds valid).
-	"""
 	findings = []
-	bounds = scene.get('scene_bounds')
-	if bounds is None:
-		return findings
-
-	if not isinstance(bounds, dict):
+	def add_geometry(path: str) -> None:
 		findings.append(Finding(
 			scene=scene_name,
 			placement_name=None,
-			rule='invalid_scene_bounds',
+			rule='forbidden_source_geometry',
 			verdict=Verdict.BLOCKED,
 			confidence=Confidence.HIGH,
-			message=f"scene_bounds must be a dict, got {type(bounds).__name__}",
-			evidence={'bounds_value': str(bounds)},
-			fix_hints=['Ensure scene_bounds is a dict with keys: left, right, top, bottom'],
+			message=(f"Authored geometry '{path}' is forbidden; the layout manager "
+				"computes scene and zone bounds"),
+			evidence={'path': path},
+			fix_hints=['Keep zones semantic and remove numeric layout overrides'],
 		))
-		return findings
 
-	for key in ['left', 'right', 'top', 'bottom']:
-		val = bounds.get(key)
-		if val is None:
-			findings.append(Finding(
-				scene=scene_name,
-				placement_name=None,
-				rule='invalid_scene_bounds',
-				verdict=Verdict.BLOCKED,
-				confidence=Confidence.HIGH,
-				message=f"scene_bounds missing key '{key}'",
-				evidence={'bounds': bounds},
-				fix_hints=[f"Add '{key}' to scene_bounds"],
-			))
+	def add_unknown(path: str) -> None:
+		findings.append(Finding(
+			scene=scene_name,
+			placement_name=None,
+			rule='forbidden_source_geometry',
+			verdict=Verdict.BLOCKED,
+			confidence=Confidence.HIGH,
+			message=f"Unknown source-scene key '{path}'",
+			evidence={'path': path},
+			fix_hints=['Use the closed semantic scene vocabulary'],
+		))
 
-	if not findings:
-		left = bounds.get('left')
-		right = bounds.get('right')
-		top = bounds.get('top')
-		bottom = bounds.get('bottom')
-
-		if not all(isinstance(v, (int, float)) for v in [left, right, top, bottom]):
-			findings.append(Finding(
-				scene=scene_name,
-				placement_name=None,
-				rule='invalid_scene_bounds',
-				verdict=Verdict.BLOCKED,
-				confidence=Confidence.HIGH,
-				message="scene_bounds values must be numeric",
-				evidence={'bounds': bounds},
-				fix_hints=['Ensure all bounds values are numbers'],
-			))
-			return findings
-
-		for key, val in [('left', left), ('right', right), ('top', top), ('bottom', bottom)]:
-			if not (0 <= val <= 100):
-				findings.append(Finding(
-					scene=scene_name,
-					placement_name=None,
-					rule='invalid_scene_bounds',
-					verdict=Verdict.BLOCKED,
-					confidence=Confidence.HIGH,
-					message=f"scene_bounds.{key} = {val} outside range [0, 100]",
-					evidence={'bounds': bounds, 'offending_key': key},
-					fix_hints=[f"Set {key} to a value in [0, 100]"],
-				))
-
-		if left >= right:
-			findings.append(Finding(
-				scene=scene_name,
-				placement_name=None,
-				rule='invalid_scene_bounds',
-				verdict=Verdict.BLOCKED,
-				confidence=Confidence.HIGH,
-				message=f"scene_bounds.left ({left}) must be < right ({right})",
-				evidence={'bounds': bounds},
-				fix_hints=['Ensure left < right'],
-			))
-
-		if top >= bottom:
-			findings.append(Finding(
-				scene=scene_name,
-				placement_name=None,
-				rule='invalid_scene_bounds',
-				verdict=Verdict.BLOCKED,
-				confidence=Confidence.HIGH,
-				message=f"scene_bounds.top ({top}) must be < bottom ({bottom})",
-				evidence={'bounds': bounds},
-				fix_hints=['Ensure top < bottom'],
-			))
-
-	return findings
-
-
-#============================================
-# A4: invalid_zone_bounds
-#============================================
-
-def check_invalid_zone_bounds(
-	scene: dict[str, Any],
-	scene_name: str,
-) -> list[Finding]:
-	"""
-	Validate each zone.bounds: in [0,100], fits inside scene_bounds.
-
-	Args:
-		scene: Scene dict to validate.
-		scene_name: Scene identifier for reporting.
-
-	Returns:
-		List of findings (empty if all zones valid).
-	"""
-	findings = []
-	zones = scene.get('zones', [])
-	if not isinstance(zones, list):
-		return findings
-
-	for idx, zone in enumerate(zones):
-		if not isinstance(zone, dict):
+	for key in scene:
+		if key in SOURCE_FORBIDDEN_GEOMETRY_KEYS:
+			add_geometry(key)
+	background = scene.get('background')
+	if isinstance(background, dict):
+		for key in background:
+			if key in SOURCE_FORBIDDEN_GEOMETRY_KEYS:
+				add_geometry(f'background.{key}')
+	for index, zone in enumerate(scene.get('zones', [])):
+		if isinstance(zone, dict):
+			for key in zone:
+				if key in SOURCE_FORBIDDEN_GEOMETRY_KEYS:
+					add_geometry(f'zones[{index}].{key}')
+				elif key not in SOURCE_ZONE_ALLOWED_KEYS:
+					add_unknown(f'zones[{index}].{key}')
+	for index, placement in enumerate(scene.get('placements', [])):
+		if not isinstance(placement, dict):
 			continue
-
-		zone_name = zone.get('zone_name') or f"zone[{idx}]"
-		bounds = zone.get('bounds')
-
-		if bounds is None:
-			findings.append(Finding(
-				scene=scene_name,
-				placement_name=None,
-				rule='invalid_zone_bounds',
-				verdict=Verdict.BLOCKED,
-				confidence=Confidence.HIGH,
-				message=f"Zone '{zone_name}' missing 'bounds' field",
-				evidence={'zone_index': idx},
-				fix_hints=['Add bounds dict with left, right, top, bottom keys'],
-			))
-			continue
-
-		if not isinstance(bounds, dict):
-			findings.append(Finding(
-				scene=scene_name,
-				placement_name=None,
-				rule='invalid_zone_bounds',
-				verdict=Verdict.BLOCKED,
-				confidence=Confidence.HIGH,
-				message=f"Zone '{zone_name}' bounds must be a dict, got {type(bounds).__name__}",
-				evidence={'zone_index': idx, 'bounds_value': str(bounds)},
-				fix_hints=['Ensure bounds is a dict with keys: left, right, top, bottom'],
-			))
-			continue
-
-		for key in ['left', 'right', 'top', 'bottom']:
-			val = bounds.get(key)
-			if val is None:
-				findings.append(Finding(
-					scene=scene_name,
-					placement_name=None,
-					rule='invalid_zone_bounds',
-					verdict=Verdict.BLOCKED,
-					confidence=Confidence.HIGH,
-					message=f"Zone '{zone_name}' bounds missing key '{key}'",
-					evidence={'zone_index': idx},
-					fix_hints=[f"Add '{key}' to zone bounds"],
-				))
-
-		left = bounds.get('left')
-		right = bounds.get('right')
-		top = bounds.get('top')
-		bottom = bounds.get('bottom')
-
-		if not all(isinstance(v, (int, float)) for v in [left, right, top, bottom] if v is not None):
-			findings.append(Finding(
-				scene=scene_name,
-				placement_name=None,
-				rule='invalid_zone_bounds',
-				verdict=Verdict.BLOCKED,
-				confidence=Confidence.HIGH,
-				message=f"Zone '{zone_name}' bounds values must be numeric",
-				evidence={'zone_index': idx},
-				fix_hints=['Ensure all bounds values are numbers'],
-			))
-			continue
-
-		for key, val in [('left', left), ('right', right), ('top', top), ('bottom', bottom)]:
-			if val is not None and not (0 <= val <= 100):
-				findings.append(Finding(
-					scene=scene_name,
-					placement_name=None,
-					rule='invalid_zone_bounds',
-					verdict=Verdict.BLOCKED,
-					confidence=Confidence.HIGH,
-					message=f"Zone '{zone_name}' bounds.{key} = {val} outside range [0, 100]",
-					evidence={'zone_index': idx, 'zone_name': zone_name},
-					fix_hints=[f"Set {key} to a value in [0, 100]"],
-				))
-
-		if left is not None and right is not None and left >= right:
-			findings.append(Finding(
-				scene=scene_name,
-				placement_name=None,
-				rule='invalid_zone_bounds',
-				verdict=Verdict.BLOCKED,
-				confidence=Confidence.HIGH,
-				message=f"Zone '{zone_name}' left ({left}) must be < right ({right})",
-				evidence={'zone_index': idx},
-				fix_hints=['Ensure left < right'],
-			))
-
-		if top is not None and bottom is not None and top >= bottom:
-			findings.append(Finding(
-				scene=scene_name,
-				placement_name=None,
-				rule='invalid_zone_bounds',
-				verdict=Verdict.BLOCKED,
-				confidence=Confidence.HIGH,
-				message=f"Zone '{zone_name}' top ({top}) must be < bottom ({bottom})",
-				evidence={'zone_index': idx},
-				fix_hints=['Ensure top < bottom'],
-			))
-
-	return findings
-
-
-#============================================
-# A5: zone_outside_scene_bounds
-#============================================
-
-def check_zone_outside_scene_bounds(
-	scene: dict[str, Any],
-	scene_name: str,
-) -> list[Finding]:
-	"""
-	Verify each zone bounds is fully contained in scene_bounds.
-
-	Args:
-		scene: Scene dict to validate.
-		scene_name: Scene identifier for reporting.
-
-	Returns:
-		List of findings (empty if all zones contained).
-	"""
-	findings = []
-	zones = scene.get('zones', [])
-	scene_bounds = scene.get('scene_bounds')
-
-	if not isinstance(zones, list) or scene_bounds is None:
-		return findings
-
-	sb_left = scene_bounds.get('left')
-	sb_right = scene_bounds.get('right')
-	sb_top = scene_bounds.get('top')
-	sb_bottom = scene_bounds.get('bottom')
-
-	if not all(isinstance(v, (int, float)) for v in [sb_left, sb_right, sb_top, sb_bottom]):
-		return findings
-
-	for idx, zone in enumerate(zones):
-		if not isinstance(zone, dict):
-			continue
-
-		zone_name = zone.get('zone_name') or f"zone[{idx}]"
-		bounds = zone.get('bounds')
-
-		if not isinstance(bounds, dict):
-			continue
-
-		z_left = bounds.get('left')
-		z_right = bounds.get('right')
-		z_top = bounds.get('top')
-		z_bottom = bounds.get('bottom')
-
-		if not all(isinstance(v, (int, float)) for v in [z_left, z_right, z_top, z_bottom]):
-			continue
-
-		if z_left < sb_left:
-			findings.append(Finding(
-				scene=scene_name,
-				placement_name=None,
-				rule='zone_outside_scene_bounds',
-				verdict=Verdict.BLOCKED,
-				confidence=Confidence.HIGH,
-				message=f"Zone '{zone_name}' left ({z_left}) < scene left ({sb_left})",
-				evidence={'zone_index': idx, 'zone_name': zone_name},
-				fix_hints=['Move zone right or expand scene_bounds left'],
-			))
-
-		if z_right > sb_right:
-			findings.append(Finding(
-				scene=scene_name,
-				placement_name=None,
-				rule='zone_outside_scene_bounds',
-				verdict=Verdict.BLOCKED,
-				confidence=Confidence.HIGH,
-				message=f"Zone '{zone_name}' right ({z_right}) > scene right ({sb_right})",
-				evidence={'zone_index': idx, 'zone_name': zone_name},
-				fix_hints=['Move zone left or expand scene_bounds right'],
-			))
-
-		if z_top < sb_top:
-			findings.append(Finding(
-				scene=scene_name,
-				placement_name=None,
-				rule='zone_outside_scene_bounds',
-				verdict=Verdict.BLOCKED,
-				confidence=Confidence.HIGH,
-				message=f"Zone '{zone_name}' top ({z_top}) < scene top ({sb_top})",
-				evidence={'zone_index': idx, 'zone_name': zone_name},
-				fix_hints=['Move zone down or expand scene_bounds up'],
-			))
-
-		if z_bottom > sb_bottom:
-			findings.append(Finding(
-				scene=scene_name,
-				placement_name=None,
-				rule='zone_outside_scene_bounds',
-				verdict=Verdict.BLOCKED,
-				confidence=Confidence.HIGH,
-				message=f"Zone '{zone_name}' bottom ({z_bottom}) > scene bottom ({sb_bottom})",
-				evidence={'zone_index': idx, 'zone_name': zone_name},
-				fix_hints=['Move zone up or expand scene_bounds down'],
-			))
-
+		for key in placement:
+			if key in SOURCE_FORBIDDEN_GEOMETRY_KEYS:
+				add_geometry(f'placements[{index}].{key}')
+			elif key not in SOURCE_PLACEMENT_ALLOWED_KEYS:
+				add_unknown(f'placements[{index}].{key}')
+		layout = placement.get('layout')
+		if isinstance(layout, dict):
+			for key in layout:
+				if key in SOURCE_FORBIDDEN_GEOMETRY_KEYS:
+					add_geometry(f'placements[{index}].layout.{key}')
+				elif key not in SOURCE_LAYOUT_ALLOWED_KEYS:
+					add_unknown(f'placements[{index}].layout.{key}')
 	return findings
 
 

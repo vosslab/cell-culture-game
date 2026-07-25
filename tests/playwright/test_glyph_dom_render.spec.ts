@@ -10,11 +10,11 @@
 // Builds the production protocol-host bundle (same esbuild + solidPlugin
 // transform as pipeline/build_main_bundle.mjs) pinned to drug_dilution_setup,
 // serves it over HTTP, and asserts against real rendered DOM text:
-//   - #guidance-text (GuidanceBar, src/shell/regions/GuidanceBar.tsx) contains
+//   - #guidance-text (GuidanceBar, src/shell/regions/guidance_bar.tsx) contains
 //     the micro sign glyph.
-//   - .outline-step-card (StepOutline, src/shell/regions/StepOutline.tsx)
+//   - .outline-step-card (StepOutline, src/shell/regions/step_outline.tsx)
 //     visible text contains the micro sign glyph.
-//   - .outline-step-card's title attribute (StepOutline.tsx:94, the full
+//   - .outline-step-card's title attribute (step_outline.tsx, the full
 //     untruncated prompt) contains the micro sign glyph.
 // Every check also asserts the literal entity string "&micro;" is absent, so
 // the test is non-vacuous: before the WP-A2/WP-A3 decode wiring landed, these
@@ -171,7 +171,7 @@ test.describe("drug_dilution_setup glyph rendering", () => {
   });
 
   test("outline step card title attribute renders the micro sign glyph, not the literal entity", async () => {
-    // StepOutline.tsx:94 sets title={step.prompt} to the full, untruncated
+    // step_outline.tsx sets title={step.prompt} to the full, untruncated
     // prompt (the visible card text is truncated by short_label()).
     const titles = await page
       .locator(".outline-step-card")

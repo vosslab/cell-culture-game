@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 245 181">
+  <path d="M 10 16 L 116 16 L 125 28 L 125 150 L 113 164 L 17 164 L 5 150 L 5 28 Z" fill="#b7c3c9" stroke="#455a64" stroke-width="6" stroke-linejoin="round"/>
+  <path d="M 14 38 L 115 38 M 14 144 L 115 144" fill="none" stroke="#f6fafb" stroke-width="4" stroke-linecap="round"/>
+  <path d="M 14 43 L 115 43 M 14 139 L 115 139" fill="none" stroke="#71848d" stroke-width="2" opacity=".75"/>
+  <path d="M 30 23 L 40 38 L 50 23 L 60 38 L 70 23 L 80 38 L 90 23" fill="none" stroke="#536973" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M 119 93 L 136 93 M 127 85 L 136 93 L 127 101" fill="none" stroke="#526a75" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <path fill="#d7edf5" stroke="#29495a" stroke-width="6" d="M 151 14 L 222 14 A 8 8 0 0 1 230 22 L 230 159 A 8 8 0 0 1 222 167 L 151 167 A 8 8 0 0 1 143 159 L 143 22 A 8 8 0 0 1 151 14 Z"/>
+  <path d="M 150 37 L 223 37" fill="none" stroke="#22485c" stroke-width="8" stroke-linecap="round"/>
+  <path d="M 154 54 L 219 54 L 219 150 L 154 150 Z" fill="#78b6d4" stroke="#4c8baa" stroke-width="3"/>
+  <path d="M 158 46 L 164 46 L 164 54 L 158 54 Z M 166 46 L 172 46 L 172 54 L 166 54 Z M 174 46 L 180 46 L 180 54 L 174 54 Z M 182 46 L 188 46 L 188 54 L 182 54 Z M 190 46 L 196 46 L 196 54 L 190 54 Z M 198 46 L 204 46 L 204 54 L 198 54 Z M 206 46 L 212 46 L 212 54 L 206 54 Z" fill="#244c61"/>
+  <path d="M 159 78 L 214 78 M 159 103 L 214 103 M 159 128 L 214 128" fill="none" stroke="#a8d4e6" stroke-width="2" opacity=".8"/>
+</svg>

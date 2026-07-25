@@ -63,7 +63,7 @@ class ObjectValidator:
 		# Kind-to-material-field convention validation
 		findings.extend(self._validate_kind_material_field_convention(obj, path))
 
-		# Variant-collapse gate (material_volume fill_height composite paired with material_name)
+		# Variant-collapse gate for material volume renderers paired with material identity.
 		findings.extend(self._validate_variant_collapse(obj, path))
 
 		# Capabilities validation
@@ -780,9 +780,9 @@ class ObjectValidator:
 		"""
 		Validate the variant-collapse gate per WP-VALIDATOR-1.
 
-		Vocabulary rule (hard fail): every visual_state that declares a
-		<prefix>material_volume (or <prefix>held_material_volume) with
-		fill_height(...) composite must be paired with a same-prefix
+		Every visual_state that declares a <prefix>material_volume (or
+		<prefix>held_material_volume) with the fill_height render effect must
+		be paired with a same-prefix
 		<prefix>material_name (or <prefix>held_material_name) visual_state
 		whose cases all resolve to a single asset_name. If multiple distinct
 		asset_name values are found, this is a vocabulary error.
@@ -805,29 +805,41 @@ class ObjectValidator:
 		if not isinstance(visual_states, dict):
 			return findings
 
-		# Find all volume composites with fill_height(...)
-		volume_composites = {}
+		# Recognize the current declarative shape and the older formula shape
+		# while production content finishes migrating to render_effect.
+		volume_renderers: dict[str, tuple[str, bool]] = {}
 		for state_name, state_def in visual_states.items():
 			if not isinstance(state_def, dict):
 				continue
 
-			# Check if this is a fill_height composite
-			if state_def.get('kind') == 'composite':
-				formula = state_def.get('formula', '')
-				if formula and formula.startswith('fill_height('):
-					# Extract prefix: material_volume -> '' ; inner_chamber_material_volume -> 'inner_chamber_'
-					prefix = self._extract_material_prefix(state_name)
-					volume_composites[prefix] = {
-						'state_name': state_name,
-						'formula': formula,
-					}
+			render_effect = state_def.get('render_effect')
+			formula = state_def.get('formula', '')
+			uses_legacy_formula = (
+				state_def.get('kind') == 'composite'
+				and isinstance(formula, str)
+				and formula.startswith('fill_height(')
+			)
+			if render_effect != 'fill_height' and not uses_legacy_formula:
+				continue
 
-		# For each volume composite, check paired material_name
-		for prefix, vol_info in volume_composites.items():
+			prefix = self._extract_material_prefix(state_name)
+			if render_effect == 'fill_height':
+				requires_anchors = state_def.get('target') in {
+					'anchor_liquid_bounds',
+					'anchor_liquid_clip',
+				}
+			else:
+				requires_anchors = state_def.get('applies_to', 'object') == 'object'
+			volume_renderers[prefix] = (state_name, requires_anchors)
+
+		# For each volume renderer, check the paired material identity state.
+		for prefix, renderer_info in volume_renderers.items():
+			volume_state_name, requires_anchors = renderer_info
 			pairing_result = self._check_material_name_pairing(
 				visual_states,
 				prefix,
-				vol_info['state_name'],
+				volume_state_name,
+				requires_anchors,
 				path,
 			)
 			findings.extend(pairing_result)
@@ -877,7 +889,14 @@ class ObjectValidator:
 
 		return ''
 
-	def _check_material_name_pairing(self, visual_states: dict, prefix: str, volume_state_name: str, path: str) -> list:
+	def _check_material_name_pairing(
+		self,
+		visual_states: dict,
+		prefix: str,
+		volume_state_name: str,
+		requires_anchors: bool,
+		path: str,
+	) -> list:
 		"""
 		Check that the material_name (or held_material_name) for a given prefix
 		is paired with the volume composite and that all cases resolve to a
@@ -885,6 +904,7 @@ class ObjectValidator:
 
 		prefix: '' for material_* / held_material_*, or 'chamber_' for chamber_material_*
 		volume_state_name: the name of the volume composite state (e.g. 'material_volume')
+		requires_anchors: whether the renderer targets base-SVG liquid anchors
 		path: the object file path for error reporting
 		"""
 		findings = []
@@ -951,13 +971,11 @@ class ObjectValidator:
 					f"see docs/specs/MATERIAL_CONVENTION.md for the overlay convention)."
 				),
 			))
-			return findings  # Don't check asset readiness if variant rule fails
-
-		# Asset-readiness check (soft report): if vocabulary rule passed and we have a single
-		# asset_name, check that the base SVG exists and carries both anchor ids
-		if len(asset_names) == 1:
-			base_asset_name = asset_names.pop()
-			self._check_asset_anchors(base_asset_name, path, findings)
+		# Report readiness independently for every referenced base. A fan-out
+		# finding must not hide a missing-anchor finding on the same object.
+		if requires_anchors:
+			for base_asset_name in sorted(asset_names):
+				self._check_asset_anchors(base_asset_name, path, findings)
 
 		return findings
 
@@ -992,13 +1010,9 @@ class ObjectValidator:
 			))
 			return
 
-		# Check if file contains both anchor ids
-		try:
-			with open(svg_path, 'r', encoding='utf-8') as f:
-				svg_content = f.read()
-		except Exception:
-			# If we can't read the file, skip the check
-			return
+		# A present but unreadable source is a real validation failure, not a
+		# condition to hide. Let the filesystem error identify the problem.
+		svg_content = svg_path.read_text(encoding='utf-8')
 
 		has_clip = 'id="anchor_liquid_clip"' in svg_content
 		has_bounds = 'id="anchor_liquid_bounds"' in svg_content

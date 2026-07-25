@@ -10,8 +10,6 @@ remove_placements:
   # and renderer still lay out and draw a deactivated placement). The detachment
   # protocol never clicks these, and removing them frees the space the two
   # required instruments (microscope, incubator) need:
-  #  - well_plate_96: detachment operates on the t75_flask, not a plate, so
-  #    removing it makes the flask the unambiguous center object.
   #  - sterile_water_bottle: pure rear-shelf decoration (matches the sibling hood
   #    children, which also remove it).
   #  - serological_pipette: detachment uses the aspirating pipette only, so the
@@ -19,7 +17,6 @@ remove_placements:
   #  - micropipette_tip_box and waste_container: rear-shelf decoration the
   #    protocol never clicks; removing them lets each rear bottle sit two-per-
   #    zone so the tall incubator can own rear_right without squeezing a bottle.
-  - center_well_plate_96
   - base_rear_right_sterile_water
   - base_right_serological_pipette
   - base_rear_left_tip_box
@@ -97,4 +94,4 @@ reposition_placements:
     zone: center
     depth_tier: 1
 
-scene_notes: "Hood workspace for passage_hood_detachment mini-protocol. T75 flask center-stage, reagent bottles (PBS, trypsin, media) in rear zones, ethanol spray bottle for sterilization, the microscope and aspirating pipette in the right tool band, and the incubator in rear_right for the detachment wait. Inherited non-target clutter (well plate, sterile water, second pipette, tip box, waste) removed."
+scene_notes: "Hood workspace for passage_hood_detachment mini-protocol. T75 flask center-stage, reagent bottles (PBS, trypsin, media) in rear zones, ethanol spray bottle for sterilization, the microscope and aspirating pipette in the right tool band, and the incubator in rear_right for the detachment wait."

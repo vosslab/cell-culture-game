@@ -163,9 +163,12 @@ The `--screenshots` flag accepts `per-step` (default), `per-interaction`, or
 
 The Node walker:
 
-- Serves `dist/` with `python3 -m http.server`.
-- Uses port `8126`.
-- Opens `http://127.0.0.1:8126/<protocol_name>.html`.
+- Starts an owned `python3 -m http.server` child for `dist/`.
+- Requests an OS-assigned port by default, verifies that its own child bound
+  that port, and tears down only that child.
+- Opens `http://127.0.0.1:<assigned-port>/<protocol_name>.html`.
+- Accepts `--port` (or `PORT`) only as an explicit fixed-port override and
+  fails before navigation when that port is already occupied.
 - Launches Chromium through the Playwright library.
 - Uses a `1280 x 900` viewport.
 - Runs headless.
@@ -321,6 +324,10 @@ types it into `[data-type-input]`, then clicks `[data-type-commit]`; for an
 `adjust` interaction it reads `gameState.activeAdjustValue` and commits it on
 `[data-adjust-input]` / `[data-adjust-commit]`.
 
+See `docs/specs/GESTURE_MODEL.md` for the distinction between this
+browser-driving mechanism and the authored gesture semantics, including the
+reopened status of the unused `select` value.
+
 The central click helper is `clickTargetAndWaitProgress()`. It resolves a
 scene-scoped `data-item-id` selector, verifies that the element exists, verifies
 that it is visible, clicks it via Playwright's actionability-checked
@@ -472,8 +479,10 @@ The minimum implementation contract is:
   `scene_operations`.
 - The walker resolves the same ids from the schema.
 - Every walker interaction produces an observable state-progress signal
-  through an `ObjectStateChange`, `CursorAttach`, `SceneChange`,
-  `LayoutMove`, or step-complete event.
+  through an `ObjectStateChange`, `CursorAttach`, `SceneChange`, or
+  step-complete event. `LayoutMove` is ratified vocabulary but cannot provide
+  a signal: current runtime dispatch throws because no placement-override
+  write surface exists.
 - The step's `step_validator` resolves and the runtime advances to
   `next_step`.
 - Screenshot evidence captures before/after step boundary.
@@ -510,8 +519,12 @@ these signals fires:
 - An `ObjectStateChange` mutates a declared `state_field`.
 - A `CursorAttach` attaches or detaches a tool.
 - A `SceneChange` switches the active scene.
-- A `LayoutMove` repositions an object.
 - A `<step_name>_complete` event fires.
+
+`LayoutMove` cannot satisfy this requirement in the current runtime. It stays
+in the closed primitive vocabulary, but dispatch always throws before any
+placement changes; author it only after executable placement-override support
+exists.
 
 Use this run pattern:
 
@@ -567,9 +580,13 @@ Current budgets:
 
 ## Wrong-order mode
 
-`--wrong-order` mode is a negative test. Before each correct interaction,
-the walker finds a visible `#scene-root [data-item-id]` element that is not the
-current `activeTarget` and clicks it with a real visible click.
+`--wrong-order` mode is a negative test. Before each scene-target interaction
+currently driven by a browser click (`click` or `select`), the walker finds a
+visible, pointer-actionable `#scene-root [data-item-id]` element that is not the
+current `activeTarget` and activates it with a real browser click. That shared
+low-level input is an implementation detail. The walker must preserve the
+authored gesture value and current validator dispatch while the semantic role
+of the unused `select` value remains reopened.
 
 The wrong-order click must:
 

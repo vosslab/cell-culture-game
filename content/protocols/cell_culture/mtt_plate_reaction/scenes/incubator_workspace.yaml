@@ -1,20 +1,10 @@
 scene_name: incubator_workspace
-extends: bench_basic
+extends: plate_focus_bench
 
 scene_notes: |
-  Incubator workspace for MTT plate reaction step. The incubator is the primary
-  instrument at center. MTT solution bottle at rear left. Multichannel pipette at
-  right tool area for adding MTT to all wells. Biohazard waste bin at rear right.
-  Paper towels at rear center for plate drying after decant.
-
-remove_placements:
-  - rear_left_media_bottle
-  - rear_center_pbs
-  - rear_center_ethanol
-  - center_water_bath
-  - center_centrifuge
-  - base_right_tip_box
-  - rear_right_heat_block
+  Incubator workspace for MTT plate reaction. The foreground plate is the
+  readable teaching surface; incubator, MTT tube, multichannel pipette,
+  biohazard bin, and paper towel are the exact supports for its authored steps.
 
 add_placements:
   # MTT solution bottle at rear left (right stop beside waste)
@@ -45,24 +35,9 @@ add_placements:
     depth_tier: 1
     align_stop: left
 
-  # well_plate_96 is now placed in the inherited bench_basic center band (single
-  # plate); the former microtube_rack_24 placeholder was removed here.
-
   # Multichannel pipette for distributing MTT across all columns
   - placement_name: pipette_multichannel
     object_name: multichannel_pipette
     zone: right_tool_area
     depth_tier: 1
     align_stop: center
-
-reposition_placements:
-  # Collapse the inherited micropipette and well plate from tier 2 to tier 1 so
-  # the whole sparse scene renders as a single tier-row (t1:7, t2:2, 90%+ empty).
-  # Dropping the second tier-row removes its label overhead from the vertical
-  # stack fit, raising the scene-wide scale factor. Matches the precedent set
-  # in drug_dilution_setup/bench_setup.yaml and
-  # mtt_solubilization_readout/bench_workspace.yaml.
-  - placement_name: base_right_micropipette
-    depth_tier: 1
-  - placement_name: center_well_plate_96
-    depth_tier: 1

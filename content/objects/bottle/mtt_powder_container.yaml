@@ -21,12 +21,12 @@ visual_states:
     kind: svg
     cases:
       - when: mtt_powder
-        output: { asset_name: mtt_vial }
+        output: { asset_name: mtt_powder_vial }
       - when: empty
-        output: { asset_name: mtt_vial }
+        output: { asset_name: mtt_powder_vial_empty }
   material_volume:
     kind: composite
-    formula: fill_height(state(material_volume), capacity_mg=10)
+    composite: []
 
 capabilities: [clickable, material_container, cursor_attachable]
 

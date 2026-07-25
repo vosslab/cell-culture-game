@@ -34,7 +34,7 @@ steps:
         response:
           scene_operations:
             - type: SceneChange
-              to_scene: imaging_bench
+              to_scene: sdspage_image_gel_workspace
       - target: staining_tray
         gesture: click
         validator:

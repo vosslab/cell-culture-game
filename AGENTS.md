@@ -15,6 +15,7 @@ Core invariants (YAML config, TypeScript runtime, mini-protocols, SVG scene obje
 - Materials: `docs/specs/MATERIAL_VOCABULARY.md`, `docs/specs/MATERIAL_CONVENTION.md`.
 - Test data policy (content is the fixture): `docs/specs/NO_FIXTURE_POLICY.md`.
 - Closed authoring vocabularies, no escape hatches: `docs/specs/SPEC_DESIGN_CHECKLIST.md`.
+- Stable project guidance: `docs/HUMAN_GUIDANCE.md`.
 
 ## Pipeline vs tools (binding, non-negotiable)
 

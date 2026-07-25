@@ -16,7 +16,7 @@ visual_states:
       - when: dirty
         output: { asset_name: hood_workspace_surface }
       - when: ethanol_sprayed
-        output: { asset_name: hood_workspace_surface }
+        output: { asset_name: hood_workspace_surface_clean }
 
 capabilities: [clickable]
 

@@ -4,8 +4,8 @@
     "corpus_root": "OTHER_REPOS/",
     "raster_reject_count": 73,
     "supportable_total": 3052,
-    "normalized_rate_raw": 56.224,
-    "normalized_rate_adjusted": 57.56880733944954,
+    "normalized_rate_raw": 55.456,
+    "normalized_rate_adjusted": 56.782437745740495,
     "scoring_note": "normalized_rate_adjusted excludes intentional raster-embedding rejects (verdict EMBEDDED_RASTER_UNSUPPORTED) from the denominator: supportable_total = total_files - raster_reject_count. Such SVGs are by design out of scope and can never normalize.",
     "note": "Feature presence is independent of verdict. A file may carry a clipPath and still be rejected for an unrelated reason. The `reasons` list per row is the ALL-REASONS set (every applicable rejection code, no first-wins short-circuit); `verdict` is the first-wins primary kept for backward continuity. PARSER_ERROR is recorded alone because a file that cannot parse cannot have its other reasons assessed.",
     "reason_presence_note": "reason_presence counts are OVERLAPPING file-presence counts: a file with N reasons contributes to N codes, so these columns do NOT sum to total_files."
@@ -38,7 +38,7 @@
   },
   "verdict_counts": {
     "TEXT_UNSUPPORTED": 295,
-    "normalized": 1757,
+    "normalized": 1733,
     "MARKER_UNSUPPORTED": 22,
     "SCRIPT_OR_HANDLER": 21,
     "EMPTY_GEOMETRY": 19,
@@ -46,7 +46,7 @@
     "STYLE_GEOMETRY_UNSUPPORTED": 482,
     "DOCTYPE_OR_ENTITY": 234,
     "PARSER_ERROR": 7,
-    "CLIPPATH_UNSUPPORTED_COMPLEX": 84,
+    "CLIPPATH_UNSUPPORTED_COMPLEX": 108,
     "FOREIGNOBJECT_UNSUPPORTED": 15,
     "FILTER_UNSUPPORTED": 32,
     "UNSUPPORTED_UNIT": 1,
@@ -67,7 +67,7 @@
     "STYLE_GEOMETRY_UNSUPPORTED": 683,
     "DOCTYPE_OR_ENTITY": 234,
     "PARSER_ERROR": 9,
-    "CLIPPATH_UNSUPPORTED_COMPLEX": 84,
+    "CLIPPATH_UNSUPPORTED_COMPLEX": 108,
     "FOREIGNOBJECT_UNSUPPORTED": 164,
     "FILTER_UNSUPPORTED": 57,
     "UNSUPPORTED_UNIT": 1,
@@ -78,8 +78,8 @@
     "UNRESOLVED_REFERENCE": 5
   },
   "multiplicity_histogram": {
-    "0": 1757,
-    "1": 999,
+    "0": 1733,
+    "1": 1023,
     "2": 156,
     "3": 125,
     "4+": 88
@@ -20058,8 +20058,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-0/Microbiology/Divakar-Badal/inverted_microscope.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -21763,8 +21765,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-0/Nucleic_acids/Simon_D\u00fcrr/adp.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -21796,8 +21800,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-0/Nucleic_acids/Simon_D\u00fcrr/amp.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -21829,8 +21835,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-0/Nucleic_acids/Simon_D\u00fcrr/atp.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -21862,8 +21870,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-0/Nucleic_acids/Simon_D\u00fcrr/camp.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -21895,8 +21905,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-0/Nucleic_acids/Simon_D\u00fcrr/cgmp.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -21928,8 +21940,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-0/Nucleic_acids/Simon_D\u00fcrr/gdp.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -21961,8 +21975,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-0/Nucleic_acids/Simon_D\u00fcrr/gmp.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -21994,8 +22010,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-0/Nucleic_acids/Simon_D\u00fcrr/gtp.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -28789,8 +28807,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Blood_Immunology/Servier/fibrin-9.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -34852,8 +34872,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Chemistry/Servier/burette-clamp.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -37001,8 +37023,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-by-3.0/General_items/Servier/arrow-left-curved-2.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -39989,8 +40013,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-by-3.0/General_items/Servier/pepper.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -40387,8 +40413,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-by-3.0/General_items/Servier/salt.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -41942,8 +41970,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Genetics/Servier/chromosome-pink.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -47924,8 +47954,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Human_physiology/Servier/intestine-segmentation- (1).svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -47957,8 +47989,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Human_physiology/Servier/intestine-segmentation- (2).svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -47990,8 +48024,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Human_physiology/Servier/intestine-segmentation- (3).svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -50451,8 +50487,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Human_physiology/Servier/ointment.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -50853,8 +50891,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Human_physiology/Servier/papillae.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -69692,8 +69732,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Tissues/Servier/gap-junction-1.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -69725,8 +69767,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Tissues/Servier/gap-junction-2.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -69758,8 +69802,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Tissues/Servier/gap-junction-3.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,
@@ -69791,8 +69837,10 @@
     },
     {
       "file": "OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Tissues/Servier/gap-junction.svg",
-      "verdict": "normalized",
-      "reasons": [],
+      "verdict": "CLIPPATH_UNSUPPORTED_COMPLEX",
+      "reasons": [
+        "CLIPPATH_UNSUPPORTED_COMPLEX"
+      ],
       "primary_agrees": true,
       "features": {
         "clip_path": true,

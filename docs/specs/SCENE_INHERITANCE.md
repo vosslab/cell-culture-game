@@ -52,14 +52,11 @@ Inherited from base, LOCKED (extending scene may not declare these fields at all
 | Field                                                                                    | Owner       | Why locked                                                                               |
 | ---------------------------------------------------------------------------------------- | ----------- | ---------------------------------------------------------------------------------------- |
 | `workspace`                                                                              | base        | workspace identity                                                                       |
-| `scene_bounds`                                                                           | base        | canvas geometry; layout-engine contract                                                  |
 | `background`                                                                             | base        | stable student orientation                                                               |
 | `zones`                                                                                  | base        | zone schema = workspace contract                                                         |
 | `layout_rules`                                                                           | base        | layout-engine hints; drift risk                                                          |
-| `accent_rules`                                                                           | base        | visual consistency                                                                       |
 | `capabilities`                                                                           | base        | workspace contract; if a protocol scene needs a capability, the base scene needs it      |
 | `wrong_order_message` (base entries)                                                     | base        | base entries untouchable; extending may add entries keyed to its own new placements only |
-| camera / zoom defaults                                                                   | base        | stable student orientation                                                               |
 | object `label`, `kind`, `state_fields`, `visual_states`, `capabilities`, layout defaults | object file | scene inheritance is layout composition, not object mutation                             |
 
 Declared by the protocol scene file (LOCAL):
@@ -75,7 +72,7 @@ Inherited from base, CHANGEABLE only via the four named operations:
 | Operation               | Selector          | What it changes                                                                                                                                                                                                                           | What it may NOT change                              |
 | ----------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
 | `add_placements`        | n/a (new entries) | adds protocol-specific placements; each new placement carries its own `placement_name`. An added placement may declare only the same placement fields allowed by [SCENE_YAML_FORMAT.md](SCENE_YAML_FORMAT.md) for a base placement entry. | object identity, state, capabilities, render fields |
-| `reposition_placements` | `placement_name`  | placement fields only: `zone`, `position`, `depth`, `anchor`                                                                                                                                                                              | object identity, state, capabilities, render fields |
+| `reposition_placements` | `placement_name`  | semantic membership and approved hints only: `zone`, `depth_tier`, `depth`, `align_stop` | object identity, state, capabilities, render fields, coordinates, scale, and size |
 | `deactivate_placements` | `placement_name`  | marks placement as muted and non-clickable while keeping it visible for orientation                                                                                                                                                       | object identity, state, capabilities, render fields |
 | `remove_placements`     | `placement_name`  | drops placement entirely                                                                                                                                                                                                                  | n/a                                                 |
 
@@ -134,7 +131,6 @@ Base scene: `content/base_scenes/hood_basic.yaml`
 # Base scene provides stable hood workspace context
 scene_name: hood_basic
 workspace: hood
-scene_bounds: { ... }
 zones: [...]
 placements:
   - placement_name: hood_waste_container
@@ -163,7 +159,7 @@ add_placements:
     zone: right_tool_area
 reposition_placements:
   - placement_name: hood_waste_container
-    zone: rear_right_far
+    zone: center
 deactivate_placements:
   - placement_name: hood_ethanol_bottle
 remove_placements:
@@ -181,10 +177,12 @@ extends: hood_basic
 reposition_placements:
   - placement_name: hood_waste_container
     capabilities: [clickable] # ERROR: capabilities is locked
-    zone: rear_right_far
+    zone: center
 ```
 
-Build error: `reposition_placements` may only change `zone`, `position`, `depth`, and `anchor`. The `capabilities` field is object-owned and locked. Capabilities are declared on the object, not the placement.
+Build error: `reposition_placements` may only change `zone`, `depth_tier`,
+`depth`, and `align_stop`. The `capabilities` field is object-owned and locked.
+Coordinates, baselines, and scale or size overrides are also rejected.
 
 ## Inheritance depth
 

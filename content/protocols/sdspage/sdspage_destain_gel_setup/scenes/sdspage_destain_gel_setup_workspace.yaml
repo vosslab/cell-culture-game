@@ -1,0 +1,14 @@
+scene_name: sdspage_destain_gel_setup_workspace
+extends: staining_bench
+
+remove_placements:
+  # Destain setup needs water, destain, tray, waste, kimwipes, microwave, and
+  # shaker. Coomassie supplies and the later dedicated waste bottle are outside
+  # this learning block.
+  - rear_left_coomassie_stain
+  - rear_left_coomassie_recycle
+  - rear_center_destain_waste
+
+scene_notes: |
+  Focused destain-setup workspace. The active rinse and destain supplies frame
+  the tray while the microwave and shaker show the next physical operations.

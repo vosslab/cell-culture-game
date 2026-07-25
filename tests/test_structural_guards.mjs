@@ -150,7 +150,7 @@ test("guard 3: non-overlapping items pass", () => {
   });
   const itemD = createMockItem({
     placement_name: "item_d",
-    _centerX: 16,
+    _centerX: 17,
     _top: 10,
     _visualWidth: 5,
     _height: 10.58,
@@ -161,7 +161,7 @@ test("guard 3: non-overlapping items pass", () => {
 });
 
 //============================================
-// Guard 4: Same-zone gap >= zone_gap
+// Guard 4: Same-row, same-cluster gap >= zone_gap
 //============================================
 
 test("guard 4: adjacent items with sufficient gap pass", () => {
@@ -185,6 +185,116 @@ test("guard 4: adjacent items with sufficient gap pass", () => {
     _labelY: 35,
   });
   const scene = createMockScene();
+  runStructuralGuards([item4A, item4B], scene);
+});
+
+test("guard 4: floating-point noise at the required gap passes", () => {
+  const item4A = createMockItem({
+    placement_name: "item_4a",
+    _centerX: 10,
+    _top: 20,
+    _visualWidth: 5,
+    _height: 10.58,
+    _labelY: 35,
+  });
+  const item4B = createMockItem({
+    placement_name: "item_4b",
+    _centerX: 16.999999999,
+    _top: 20,
+    _visualWidth: 5,
+    _height: 10.58,
+    _labelY: 35,
+  });
+  const scene = createMockScene();
+  runStructuralGuards([item4A, item4B], scene);
+});
+
+test("guard 4: adjacent same-tier items below the scene-percent gap throw", () => {
+  const item4A = createMockItem({
+    placement_name: "item_4a",
+    depth_tier: 1,
+    _centerX: 10,
+    _top: 20,
+    _visualWidth: 5,
+    _height: 10.58,
+    _labelY: 35,
+  });
+  const item4B = createMockItem({
+    placement_name: "item_4b",
+    depth_tier: 1,
+    _centerX: 16,
+    _top: 20,
+    _visualWidth: 5,
+    _height: 10.58,
+    _labelY: 35,
+  });
+  const scene = createMockScene();
+  assert.throws(() => runStructuralGuards([item4A, item4B], scene), /zone gap/);
+});
+
+test("guard 4: edge-aligned items in separate depth tiers are separate rows", () => {
+  const item4A = createMockItem({
+    placement_name: "item_4a",
+    depth_tier: 1,
+    _centerX: 10,
+    _top: 10,
+    _visualWidth: 5,
+    _height: 10.58,
+    _labelY: 23,
+  });
+  const item4B = createMockItem({
+    placement_name: "item_4b",
+    depth_tier: 2,
+    _centerX: 15.05,
+    _top: 55,
+    _visualWidth: 5,
+    _height: 10.58,
+    _labelY: 68,
+  });
+  const scene = createMockScene({
+    zones: [
+      {
+        id: "test_zone",
+        bounds: { left: 5, right: 30, top: 5, bottom: 75 },
+      },
+    ],
+  });
+  runStructuralGuards([item4A, item4B], scene);
+});
+
+test("guard 4: separate tab-stop clusters do not invent a shared-row gap requirement", () => {
+  // `tab-stops` anchors left, center, and right clusters independently. The
+  // layout engine applies zone_gap inside each cluster, not between clusters.
+  // These close-but-nonoverlapping items therefore remain structurally valid.
+  const item4A = createMockItem({
+    placement_name: "left_cluster_item",
+    align_stop: "left",
+    _centerX: 10,
+    _top: 20,
+    _visualWidth: 5,
+    _height: 10.58,
+    _labelX: 10,
+    _labelY: 35,
+  });
+  const item4B = createMockItem({
+    placement_name: "center_cluster_item",
+    align_stop: "center",
+    _centerX: 15.75,
+    _top: 20,
+    _visualWidth: 5,
+    _height: 10.58,
+    _labelX: 15.75,
+    _labelY: 35,
+  });
+  const scene = createMockScene({
+    zones: [
+      {
+        id: "test_zone",
+        align: "tab-stops",
+        bounds: { left: 5, right: 30, top: 10, bottom: 50 },
+      },
+    ],
+  });
   runStructuralGuards([item4A, item4B], scene);
 });
 

@@ -14,7 +14,7 @@ visual_states:
     kind: svg
     cases:
       - when: in_cassette
-        output: { asset_name: gel_comb }
+        output: { asset_name: gel_comb_in_cassette }
       - when: not_in_cassette
         output: { asset_name: gel_comb }
 

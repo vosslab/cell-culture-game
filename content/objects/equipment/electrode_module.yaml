@@ -18,26 +18,18 @@ state_fields:
 
 visual_states:
   mounted:
-    kind: svg
-    cases:
-      - when: true
-        output: { asset_name: electrode_module }
-      - when: false
-        output: { asset_name: electrode_module }
+    kind: composite
+    composite: []
   cassette_mounted:
-    kind: svg
-    cases:
-      - when: true
-        output: { asset_name: electrode_module }
-      - when: false
-        output: { asset_name: electrode_module }
+    kind: composite
+    composite: []
   wing_clamps_open:
     kind: svg
     cases:
       - when: true
-        output: { asset_name: electrode_module }
+        output: { asset_name: electrode_module_open }
       - when: false
-        output: { asset_name: electrode_module }
+        output: { asset_name: electrode_module_closed }
 
 capabilities: [clickable]
 

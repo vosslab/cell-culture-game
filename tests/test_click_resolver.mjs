@@ -148,6 +148,48 @@ test("click on SVG descendant resolves to nearest [data-item-id] ancestor", () =
   assert.strictEqual(resolved, "well_plate_96");
 });
 
+test("clicks on sibling subpart hit shapes resolve distinct placement identities", () => {
+  const root = new StubHTMLElement();
+  const rack = new StubHTMLElement();
+  rack.setAttribute("data-item-id", "rear_center_carb_stocks");
+  const tubeA = new StubSVGElement();
+  tubeA.setAttribute("data-item-id", "rear_center_carb_stocks.tube_A");
+  const tubeB = new StubSVGElement();
+  tubeB.setAttribute("data-item-id", "rear_center_carb_stocks.tube_B");
+  root.appendChild(rack);
+  rack.appendChild(tubeA);
+  rack.appendChild(tubeB);
+
+  const resolved = [];
+  attach_click_resolver(root, (name) => {
+    resolved.push(name);
+  });
+
+  root.fire(new StubMouseEvent("click", { target: tubeA }));
+  root.fire(new StubMouseEvent("click", { target: tubeB }));
+
+  assert.deepStrictEqual(resolved, [
+    "rear_center_carb_stocks.tube_A",
+    "rear_center_carb_stocks.tube_B",
+  ]);
+});
+
+test("whole structured object remains resolvable outside a subpart hit shape", () => {
+  const root = new StubHTMLElement();
+  const rack = new StubHTMLElement();
+  rack.setAttribute("data-item-id", "rear_center_carb_stocks");
+  root.appendChild(rack);
+
+  let resolved = null;
+  attach_click_resolver(root, (name) => {
+    resolved = name;
+  });
+
+  root.fire(new StubMouseEvent("click", { target: rack }));
+
+  assert.strictEqual(resolved, "rear_center_carb_stocks");
+});
+
 test("click on element with no [data-item-id] ancestor does not invoke callback", () => {
   const root = new StubHTMLElement();
   const plain = new StubHTMLElement();

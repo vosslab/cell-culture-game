@@ -9,6 +9,20 @@ Reusable helper for generator scripts that need to resolve scene inheritance.
 
 from typing import Any, Dict, List
 
+
+# Source scenes name semantic groups. The renderer owns numeric geometry.
+SOURCE_ZONE_ALLOWED_KEYS = {'zone_name', 'label', 'align'}
+SOURCE_PLACEMENT_ALLOWED_KEYS = {
+	'placement_name', 'object_name', 'zone', 'depth_tier', 'depth', 'align_stop', 'layout'
+}
+SOURCE_LAYOUT_ALLOWED_KEYS = {'label_placement', 'anchor_y'}
+SOURCE_FORBIDDEN_GEOMETRY_KEYS = {
+	'scene_bounds', 'bounds', 'baseline', 'baseline_override',
+	'x', 'y', 'left', 'right', 'top', 'bottom',
+	'width_scale', 'fudge', 'display_width_cm', 'scale', 'scale_x', 'scale_y',
+	'default_width', 'label_width', 'anchor_y_offset', 'position',
+}
+
 #============================================
 
 def get_placement_name_dict(placements: list[dict]) -> Dict[str, int]:
@@ -138,7 +152,7 @@ def apply_reposition_placements(
 		RuntimeError: If unknown placement_name or locked field is referenced.
 	"""
 	name_dict = get_placement_name_dict(placements)
-	allowed_fields = {"placement_name", "zone", "position", "depth_tier", "anchor"}
+	allowed_fields = {"placement_name", "zone", "depth", "depth_tier", "align_stop"}
 
 	result = []
 	for placement in placements:
@@ -302,10 +316,10 @@ def resolve_protocol_scene(
 		"scene_name": scene_name,
 		"workspace": base_data["workspace"],
 		"capabilities": base_data["capabilities"],
-		"scene_bounds": base_data["scene_bounds"],
-		"background": base_data["background"],
 		"zones": base_data["zones"],
 	}
+	if "background" in base_data:
+		result["background"] = base_data["background"]
 
 	# Optional locked fields
 	if "layout_rules" in base_data:

@@ -61,16 +61,15 @@ The three-way boundary names what each vocabulary owns:
   Canonical doc: this file.
 
 The scene side encodes the following rule: a scene references objects
-by id, places them inside named [zones](#zones), declares the outer
-[scene_bounds](#scene-bounds) and the
-[layout_rules](#layout-rules) the layout engine consumes, and declares
-the static [background](#background-as-a-static-backdrop) backdrop.
+by id, places them inside ordered named [zones](#zones), declares bounded
+[layout_rules](#layout-rules), and declares the static
+[background](#background-as-a-static-backdrop) backdrop. The layout manager
+derives numeric scene and zone geometry after it measures the objects.
 A scene never declares object identity, `state_fields`, `visual_states`,
 or `capabilities`.
 
-Scene placement overrides layout hints only. A placement may carry instance
-overrides for the object's layout hints (`default_width`, `label_width`,
-`anchor_y_offset`, `width_scale`, `anchor_y`). A placement may not
+Scene placement may carry only the categorical `layout.anchor_y` and
+`layout.label_placement` hints. A placement may not
 override object identity (`object_name`, `kind`, `label`),
 `state_fields`, `visual_states`, or `capabilities`. The full override
 rule lives on the object side; see
@@ -105,15 +104,14 @@ the backdrop in the appropriate zone. See
 [OBJECT_VOCABULARY.md](OBJECT_VOCABULARY.md) for the object side of
 "clickable region as object".
 
-The scene declares one optional `background` block with an asset reference and the
-scene-side bounds it covers; it never declares clickable behavior on
+The scene declares one optional `background` block with an asset reference; it
+never declares clickable behavior on
 the background and never attaches state, capabilities, or
 `visual_states` to it.
 
 | Field               | Required                    | Purpose                                                                                   |
 | ------------------- | --------------------------- | ----------------------------------------------------------------------------------------- |
 | `background.asset`  | yes (if background present) | Asset id (image or SVG) used as the static backdrop. The asset library resolves the file. |
-| `background.bounds` | no                          | Optional explicit bounds. Defaults to the scene's `scene_bounds`.                         |
 
 ## Object-by-id placement
 
@@ -124,10 +122,8 @@ object identity, structure, `state_fields`, `visual_states`, or
 `capabilities`; those belong to the object definition (see
 [OBJECT_VOCABULARY.md](OBJECT_VOCABULARY.md)).
 
-Scene placement overrides layout hints only. A placement may carry instance
-overrides for the layout hints `default_width`,
-`label_width`, `anchor_y_offset`, `width_scale`, `anchor_y`, and
-`label_placement`. A
+Scene placement may carry only `layout.anchor_y` and
+`layout.label_placement`. A
 placement may not override object identity (`object_name`, `kind`,
 `label`), `state_fields`, `visual_states`, or `capabilities`. The full override surface is in
 [OBJECT_VOCABULARY.md](OBJECT_VOCABULARY.md), "## The object side of
@@ -140,8 +136,7 @@ the boundary".
 | `placement.zone`              | yes      | The [zone](#zones) this placement belongs to.                                                                                                                                                                                                            |
 | `placement.depth_tier`        | no       | Numeric layering hint within the zone.                                                                                                                                                                                                                   |
 | `placement.align_stop`        | no       | One of `left`, `center`, `right`. Tab-stop group for the layout engine.                                                                                                                                                                                  |
-| `placement.baseline_override` | no       | Per-instance baseline override.                                                                                                                                                                                                                          |
-| `placement.layout`            | no       | Instance override of object layout hints (`default_width`, `label_width`, `anchor_y_offset`, `width_scale`, `anchor_y`, `label_placement`). Same shape as the object's `layout` block; a placement may set any subset, and unset fields fall through to the object default. |
+| `placement.layout`            | no       | Categorical `anchor_y` and `label_placement` hints only. |
 
 Notes:
 
@@ -151,40 +146,34 @@ Notes:
   state and rendering, and the protocol mutates state semantically
   through `ObjectStateChange` (see
   [PROTOCOL_VOCABULARY.md](PROTOCOL_VOCABULARY.md)).
-- The placement's `layout` block mirrors the object's `layout` block
-  by field name so an author can read an override without learning a
-  second vocabulary.
+- Placement `layout` cannot override intrinsic object dimensions or introduce
+  numeric geometry.
 
 ## Zones
 
-A zone is a named region inside the scene. Zones are how the scene
-expresses "this group of placements belongs together spatially": the
-layout engine arranges placements within a zone using the zone's own
-rules, then arranges zones within the scene using the scene's outer
-bounds. Zones replace ad-hoc per-placement coordinates with a small
-named-region vocabulary.
+A zone is an ordered named semantic group. The layout manager combines source
+order, measured placement demand, and approved alignment hints to arrange its
+contents. Zones replace ad-hoc coordinates with a small named-group vocabulary.
 
 A zone is scene-side because it is a property of where things go, not
-of what any thing is. Zones do not carry identity, state, or
-rendering; they carry geometry and arrangement.
+of what any thing is. Zones do not carry identity, state, rendering, or source
+geometry.
 
 | Field             | Required | Purpose                                                                                                                           |
 | ----------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------- |
 | `zone.zone_name`  | yes      | Stable zone name, scoped to this scene. Placements reference it via `placement.zone`.                                             |
-| `zone.bounds`     | yes      | Zone bounds inside the scene. The layout engine uses these to size and position the zone.                                         |
 | `zone.align`     | no       | Arrangement rule for placements inside the zone. Includes `tab-stops` (today's behavior, paired with per-placement `align_stop`). |
 | `zone.label`     | no       | Optional human-readable label for authoring and debugging.                                                                        |
 
 Schema detail belongs in [SCENE_YAML_FORMAT.md](SCENE_YAML_FORMAT.md)
 "Zones".
 
-## Scene bounds
+## Derived geometry
 
-The scene declares the outer bounds of its own surface.
-
-| Field          | Required | Purpose                                                   |
-| -------------- | -------- | --------------------------------------------------------- |
-| `scene_bounds` | yes      | Outer bounds of the scene surface. Today's `sceneBounds`. |
+The layout manager derives scene bounds, zone bounds, and baselines. They are
+runtime records, not authored scene YAML fields. Source scene YAML rejects
+`scene_bounds`, `bounds`, `baseline`, coordinates, `baseline_override`, and
+numeric scale or size overrides.
 
 ## Layout rules
 
@@ -380,8 +369,8 @@ for the design rationale (Option 2 analysis).
 | placement name          | The stable per-scene name for one placement; distinct from `object_name` because a scene may place the same object more than once.                                                                    |
 | object name             | The name of an object in the object library; the only handle the scene side uses to name an object. See [OBJECT_VOCABULARY.md](OBJECT_VOCABULARY.md).                                                 |
 | background              | The static backdrop asset declared on the scene; not interactive, carries no state.                                                                                                                   |
-| zone                    | A layout region declared by `zones[]` in scene YAML; placements reference zones by id.                                                                                                                |
-| scene_bounds            | Outer bounds of the scene surface.                                                                                                                                                                    |
+| zone                    | An ordered semantic group declared by `zones[]`; placements reference its `zone_name`.                                                                                                                |
+| derived scene geometry  | Internal scene and zone bounds plus baselines produced by the layout manager.                                                                                                                         |
 | layout_rules            | Scene-wide arrangement rules the layout engine consumes.                                                                                                                                              |
 | layout engine           | Shared placement system that positions object placements in zones.                                                                                                                                    |
 | structured surface      | An object with meaningful internal coordinates or subparts; the structure schema is object-side (see [OBJECT_VOCABULARY.md](OBJECT_VOCABULARY.md)).                                                   |
@@ -465,19 +454,17 @@ for the field table.
 
 ### zone
 
-A layout region declared by an entry in the scene YAML's `zones[]`
-array. Placements reference zones by id via `placement.zone`.
-Layout-engine zones carry `bounds` (`left`, `right`, `top`, `bottom`), an
-optional authored `baseline`, and `align` for the layout engine; the
-per-zone `gap` field is retired in favor of scene-wide
-`layout_rules.zone_gap`. Schema: see
+A named, ordered semantic group declared by an entry in the scene YAML's
+`zones[]` array. Placements reference zones by `zone_name` via `placement.zone`.
+Source zones carry only `zone_name`, optional `align`, and optional `label`.
+The layout manager derives internal bounds and baselines; `layout_rules.zone_gap`
+is the scene-wide spacing hint. Schema: see
 [SCENE_YAML_FORMAT.md](SCENE_YAML_FORMAT.md) "Zones".
 
-### scene_bounds
+### Derived scene geometry
 
-Outer bounds of the scene surface. The
-layout engine consumes `scene_bounds` to position zones and
-placements within the scene.
+The layout manager creates the scene frame, zone bounds, and baselines after
+it binds and measures objects. These values are never authored in scene YAML.
 
 ### layout_rules
 

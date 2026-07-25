@@ -1,0 +1,46 @@
+object_name: running_buffer_preparation_carboy
+kind: bottle
+label: 1 L buffer preparation carboy
+state_fields:
+  - field_name: material_name
+    type: enum
+    allowed:
+      - empty
+      - running_buffer_10x
+      - running_buffer_1x
+    default: empty
+    description: Contents currently in the preparation carboy.
+  - field_name: material_volume
+    type: float
+    unit: ml
+    min: 0
+    max: 1000
+    default: 0
+    description: Volume currently in the preparation carboy, in milliliters.
+visual_states:
+  material_name:
+    kind: svg
+    cases:
+      - when: empty
+        output:
+          asset_name: bottle_green
+      - when: running_buffer_10x
+        output:
+          asset_name: bottle_green
+      - when: running_buffer_1x
+        output:
+          asset_name: bottle_green
+  material_volume:
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ml: 1000
+capabilities:
+  - clickable
+  - material_container
+  - cursor_attachable
+layout:
+  default_width: 4
+  display_width_cm: 18
+  label_width: 8

@@ -21,15 +21,27 @@ visual_states:
     kind: svg
     cases:
       - when: false
-        output: { asset_name: lightbox_on }
+        output: { asset_name: lightbox_off }
       - when: true
         output: { asset_name: lightbox_on }
   tray_present:
     kind: composite
-    composite: []
+    cases:
+      - when: false
+        output: { composite: [] }
+      - when: true
+        output:
+          composite:
+            - { asset_name: lightbox_gel_tray }
   image_captured:
     kind: composite
-    composite: []
+    cases:
+      - when: false
+        output: { composite: [] }
+      - when: true
+        output:
+          composite:
+            - { asset_name: lightbox_capture_complete }
 
 capabilities: [clickable]
 

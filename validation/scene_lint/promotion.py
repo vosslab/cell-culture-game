@@ -66,9 +66,7 @@ class PromotionEntry:
 GROUP_A_RULES = {
 	'duplicate_scene_name',
 	'duplicate_placement_name',
-	'invalid_scene_bounds',
-	'invalid_zone_bounds',
-	'zone_outside_scene_bounds',
+	'forbidden_source_geometry',
 	'missing_svg_asset',
 	'invalid_svg_viewbox',
 	'inheritance_unknown_base',
@@ -324,5 +322,4 @@ def evaluate_promotion_bar(
 		'meets_bar': meets_bar,
 		'reasons_failing': reasons_failing,
 	}
-
 

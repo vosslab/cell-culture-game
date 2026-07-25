@@ -8,7 +8,7 @@ learning:
     the high-voltage leads to establish the electrical circuit.
   outcomes:
     Students completing this mini-protocol will be able to place the electrophoresis
-    tank lid in position and attach the red (positive) and black (negative) leads
+    tank lid in position and attach the black (negative) and red (positive) leads
     from the power supply to the electrode assembly, ensuring correct polarity orientation
     for the subsequent gel run.
   goals:
@@ -21,8 +21,8 @@ steps:
     prompt:
       Ensure the power supply is off (or unplugged) before connecting any leads.
       Secure the electrophoresis apparatus for running the gel. First, place the lid
-      on top of the electrophoresis tank. Then connect the red lead from the power supply
-      to the positive electrode and the black lead to the negative electrode. Ensure
+      on top of the electrophoresis tank. Then connect the black lead from the power supply
+      to the negative cathode and the red lead to the positive anode. Ensure
       both connections are firmly seated.
     sequence:
       - target: electrophoresis_tank

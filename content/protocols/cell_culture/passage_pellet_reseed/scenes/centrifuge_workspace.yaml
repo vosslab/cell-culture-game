@@ -15,9 +15,6 @@ remove_placements:
   - rear_center_pbs
   - rear_center_ethanol
   - rear_right_heat_block
-  # Inherited 96-well plate is never targeted in the centrifuge scene; remove so
-  # the center band holds the centrifuge and reseed vessels, not an idle plate.
-  - center_well_plate_96
 
 add_placements:
   # Conical tube at rear left -- the pellet tube about to be centrifuged
@@ -70,10 +67,3 @@ add_placements:
     zone: right_tool_area
     depth_tier: 2
     align_stop: right
-
-  # Rear right: PBS rinse bottle staged for the reseed step
-  - placement_name: rear_right_pbs
-    object_name: pbs_bottle
-    zone: rear_right
-    depth_tier: 1
-    align_stop: left

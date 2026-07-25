@@ -5,7 +5,7 @@ label: MTT solution tube
 state_fields:
   - field_name: material_name
     type: enum
-    allowed: [mtt_solution_12mm, empty]
+    allowed: [mtt_solution_12mm, pbs, empty]
     default: empty
     description: Contents of this tube.
   - field_name: material_volume
@@ -22,11 +22,16 @@ visual_states:
     cases:
       - when: mtt_solution_12mm
         output: { asset_name: mtt_vial }
+      - when: pbs
+        output: { asset_name: mtt_vial }
       - when: empty
         output: { asset_name: mtt_vial }
   material_volume:
-    kind: composite
-    formula: fill_height(state(material_volume), capacity_ml=5)
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ml: 5
 
 capabilities: [clickable, material_container, cursor_attachable]
 

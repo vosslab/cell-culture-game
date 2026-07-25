@@ -35,8 +35,11 @@ visual_states:
         output:
           asset_name: microtube
   material_volume:
-    kind: composite
-    formula: fill_height(state(material_volume), capacity_ul=1500)
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ul: 1500
 capabilities:
   - clickable
   - material_container

@@ -7,7 +7,7 @@ state_fields:
     allowed:
       - empty
       - protein_ladder
-    default: empty
+    default: protein_ladder
     description: Contents currently in the tube.
   - field_name: material_volume
     type: float
@@ -27,8 +27,11 @@ visual_states:
         output:
           asset_name: protein_ladder_tube
   material_volume:
-    kind: composite
-    formula: fill_height(state(material_volume), capacity_ul=500)
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ul: 500
 capabilities:
   - clickable
   - material_container

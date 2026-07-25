@@ -8,11 +8,12 @@
 // Asserts:
 //   1. #scene-root width AND height are each strictly less than the viewport.
 //   2. The scene panel contains >= 1 [data-item-id] (scene rendered non-blank).
-//   3. A professor/tips region [data-region="tips-bubble"] exists and is visible.
-//   4. A step-counter region [data-region="step-counter"] exists and is visible.
-//   5. An outline region [data-region="outline"] exists and is visible.
-//   6. A guidance bar [data-region="guidance-bar"] exists and is visible.
-//   7. The current step card has data-step-status="current" (distinct styling).
+//   3. The visible action rail projects the current authored prompt and gesture.
+//   4. An authored tip is shown only when the protocol actually supplies one.
+//   5. A step-counter region [data-region="step-counter"] exists and is visible.
+//   6. An outline region [data-region="outline"] exists and is visible.
+//   7. A guidance bar [data-region="guidance-bar"] exists and is visible.
+//   8. The current step card has data-step-status="current" (distinct styling).
 //
 // Coordinate-integrity check (WP-FRAME-2):
 //   8. Every [data-item-id] bounding box is within #scene-root bounding box
@@ -104,16 +105,24 @@ test.describe(`framed layout evidence: ${EVIDENCE_PROTOCOL}`, () => {
     expect(itemCount, `page errors: ${pageErrors.join(" | ")}`).toBeGreaterThanOrEqual(1);
 
     //============================================
-    // Assertions 3-6: chrome regions visible
+    // Assertions 3-7: current action and chrome regions visible. The former
+    // generic tips bubble is deliberately gone: a tip is only rendered when a
+    // protocol author supplied one. This evidence protocol has no authored tip,
+    // so the shell must not invent generic coaching copy.
     //============================================
 
-    await visibleRegionBox(page.locator('[data-region="tips-bubble"]').first(), "tips-bubble");
+    const actionRail = page.locator("[data-current-action]").first();
+    await visibleRegionBox(actionRail, "current-action");
+    await expect(actionRail.locator("#guidance-text")).toBeVisible();
+    await expect(actionRail.locator(".action-rail-prompt")).toHaveText(/\S/);
+    await expect(actionRail.locator(".action-rail-cue")).toHaveText(/\S/);
+    await expect(actionRail.locator("[data-authored-tip]")).toHaveCount(0);
     await visibleRegionBox(page.locator('[data-region="step-counter"]').first(), "step-counter");
     await visibleRegionBox(page.locator('[data-region="outline"]').first(), "outline");
     await visibleRegionBox(page.locator('[data-region="guidance-bar"]').first(), "guidance-bar");
 
     //============================================
-    // Assertion 7: current step card has data-step-status="current"
+    // Assertion 8: current step card has data-step-status="current"
     //============================================
 
     await expect(page.locator('[data-step-status="current"]').first()).toBeVisible();

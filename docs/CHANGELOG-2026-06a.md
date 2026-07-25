@@ -263,10 +263,10 @@
   a bad commit and is absent on a good one.
 
 - P8 WP-UX-4a: native `title` tooltip added to truncated `StepOutline` labels in
-  `src/shell/regions/StepOutline.tsx`. Pointer users hovering a clipped step name
+  `src/shell/regions/step_outline.tsx`. Pointer users hovering a clipped step name
   now see the full label without any JS.
 
-- P9 WP-UX-4b: `src/launcher/Launcher.tsx` now uses Solid `<Show>` for the
+- P9 WP-UX-4b: `src/launcher/protocol_launcher.tsx` now uses Solid `<Show>` for the
   empty-state path. When the protocol list is empty the launcher renders a
   human-readable message instead of a blank screen.
 
@@ -879,9 +879,9 @@
 
 - WP-CHROME-1 (M2): styled all six regions in [style.css](../src/style.css): speech-bubble shape for tips via CSS `::before`/`::after`, green `.step-counter-box`, pink/rose current-step highlight and grey previous/upcoming outline cards, teal guidance bar. Shell is a sibling, never an ancestor of `#scene-root`.
 
-- WP-CHROME-2 (M2): built read-only step outline component (`src/shell/regions/StepOutline.tsx`). Renders ordered step cards from `config.steps` fed to `ProtocolHud`. Current step gets `data-step-status="current"` (pink), previous steps get "previous" (grey), upcoming get "upcoming" (white). No click navigation.
+- WP-CHROME-2 (M2): built read-only step outline component (`src/shell/regions/step_outline.tsx`). Renders ordered step cards from `config.steps` fed to `ProtocolHud`. Current step gets `data-step-status="current"` (pink), previous steps get "previous" (grey), upcoming get "upcoming" (white). No click navigation.
 
-- WP-CHROME-3 (M2): added region components `src/shell/regions/TipsBubble.tsx` (shows `current_tip` or fallback "Follow the current step guidance."), `src/shell/regions/StepCounter.tsx` (shows `completed / total`), `src/shell/regions/GuidanceBar.tsx` (shows `current_prompt`). Restructured [ProtocolHud.tsx](../src/shell/hud/ProtocolHud.tsx) to use Solid's `render()` inside `onMount` to mount each region into its DOM target (`#tips-text`, `#step-counter-text`, `#outline-steps`, `#guidance-text`). DOM targets are cleared before mounting to prevent duplicate content. `data-hud-*` attributes retained on hidden container for backward-compat.
+- WP-CHROME-3 (M2): added region components `src/shell/regions/TipsBubble.tsx` (shows `current_tip` or fallback "Follow the current step guidance."), `src/shell/regions/StepCounter.tsx` (shows `completed / total`), `src/shell/regions/GuidanceBar.tsx` (shows `current_prompt`). Restructured the shell component, now [protocol_hud.tsx](../src/shell/hud/protocol_hud.tsx), to use Solid's `render()` inside `onMount` to mount each region into its DOM target (`#tips-text`, `#step-counter-text`, `#outline-steps`, `#guidance-text`). DOM targets are cleared before mounting to prevent duplicate content. `data-hud-*` attributes retained on hidden container for backward-compat.
 
 - WP-TIP-1 (M2): documented optional `tip` field in [specs/PROTOCOL_YAML_FORMAT.md](specs/PROTOCOL_YAML_FORMAT.md) optional step-fields table (closed `string`, no default, absent means null). Added `tip?: string` to `ProtocolStep` in [types.ts](../src/shell/adapter/types.ts). Added `current_tip: string | null` to `ShellViewSnapshot` (same file) and populated it in the step_started reducer case in [step_machine.ts](../src/scene_runtime/protocol/step_machine.ts) (null when absent). Added `current_tip: null` to `initial_snapshot`, `protocol_completed` reducer case, and both raw-snapshot literal sites (`src/protocol_host.tsx`, `tools/seam_types_compile_check.ts`). Validator unchanged (no per-step key closure; unknown optional fields pass through). No protocol YAML edited. All 5 new `current_tip` reducer tests pass (21 total pass). `npx tsc`, ESLint, Prettier, and build all clean.
 

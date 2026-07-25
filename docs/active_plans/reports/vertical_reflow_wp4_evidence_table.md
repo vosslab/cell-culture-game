@@ -117,7 +117,7 @@ label-over-artwork, and are not never-crop or own-art contract violations:
   touch in the left-center cluster.
 
 These are a horizontal label-stagger polish follow-up, tracked in
-[docs/LAYOUT_REMAINING_WORK.md](../../LAYOUT_REMAINING_WORK.md) section 7.
+[LAYOUT_REMAINING_WORK.md](../../LAYOUT_REMAINING_WORK.md) section 7.
 
 Separately, `extraction_workspace` is a pre-existing load failure: it renders as
 a blank full-viewport gradient with zero objects (empty authored content). Its

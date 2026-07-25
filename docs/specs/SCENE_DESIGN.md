@@ -72,8 +72,8 @@ Classes are mutually exclusive. Detection follows a strict 5-step order in
 
 | Step | Test | Class |
 | --- | --- | --- |
-| 1 | `scene['data-scene-mode'] == 'template'` | `template` |
-| 2 | `scene['data-scene-mode'] == 'zoom_detail'` | `zoom_detail` |
+| 1 | `len(scene['placements']) == 0` | `template` |
+| 2 | `len(scene['placements']) == 1` | `zoom_detail` |
 | 3 | `len(scene['placements']) >= 10` | `dense_clutter` |
 | 4 | Primary placement (`data-primary: true`) has `kind in {'instrument', 'equipment'}` | `instrument_heavy` |
 | 5 | Default fallback | `composition` |
@@ -81,6 +81,9 @@ Classes are mutually exclusive. Detection follows a strict 5-step order in
 Detection raises `SceneClassError` only on structural errors (`scene` is
 not a dict, `scene_name` missing, `placements` is not a list). A scene
 that fails detection cannot be scored; the CLI exits 1.
+
+Placement-count classes are derived from valid scene structure. Authors do not
+add a separate classification field to scene YAML.
 
 Known limitations (decision-gated):
 
@@ -96,7 +99,7 @@ Weight tables in `validation/scene_design/weights.py`. Each class's
 weights sum to 1.00. Metrics not listed in a class's table do not
 contribute to that class's score.
 
-### template (declared `data-scene-mode: template`)
+### template (no placements)
 
 | Metric | Weight |
 | --- | --- |
@@ -126,7 +129,7 @@ contribute to that class's score.
 | `aspect_fidelity` | 0.10 |
 | `label_wrap_rate` | 0.05 |
 
-### zoom_detail (declared `data-scene-mode: zoom_detail`)
+### zoom_detail (one placement)
 
 | Metric | Weight |
 | --- | --- |

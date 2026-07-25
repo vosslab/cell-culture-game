@@ -81,7 +81,7 @@ Interaction index 2 in the step's authored `sequence` is exactly
 computing when it threw.
 
 Source of the duplicate placement:
-[content/protocols/cell_culture/plate_drug_treatment_media_adjustment/scenes/plate_workspace.yaml](../../../content/protocols/cell_culture/plate_drug_treatment_media_adjustment/scenes/plate_workspace.yaml).
+[plate_workspace.yaml](../../../content/protocols/cell_culture/plate_drug_treatment_media_adjustment/scenes/plate_workspace.yaml).
 This scene `extends: hood_basic` (which already places `media_bottle`, the
 `base_rear_right_media` placement) and its own `add_placements` adds a SECOND
 `media_bottle` placement (`rear_center_media`) without a matching
@@ -114,11 +114,11 @@ adjust" the earlier triage could not reconcile; it now has a clean
 explanation.
 
 Source of the duplicate placement:
-[content/base_scenes/sample_prep_bench.yaml](../../../content/base_scenes/sample_prep_bench.yaml).
+[sample_prep_bench.yaml](../../../content/base_scenes/sample_prep_bench.yaml).
 The BASE scene itself places `laemmli_4x_bottle` twice
 (`rear_center_laemmli` at line 99-100, `center_laemmli_working` at line
 147-148); the protocol's override scene
-([content/protocols/sdspage/sdspage_prepare_sample_mix_single_lane/scenes/sample_prep_bench_override.yaml](../../../content/protocols/sdspage/sdspage_prepare_sample_mix_single_lane/scenes/sample_prep_bench_override.yaml))
+([sample_prep_bench_override.yaml](../../../content/protocols/sdspage/sdspage_prepare_sample_mix_single_lane/scenes/sample_prep_bench_override.yaml))
 removes an unrelated placement (`mid_microtube_sample`) but never removes
 either `laemmli_4x_bottle` duplicate. Note `sample_prep_bench.yaml` also
 double-places `microtube_rack_24` (`mid_eppendorf_rack` and

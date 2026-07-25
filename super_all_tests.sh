@@ -16,7 +16,8 @@
 #
 # Full output is saved to SUPER_LOG.txt. A short PASS/FAIL line prints per step.
 #
-# To add a new test: add one line in the matching section of main() below.
+# E2E files with the supported e2e_*.py, e2e_*.mjs, and e2e_*.sh names run
+# automatically.
 #
 # Usage:
 #   ./super_all_tests.sh
@@ -147,6 +148,11 @@ print_summary() {
 		done
 		echo "failed: $failed of $total"
 	} >> "$LOG"
+
+	if [ "$failed" -eq 0 ]; then
+		return 0
+	fi
+	return 1
 }
 
 
@@ -180,13 +186,18 @@ main() {
 		[ -e "$testfile" ] || continue
 		run "e2e: $(basename "$testfile")" node --import tsx "$testfile"
 	done
+	#     Shell E2E tests run directly through bash, as documented in E2E_TESTS.
+	for testfile in tests/e2e/e2e_*.sh; do
+		[ -e "$testfile" ] || continue
+		run "e2e: $(basename "$testfile")" bash "$testfile"
+	done
 
 	# --- 4. Browser tests in tests/playwright/ (pytest skips this folder). ---
 	#     Runs every .spec.ts through the Playwright runner front door, which
 	#     includes the protocol walker sweep spec.
 	run "browser tests" bash run_playwright_tests.sh
 
-	# --- Done: print the results table and exit non-zero if anything failed. ---
+	# --- Done: print the results table and return non-zero if anything failed. ---
 	print_summary
 }
 

@@ -130,8 +130,8 @@ def predicted_label_overlap(scene: dict[str, Any], dump_data: dict[str, Any]) ->
 	This means any overlap drives the score below 100, and a scene where
 	all labels overlap scores 0.
 
-	Returns None if dump_data has fewer than 2 placements (no pair to compare)
-	or if placements key is missing.
+	A single valid label scores 100 because no other label or footprint can
+	overlap it. Returns None only when placement or label evidence is absent.
 
 	Args:
 		scene: Parsed scene YAML dict. (Not used; included for API uniformity.)
@@ -141,13 +141,15 @@ def predicted_label_overlap(scene: dict[str, Any], dump_data: dict[str, Any]) ->
 		Float in [0, 100], or None if required data is absent.
 	"""
 	dump_placements = dump_data.get('placements')
-	if not dump_placements or len(dump_placements) < 2:
+	if not dump_placements:
 		return None
 
 	# Only consider placements with valid label bboxes.
 	valid = [dp for dp in dump_placements if _bbox_valid(dp['label_bbox'])]
-	if len(valid) < 2:
+	if not valid:
 		return None
+	if len(valid) == 1:
+		return 100.0
 
 	# Count placements whose label overlaps any other placement's footprint or label.
 	overlapping_count = 0

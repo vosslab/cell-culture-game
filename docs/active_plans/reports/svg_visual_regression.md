@@ -81,4 +81,3 @@ Files are named `NNN_<stem>_<engine>_orig.png` and `NNN_<stem>_<engine>_norm.png
 
 **Chromium:** 26.3% identical, 23.7% minor, 50.0% divergent
 **Firefox:** 27.7% identical, 21.0% minor, 51.3% divergent
-

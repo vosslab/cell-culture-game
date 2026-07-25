@@ -25,14 +25,15 @@ visual_states:
     kind: overlay
     formula: label(state(set_time_s), format="{value} s")
   door_open:
+    kind: composite
+    composite: []
+  running:
     kind: svg
     cases:
       - when: false
         output: { asset_name: microwave_closed }
       - when: true
-        output: { asset_name: microwave_closed }
-  running:
-    kind: composite
+        output: { asset_name: microwave_heating }
 
 capabilities: [clickable, instrument_with_setpoint]
 

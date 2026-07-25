@@ -1,0 +1,13 @@
+scene_name: sdspage_stain_gel_workspace
+extends: staining_bench
+
+remove_placements:
+  # Staining uses water, Coomassie, the recycle bottle, tray, microwave, shaker,
+  # and general waste. Destain supplies and kimwipes belong to the next phase.
+  - rear_center_destain
+  - rear_center_destain_waste
+  - right_tool_area_kimwipe
+
+scene_notes: |
+  Focused Coomassie staining workspace with the rinse, stain, recovery, heating,
+  and rocking tools required by this mini-protocol.

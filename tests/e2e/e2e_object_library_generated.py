@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""End-to-end check for the generated generated/object_library.ts artifact.
+"""End-to-end check for the generated object_library.ts artifact.
 
 Lives in tests/e2e/ because it reads a GENERATED build artifact
 (generated/object_library.ts) rather than walking source YAML. Reading a
@@ -9,16 +9,18 @@ Per docs/E2E_TESTS.md and docs/PYTEST_STYLE.md, artifact round-trip checks belon
 here, not in `pytest tests/`. The fast YAML-walk behavioral tests stay in
 tests/test_object_library_visual_states.py.
 
-This verifies the generator -> generated file round trip: the emitted
-object_library.ts must carry the aspirating_pipette visual_states behavioral
-contract (the fill_height formula and the held_material_name cases).
+This verifies the generator -> generated module round trip: the emitted
+aspirating_pipette must carry the declarative held-material volume contract and
+its paired material identity state.
 
 Usage:
 	python3 tests/e2e/e2e_object_library_generated.py
 Exits 0 on success, nonzero on first failure.
 """
 
+import json
 import os
+import subprocess
 import sys
 
 # tests/file_utils.py is the shared repo-root helper. This e2e script runs
@@ -32,17 +34,41 @@ import file_utils
 
 #============================================
 
-def check_generated_visual_states(repo_root: str) -> None:
-	"""Read generated/object_library.ts and assert the behavioral contract."""
+def load_generated_aspirating_pipette(repo_root: str) -> dict:
+	"""Load the generated module through the same TypeScript loader as runtime checks."""
 	generated_path = os.path.join(repo_root, "generated", "object_library.ts")
-	with open(generated_path, "r") as f:
-		content = f.read()
+	loader_script = (
+		"import { pathToFileURL } from 'node:url'; "
+		"const module = await import(pathToFileURL(process.argv[1]).href); "
+		"console.log(JSON.stringify(module.OBJECT_LIBRARY.aspirating_pipette));"
+	)
+	result = subprocess.run(
+		["node", "--import", "tsx", "--input-type=module", "-e", loader_script, generated_path],
+		check=True,
+		capture_output=True,
+		cwd=repo_root,
+		text=True,
+	)
+	return json.loads(result.stdout)
 
-	# The generated file must contain visual_states for aspirating_pipette and
-	# reference the fill_height formula (behavioral contract), plus the
-	# held_material_name cases.
-	assert "fill_height(state(held_material_volume)" in content
-	assert "'held_material_name'" in content
+
+#============================================
+
+def check_generated_visual_states(repo_root: str) -> None:
+	"""Assert the generated pipette preserves the held-material render contract."""
+	pipette = load_generated_aspirating_pipette(repo_root)
+	volume_state = pipette["visual_states"]["held_material_volume"]
+	identity_state = pipette["visual_states"]["held_material_name"]
+	expected_volume_state = {
+		"applies_to": "object",
+		"render_effect": "fill_height",
+		"target": "anchor_liquid_bounds",
+		"clip": "anchor_liquid_clip",
+		"capacity_ml": pipette["state_schema"]["held_material_volume"]["max"],
+	}
+
+	assert volume_state == expected_volume_state
+	assert identity_state["kind"] == "svg" and identity_state["cases"]
 
 
 #============================================

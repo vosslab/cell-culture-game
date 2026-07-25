@@ -12,6 +12,12 @@ The engine runs at BUILD TIME only. `pipeline/precompute_layout.mjs` runs
 `generated/precomputed_layout.ts`. The production browser loads precomputed
 positions via `resolvePrecomputedResult` in
 `src/scene_runtime/layout/precomputed_result.ts` and never calls `runPipeline`.
+
+Authored scene YAML is coordinate-free. Source zones provide only semantic
+identity, declaration order, and approved alignment hints. The engine derives
+scene bounds, zone bounds, and baselines after object binding and measurement.
+Numeric geometry in this document refers to internal resolved records, not an
+authoring surface.
 Tests import the engine directly. See [CODE_ARCHITECTURE.md](../CODE_ARCHITECTURE.md)
 for the full file-level map.
 
@@ -99,9 +105,9 @@ The surrounding loose objects may still use the layout engine.
 
 ## Zones
 
-A zone is a horizontal row-like placement area declared by `bounds` (`left`,
-`right`, `top`, `bottom`, in scene percent), an optional authored `baseline`
-seed, and an alignment mode. The fused-format per-zone `gap` field is
+A source zone is an ordered semantic group declared by `zone_name`, optional
+`align`, and optional `label`. The manager derives its internal bounds and
+baseline from measured demand. The former per-zone `gap` field is
 retired; the inter-placement gap budget lives on scene-wide
 `layout_rules.zone_gap` instead. See [SCENE_YAML_FORMAT.md](SCENE_YAML_FORMAT.md)
 "Zones" for the authored schema.
@@ -157,8 +163,8 @@ group is the organizing goal; balancing footprint across many zones is not.
 When items do not fit, the engine shrinks gaps then scales footprints and visual
 widths down to the configured minimum. If content is still too large, negative
 gaps (visible overlap) are permitted as an intentional failure mode. Fix
-overflow by moving objects to a new zone, using tab stops, or reducing
-`width_scale` for secondary objects.
+overflow by changing semantic zone membership, using tab stops, or correcting
+an object-side intrinsic display dimension when it is wrong everywhere.
 
 ## Vertical placement
 
@@ -175,36 +181,25 @@ easy to confuse:
   first). See [Two-pass vertical reflow](#two-pass-vertical-reflow) below
   for how tier rows and their shared baseline are computed.
 
-A SHELF is one `depth_tier` row across every zone that authors the SAME
-`bounds.top..bottom` (a horizontal row of side-by-side zones, for example
+A SHELF is one `depth_tier` row across zones that semantic-zone lowering places
+in the same derived horizontal row (for example
 `rear_left` / `rear_center` / `rear_right`). Every object on a shelf shares
 ONE baseline, so a row of unequal-height objects lands its bottom edges on
 one common line instead of each zone floating at its own height. Zones the
 reflow merely fused for a partial vertical overlap (a working-surface band
-that touches a front band) keep their own shelves; only zones authored at
-identical bounds form one shelf (`groupBandsByAuthoredRow` in
+that touches a front band) keep their own shelves; only zones that resolve to
+the same derived row form one shelf (`groupBandsByAuthoredRow` in
 `vertical_layout.ts`).
 
-The shared shelf baseline for a placement resolves in this order:
-
-1. `item.baseline_override` if present. This pins the object baseline
-   directly and bypasses the shelf entirely (rare; no current content
-   uses it).
-2. `shelfBaselineFor()`: the lowest computed row bottom across the
+The shared shelf baseline is derived by `shelfBaselineFor()`: the lowest
+computed row bottom across the
    shelf's tier rows (`max(rowTop + rowHeight)`, so the tallest column
    defines the line), pulled up by the largest bottom-side label reserve
    present on the shelf, and floored so the tallest object's top never
    rises above its own row (containment). This computed geometry is the
-   sole source of the final anchor line.
-
-A zone's authored `baseline` field has two narrower, EARLIER-stage uses
-that do not feed the shelf baseline above: the horizontal placement
-strategies (`row_strategy.ts`, `pack_strategy.ts`) read it as a
-provisional pre-reflow y-seed, and the reflow stage separately reports a
-`ComputedZoneBand.baseline` (the authored fraction preserved against the
-reflowed band, or the band center when unauthored) for diagnostics. Both
-are earlier or reporting-only signals; neither determines where an object
-finally lands.
+sole source of the final anchor line. `baseline_override` is not an authored
+placement field. The resolved zone baseline is internal geometry used by later
+placement and diagnostic stages.
 
 The `anchor_y` mode then maps the shelf baseline to the item's top edge;
 see [Anchor-coordinate convention](#anchor-coordinate-convention) below for
@@ -368,8 +363,8 @@ the bare object height.
 ### Computed zone bands
 
 A computed zone band (`ComputedZoneBand`) is the reflowed vertical range a zone
-occupies after measurement. Zones whose authored vertical ranges overlap are
-treated as one band group (side-by-side zones in an authored row share a band);
+occupies after measurement. Zones whose derived vertical ranges overlap are
+treated as one band group (side-by-side zones in a derived row share a band);
 the group's height is the maximum of its member zones' content extents. Inside a
 band, items bucket into depth-tier rows (one row per `depth_tier`), each row
 height is the maximum measured extent over the side-by-side items in that tier,
@@ -399,8 +394,8 @@ Band membership is same-horizontal-row grouping, not raw vertical-range
 overlap. `groupVerticalBands` (`src/scene_runtime/layout/reflow_zones.ts`)
 groups zones into one band only when they occupy the same horizontal row
 (exact side-by-side zones, or a small documented partial-overlap pair). A
-zone whose authored vertical span crosses multiple row cohorts is a spanning
-overlay, not a row participant, and is placed in its own authored bounds
+zone whose derived vertical span crosses multiple row cohorts is a spanning
+overlay, not a row participant, and is placed in its own resolved bounds
 outside the contiguous row stack rather than fusing the rows it crosses. A
 predicate that instead treats any vertical-range overlap as row membership
 lets a single tall zone transitively bridge unrelated rows into one band,
@@ -442,7 +437,7 @@ from the horizontal packer `MIN_SCALE`.
 The vertical layout manager is forgiving, lenient, mutable, and mercurial:
 
 - forgiving: it accommodates imperfect fit, and never crops or crashes.
-- lenient: authored bounds are seeds, not walls.
+- demand-aware: derived bounds follow measured object and label demand.
 - mutable: bands, baselines, and rows are computed, not fixed.
 - mercurial: it reflows readily as measured content changes.
 
@@ -450,9 +445,10 @@ The vertical layout manager is forgiving, lenient, mutable, and mercurial:
 
 1. Create the scene YAML under `content/base_scenes/<name>.yaml`.
 2. Define `placements` with stable `placement_name`, `object_name`, `zone`,
-   `depth_tier`, and any `layout` overrides (`width_scale`, `anchor_y`, etc).
-3. Define `zones` with `zone_name`, `bounds` (`left`, `right`, `top`,
-   `bottom`), an optional `baseline`, and `align`.
+   `depth_tier`, and approved categorical hints (`align_stop`, `anchor_y`, or
+   `label_placement`) when needed.
+3. Define ordered `zones` with `zone_name`, optional `align`, and optional
+   author-facing `label`; the manager derives bounds and baselines.
 4. Add any missing `ASSET_SPECS` entries in `generated/object_library.ts`
    (via `content/objects/` YAML and `pipeline/gen_object_library.py`).
 5. Re-run `bash pipeline/build_generated.sh` and then `pipeline/precompute_layout.mjs`
@@ -463,13 +459,12 @@ The vertical layout manager is forgiving, lenient, mutable, and mercurial:
 
 ## Tuning order
 
-1. Zone geometry (`bounds`, `baseline`).
-2. Placement zone membership.
-3. `align` and `align_stop`.
-4. Asset `default_width` (if the global asset size is wrong everywhere).
-5. Placement `width_scale` (if the asset size is only wrong in this scene).
-6. Renderer-level label suppression for dense, secondary placements.
-7. `baseline_override` only for exceptional visual-contact fixes.
+1. Zone declaration order and placement zone membership.
+2. `align`, `align_stop`, and depth tiers.
+3. Object `display_width_cm` or other intrinsic object metric when that object
+   is wrong everywhere.
+4. Renderer-level label policy for dense, secondary placements.
+5. Re-render and inspect the derived composition before changing another layer.
 
 Avoid changing engine constants for a single scene; constants affect every
 layout-driven scene.

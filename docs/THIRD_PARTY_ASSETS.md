@@ -16,7 +16,7 @@ Attribution: Servier Medical Art, smart.servier.com
 | culture-flask-filled-lid.svg    | assets/equipment/t75_flask_v5.svg | Added anchor_liquid_clip, anchor_liquid_bounds, anchor_label, overlay_root |
 | falcon-15ml-empty.svg           | assets/equipment/falcon_15ml.svg  | Added anchor system                                                        |
 | falcon-50ml-empty.svg           | assets/equipment/falcon_50ml.svg  | Added anchor system                                                        |
-| cell-culture-equipment-1.svg    | assets/equipment/cell_counter.svg | Added anchor system                                                        |
+| cell-culture-equipment-1.svg    | assets/equipment/cell_counter_instrument.svg | Added anchor system                                             |
 | tube-screwcap-closed-orange.svg | assets/equipment/mtt_vial.svg     | Added anchor system                                                        |
 
 ### Lab Apparatus Collection
@@ -27,7 +27,7 @@ Attribution: Servier Medical Art, smart.servier.com
 | incubator.svg         | assets/equipment/incubator.svg    | Added anchor system |
 | microscope.svg        | assets/equipment/microscope.svg   | Added anchor system |
 | spectrophotometer.svg | assets/equipment/plate_reader.svg | Added anchor system |
-| bath_filled.svg       | assets/equipment/water_bath.svg   | Added anchor system |
+| bath-empty.svg; bath_filled.svg | assets/equipment/water_bath.svg; assets/equipment/water_bath_occupied.svg | Direct normalized adaptations of the respective Servier open-bath source; shared stable frame and runtime anchors only |
 | agitator.svg          | assets/equipment/vortex.svg       | Added anchor system |
 
 ### Chemistry Collection
@@ -75,13 +75,17 @@ Non-liquid equipment (centrifuge, microscope, etc.) include only:
 - `anchor_label`: rect positioning dynamic labels
 - `overlay_root`: transparent overlay mount
 
-## Recoloring
+## Material rendering
 
-Liquid bottle artwork is no longer shipped as one Servier-derived SVG per
-liquid. The shared `assets/equipment/bottle.svg` (hand-authored, not
-Servier-derived) is recolored at runtime by the patch pipeline in
-`src/svg_color_patch.ts` driven by `src/svg_recipes.ts`. See
-`assets/equipment/bottle.colormap.json` for the group definition.
+Object declarations select material effects; the shared renderer resolves the
+active protocol material registry and updates declared regions in injected SVG
+instances. `src/scene_runtime/renderer/anchor_material_renderer.ts` owns the
+DOM mutation for the `anchor_liquid_bounds` target and optional
+`anchor_liquid_clip`. SVG injection owns per-instance anchor resolution, so
+assets provide anchors rather than object-specific recoloring code.
+
+The current equipment source and attribution ledger is
+`assets/equipment/SOURCES.md`.
 
 ## Attribution Footer
 

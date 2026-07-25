@@ -1,47 +1,34 @@
-<svg xmlns="http://www.w3.org/2000/svg" id="waste_container" viewBox="0 0 44 73">
-	<defs>
-		<!-- Liquid clip: inner Erlenmeyer body silhouette -->
-		<clipPath id="anchor_liquid_clip">
-			<path d="M 9 33 L 5 58 Q 5 68 10 71 L 34 71 Q 39 68 39 58 L 35 33 Z"/>
-		</clipPath>
-	</defs>
-
-
-	<!-- BODY: Erlenmeyer-style waste bottle -->
-	<g id="body">
-		<!-- flask body (wide at bottom, tapers at neck junction) -->
-		<path d="M 7 16 L 5 31 L 2 58 Q 2 68 7 71 L 37 71 Q 42 68 42 58 L 39 31 L 37 16 Z" fill="#f0f0f0" stroke="#333333" stroke-width="1.5"/>
-		<!-- inner face -->
-		<path d="M 10 19 L 8 31 L 5 58 Q 5 65 9 68 L 35 68 Q 39 65 39 58 L 36 31 L 34 19 Z" fill="#f8f8f8" stroke="none"/>
-		<!-- glass shine -->
-		<ellipse cx="13" cy="43" rx="3" ry="14" fill="#ffffff" opacity="0.5"/>
-	</g>
-
-	<!-- NECK: narrow connecting section -->
-	<g id="neck">
-		<rect x="14" y="9" width="16" height="9" rx="1" fill="#f0f0f0" stroke="#333333" stroke-width="1.5"/>
-		<rect x="16" y="11" width="12" height="5" rx="0.5" fill="#f8f8f8" stroke="none"/>
-		<line x1="16" y1="13" x2="28" y2="13" stroke="#999999" stroke-width="0.4"/>
-	</g>
-
-	<!-- CAP: screw cap -->
-	<g id="cap">
-		<rect x="14" y="4" width="16" height="7" rx="1" fill="#888888" stroke="#333333" stroke-width="1.5"/>
-		<ellipse cx="22" cy="4" rx="8" ry="2" fill="#999999" stroke="#333333" stroke-width="1"/>
-		<line x1="17" y1="7" x2="27" y2="7" stroke="#666666" stroke-width="0.4"/>
-	</g>
-
-	<!-- LABEL_FRAME: static label background -->
-	<g id="label_frame">
-		<rect x="9" y="51" width="26" height="14" rx="1" fill="#ffffff" opacity="0.85" stroke="#999999" stroke-width="0.8"/>
-	</g>
-
-	<!-- OVERLAY_ROOT: engine injects dynamic overlays here -->
-	<g id="overlay_root"/>
-
-	<!-- ANCHORS: invisible positioning elements -->
-	<rect id="anchor_liquid_bounds" x="4" y="31" width="36" height="40" fill="none" stroke="none" display="none"/>
-	<rect id="anchor_highlight" x="0" y="2" width="44" height="72" fill="none" stroke="none" display="none"/>
-	<rect id="anchor_label" x="9" y="51" width="26" height="14" fill="none" stroke="none" display="none"/>
-	<rect id="anchor_error" x="40" y="15" width="14" height="14" fill="none" stroke="none" display="none"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 125 140">
+  <defs>
+    <clipPath id="anchor_liquid_clip">
+      <path d="M25 43c0-5 4-9 9-9h52c5 0 9 4 9 9v79c0 5-4 9-9 9H34c-5 0-9-4-9-9z"/>
+    </clipPath>
+  </defs>
+  <ellipse cx="60" cy="133" rx="43" ry="4" fill="#78909c" opacity=".28"/>
+  <path d="M21 43c0-8 6-14 14-14h50c8 0 14 6 14 14v80c0 8-6 14-14 14H35c-8 0-14-6-14-14z" fill="#c9dde0" stroke="#173b49" stroke-linejoin="round" stroke-width="3"/>
+  <path d="M25 43c0-5 4-9 9-9h52c5 0 9 4 9 9v79c0 5-4 9-9 9H34c-5 0-9-4-9-9z" fill="#edf7f6" opacity=".72"/>
+  <path d="M31 48v69c0 6 3 10 8 12" fill="none" opacity=".85" stroke="#fff" stroke-linecap="round" stroke-width="4"/>
+  <g id="overlay_root"/>
+  <path d="M84 48h11c5 0 9 4 9 9v28c0 5-4 9-9 9H84c-5 0-9-4-9-9V57c0-5 4-9 9-9z" fill="#a8c0c4" stroke="#173b49" stroke-linejoin="round" stroke-width="3"/>
+  <path d="M86 55h8c2 0 3 1 3 3v26c0 2-1 3-3 3h-8c-2 0-3-1-3-3V58c0-2 1-3 3-3z" fill="#edf7f6" stroke="#5b7d85" stroke-width="2"/>
+  <path d="M79 29h-9v-8c0-4 3-7 7-7h10c4 0 7 3 7 7v8h-9" fill="#89a8ae" stroke="#173b49" stroke-linejoin="round" stroke-width="3"/>
+  <rect x="68" y="25" width="28" height="11" rx="3" fill="#315b68" stroke="#173b49" stroke-width="3"/>
+  <path d="M77 25v11M82 25v11M87 25v11" stroke="#9fc3c9" stroke-width="1.5"/>
+  <circle cx="82" cy="25" r="7" fill="#1e4654" stroke="#173b49" stroke-width="3"/>
+  <circle cx="82" cy="25" r="3" fill="#dceff0" stroke="#173b49" stroke-width="1.5"/>
+  <path d="M118 11C103 11 101 14 96 20l-11 8" fill="none" stroke="#173b49" stroke-linecap="round" stroke-width="7"/>
+  <path d="M118 11C103 11 101 14 96 20l-11 8" fill="none" stroke="#d5e5e4" stroke-linecap="round" stroke-width="3.5"/>
+  <path d="M85 28l-3-3" fill="none" stroke="#173b49" stroke-linecap="round" stroke-width="5"/>
+  <path data-liquid-foreground="true" d="M21 43c0-8 6-14 14-14h50c8 0 14 6 14 14v80c0 8-6 14-14 14H35c-8 0-14-6-14-14z" fill="none" stroke="#173b49" stroke-linejoin="round" stroke-width="3"/>
+  <rect x="35" y="62" width="34" height="44" rx="3" fill="#f8faf6" stroke="#173b49" stroke-width="2.5"/>
+  <g fill="none" stroke="#c5262d" stroke-linecap="round" stroke-width="5">
+    <circle cx="52" cy="84" r="4" fill="#f8faf6" stroke="#c5262d" stroke-width="2"/>
+    <path d="M50 80c-5-10-17-5-13 4 2 5 7 6 11 4-4-1-5-4-4-6 1-2 3-3 6-2z"/>
+    <path d="M54 80c5-10 17-5 13 4-2 5-7 6-11 4 4-1 5-4 4-6-1-2-3-3-6-2z"/>
+    <path d="M52 88c0 11-13 12-14 2-1-5 3-8 7-8-2 3-1 6 1 7 2 1 4 0 6-1z"/>
+  </g>
+  <rect id="anchor_liquid_bounds" x="25" y="43" width="70" height="88" fill="none" stroke="none" display="none"/>
+  <rect id="anchor_highlight" x="17" y="10" width="101" height="127" fill="none" stroke="none" display="none"/>
+  <rect id="anchor_label" x="35" y="62" width="34" height="44" fill="none" stroke="none" display="none"/>
+  <rect id="anchor_error" x="100" y="15" width="16" height="16" fill="none" stroke="none" display="none"/>
 </svg>

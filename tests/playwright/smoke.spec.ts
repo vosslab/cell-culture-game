@@ -11,9 +11,9 @@
 // dist/). No per-file server, no chromium import, no process.exit.
 //
 // Selector contract (cite source file:line so a UI change surfaces the coupling):
-//   - h1 "Virtual Lab Protocols"        src/launcher/Launcher.tsx:168-170
-//   - protocol card anchors (getByRole) src/launcher/Launcher.tsx:100-109
-//   - data-protocol-id (stable app id)  src/launcher/Launcher.tsx:103
+//   - h1 "Choose your lab experience"  src/launcher/protocol_launcher.tsx
+//   - protocol card anchors (getByRole) src/launcher/protocol_launcher.tsx
+//   - data-protocol-id (stable app id)  src/launcher/protocol_launcher.tsx
 //   - #scene-root [data-item-id] items  src/protocol_host_template.html:47,
 //                                       src/scene_runtime/renderer/scene_item.tsx:34
 //
@@ -37,18 +37,20 @@ test("smoke: launcher boots, a card click opens a protocol scene", async ({ page
 
   // Boot: the launcher heading is visible (web-first, auto-retries until ready).
   await expect(
-    page.getByRole("heading", { name: "Virtual Lab Protocols", level: 1 }),
+    page.getByRole("heading", { name: "Choose your lab experience", level: 1 }),
   ).toBeVisible();
 
-  // The index loaded at least a few protocol cards (each card is an anchor).
-  const cards = page.getByRole("link");
+  // A learner-visible launcher card is ready to open.
+  const cards = page.locator("[data-launcher-link]");
   await expect(cards.first()).toBeVisible();
-  expect(await cards.count()).toBeGreaterThanOrEqual(3);
 
   await page.screenshot({ path: "test-results/smoke_00_launcher.png" });
 
   // Visible control: click the known-good protocol card by its stable app id.
   const card = page.locator(`[data-protocol-id="${SMOKE_PROTOCOL_ID}"]`);
+  const disclosure = page.locator("details.cluster-disclosure").filter({ has: card });
+  await expect(disclosure).toHaveCount(1);
+  await disclosure.locator("summary").click();
   await expect(card).toBeVisible();
   await card.click();
 

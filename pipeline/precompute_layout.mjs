@@ -2,8 +2,10 @@
 //
 // Runs the scene layout engine once per scene at the canonical 16:9 frame
 // (1920x1080) and emits generated/precomputed_layout.ts as a map keyed by
-// scene_name, each entry holding { final: ComputedItem[], unifiedDiagnostics:
-// UnifiedDiagnostic[] }. The browser loads these positions instead of
+// scene_name, each entry holding { final: ComputedItem[], scene:
+// ResolvedScene, zoneBands: ComputedZoneBand[], unifiedDiagnostics:
+// UnifiedDiagnostic[] }. The browser loads
+// these positions and build-time-resolved zones instead of
 // recomputing layout at runtime; the diagnostics stream travels alongside for
 // report tooling that reads the built artifact.
 //
@@ -57,8 +59,8 @@ function repo_root() {
 
 // Run the engine for one scene at the canonical 16:9 frame and return the full
 // PipelineResult. This is the exact call the runtime renderer makes, differing
-// only in the fixed viewport argument. Callers read `final` (the laid-out items)
-// and `unifiedDiagnostics` (the report stream carried into the artifact).
+// only in the fixed viewport argument. Callers read `final` (the laid-out items),
+// `scene` (resolved geometry), and `unifiedDiagnostics` (the report stream).
 function run_scene(scene) {
   const result = runPipeline(scene, {
     library: OBJECT_LIBRARY,
@@ -95,16 +97,20 @@ function build_artifact(layout_by_scene) {
   body += "//\n";
   body += "// Build-time layout: runPipeline output for every scene at the canonical\n";
   body += "// 16:9 frame (" + PRECOMPUTE_VIEWPORT.w + "x" + PRECOMPUTE_VIEWPORT.h + ").\n";
-  body += "// Keyed by scene_name; each entry holds { final: ComputedItem[],\n";
-  body += "// unifiedDiagnostics: UnifiedDiagnostic[] }.\n";
+  body += "// Keyed by scene_name; each entry holds { final: ComputedItem[], scene:\n";
+  body += "// ResolvedScene, zoneBands: ComputedZoneBand[], unifiedDiagnostics:\n";
+  body += "// UnifiedDiagnostic[] }.\n";
   body += "\n";
-  body += "import type { ComputedItem } from '../src/scene_runtime/layout/types.js';\n";
+  body +=
+    "import type { ComputedItem, ComputedZoneBand, ResolvedScene } from '../src/scene_runtime/layout/types.js';\n";
   body +=
     "import type { UnifiedDiagnostic } " +
     "from '../src/scene_runtime/layout/diagnostics/unified.js';\n";
   body += "\n";
   body += "export interface PrecomputedSceneLayout {\n";
   body += "\tfinal: ComputedItem[];\n";
+  body += "\tscene: ResolvedScene;\n";
+  body += "\tzoneBands: ComputedZoneBand[];\n";
   body += "\tunifiedDiagnostics: UnifiedDiagnostic[];\n";
   body += "}\n";
   body += "\n";
@@ -115,6 +121,8 @@ function build_artifact(layout_by_scene) {
   for (const name of scene_names) {
     ordered[name] = {
       final: layout_by_scene[name].final,
+      scene: layout_by_scene[name].scene,
+      zoneBands: layout_by_scene[name].zoneBands,
       unifiedDiagnostics: layout_by_scene[name].unifiedDiagnostics,
     };
   }
@@ -182,6 +190,8 @@ function main() {
     // here.
     layout_by_scene[name] = {
       final: sort_items(result.final),
+      scene: result.scene,
+      zoneBands: [...result.zoneBands.values()].sort((a, b) => a.id.localeCompare(b.id)),
       unifiedDiagnostics: result.unifiedDiagnostics,
       severityDiagnostics: result.severityDiagnostics,
     };

@@ -1,11 +1,9 @@
 """Gate test: verify every object YAML asset_name resolves to assets/equipment/*.svg."""
 
 import pathlib
-import sys
 
 import yaml
 
-sys.path.insert(0, str(pathlib.Path(__file__).parent))
 import file_utils
 
 REPO_ROOT = pathlib.Path(file_utils.get_repo_root())

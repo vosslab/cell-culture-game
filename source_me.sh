@@ -6,6 +6,7 @@
 # bash-specific. Fail loudly rather than misbehave under another shell.
 set | grep -q '^BASH_VERSION=' || echo "use bash for your shell"
 set | grep -q '^BASH_VERSION=' || exit 1
+ulimit -Sn 65536
 
 # Source ~/.bashrc FIRST, before any repo-specific environment extension below.
 # ~/.bashrc applies local shell setup (PATH, etc.) and resets some variables --

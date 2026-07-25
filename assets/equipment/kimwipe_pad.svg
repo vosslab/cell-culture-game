@@ -1,9 +1,13 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 70">
-  <defs>
-    <style>
-      .placeholder-border { fill: none; stroke: #999; stroke-width: 2; stroke-dasharray: 4,2; }
-      .placeholder-text { font-family: Arial, sans-serif; font-size: 9; fill: #666; text-anchor: middle; }
-    </style>
-  </defs>
-  <rect class="placeholder-border" x="5" y="5" width="110" height="46" rx="4" />
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160" role="img" aria-labelledby="kimwipe-title kimwipe-desc">
+  <title id="kimwipe-title">Loose bundle of four Kimwipes</title>
+  <desc id="kimwipe-desc">Four overlapping thin rectangular laboratory tissues lie in an uneven loose bundle. Their deckled paper corners and soft folds gather into a small paper knot.</desc>
+  <path d="M20 41l12-8 132 2 8 8-4 22-13 7-129-3-8-9 3-8-5-5z" fill="#eef3ed" stroke="#81979a" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M51 79l10-8 109-14 11 7-3 25-12 8-109 16-10-7 3-10-6-7z" fill="#fafcf6" stroke="#81979a" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M98 25l11-7 99 24 8 10-6 22-11 4-94-25-7-9 4-8-4-6z" fill="#f3f7f1" stroke="#81979a" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M70 106l11-7 119 12 10 9-5 23-11 4-117-14-8-10 4-8-5-9z" fill="#fffef9" stroke="#81979a" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M32 48l25 2m16 0 31 1m17 1 24 1m15 1 9 0M62 87l19-2m16-3 25-3m18-2 23-3m17-2 10-1M113 35l16 4m17 4 24 6m16 4 12 3M87 116l20 2m18 2 25 3m18 2 21 2" fill="none" stroke="#c2d0c8" stroke-width="2.1" stroke-linecap="round"/>
+  <path d="M45 57l8-5m29 48 9-6m72-47 8-5m-8 81 10-6" fill="none" stroke="#dce6dc" stroke-width="2.2" stroke-linecap="round"/>
+  <path d="M104 75c6-8 16-13 25-11 12 2 21 10 22 19 1 10-8 20-19 24-12 4-25 1-31-8-5-7-3-17 3-24z" fill="#d6e1d8" stroke="#70888b" stroke-width="3.2" stroke-linejoin="round"/>
+  <path d="M110 77c5-3 10 2 15 2 6 0 10-6 15-3 6 4 7 10 3 15-4 6-10 9-17 9-8 0-15-4-18-10-2-5-1-10 2-13z" fill="#fffef9" stroke="#91a6a2" stroke-width="2.5" stroke-linejoin="round"/>
+  <path d="M105 82c7 3 14 4 21 2 5-2 10-3 15-1m-20 18c1-6 3-12 5-18m15 9c-5-4-10-7-15-9m-15 4 15-4" fill="none" stroke="#b2c2ba" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
 </svg>

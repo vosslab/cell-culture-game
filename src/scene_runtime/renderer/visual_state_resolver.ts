@@ -15,7 +15,13 @@
 //     not silently no-opped)
 // Unknown formula tokens fail loud.
 
-import type { ObjectVisualStates, VisualStateCase } from "../layout/types.js";
+import type {
+  ObjectVisualStates,
+  RenderEffect,
+  RenderEffectTarget,
+  VisualStateCase,
+  VisualStateOutput,
+} from "../layout/types.js";
 import { resolve_color_result } from "./material_color.js";
 
 //============================================
@@ -54,6 +60,20 @@ export interface TextOverlay {
 
 export type Overlay = FillOverlay | TextOverlay;
 
+// A material effect authored against anchors in the base SVG. Unlike legacy
+// box overlays, this is rendered inside the injected, namespaced SVG so the
+// liquid stays within the instrument's declared vessel geometry.
+export interface AnchorMaterialEffect {
+  type: "anchor_material";
+  field_name: string;
+  render_effect: RenderEffect;
+  target: RenderEffectTarget;
+  clip?: RenderEffectTarget;
+  fill_percent: number;
+  material_name: string;
+  color: string | null;
+}
+
 // Resolved material color: a single scalar `#rrggbb` hex string, or null when
 // the material has no color (sentinel material such as `empty`, or no material
 // field on the object). There is no theme branch (see
@@ -65,8 +85,15 @@ export interface ResolvedVisualState {
   // Base SVG asset selected by the object's enum/bool svg visual_state, or
   // null when the object declares no svg case map.
   asset_name: string | null;
+  // Transparent full-frame SVG layers selected by composite visual states.
+  // They are rendered over asset_name in authored order.
+  asset_layers: string[];
   // Ordered list of overlays (fills and text) to composite over the asset.
   overlays: Overlay[];
+  // Declarative object-level material effects. These are kept distinct from
+  // legacy bbox overlays so the DOM renderer cannot accidentally paint them
+  // outside their authored SVG anchors.
+  anchor_material_effects: AnchorMaterialEffect[];
   // Theme color pair for the object's current material, or null.
   material_color: MaterialColor;
   // Convenience: the first text overlay's text, when present.
@@ -414,6 +441,36 @@ function resolve_svg_asset(
   );
 }
 
+function resolve_case_output(
+  field_name: string,
+  cases: VisualStateCase[],
+  state: ObjectState,
+): VisualStateOutput {
+  const value = read_state_field(state, field_name);
+  for (const entry of cases) {
+    if (case_matches(entry.when, value)) {
+      return entry.output;
+    }
+  }
+  throw new Error(
+    `visual_state_resolver: no composite case matched '${field_name}' value '${String(value)}'`,
+  );
+}
+
+function collect_asset_layers(output: VisualStateOutput, layers: string[]): void {
+  if ("asset_name" in output) {
+    layers.push(output.asset_name);
+    return;
+  }
+  if ("composite" in output) {
+    for (const part of output.composite) {
+      collect_asset_layers(part, layers);
+    }
+    return;
+  }
+  throw new Error("visual_state_resolver: overlay_name composites are not renderable asset layers");
+}
+
 //============================================
 // Material color resolution
 //============================================
@@ -431,6 +488,157 @@ function read_material_name(state: ObjectState): string | null {
     }
   }
   return null;
+}
+
+// Derive the corresponding material identity field from a declared driving
+// field, not from an object name. The vocabulary supports material_volume,
+// held_material_volume, volume_ml, held_volume_ul, and scoped fields such as
+// inner_chamber_volume_ml. Each reduces to the same <prefix>material_name
+// pairing convention. A declaration without its paired identity is invalid
+// content and is deliberately loud rather than painted neutral gray.
+function material_field_for_driver(field_name: string): string {
+  const without_unit = field_name.replace(/_(?:ml|ul)$/, "");
+  const without_volume = without_unit.endsWith("_volume")
+    ? without_unit.slice(0, -"_volume".length)
+    : without_unit;
+  if (without_volume.length === 0 || without_volume === "material") {
+    return "material_name";
+  }
+  if (without_volume.endsWith("_material")) {
+    return `${without_volume}_name`;
+  }
+  return `${without_volume}_material_name`;
+}
+
+function material_field_for_effect(field_name: string): string {
+  return field_name.endsWith("material_name") ? field_name : material_field_for_driver(field_name);
+}
+
+function read_effect_material_name(
+  state: ObjectState,
+  field_name: string,
+): { material_field: string; material_name: string } {
+  const material_field = material_field_for_effect(field_name);
+  const value = state[material_field];
+  if (typeof value !== "string") {
+    throw new Error(
+      `visual_state_resolver: render effect '${field_name}' has invalid material identity ` +
+        `in '${material_field}'; use a material-name string or 'empty'`,
+    );
+  }
+  return { material_field, material_name: value };
+}
+
+// An identity-only tint may accompany an amount field in the same generic
+// naming family. It is not required (a structured well has no object-level
+// volume), but when one is present, a zero amount must agree with the named
+// absence value `empty`. Candidate order covers material_name -> material_volume,
+// held_material_name -> held_material_volume, and scoped names such as
+// inner_chamber_material_name -> inner_chamber_volume_ml without an
+// object-specific branch.
+function paired_volume_value(state: ObjectState, material_field_name: string): number | null {
+  const direct_base = material_field_name.replace(/_name$/, "");
+  const candidates = [`${direct_base}_volume`];
+  if (material_field_name.endsWith("_material_name")) {
+    const scoped_base = material_field_name.slice(0, -"_material_name".length);
+    candidates.push(
+      `${scoped_base}_volume`,
+      `${scoped_base}_volume_ml`,
+      `${scoped_base}_volume_ul`,
+    );
+  }
+  for (const candidate of candidates) {
+    const value = state[candidate];
+    if (typeof value === "number") {
+      return value;
+    }
+  }
+  return null;
+}
+
+function resolve_effect_color(
+  field_name: string,
+  state: ObjectState,
+  material_registry: MaterialRegistry | null,
+): { material_field: string; material_name: string; color: string | null } {
+  const material = read_effect_material_name(state, field_name);
+  const { material_name } = material;
+  const result = resolve_color_result(material_name, material_registry);
+  if (!result.ok) {
+    throw new Error(`visual_state_resolver: ${result.reason}`);
+  }
+  return { ...material, color: result.color };
+}
+
+function resolve_anchor_effect(
+  field_name: string,
+  def: NonNullable<ObjectVisualStates[string]>,
+  state: ObjectState,
+  material_registry: MaterialRegistry | null,
+): AnchorMaterialEffect {
+  if (def.render_effect === undefined || def.target === undefined) {
+    throw new Error(`visual_state_resolver: incomplete render effect '${field_name}'`);
+  }
+  const material = resolve_effect_color(field_name, state, material_registry);
+  let fill_percent = 100;
+  if (def.render_effect === "fill_height") {
+    const amount_value = state[field_name];
+    if (amount_value === undefined && material.material_name !== "empty") {
+      throw new Error(
+        `visual_state_resolver: non-empty material '${material.material_name}' requires ` +
+          `amount field '${field_name}' for fill_height`,
+      );
+    }
+    const value = read_state_field(state, field_name);
+    if (typeof value !== "number") {
+      throw new Error(`visual_state_resolver: fill_height field '${field_name}' is not numeric`);
+    }
+    if (value === 0 && material.material_name !== "empty") {
+      throw new Error(
+        `visual_state_resolver: non-empty material '${material.material_name}' has zero ` +
+          `amount in '${field_name}'; use 'empty' with zero for no fill`,
+      );
+    }
+    if (value > 0 && material.material_name === "empty") {
+      throw new Error(
+        `visual_state_resolver: empty material has positive amount in '${field_name}'; ` +
+          `use a material name for a visible fill`,
+      );
+    }
+    const capacities = [def.capacity_ul, def.capacity_ml].filter(
+      (capacity): capacity is number => capacity !== undefined,
+    );
+    if (capacities.length !== 1 || capacities[0] === undefined || capacities[0] <= 0) {
+      throw new Error(
+        `visual_state_resolver: fill_height render effect '${field_name}' needs exactly one positive capacity`,
+      );
+    }
+    fill_percent = Math.max(0, Math.min(100, (value / capacities[0]) * 100));
+  } else {
+    const paired_volume = paired_volume_value(state, material.material_field);
+    if (paired_volume !== null && paired_volume === 0) {
+      if (material.material_name !== "empty") {
+        throw new Error(
+          `visual_state_resolver: non-empty material '${material.material_name}' has zero ` +
+            `paired amount; use 'empty' with zero for no fill`,
+        );
+      }
+      fill_percent = 0;
+    }
+  }
+  const effect: AnchorMaterialEffect = {
+    type: "anchor_material",
+    field_name,
+    render_effect: def.render_effect,
+    target: def.target,
+    fill_percent,
+    material_name: material.material_name,
+    color: material.color,
+  };
+  if (def.clip !== undefined) {
+    effect.clip = def.clip;
+  }
+  return effect;
 }
 
 // Resolve the object's current material color from the per-protocol registry.
@@ -471,18 +679,30 @@ export function resolve_visual_state(
   material_registry: MaterialRegistry | null,
 ): ResolvedVisualState {
   let asset_name: string | null = null;
+  const asset_layers: string[] = [];
   const overlays: Overlay[] = [];
+  const anchor_material_effects: AnchorMaterialEffect[] = [];
   const data_attrs: Record<string, string> = {};
 
   // Walk every authored visual_states entry, keyed by field_name.
   for (const field_name of Object.keys(object_visual_states)) {
     const def = object_visual_states[field_name]!;
+    if (def.render_effect !== undefined) {
+      anchor_material_effects.push(
+        resolve_anchor_effect(field_name, def, state, material_registry),
+      );
+      continue;
+    }
     if (def.kind === "svg") {
       // svg entries carry a case map selecting the base asset.
       if (!def.cases) {
         throw new Error(`visual_state_resolver: svg visual_state '${field_name}' has no cases`);
       }
       asset_name = resolve_svg_asset(field_name, def.cases, state);
+      continue;
+    }
+    if (def.kind === "composite" && def.cases) {
+      collect_asset_layers(resolve_case_output(field_name, def.cases, state), asset_layers);
       continue;
     }
     // overlay and composite entries either carry a formula or an empty
@@ -502,6 +722,11 @@ export function resolve_visual_state(
   // Expose the resolved material name as a data attribute when present.
   if (material.material_name !== null) {
     data_attrs["data-material"] = material.material_name;
+  } else if (anchor_material_effects.length > 0) {
+    // Scoped declarative effects (e.g. inner_chamber_material_name) do not
+    // participate in the older object-global material field convention, but
+    // still expose their resolved identity for inspection and browser proof.
+    data_attrs["data-material"] = anchor_material_effects[0]!.material_name;
   }
 
   // Convenience: surface the first text overlay as label_text.
@@ -518,7 +743,9 @@ export function resolve_visual_state(
 
   const result: ResolvedVisualState = {
     asset_name,
+    asset_layers,
     overlays,
+    anchor_material_effects,
     material_color: material.color,
     data_attrs,
   };

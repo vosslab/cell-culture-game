@@ -3,40 +3,25 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{PROTOCOL_NAME}}</title>
+<title>Virtual Lab Coach</title>
 <link rel="stylesheet" href="./style.css">
 </head>
 <body>
 <!--
-  Six-region protocol host layout.
+  Protocol host layout.
 
   CSS grid regions (see style.css .protocol-page-grid):
-    protocol-header  : top row -- avatar | tips-bubble | step-counter
+    protocol-header  : top row -- coach identity and progress
     scene-panel      : center-left -- bounded #scene-root (NOT full viewport)
+    interaction-controls : in-flow host for type and adjust affordances
     outline-panel    : right column -- read-only step outline (spans center + bottom rows)
-    guidance-bar     : bottom-left -- current step prompt
+    guidance-bar     : bottom-left -- one current-action rail
 
   #scene-root and #shell-root are SIBLINGS (never ancestor/descendant).
-  Shell mounts into #shell-root; scene renders into #scene-root.
+  Shell mounts one composition root into #shell-root; scene renders into #scene-root.
   This preserves the asset-crop rule (PRIMARY_CONTRACT.md item 3).
 -->
 <div class="protocol-page-grid">
-
-  <!-- Top row: avatar + tips bubble + step counter -->
-  <header class="protocol-header" data-region="header">
-    <!-- Avatar slot: static placeholder image -->
-    <div class="professor-avatar" data-region="avatar" aria-label="Professor avatar"></div>
-
-    <!-- Tips bubble: current_tip if set, else generic fallback -->
-    <div class="tips-bubble" data-region="tips-bubble">
-      <div id="tips-text" class="tips-bubble-text">Follow the current step guidance.</div>
-    </div>
-
-    <!-- Step counter box (green) -->
-    <div class="step-counter-box" data-region="step-counter" id="step-counter-box">
-      <span id="step-counter-text">0 / 0</span>
-    </div>
-  </header>
 
   <!-- Center-left: bounded scene panel -->
   <!-- .scene-panel is the grid cell; .scene-panel-inner enforces 16:9 aspect ratio
@@ -48,21 +33,18 @@
     </div>
   </div>
 
-  <!-- Right column: read-only step outline (spans center + bottom rows) -->
-  <aside class="outline-panel" data-region="outline" id="outline-panel">
-    <div class="outline-heading">Step by step<br>Outline</div>
-    <div id="outline-steps" class="outline-steps"></div>
-  </aside>
+  <!-- Permanent in-flow hosts for the visible value-entry affordances.
+       They remain available under ?shell=off because they are host structure,
+       not optional HUD content. The inactive region collapses in CSS. -->
+  <section class="interaction-controls" data-region="interaction-controls" aria-label="Protocol controls">
+    <div id="type-input-root"></div>
+    <div id="adjust-editor-root"></div>
+  </section>
 
-  <!-- Bottom-left: current step guidance bar -->
-  <div class="guidance-bar" data-region="guidance-bar" id="guidance-bar">
-    <span id="guidance-text">Loading...</span>
-  </div>
+  <!-- The mounted shell emits header, outline, and action rail grid children. -->
+  <div id="shell-root"></div>
 
 </div>
-
-<!-- Shell mounts here: sibling of .protocol-page-grid internals, outside scene-root -->
-<div id="shell-root"></div>
 
 <script>
 window.__PROTOCOL_NAME__ = "{{PROTOCOL_NAME}}";

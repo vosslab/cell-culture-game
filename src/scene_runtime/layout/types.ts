@@ -55,12 +55,23 @@ export type Background =
       asset: string;
     };
 
-export interface Zone {
+// Source-zone vocabulary.  A source zone names an ordered semantic grouping;
+// geometry is optional only while coordinate-bearing scenes are migrated.
+// Layout phases never consume this type directly.
+export interface SourceZone {
   id: string;
-  bounds: Bounds;
   align?: AlignMode;
-  baseline?: number;
   label?: string;
+  // Transitional legacy input. New authored scenes omit both fields.
+  bounds?: Bounds;
+  baseline?: number;
+}
+
+// Internal, renderer-facing geometry. Lowering produces this complete shape
+// before any placement phase runs, so downstream code never handles optional
+// bounds or baselines.
+export interface Zone extends Omit<SourceZone, "bounds"> {
+  bounds: Bounds;
 }
 
 export interface LayoutHint {
@@ -130,6 +141,9 @@ export interface VisualStateDef {
   clip?: RenderEffectTarget;
   // Optional capacity for fill_height normalization (microliters).
   capacity_ul?: number;
+  // Optional capacity for fill_height normalization (milliliters). Exactly one
+  // liquid capacity unit is authored for an anchor fill effect.
+  capacity_ml?: number;
 }
 
 // Keyed by field_name
@@ -242,9 +256,11 @@ export interface SceneA {
   scene_name: string;
   workspace: Workspace;
   capabilities?: string[];
-  scene_bounds: SceneBoundsRect;
+  // Transitional legacy input. Coordinate-free scenes are lowered to the
+  // canonical workspace bounds by the layout manager.
+  scene_bounds?: SceneBoundsRect;
   background?: Background;
-  zones: Zone[];
+  zones: SourceZone[];
   placements: PlacementAuthored[];
   layout_rules?: LayoutRules;
   wrong_order_message?: { template: string; toast_duration_ms?: number };
@@ -255,6 +271,13 @@ export interface SceneA {
   >;
   deactivate_placements?: Array<{ placement_name: string }>;
   remove_placements?: Array<{ placement_name: string } | string>;
+}
+
+// A source SceneA after semantic-zone lowering. This is the only scene shape
+// consumed by placement, guards, and render-facing PipelineResult.scene.
+export interface ResolvedScene extends Omit<SceneA, "scene_bounds" | "zones"> {
+  scene_bounds: SceneBoundsRect;
+  zones: Zone[];
 }
 
 // Required form of LayoutHint after merge: defaults applied for every field.
@@ -444,7 +467,7 @@ export interface PipelineStages {
 }
 
 export interface PipelineResult {
-  scene: SceneA;
+  scene: ResolvedScene;
   sourceScene: SceneA;
   diagnostics: Diagnostic[];
   passes: PassRecord[];

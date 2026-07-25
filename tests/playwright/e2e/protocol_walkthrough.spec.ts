@@ -14,12 +14,12 @@
 //     protocol.yaml (extracted so the spec does not import walk_all_protocols.mjs,
 //     whose top-level main() would launch the old sweep on import).
 //   - Server: the playwright.config.ts webServer block owns ONE built-and-served
-//     dist/ for every worker. The custom randomPort()/startServer()/--server-url
-//     injection and the bounded --jobs worker pool are REMOVED here, superseded by
+//     dist/ for every worker. The custom CLI server-spawn/--server-url injection
+//     and the bounded --jobs worker pool are REMOVED here, superseded by
 //     the config webServer + Playwright workers. Each test navigates via baseURL.
 //   - Honesty: a protocol that does not complete through visible UI FAILS its
-//     test via expect(). The genuinely-incomplete protocols stay RED; they are the
-//     correct acceptance signal, not conversion bugs to paper over.
+//     test via expect(). There is no expected-failure registry: every discovered
+//     curriculum protocol is part of the same acceptance contract.
 //
 // walk_all_protocols.mjs and protocol_walkthrough_yaml.mjs remain in place for
 // Phase 4 removal; this spec is self-sufficient and never shells out to them.
@@ -39,22 +39,6 @@ const WALK_TIMEOUT_MS = 240_000;
 // Every discovered curriculum protocol becomes one test below.
 const PROTOCOL_IDS = discoverProtocolIds();
 
-// Data-driven expected-fail registry: known-routed defects owned by other
-// teams, not conversion bugs of this spec. Each entry uses test.fail() so the
-// walk still RUNS and must still fail; if the underlying defect is ever
-// fixed, the protocol's test starts passing and Playwright reports an
-// unexpected pass, forcing this entry to be removed. This is self-clearing
-// documentation, not suppression (see test.skip/test.fixme, which are NOT
-// used here because they would stop the walk from running at all).
-const EXPECTED_FAIL_PROTOCOLS: Record<string, string> = {
-  cell_culture_full:
-    "expected-fail: mp5 adjust_media_quadrant material overlay-wipe, runner-context " +
-    "runtime bug, routed to architect/runtime (see memory project_volume_only_material_write_invisible)",
-  plate_drug_treatment_drug_addition:
-    "expected-fail: carb_stocks.tube_A tube-rack subpart has no visible affordance, " +
-    "pedagogy-HELD OP1, architect Direction-B RFC",
-};
-
 // Isolated results directory per protocol so parallel workers never share a
 // report or screenshot path. Resolved against REPO_ROOT so a worker's cwd does
 // not shift where evidence lands.
@@ -73,11 +57,6 @@ test.describe("walker sweep", () => {
 
   for (const protocol of PROTOCOL_IDS) {
     test(`walks ${protocol} to completion through visible UI`, async ({ page, baseURL }) => {
-      const routedReason = EXPECTED_FAIL_PROTOCOLS[protocol];
-      if (routedReason !== undefined) {
-        test.fail(true, routedReason);
-      }
-
       expect(baseURL, "config must provide a baseURL (webServer)").toBeTruthy();
 
       const outcome = await runProtocolWalk(page, {
@@ -92,6 +71,14 @@ test.describe("walker sweep", () => {
         outcome.passed,
         `protocol '${protocol}' did not complete through visible UI:\n  ${outcome.diagnostics}`,
       ).toBe(true);
+      expect(
+        outcome.checkpointManifest.length,
+        `protocol '${protocol}' recorded no target checkpoints`,
+      ).toBeGreaterThan(0);
+      expect(
+        outcome.checkpointManifestValid,
+        `protocol '${protocol}' recorded an invalid target checkpoint manifest:\n  ${outcome.diagnostics}`,
+      ).toBe(true);
     });
   }
 });
@@ -100,13 +87,14 @@ test.describe("walker sweep", () => {
 // Negative check: a wrong-object click must never advance the step
 //============================================
 
-// A known-good click-based protocol driven in wrong-order mode: before each
-// correct visible click the engine injects a real visible click on a DIFFERENT
-// present scene object and asserts the runtime rejects it (wrongOrderClicks
-// increments, the step position does not move). The protocol must still complete
-// through the correct clicks. This exercises the "clicking the wrong object does
-// not advance" guarantee that the positive sweep does not.
-const WRONG_ORDER_PROTOCOL = "sdspage_heat_denature_samples";
+// A known-good protocol with both whole-object and structured-subpart DOM
+// surfaces, driven in wrong-order mode: before each correct visible click the
+// engine injects a real visible click on a DIFFERENT actionable scene object and
+// asserts the runtime rejects it (wrongOrderClicks increments, the step position
+// does not move). The protocol must still complete through the correct clicks.
+// This catches inert subpart nodes being mistaken for clickable alternatives as
+// well as the "clicking the wrong object does not advance" guarantee.
+const WRONG_ORDER_PROTOCOL = "cell_seeding_plate_setup";
 
 test.describe("walker wrong-order negative", () => {
   test.describe.configure({ timeout: WALK_TIMEOUT_MS });
@@ -129,5 +117,12 @@ test.describe("walker wrong-order negative", () => {
       `wrong-order walk of '${WRONG_ORDER_PROTOCOL}' failed (a wrong click advanced, ` +
         `or the protocol did not complete):\n  ${outcome.diagnostics}`,
     ).toBe(true);
+    expect(
+      outcome.checkpointManifest.length,
+      "wrong-order walk recorded no target checkpoints",
+    ).toBeGreaterThan(0);
+    expect(outcome.checkpointManifestValid, "wrong-order walk checkpoint manifest is invalid").toBe(
+      true,
+    );
   });
 });

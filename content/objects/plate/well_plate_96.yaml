@@ -179,4 +179,9 @@ capabilities: [clickable, structured_surface, material_container]
 # Size the card to that wide aspect so the plate renders uncropped.
 layout:
   default_width: 20
+  # Plate-focused lessons intentionally use this enlarged display width. It is
+  # a pedagogical foreground/perspective treatment: individual wells remain
+  # legible and the plate remains dominant over supporting tools. Scene
+  # composition, never a per-placement width override, controls its placement.
+  display_width_cm: 96
   label_width: 10

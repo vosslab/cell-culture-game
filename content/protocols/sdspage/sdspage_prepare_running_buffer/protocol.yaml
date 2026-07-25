@@ -50,17 +50,22 @@ steps:
           preset: correct_target
         response:
           scene_operations: []
-      - target: running_buffer_1x_carboy
+      - target: running_buffer_preparation_carboy
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: running_buffer_1x_carboy
+              target: running_buffer_10x_bottle
               state:
-                material_name: running_buffer_1x
-                material_volume: 900
+                material_name: running_buffer_10x
+                material_volume: 400
+            - type: ObjectStateChange
+              target: running_buffer_preparation_carboy
+              state:
+                material_name: running_buffer_10x
+                material_volume: 100
     step_validator:
       preset: sequence_complete
     outcome:
@@ -71,7 +76,7 @@ steps:
     prompt:
       Complete the buffer preparation by adding ddH2O. Set the serological pipette
       to 25 mL, and make multiple aspirations and dispersals to transfer a total of
-      900 mL of deionized water from the ddH2O carboy into the running buffer carboy
+      900 mL of deionized water from the ddH2O carboy into the preparation carboy
       to reach a final volume of 1 L total. Verify the carboy holds 1 L total before
       storing.
     sequence:
@@ -93,20 +98,25 @@ steps:
               target: serological_pipette
               state:
                 set_volume: 25
-      - target: ddh2o_bottle
+      - target: ddh2o_carboy
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations: []
-      - target: running_buffer_1x_carboy
+      - target: running_buffer_preparation_carboy
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: running_buffer_1x_carboy
+              target: ddh2o_carboy
+              state:
+                material_name: ddh2o
+                material_volume: 100
+            - type: ObjectStateChange
+              target: running_buffer_preparation_carboy
               state:
                 material_name: running_buffer_1x
                 material_volume: 1000

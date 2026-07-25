@@ -10,16 +10,15 @@
 // from its exit code plus that run's own playthrough_report.json.
 //
 // Concurrency: protocols run through a bounded worker pool. The sweep starts ONE
-// shared read-only static server on ONE random port and injects its URL into
+// shared read-only static server on an OS-assigned port and injects its URL into
 // every walker child (--server-url). A static serve is read-only, so all
 // concurrent walks safely share the one server; per-walk isolation comes from
 // each walker running as its own child process (fresh browser context, fresh
 // gameState/localStorage) with its own results out-dir
-// (test-results/walker/runs/<id>/). There is no per-slot server and no
-// port-collision fallback: a collision would mean too many servers are running,
-// a different problem out of scope here. The default job count is
-// min(8, max(1, cpus - 2)) -- a bound that leaves cores for each walker's own
-// Chromium child; override it with --jobs N.
+// (test-results/walker/runs/<id>/). The server helper waits for the spawned
+// child to report its actual bound port before this runner gives its URL to any
+// walker. The default job count is min(8, max(1, cpus - 2)) -- a bound that
+// leaves cores for each walker's own Chromium child; override it with --jobs N.
 //
 // Usage:
 //   node tests/playwright/e2e/walk_all_protocols.mjs [--jobs N]
@@ -42,6 +41,11 @@ import fs from "node:fs";
 import path from "node:path";
 
 import { REPO_ROOT } from "../repo_root.mjs";
+import {
+  resolveSelfServePort,
+  startOwnedStaticServer,
+  stopOwnedStaticServer,
+} from "./walker_server.mjs";
 
 const CONTENT_DIR = path.join(REPO_ROOT, "content", "protocols");
 const DIST_DIR = path.join(REPO_ROOT, "dist");
@@ -60,55 +64,6 @@ const SUMMARY_PATH = path.join(RESULTS_DIR, "sweep_summary.json");
 // Per-protocol wall-clock budget. Mirrors the single walker's own 10-minute
 // RUN_BUDGET_MS with headroom for process spawn and teardown overhead.
 const PER_PROTOCOL_TIMEOUT_MS = 660000;
-
-//============================================
-// Shared static server
-//============================================
-
-// Pick a random static-server port in [8000, 8999]. Same shape as
-// run_web_server.sh line 64 (PORT="${PORT:-$((8000 + RANDOM % 1000))}"), the
-// canonical port convention for this repo. No free-port scan, no collision
-// retry: one random port, used for the single shared server.
-function randomPort() {
-  return 8000 + Math.floor(Math.random() * 1000);
-}
-
-// Resolve the shared server port: the PORT env var wins (matching
-// run_web_server.sh), otherwise a fresh random port.
-function resolveSharedPort() {
-  const envPort = process.env.PORT;
-  if (envPort !== undefined && envPort !== "") {
-    const parsed = Number.parseInt(envPort, 10);
-    if (Number.isInteger(parsed) && parsed >= 1 && parsed <= 65535) {
-      return parsed;
-    }
-  }
-  return randomPort();
-}
-
-// Start the ONE shared read-only static server serving dist/. Output is ignored
-// so per-request logging never backs up the pipe under a burst of parallel walks.
-function startSharedServer(port) {
-  return spawn("python3", ["-m", "http.server", String(port), "--directory", DIST_DIR], {
-    stdio: ["ignore", "ignore", "ignore"],
-    cwd: REPO_ROOT,
-  });
-}
-
-// Poll the server root until it answers or the deadline passes.
-async function waitForServer(url, maxMs = 5000) {
-  const deadline = Date.now() + maxMs;
-  while (Date.now() < deadline) {
-    try {
-      const resp = await fetch(url);
-      if (resp.ok) return;
-    } catch {
-      // keep retrying until the deadline
-    }
-    await new Promise((r) => setTimeout(r, 100));
-  }
-  throw new Error(`shared static server never came up at ${url}`);
-}
 
 //============================================
 // Concurrency + color
@@ -436,22 +391,23 @@ async function main() {
     fs.mkdirSync(RUNS_DIR, { recursive: true });
   }
 
-  // Start the ONE shared static server on ONE random port. It is owned here:
-  // started once, killed once in the finally below (including on error paths).
-  const sharedPort = resolveSharedPort();
-  const serverUrl = `http://127.0.0.1:${sharedPort}`;
-  console.log(
-    `Discovered ${protocolIds.length} protocols under content/protocols/ ` +
-      `(running ${jobs} at a time, one shared server on port ${sharedPort})`,
-  );
-  const server = startSharedServer(sharedPort);
-
   let results;
+  let ownedServer = null;
   try {
-    await waitForServer(`${serverUrl}/`);
-    results = await runPool(protocolIds, jobs, serverUrl);
+    ownedServer = await startOwnedStaticServer({
+      port: resolveSelfServePort(null),
+      directory: DIST_DIR,
+      cwd: REPO_ROOT,
+    });
+    console.log(
+      `Discovered ${protocolIds.length} protocols under content/protocols/ ` +
+        `(running ${jobs} at a time, one shared server ready on port ${ownedServer.port})`,
+    );
+    results = await runPool(protocolIds, jobs, ownedServer.baseUrl);
   } finally {
-    server.kill();
+    if (ownedServer !== null) {
+      await stopOwnedStaticServer(ownedServer.child);
+    }
   }
 
   printSummaryTable(results);

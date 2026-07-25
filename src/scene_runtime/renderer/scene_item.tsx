@@ -56,9 +56,11 @@ import {
   type ResolvedVisualState,
 } from "./visual_state_resolver.js";
 import { injectSvgFromManifest } from "./inject_svg.js";
+import { render_anchor_material_effects } from "./anchor_material_renderer.js";
 import { resolveSvgUrl, requiresDomSvg } from "./svg_manifest_loader.js";
 import { SubpartVisualStateOverlay } from "./subpart_visual_state_renderer.js";
-import { find_material_tint_subpart_field } from "./subpart_dispatch.js";
+import { SubpartHitSurface } from "./subpart_hit_surface.js";
+import { find_subpart_material_contract } from "./subpart_dispatch.js";
 import { OBJECT_LIBRARY } from "../../../generated/object_library.js";
 
 //============================================
@@ -189,7 +191,11 @@ const SVG_HOST_BOX_STYLE: Record<string, string> = { width: "100%", height: "100
 // performs the injection only once a host exists. A fetch/parse failure flows to
 // the resource's error state, which renders a visible error marker and stamps
 // data-svg-load-error on the host. Success inserts ONLY already-resolved markup.
-function DomSvgHost(props: { asset: string; svgInstanceKey: string }): JSXElement {
+function DomSvgHost(props: {
+  asset: string;
+  svgInstanceKey: string;
+  onDomSvgHostReady?: (host: HTMLElement) => void;
+}): JSXElement {
   let hostEl: HTMLDivElement | undefined;
   // Readiness flips true once the ref has set hostEl, so the resource does not
   // run before a host exists to inject into.
@@ -209,6 +215,7 @@ function DomSvgHost(props: { asset: string; svgInstanceKey: string }): JSXElemen
       // Fetch (cached by URL) + namespace per instance + insert. A failure
       // rejects, which Solid records as injected.error (handled below).
       await injectSvgFromManifest(hostEl, k.asset, k.key);
+      props.onDomSvgHostReady?.(hostEl);
       return true;
     },
   );
@@ -299,14 +306,29 @@ function ImgSvgHost(props: { asset: string }): JSXElement {
 // stable unique render-instance key (scene_name + placement_name) used to
 // namespace internal SVG ids so two injected instances never collide on a shared
 // id (e.g. clipPath id="a").
-function SvgHost(props: { asset: string; svgInstanceKey: string }): JSXElement {
+function SvgHost(props: {
+  asset: string;
+  svgInstanceKey: string;
+  onDomSvgHostReady?: (host: HTMLElement) => void;
+}): JSXElement {
   // requiresDomSvg reads the manifest's generation-time-derived boolean. It is a
   // declaration property, not runtime state, so reading it once per asset (memo)
   // is correct and stable.
   const isDomSvg = createMemo<boolean>(() => requiresDomSvg(props.asset));
+  const dom_svg_props: {
+    asset: string;
+    svgInstanceKey: string;
+    onDomSvgHostReady?: (host: HTMLElement) => void;
+  } = {
+    asset: props.asset,
+    svgInstanceKey: props.svgInstanceKey,
+  };
+  if (props.onDomSvgHostReady !== undefined) {
+    dom_svg_props.onDomSvgHostReady = props.onDomSvgHostReady;
+  }
   return (
     <Show when={isDomSvg()} fallback={<ImgSvgHost asset={props.asset} />}>
-      <DomSvgHost asset={props.asset} svgInstanceKey={props.svgInstanceKey} />
+      <DomSvgHost {...dom_svg_props} />
     </Show>
   );
 }
@@ -322,15 +344,14 @@ function SvgHost(props: { asset: string; svgInstanceKey: string }): JSXElement {
 function Overlays(props: { resolved: ResolvedVisualState }): JSXElement {
   return (
     <For each={props.resolved.overlays}>
-      {(overlay) => {
+      {(overlay, index) => {
         if (overlay.type === "fill") {
-          // Bottom-anchored fill. Color from the resolved scalar material color
-          // when present; otherwise a neutral translucent fill so the fill level
-          // is still visible for a sentinel/empty material.
-          const color =
-            props.resolved.material_color !== null
-              ? props.resolved.material_color
-              : "rgba(120, 120, 120, 0.35)";
+          // Legacy bbox fills remain temporarily for unmigrated objects. Empty
+          // identity or zero volume is no fill, never an invented neutral gray.
+          const color = props.resolved.material_color;
+          if (color === null || overlay.fill_percent <= 0) {
+            return null;
+          }
           return (
             <div
               data-overlay="fill"
@@ -348,6 +369,13 @@ function Overlays(props: { resolved: ResolvedVisualState }): JSXElement {
           );
         }
         // Text overlay: centered caption near the bottom of the item box.
+        // Multiple declared text overlays represent distinct state facts (for
+        // example, an instrument's completed analysis plus its numeric
+        // results). Stack them rather than placing each in the same pixels.
+        const priorTextOverlays = props.resolved.overlays
+          .slice(0, index())
+          .filter((priorOverlay) => priorOverlay.type === "text").length;
+        const bottom = 2 + priorTextOverlays * 12;
         return (
           <div
             data-overlay="text"
@@ -356,7 +384,7 @@ function Overlays(props: { resolved: ResolvedVisualState }): JSXElement {
               position: "absolute",
               left: "0",
               right: "0",
-              bottom: "2%",
+              bottom: `${bottom}%`,
               "text-align": "center",
               "font-family": "monospace",
               "font-size": "10px",
@@ -370,6 +398,35 @@ function Overlays(props: { resolved: ResolvedVisualState }): JSXElement {
       }}
     </For>
   );
+}
+
+// Render object-level declarative material effects into the already-injected
+// SVG. This is a Solid effect, not an object-specific renderer: it reacts to
+// the resolved declaration and asks the generic anchor helper to replace only
+// its SVG material group. Anchor failures share SceneItem's established degrade
+// path, making a bad asset observable instead of silently falling back to a box.
+function AnchorMaterialEffects(props: {
+  host: HTMLElement | undefined;
+  resolved: ResolvedVisualState | null;
+  onDegrade: (message: string) => void;
+}): JSXElement {
+  createEffect(() => {
+    const host = props.host;
+    const resolved = props.resolved;
+    if (host === undefined) {
+      return;
+    }
+    try {
+      // A resolver failure is not permission for an old fill to remain on the
+      // instrument. An empty effect list hides the static overlay nodes in
+      // place, preserving their structure for a later recovery.
+      render_anchor_material_effects(host, resolved?.anchor_material_effects ?? []);
+      props.onDegrade("");
+    } catch (err) {
+      props.onDegrade(err instanceof Error ? err.message : String(err));
+    }
+  });
+  return <></>;
 }
 
 //============================================
@@ -479,7 +536,7 @@ export function SceneItem(props: {
   // shape. When non-null, the overlay renders below; when null (every object
   // without the subpart material-tint contract), nothing extra renders.
   const subpart_contract =
-    object_def !== undefined ? find_material_tint_subpart_field(object_def) : null;
+    object_def !== undefined ? find_subpart_material_contract(object_def) : null;
 
   // Whether this object declares any visual_states. When it does not, there is
   // no reactive artwork to derive: we render the item's bound asset directly
@@ -501,6 +558,7 @@ export function SceneItem(props: {
   // the degrade-never-blank policy. We also do NOT silently return null: that is
   // the exact bug-hiding fallback this fix removes.
   const [resolverDegraded, setResolverDegraded] = createSignal<string>("");
+  const [anchorMaterialDegraded, setAnchorMaterialDegraded] = createSignal<string>("");
 
   // Pure resolution result: the resolved state OR the error message. The memo
   // stays PURE (no signal writes, no console side effects, no DOM reach): it
@@ -554,9 +612,13 @@ export function SceneItem(props: {
       console.warn(`SceneItem "${target}" visual-state resolution degraded: ${error}`);
     }
     lastError = error;
-    if (props.onDegrade) {
-      props.onDegrade(target, error);
-    }
+  });
+
+  const degradationMessage = createMemo<string>(
+    () => resolverDegraded() || anchorMaterialDegraded(),
+  );
+  createEffect(() => {
+    props.onDegrade?.(target, degradationMessage());
   });
 
   // The base asset to inject. When visual_states drive the asset, use the
@@ -568,6 +630,8 @@ export function SceneItem(props: {
     }
     return item.asset;
   });
+  const asset_layers = createMemo<readonly string[]>(() => resolved()?.asset_layers ?? []);
+  const [domSvgHost, setDomSvgHost] = createSignal<HTMLElement | undefined>(undefined);
 
   // Reactive highlight flags.
   const flags = createMemo(() => read_flags(props.store, target));
@@ -662,7 +726,8 @@ export function SceneItem(props: {
       data-depth={item.depth ?? undefined}
       data-item-id={is_clickable ? placement_target : undefined}
       data-asset={asset_name()}
-      data-resolver-degraded={resolverDegraded().length > 0 ? resolverDegraded() : undefined}
+      data-material={resolved()?.data_attrs["data-material"]}
+      data-resolver-degraded={degradationMessage().length > 0 ? degradationMessage() : undefined}
       data-affordance={affordance_kind()}
       data-timed-wait={flags().timed_wait_active ? "active" : undefined}
       style={{ ...base_style, ...highlight_style() }}
@@ -672,9 +737,28 @@ export function SceneItem(props: {
           only the inner SVG host, never the item's outer node. */}
       <Show when={asset_name()} keyed>
         {(asset) => (
-          <SvgHost asset={asset} svgInstanceKey={`${props.sceneName}__${item.placement_name}`} />
+          <SvgHost
+            asset={asset}
+            svgInstanceKey={`${props.sceneName}__${item.placement_name}`}
+            onDomSvgHostReady={setDomSvgHost}
+          />
         )}
       </Show>
+      <For each={asset_layers()}>
+        {(asset) => (
+          <div
+            data-asset-layer={asset}
+            style={{ position: "absolute", inset: "0", "pointer-events": "none" }}
+          >
+            <ImgSvgHost asset={asset} />
+          </div>
+        )}
+      </For>
+      <AnchorMaterialEffects
+        host={domSvgHost()}
+        resolved={resolved()}
+        onDegrade={setAnchorMaterialDegraded}
+      />
       <Show when={resolved() !== null}>
         <Overlays resolved={resolved()!} />
       </Show>
@@ -688,9 +772,20 @@ export function SceneItem(props: {
           def={object_def!}
           store={props.store}
           placement_id={target}
-          field_name={subpart_contract!.field_name}
+          identity_field_name={subpart_contract!.identity_field_name}
+          amount_field_name={subpart_contract!.amount?.field_name ?? null}
+          capacity={subpart_contract!.amount?.capacity ?? null}
+          capacity_error={subpart_contract!.amount?.capacity_error ?? ""}
           registry={props.materialRegistry}
           on_subpart_degrade={forward_subpart_degrade}
+        />
+      </Show>
+      <Show when={is_clickable && object_def !== undefined}>
+        <SubpartHitSurface
+          def={object_def!}
+          placement_name={placement_target}
+          activeAffordance={props.activeAffordance}
+          candidateTargets={props.candidateTargets ?? EMPTY_CANDIDATE_TARGETS}
         />
       </Show>
       <Show when={flags().timed_wait_active}>

@@ -88,6 +88,16 @@ export interface LastOutcome {
   readonly retry_count: number;
 }
 
+// The latest rejected interaction is deliberately a closed projection of the
+// runtime event. It gives the learner-facing shell enough information to
+// explain a recovery without teaching the shell to inspect scene DOM or infer
+// protocol state. A valid interaction or a new step clears it.
+export interface LastRejection {
+  readonly reason_code: InteractionRejectReason;
+  readonly target_name: string;
+  readonly gesture: Gesture;
+}
+
 // The single readonly object the shell components consume. Every Solid
 // signal in the shell maps to a property here.
 export interface ShellViewSnapshot {
@@ -99,6 +109,7 @@ export interface ShellViewSnapshot {
   readonly current_interaction_index: number;
   readonly progress: ProgressTuple;
   readonly last_outcome: LastOutcome | null;
+  readonly last_rejection: LastRejection | null;
   readonly pending_validator_kind: ValidatorPreset | null;
   readonly modal: ModalState;
   readonly help: HelpState;

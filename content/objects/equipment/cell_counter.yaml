@@ -45,16 +45,22 @@ visual_states:
           asset_name: cell_counter_instrument
   focused:
     kind: overlay
-    formula: conditional(state(focused), "Focused", "Focusing...")
+    formula: 'conditional(state(focused), "Focus complete", conditional(state(slide_loaded), "Slide loaded", ""))'
   capture_pressed:
-    kind: composite
-    composite: []
+    kind: svg
+    cases:
+      - when: false
+        output:
+          asset_name: cell_counter_instrument
+      - when: true
+        output:
+          asset_name: cell_counter_result
   cell_count:
     kind: overlay
-    formula: 'conditional(state(cell_count), label(state(cell_count), format="Count: {value}"), "Ready")'
+    formula: 'conditional(state(cell_count), label(state(cell_count), format="Count: {value}"), "")'
   viability_percent:
     kind: overlay
-    formula: 'conditional(state(viability_percent), label(state(viability_percent), format="Viability: {value}%"), "Analyzing")'
+    formula: 'conditional(state(viability_percent), label(state(viability_percent), format="Viability: {value}%"), "")'
   viability_verified:
     kind: composite
     composite: []

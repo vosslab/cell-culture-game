@@ -1,5 +1,95 @@
 # Changelog
 
+## 2026-07-23
+
+### Additions and New Features
+
+- Added `tools/outline_svg_text.sh`, an optional, transactional SVG
+  text-to-path authoring preparer for approved intrinsic markings and legacy
+  imports. It preserves source SVGs by default, validates its temporary output,
+  preserves source permissions for explicit `--in-place` replacement, and
+  remains outside runtime and build dependencies.
+- Added a coordinate-free semantic-zone authoring path. Scene YAML now names
+  ordered teaching zones while the shared layout manager lowers those
+  identities to measured internal bands, lanes, bounds, and baselines. Added
+  dedicated plate-focus bench and hood scenes so the 96-well plate can be an
+  intentionally exaggerated foreground teaching object without authoring
+  rectangles or per-scene scale coordinates.
+- Added modular material rendering for whole-object SVG anchors alongside the
+  existing structured-subpart path. Object assets declare a clipped interior
+  and bounds; the renderer colors and fills that region from protocol material
+  state without hard-coded object-specific drawing code.
+- Added focused SDS-PAGE scenes for loading, staining, destaining, imaging,
+  extraction, tank filling, buffer recycling, electrophoresis, and sample
+  preparation. Each learning block keeps its protocol targets and the minimum
+  coherent apparatus context instead of inheriting every object on the shared
+  electrophoresis bench.
+
+### Behavior or Interface Changes
+
+- SVG source art is now documented as language-neutral: identity, state, and
+  instructional prose belongs in layout-manager DOM labels and object metadata
+  for localization and accessibility. Numbers, units or symbols, polarity,
+  graduations, and plate coordinates remain permitted as sparse intrinsic
+  markings; outlining prose is not an accessibility solution.
+- Scene changes now reconcile persistent placement state into the new scene
+  while replacing the initial scene atomically. Student-visible material and
+  instrument state therefore survives legitimate scene transitions without
+  leaking placements that are absent from the destination scene.
+- The protocol shell presents a single current action, authored tip, recovery
+  feedback, step outline, and terminal completion route through the typed shell
+  adapter. Source filenames use the repository's snake_case convention, and
+  non-ASCII UI glyphs are represented with source-safe escapes.
+- The launcher groups full experiments ahead of focused practice and presents
+  human titles and action-oriented entry points while retaining stable protocol
+  identifiers only as data attributes.
+
+### Fixes and Maintenance
+
+- Corrected the OVCAR8 treatment sequence from the production protocol data.
+  Every well now reaches the intended 200 microliter final volume across
+  untreated, metformin-only, carboplatin-only, and combination regions; the
+  learning outcome now states the seven authored dose concentrations.
+- Replaced misleading, missing, or ambiguous scientific art for the cell
+  counter cartridge, hemocytometer, biological safety cabinet, label pen,
+  electrode module, gel assembly, heat block, microplate reader,
+  electrophoresis power supply, rocker, staining tray, water bath, pipette-tip
+  boxes, and waste families. Active state pairs now use distinct source art
+  where the visual transition is pedagogically meaningful.
+- Scoped TypeScript to the supported `typescript-eslint` peer range, retained
+  version `26.07` in `VERSION`, `package.json`, and `package-lock.json`, and
+  resolved `brace-expansion` to the patched 5.0.7 release.
+- Repaired the package boundary in `pipeline.gen_scene_index`; it now imports
+  its sibling through `pipeline.scene_inheritance` under the documented
+  repo-root Python environment instead of depending on test-time `sys.path`
+  mutation.
+
+### Decisions and Failures
+
+- Treated blind image recognition as an experiment rather than a filename
+  assertion. Anonymous 600 px and 180 px review exposed several assets that
+  were valid SVGs but depicted the wrong or ambiguous instrument. Targeted
+  revisions were retained only after fresh reviewers recognized the intended
+  families; low-specificity wipes remain a documented non-instrument backlog.
+- Kept protocol YAML and protocol reference documents as the scientific source
+  of truth. Layout, material rendering, and tests consume that content rather
+  than introducing protocol-specific runtime branches or fixed scene
+  coordinates.
+
+### Developer Tests and Notes
+
+- Replaced the historical standalone-viewer material baseline with a
+  protocol-host capture that inventories SVG-anchor and structured-subpart
+  surfaces, records visible-vs-hidden pixel evidence, aggregates failures
+  across protocols, and reports browser diagnostics before failing.
+- Added production-data regression coverage for the complete 96-well OVCAR8
+  media-adjustment and drug-addition sequence, material-anchor readiness,
+  semantic source scenes, structural gap guards, plate-focus layout, instrument
+  state pairs, and waste-family rendering.
+- Added bounded server ownership and duration coverage so browser tests start,
+  verify, and stop their own server instead of relying on leaked Node or Python
+  helpers.
+
 ## 2026-07-13
 
 ### Behavior or Interface Changes
@@ -76,7 +166,7 @@
 - Added `tests/playwright/test_glyph_dom_render.spec.ts` (WP-A4): a browser
   DOM-text proof, on the real `drug_dilution_setup` content, that the
   guidance bar (`#guidance-text`), the outline step card text, and the
-  card's `title` attribute (`StepOutline.tsx:94`) all render the real
+  card's `title` attribute (`step_outline.tsx`) all render the real
   U+00B5 micro sign glyph rather than the literal `&micro;` entity string.
   Verified non-vacuous by temporarily disabling the WP-A2 decode call and
   confirming all three assertions fail against the raw entity text, then

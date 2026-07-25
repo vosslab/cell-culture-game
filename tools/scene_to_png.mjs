@@ -53,6 +53,7 @@ import http from "node:http";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { classifyRenderedItem, selectVisualBbox } from "./scene_render_diagnostics.mjs";
 import { computeSceneStats } from "./scene_stats.mjs";
 
 //============================================
@@ -274,63 +275,39 @@ async function check_playwright_installed() {
 // Collects all [data-placement-name] elements from the page.
 // Returns an array matching the renderedItems shape scene_stats.mjs expects.
 async function collect_rendered_items(page, placeholderKeys) {
-  return page.evaluate((placeholderKeyList) => {
-    const placeholderKeySet = new Set(placeholderKeyList);
+  const snapshots = await page.evaluate(() => {
     const els = Array.from(document.querySelectorAll("[data-placement-name]"));
     return els.map((el) => {
       const rect = el.getBoundingClientRect();
-      const bbox =
+      const placementBbox =
         rect.width > 0 || rect.height > 0
           ? { x: rect.x, y: rect.y, width: rect.width, height: rect.height }
           : null;
 
-      // Determine if this is a placeholder. render_item.ts sets
-      // data-placeholder-kind to "missing-object" or "missing-svg" and also
-      // sets data-missing-svg="true" on BOTH placeholder causes for back-compat.
-      // Read data-placeholder-kind directly so missing-object placeholders are
-      // not misclassified as missing-svg.
-      const placeholderKindAttr = el.getAttribute("data-placeholder-kind");
-      const hasMissingSvgAttr = el.hasAttribute("data-missing-svg");
-      const hasSvg = el.querySelector("svg") !== null;
-      // A dashed-box placeholder ASSET resolves in the registry and injects
-      // real SVG markup, so the missing-svg/missing-object checks above never
-      // flag it. Detect it here by looking the rendered asset key up against
-      // the placeholder-key set from the generated registry. The eye sees a
-      // dashed stand-in; the metric must agree.
-      const assetKey = el.getAttribute("data-asset");
-      const isPlaceholderAsset = assetKey !== null && placeholderKeySet.has(assetKey);
-      // A placeholder is any element flagged by either attribute, with no SVG,
-      // or resolved through a placeholder asset.
-      const isPlaceholder =
-        placeholderKindAttr !== null || hasMissingSvgAttr || !hasSvg || isPlaceholderAsset;
-      let placeholderKind = null;
-      if (isPlaceholder) {
-        if (placeholderKindAttr !== null) {
-          placeholderKind = placeholderKindAttr;
-        } else if (hasMissingSvgAttr) {
-          // Back-compat fallback: only the legacy data-missing-svg flag present.
-          placeholderKind = "missing-svg";
-        } else if (isPlaceholderAsset) {
-          // Resolved asset whose art is a dashed-box stand-in.
-          placeholderKind = "placeholder-art";
-        } else {
-          placeholderKind = "missing-object";
-        }
-      }
-
-      // Visual bbox: the rect of the actual drawn SVG asset inside the item div.
-      // The item div is the placement box; the inner <svg> is the visual box
-      // (object-fit:contain may letterbox inside the div). When no SVG is
-      // present (placeholder), the visual box falls back to the div rect.
-      const svgEl = el.querySelector("svg");
-      let visualBbox = bbox;
-      if (svgEl) {
-        const svgRect = svgEl.getBoundingClientRect();
-        visualBbox =
-          svgRect.width > 0 || svgRect.height > 0
-            ? { x: svgRect.x, y: svgRect.y, width: svgRect.width, height: svgRect.height }
-            : bbox;
-      }
+      // Only the SVG injected into the base DOM-SVG host is evidence that the
+      // placement's declared asset rendered. Subpart material and hit-surface
+      // overlays can also contain SVG, but must not mask a failed base asset.
+      const domSvgHost = el.querySelector('[data-svg-render-mode="dom-svg"]');
+      const baseSvgEl = domSvgHost?.querySelector("svg") ?? null;
+      const svgRect = baseSvgEl?.getBoundingClientRect() ?? null;
+      const inlineSvgBbox =
+        svgRect !== null && (svgRect.width > 0 || svgRect.height > 0)
+          ? { x: svgRect.x, y: svgRect.y, width: svgRect.width, height: svgRect.height }
+          : null;
+      const imageEl = el.querySelector('img[data-svg-render-mode="img"]');
+      const imageRect = imageEl?.getBoundingClientRect() ?? null;
+      const staticImageBbox =
+        imageRect !== null && (imageRect.width > 0 || imageRect.height > 0)
+          ? { x: imageRect.x, y: imageRect.y, width: imageRect.width, height: imageRect.height }
+          : null;
+      const staticImage = imageEl
+        ? {
+            present: true,
+            complete: imageEl.complete,
+            naturalWidth: imageEl.naturalWidth,
+            naturalHeight: imageEl.naturalHeight,
+          }
+        : null;
 
       return {
         placementName: el.getAttribute("data-placement-name") ?? "",
@@ -338,13 +315,32 @@ async function collect_rendered_items(page, placeholderKeys) {
         zone: el.getAttribute("data-zone") ?? null,
         kind: el.getAttribute("data-kind") ?? null,
         depth: el.hasAttribute("data-depth") ? Number(el.getAttribute("data-depth")) : null,
-        bbox,
-        visualBbox,
-        isPlaceholder,
-        placeholderKind,
+        placeholderKind: el.getAttribute("data-placeholder-kind"),
+        hasMissingSvgMarker: el.hasAttribute("data-missing-svg"),
+        assetKey: el.getAttribute("data-asset"),
+        hasInlineSvg: baseSvgEl !== null,
+        hasDomSvgHost: domSvgHost !== null,
+        staticImage,
+        placementBbox,
+        inlineSvgBbox,
+        staticImageBbox,
       };
     });
-  }, Array.from(placeholderKeys));
+  });
+
+  return snapshots.map((snapshot) => {
+    const classification = classifyRenderedItem(snapshot, placeholderKeys);
+    return {
+      placementName: snapshot.placementName,
+      objectName: snapshot.objectName,
+      zone: snapshot.zone,
+      kind: snapshot.kind,
+      depth: snapshot.depth,
+      bbox: snapshot.placementBbox,
+      visualBbox: selectVisualBbox(snapshot),
+      ...classification,
+    };
+  });
 }
 
 // Collects [data-label] elements.

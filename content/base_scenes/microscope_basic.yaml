@@ -3,67 +3,31 @@ workspace: microscope
 capabilities:
   - item_workspace
 
-scene_bounds:
-  left: 1
-  right: 99
-  top: 5
-  bottom: 95
-
 background:
   asset: microscope_view_bg
 
 zones:
   # Rear shelf left: accessories behind the left of the bench
   - zone_name: rear_left
-    bounds:
-      left: 5
-      right: 35
-      top: 5
-      bottom: 34
-    baseline: 30
     align: tab-stops
     label: Rear left - accessories
   # Rear shelf right: accessories behind the right of the bench
   - zone_name: rear_right
-    bounds:
-      left: 70
-      right: 95
-      top: 5
-      bottom: 34
-    baseline: 30
     align: tab-stops
     label: Rear right - accessories
 
   # Left bench: consumables flanking the microscope
   - zone_name: left_bench
-    bounds:
-      left: 4
-      right: 36
-      top: 40
-      bottom: 92
-    baseline: 86
     align: tab-stops
     label: Left bench - consumables
 
-  # Center-stage band: microscope fills canvas vertically
+  # Center stage: microscope is the focal instrument
   - zone_name: instrument_area
-    bounds:
-      left: 31
-      right: 71
-      top: 18
-      bottom: 92
-    baseline: 88
     align: center
     label: Microscope viewing area
 
   # Right bench: slides and reagents flanking the microscope
   - zone_name: right_bench
-    bounds:
-      left: 72
-      right: 97
-      top: 40
-      bottom: 92
-    baseline: 86
     align: tab-stops
     label: Right bench - slides and reagents
 
@@ -89,8 +53,7 @@ placements:
     depth_tier: 1
     align_stop: center
 
-  # left_bench sits directly below the rear_left shelf, so the rack's
-  # default top label would rise into that rear shelf band. Place it below.
+  # Keep the rack label below its object to distinguish it from rear context.
   - placement_name: left_microtube_rack
     object_name: microtube_rack_24
     zone: left_bench
@@ -111,9 +74,7 @@ placements:
     zone: right_bench
     depth_tier: 1
     align_stop: left
-    # right_bench sits directly below the rear_right shelf. Same conflict as the
-    # left bench: the slide's default top label rises into the rear shelf band
-    # and collides with the rear_ethanol_bottle label. Place it below the slide.
+    # Keep the slide label below its object to distinguish it from rear context.
     layout:
       label_placement: bottom
 

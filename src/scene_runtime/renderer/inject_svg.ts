@@ -32,6 +32,15 @@ import { fetchSvgText } from "./svg_manifest_loader.js";
 // naming -- SVG owns the naming, callers ask by bare id only.
 const SVG_INSTANCE_NAMESPACE_ATTR = "data-svg-instance-namespace";
 
+// The injection path is the sole owner of concrete per-instance SVG references.
+// Material renderers receive a bare authored target and an operation that applies
+// the already-resolved local reference; they never inspect an SVG id or build a
+// url(#...) string themselves.
+export interface ResolvedSvgAnchor {
+  element: Element;
+  applyClipPath(target: SVGElement): void;
+}
+
 //============================================
 
 // Lookup metadata returned by namespaceSvgIds. The instance namespace is the
@@ -285,6 +294,33 @@ export function resolveAnchor(host: HTMLElement, bareAuthoredId: string): Elemen
   // restricts the namespace and ids to [A-Za-z0-9_-]; use an attribute selector
   // so a hyphen in the id never trips CSS id-selector parsing.
   return host.querySelector(`[id="${namespacedId}"]`);
+}
+
+//============================================
+
+// Resolve a bare authored anchor and return the limited operation a material
+// renderer needs for a clip target. This keeps both id inspection and local
+// SVG-reference construction inside the injection layer, where per-instance
+// namespacing is already owned.
+export function resolveSvgAnchor(
+  host: HTMLElement,
+  bareAuthoredId: string,
+): ResolvedSvgAnchor | null {
+  const element = resolveAnchor(host, bareAuthoredId);
+  if (element === null) {
+    return null;
+  }
+  const concreteId = element.getAttribute("id");
+  if (concreteId === null || concreteId.length === 0) {
+    throw new Error(`resolveSvgAnchor: injected anchor '${bareAuthoredId}' has no concrete SVG id`);
+  }
+  const clipPathReference = `url(#${concreteId})`;
+  return {
+    element,
+    applyClipPath(target: SVGElement): void {
+      target.setAttribute("clip-path", clipPathReference);
+    },
+  };
 }
 
 //============================================

@@ -58,7 +58,7 @@ const ROOT_DISPOSERS = new WeakMap<HTMLElement, SceneDispose>();
 // drives both the renderer and the protocol operations.
 export interface MountSceneOptions {
   // External reactive store. The scene is seeded from the PipelineResult into
-  // this store (replacing any prior contents) before mounting.
+  // this store before mounting.
   store: SceneStore;
   // Active protocol's material registry (per-package materials.yaml), or null
   // when no protocol material context exists (e.g. the scene viewer). A provided
@@ -67,9 +67,11 @@ export interface MountSceneOptions {
   // Optional pixel viewport used by the aspect structural guard. Must match the
   // viewport passed to runPipeline so the aspect check is consistent.
   viewport?: { w: number; h: number };
-  // When true, skip seeding the store from this PipelineResult. The caller has
-  // already seeded it (e.g. to preserve cursor-held state across a SceneChange).
-  skipSeed?: boolean;
+  // Store seeding policy. "replace" is a fresh mount; "reconcile" preserves
+  // declared state for exact targets present in both scenes while adding and
+  // dropping targets to match the new scene; "none" is for harnesses that
+  // deliberately pre-seed the store. Defaults to "replace".
+  seedMode?: "replace" | "reconcile" | "none";
   // Optional active-affordance accessor (affordance plumbing). When provided,
   // the renderer derives each scene object's highlight ring from the active
   // interaction read through this accessor in arrow form (Solid store-dep rule).
@@ -80,9 +82,9 @@ export interface MountSceneOptions {
 }
 
 // Mount a Solid scene into root, returning a dispose handle. Clears root first,
-// seeds the store unless skipSeed, then renders SceneView. The returned dispose
-// tears down the Solid root and any previously-tracked dispose for this root is
-// invoked first.
+// applies the requested store-seeding policy, then renders SceneView. The
+// returned dispose tears down the Solid root; any previously tracked dispose
+// for this root is invoked first.
 export function mountScene(
   root: HTMLElement,
   result: PipelineResult,
@@ -107,9 +109,12 @@ export function mountScene(
   // This attribute is cleared in the dispose function below.
   root.setAttribute("data-scene-workspace", result.scene.workspace);
 
-  // Seed the store from the pipeline result unless the caller already seeded.
-  if (opts.skipSeed !== true) {
-    opts.store.seed_from_scene(build_seed_list(result));
+  const seeds = build_seed_list(result);
+  const seed_mode = opts.seedMode ?? "replace";
+  if (seed_mode === "replace") {
+    opts.store.seed_from_scene(seeds);
+  } else if (seed_mode === "reconcile") {
+    opts.store.reconcile_scene(seeds);
   }
 
   // Enumerate the resolver-accepted candidate object names ONCE per scene mount.

@@ -96,30 +96,8 @@ export function TypeInput(props: TypeInputProps): JSXElement {
 
   return (
     <Show when={is_type_active()}>
-      <div
-        data-type-input-panel=""
-        style={{
-          position: "fixed",
-          bottom: "16px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          "z-index": "1000",
-          display: "flex",
-          "align-items": "center",
-          gap: "8px",
-          padding: "10px 14px",
-          "background-color": "#ffffff",
-          border: "2px solid #4a90d9",
-          "border-radius": "6px",
-          "box-shadow": "0 2px 10px rgba(0, 0, 0, 0.2)",
-          "font-family": '"PT Sans", Arial, sans-serif',
-        }}
-      >
-        <label
-          data-type-input-label=""
-          for="protocol-type-input"
-          style={{ "font-size": "14px", color: "#333333" }}
-        >
+      <div data-type-input-panel="" class="value-entry-panel">
+        <label data-type-input-label="" for="protocol-type-input" class="value-entry-label">
           Enter value:
         </label>
         <input
@@ -128,40 +106,27 @@ export function TypeInput(props: TypeInputProps): JSXElement {
           data-type-target={active_target() ?? ""}
           type="text"
           value={draft()}
+          aria-invalid={rejected() ? "true" : undefined}
+          aria-describedby={rejected() ? "protocol-type-reject-message" : undefined}
           onInput={(event) => set_draft(event.currentTarget.value)}
           onKeyDown={on_keydown}
-          style={{
-            "font-size": "14px",
-            padding: "4px 8px",
-            border: "1px solid #999999",
-            "border-radius": "4px",
-            "min-width": "120px",
-          }}
+          class="value-entry-input"
         />
         <button
           data-type-commit=""
           type="button"
           onClick={() => commit()}
-          style={{
-            "font-size": "14px",
-            padding: "5px 12px",
-            "background-color": "#4a90d9",
-            color: "#ffffff",
-            border: "none",
-            "border-radius": "4px",
-            cursor: "pointer",
-          }}
+          class="value-entry-button"
         >
           Commit
         </button>
         <Show when={rejected()}>
           <span
+            id="protocol-type-reject-message"
             data-type-reject-message=""
-            style={{
-              "font-size": "13px",
-              color: "#c0392b",
-              "margin-left": "6px",
-            }}
+            class="value-entry-feedback"
+            role="status"
+            aria-live="polite"
           >
             Entry not accepted, try again
           </span>

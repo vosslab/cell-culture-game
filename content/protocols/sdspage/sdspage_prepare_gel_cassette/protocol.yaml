@@ -97,6 +97,10 @@ steps:
               target: gel_cassette
               state:
                 comb_present: false
+            - type: ObjectStateChange
+              target: gel_comb
+              state:
+                position: not_in_cassette
     step_validator:
       preset: sequence_complete
     outcome:

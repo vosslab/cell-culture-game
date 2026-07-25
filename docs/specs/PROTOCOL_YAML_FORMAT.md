@@ -291,6 +291,9 @@ Each entry in a step's `sequence` is one `interaction` block. An
 
 There is no separate interaction task-type slot. The work a gesture does
 is determined by the gesture plus the kind of target it lands on.
+The cross-layer distinction between authored gestures, physical browser input,
+object capabilities, and response operations is summarized in
+`docs/specs/GESTURE_MODEL.md`.
 
 ### The `response` container
 

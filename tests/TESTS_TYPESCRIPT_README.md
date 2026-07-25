@@ -20,6 +20,8 @@ is the whole interface: drive the repo through them and you never need to open
 
 Run `./check_codebase.sh --help` for usage. `./run_web_server.sh` picks a
 random port each run so the browser cache stays fresh; set `PORT` to override.
+For a bounded manual or automated preview, use `./run_web_server.sh --duration 30`;
+without that option, the server remains in the foreground until interrupted.
 `./run_playwright_tests.sh` lets Playwright's own `webServer` config start the
 test server, and accepts `--build` to force a rebuild first.
 
@@ -44,9 +46,11 @@ The repo has four test tiers. Pick the home by what you are testing.
   automatically through `node --import tsx --test 'tests/test_*.mjs'`.
 - Browser tests live under `tests/playwright/`. Run them with
   `./run_playwright_tests.sh`. See `docs/PLAYWRIGHT_USAGE.md` for the browser
-  test conventions.
+  test conventions. `test_plate_focus_layout.spec.ts` protects the centered,
+  dominant 96-well-plate teaching composition at desktop and narrow widths.
 - Whole-system E2E lives under `tests/e2e/` and runs directly, excluded from
-  pytest. See `E2E_TESTS.md` for the non-browser E2E conventions.
+  pytest. See [../docs/E2E_TESTS.md](../docs/E2E_TESTS.md) for the non-browser
+  E2E conventions.
 
 ## Daily run order
 

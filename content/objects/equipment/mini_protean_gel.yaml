@@ -15,7 +15,7 @@ visual_states:
       - when: true
         output: { asset_name: mini_protean_gel }
       - when: false
-        output: { asset_name: mini_protean_gel }
+        output: { asset_name: mini_protean_gel_unsealed }
 
 capabilities: [clickable]
 

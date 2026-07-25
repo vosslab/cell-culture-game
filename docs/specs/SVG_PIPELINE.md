@@ -22,6 +22,33 @@ The boundary statement governs everything below:
   render-effect declarations. Material vocabulary is defined in
   [MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md), not here.
 
+## Language-neutral art and accessible labels
+
+Source SVG art is language-neutral. Instrument identity, state, instructions,
+and other student-facing prose belong in layout-manager DOM labels or object
+data, giving future localization and accessibility work a clear ownership
+boundary. No i18n system is being implemented now; this boundary keeps it
+unblocked. When imported art contains prose, remove it and recreate it outside
+the SVG. Text-to-path conversion is never a way to pass normalization or
+blind-recognition assessment with embedded prose.
+
+Sparse, approved physically intrinsic markings may remain when they are part
+of an instrument: numbers, scientific units or symbols, polarity, graduations,
+and plate row or column coordinates. Use them sparingly. The SVG normalization
+gate does not accept live `text`, `tspan`, or `textPath` elements, so an
+approved intrinsic marking may be outlined with the optional
+`tools/outline_svg_text.sh` authoring helper before normalization, including
+during legacy/import preparation. Legacy or imported provenance is never an
+exception for prose. Inkscape is an optional, on-demand development/authoring
+tool, not a Brewfile entry, required installation, runtime, or build
+dependency; the helper reports how to install it only when an author invokes
+it.
+
+Blind recognition is diagnostic evidence for instrument identity, not a
+universal perfection gate. Improve ambiguous assets where the evidence reveals
+an important pedagogical risk, while accepting non-material ambiguity once the
+scene communicates the intended learning task.
+
 ## Source-tree boundary
 
 | Tree                | Contents                                                        | Hand-edited? |
@@ -165,11 +192,19 @@ that only labels over its asset, swaps the whole asset, or is just clickable
 needs no internal access and renders as an `<img>`.
 
 The predicate is derived from live object signals only (capabilities and
-`visual_states` declarations that exist in object YAML today). The
-forward-looking material vocabulary (`render_effect: material_tint` /
-`fill_height`, `target: subpart_geometry`, `anchor_liquid_bounds`,
-`anchor_liquid_clip`) is closure-gated and not yet emitted, so the generator
-does not consult those field names.
+`visual_states` declarations that exist in object YAML today). The closed
+material render-effect vocabulary is live: the generator validates and emits
+`material_tint` / `fill_height` effects for `subpart_geometry` and SVG-anchor
+targets, and the runtime renders those generated declarations. Closure-gating
+still applies: authors select only the documented effect and target tokens;
+they cannot introduce an arbitrary rendering mechanism.
+
+`requires_dom_svg` remains deliberately conservative. A
+`material_container` or `structured_surface` declaration already requires
+internal SVG access, and the predicate also recognizes the established
+formula and composite signals below. The render-effect declarations describe
+what the renderer updates; they do not make an otherwise opaque material
+object img-eligible.
 
 An object is DOM-SVG-required if its declaration has ANY of:
 
@@ -181,8 +216,9 @@ An object is DOM-SVG-required if its declaration has ANY of:
 | a `kind: composite` state with a NON-EMPTY `composite` list | layers real internal subparts |
 | any `visual_state` of an unknown/unrecognized kind | SAFE BIAS: may target internals; defaults to required |
 
-Explicit internal-SVG-id / subpart-geometry / anchor-id targeting also
-triggers DOM-SVG-required when such a signal is present in the data.
+Generated `subpart_geometry` and authored SVG anchors are internal targets.
+Objects that declare them render through the inline SVG DOM path, with the
+resolver handling per-instance anchor lookup after namespacing.
 
 A static `<img>` (img-eligible, `requires_dom_svg = false`) is allowed when
 the declaration has ONLY:

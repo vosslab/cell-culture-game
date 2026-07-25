@@ -1,4 +1,8 @@
 materials:
+  media:
+    label: "Growth media"
+    display_color: "#6c6c00"
+
   cells:
     label: "Seeded cells (in plate wells)"
     display_color: "#cc0066"

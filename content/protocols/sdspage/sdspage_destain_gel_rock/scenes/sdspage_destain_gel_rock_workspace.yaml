@@ -1,6 +1,16 @@
 scene_name: sdspage_destain_gel_rock_workspace
 extends: staining_bench
 
+remove_placements:
+  # This phase uses only the tray, shaker, kimwipes, and dedicated destain
+  # waste bottle. Remove staining/setup supplies from the inherited bench.
+  - rear_left_coomassie_stain
+  - rear_left_coomassie_recycle
+  - rear_center_destain
+  - rear_right_ddh2o
+  - center_microwave
+  - right_tool_area_waste
+
 scene_notes: |
-  Staining bench workspace for SDS-PAGE gel destaining. Extends staining_bench
-  which provides rocking_shaker, staining_tray, kimwipe_pad, and destain_waste_bottle.
+  Focused SDS-PAGE destaining workspace with the rocking shaker, staining tray,
+  kimwipe pad, and dedicated destain waste bottle.

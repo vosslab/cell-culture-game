@@ -1,25 +1,10 @@
 scene_name: mtt_solubilization_readout_bench_workspace
-extends: bench_basic
+extends: plate_focus_bench
 
 scene_notes: |
   Bench workspace for MTT solubilization. DMSO bottle at rear left for adding
-  to wells to dissolve formazan crystals. The 96-well treatment plate (inherited
-  well_plate_96 from bench_basic) is at center. Micropipette from base for
-  adding and triaturating DMSO.
-
-remove_placements:
-  - rear_left_media_bottle
-  - rear_center_ethanol
-  - center_centrifuge
-  - rear_right_heat_block
-  # Vortex is a non-target in this readout scene. Remove the inherited rear_right
-  # vortex so the plate_reader doorway below has a clean rear_right station.
-  - rear_right_vortex
-  # center_water_bath is a non-target here (no interaction in this protocol
-  # targets it); remove it so the collapsed single-tier center band holds only
-  # the clicked well_plate_96, matching the drug_dilution_setup bench_setup
-  # precedent for the same non-target inherited instrument.
-  - center_water_bath
+  to wells to dissolve formazan crystals. The foreground plate keeps every well
+  readable; DMSO, pipette, and plate reader are the protocol's only supports.
 
 add_placements:
   # DMSO bottle at rear left beside waste container
@@ -38,15 +23,8 @@ add_placements:
     depth_tier: 1
     align_stop: center
 
-  # well_plate_96 is now placed in the inherited bench_basic center band (single
-  # plate); the former microtube_rack_24 placeholder was removed here.
-
-reposition_placements:
-  # Collapse the inherited micropipette and well plate from tier 2 to tier 1 so
-  # the whole sparse scene renders as a single tier-row. The scene is 90%+
-  # empty (t1:6, t2:2), so dropping the second tier-row removes its label
-  # overhead from the vertical stack fit, raising the scene-wide scale factor.
-  - placement_name: base_right_micropipette
+  - placement_name: right_micropipette
+    object_name: micropipette
+    zone: right_tool_area
     depth_tier: 1
-  - placement_name: center_well_plate_96
-    depth_tier: 1
+    align_stop: center

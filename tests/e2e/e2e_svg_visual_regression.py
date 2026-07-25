@@ -22,8 +22,8 @@ Run:
   source source_me.sh && python3 tests/e2e/e2e_svg_visual_regression.py --full
 
 Exit code:
-  0: harness ran to completion (individual regressions noted in report, not errors)
-  1: harness crashed (Playwright unavailable, imagehash missing, etc.)
+  0: every requested engine produced complete browser render evidence
+  1: normalization or browser rendering could not produce complete evidence
 
 NOTE: v3 flattens simple clipPaths (allowlist) into path geometry and rejects
 complex clipPaths (CLIPPATH_UNSUPPORTED_COMPLEX).  Only the small simple-clip
@@ -301,19 +301,65 @@ def run_batch_render(manifest_entries: list[dict], engine: str, tmp_dir: Path) -
 		text=True,
 	)
 	if result.returncode != 0:
-		print(f"  BATCH RENDER ERROR [{engine}]: exit {result.returncode}", file=sys.stderr)
+		raise RuntimeError(f"Batch renderer [{engine}] exited {result.returncode}.")
 
 	# Read results JSON.
 	results_path = str(manifest_path) + ".results.json"
 	if not Path(results_path).exists():
-		print(f"  No results JSON found for {engine}.", file=sys.stderr)
-		return {}
+		raise RuntimeError(f"Batch renderer [{engine}] did not produce results JSON.")
 
 	with open(results_path) as f:
 		results_raw = json.load(f)
 
+	if not isinstance(results_raw, list):
+		raise RuntimeError(f"Batch renderer [{engine}] results JSON is not a list.")
 	# Index by output_png.
-	return {r["output_png"]: r for r in results_raw}
+	results = {r["output_png"]: r for r in results_raw}
+	return results
+
+
+#============================================
+def require_render_evidence(
+	manifest_entries: list[dict],
+	render_results: dict[str, dict],
+	engine: str,
+) -> None:
+	"""Require one successful, nonempty render result for every manifest entry.
+
+	Args:
+		manifest_entries: Expected {output_png, ...} entries for one engine.
+		render_results: Renderer results indexed by output PNG path.
+		engine: Requested browser engine name.
+
+	Raises:
+		RuntimeError: The renderer did not produce complete browser evidence.
+	"""
+	if not manifest_entries:
+		raise RuntimeError(f"No render manifest entries were built for requested engine [{engine}].")
+
+	missing = []
+	failed = []
+	for entry in manifest_entries:
+		output_png = entry["output_png"]
+		result = render_results.get(output_png)
+		if result is None:
+			missing.append(output_png)
+			continue
+		if not result["ok"]:
+			failed.append(f"{output_png}: {result['error']}")
+			continue
+		png_path = Path(output_png)
+		if not png_path.is_file() or png_path.stat().st_size == 0:
+			failed.append(f"{output_png}: missing or empty PNG evidence")
+
+	if missing or failed:
+		parts = []
+		if missing:
+			parts.append(f"missing results={len(missing)}")
+		if failed:
+			parts.append(f"failed renders={len(failed)}")
+		message = ", ".join(parts)
+		raise RuntimeError(f"Incomplete render evidence for [{engine}]: {message}.")
 
 
 #============================================
@@ -721,8 +767,9 @@ def write_markdown_report(
 	md += "\n"
 
 	REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+	clean_md = "\n".join(line.rstrip() for line in md.splitlines()).rstrip() + "\n"
 	with open(MD_REPORT, "w") as f:
-		f.write(md)
+		f.write(clean_md)
 	print(f"Markdown report: {MD_REPORT}")
 
 
@@ -806,6 +853,7 @@ def main() -> None:
 		for engine in engines:
 			manifest_entries = per_engine_manifests[engine]
 			render_results = run_batch_render(manifest_entries, engine, tmp_path)
+			require_render_evidence(manifest_entries, render_results, engine)
 
 			engine_hashes: dict[str, dict[str, dict]] = {}
 			for entry in manifest_entries:

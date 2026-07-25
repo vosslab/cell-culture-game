@@ -6,10 +6,11 @@
 // The _labelY seed is placement-aware (label_placement: top | bottom). top
 // (default) seeds the label TOP edge above the object; bottom (legacy) seeds it
 // below the row baseline. The vertical stagger below is direction-aware:
-// each zone is partitioned by placement and each group ladders along its own
-// direction -- bottom labels DOWN (rows away from the object below), top labels
-// UP (rows away from the object above), each clamped at its own zone edge. The
-// two groups are vertically disjoint and stagger independently. Cross-zone
+// each zone is partitioned by resolved placement and vertical depth tier. Each
+// group ladders along its own direction -- bottom labels DOWN (rows away from
+// the object below), top labels UP (rows away from the object above), each
+// clamped at its own zone edge. Separate depth tiers already occupy distinct
+// vertical rows, so they must never share a stagger ladder. Cross-zone
 // label-vs-artwork collision is still handled later by resolveLabelCollisions.
 //
 // The stagger writes only _labelX/_labelY (label coordinates). It NEVER writes
@@ -85,6 +86,10 @@ function effectiveLabelHalfWidth(
 // bottom labels move below their object); -1 ladders UP (decreasing _labelY: top
 // labels move above their object). y grows downward in scene-percent.
 type StaggerDirection = 1 | -1;
+
+function depthTierOf(item: ComputedItem): number {
+  return item.depth_tier ?? 0;
+}
 
 // Tunables a stagger group needs, threaded so staggerGroup stays a pure helper.
 // bandTop / bandBottom are the COMPUTED band edges (reflow-zones output) the
@@ -407,49 +412,44 @@ export function layoutLabels(
 
     // Direction-aware vertical stagger. After the horizontal nudge,
     // adjacent labels may still overlap (the nudge is bounded by zone width).
-    // Each placement group staggers along its OWN direction: bottom labels
-    // ladder DOWN (rows +1, away from the object below it), top labels ladder UP
-    // (rows -1, away from the object above it). A label that fits in row 0 keeps
-    // its seeded _labelY, so clean scenes are byte-identical and every label is
-    // assigned row 0. The two groups are vertically disjoint (top labels sit
-    // above their objects, bottom labels below), so they stagger independently
-    // and never share a real collision; rowOf is keyed by placement_name so the
-    // residual check below can stay group-agnostic.
-    const topGroup: ComputedItem[] = [];
-    const bottomGroup: ComputedItem[] = [];
+    // Each resolved placement/depth-tier group staggers along its OWN direction:
+    // bottom labels ladder DOWN (rows +1), top labels ladder UP (rows -1).
+    // Distinct tiers already have distinct seeded Y positions; putting them in
+    // one horizontal interval graph would invent a row conflict and pull one
+    // label into a neighboring tier's artwork.
+    const groups = new Map<string, ComputedItem[]>();
     for (const it of items) {
       const placement = it.layout.label_placement ?? sceneLabelPlacement;
-      if (placement === "bottom") bottomGroup.push(it);
-      else topGroup.push(it);
+      const key = `${placement}:${depthTierOf(it)}`;
+      const group = groups.get(key) ?? [];
+      group.push(it);
+      groups.set(key, group);
     }
-    // rowOf merges both groups' row assignments (placement_name is unique per
-    // zone). The residual check only compares same-group adjacent pairs via
-    // placementOf, so a coincidental cross-group row tie is never a collision.
+    // rowOf merges group-local row assignments (placement_name is unique per
+    // zone). The residual check also compares depth tier, so a coincidental row
+    // tie between already-separated tiers is never reported as a collision.
     const rowOf = new Map<string, number>();
     const placementOf = new Map<string, "top" | "bottom">();
-    // direction: -1 ladders rows UP (top labels), +1 ladders rows DOWN (bottom).
-    staggerGroup(topGroup, zone, -1, {
-      avgCharWidthPct,
-      lineHeightPct,
-      labelZonePadding,
-      collisionTolerance,
-      bandTop: band.top,
-      bandBottom: band.bottom,
-      rowOf,
-      diagnostics,
+    const orderedGroups = [...groups.values()].sort((a, b) => {
+      const aPlacement = a[0]?.layout.label_placement ?? sceneLabelPlacement;
+      const bPlacement = b[0]?.layout.label_placement ?? sceneLabelPlacement;
+      if (aPlacement !== bPlacement) return aPlacement === "top" ? -1 : 1;
+      return depthTierOf(a[0]!) - depthTierOf(b[0]!);
     });
-    staggerGroup(bottomGroup, zone, 1, {
-      avgCharWidthPct,
-      lineHeightPct,
-      labelZonePadding,
-      collisionTolerance,
-      bandTop: band.top,
-      bandBottom: band.bottom,
-      rowOf,
-      diagnostics,
-    });
-    for (const it of topGroup) placementOf.set(it.placement_name, "top");
-    for (const it of bottomGroup) placementOf.set(it.placement_name, "bottom");
+    for (const group of orderedGroups) {
+      const placement = group[0]?.layout.label_placement ?? sceneLabelPlacement;
+      staggerGroup(group, zone, placement === "bottom" ? 1 : -1, {
+        avgCharWidthPct,
+        lineHeightPct,
+        labelZonePadding,
+        collisionTolerance,
+        bandTop: band.top,
+        bandBottom: band.bottom,
+        rowOf,
+        diagnostics,
+      });
+      for (const it of group) placementOf.set(it.placement_name, placement);
+    }
 
     // Residual collision: after staggering, two labels still overlap only when
     // they share a group AND a row and their horizontal extents overlap. Report
@@ -462,6 +462,9 @@ export function layoutLabels(
       // Labels in different placement groups are vertically disjoint (one above,
       // one below its object), so they can never overprint.
       if (placementOf.get(prev.placement_name) !== placementOf.get(cur.placement_name)) continue;
+      // Different depth tiers have already been placed on distinct vertical rows.
+      // Their group-local row numbers are not comparable.
+      if (depthTierOf(prev) !== depthTierOf(cur)) continue;
       // Only labels on the same assigned row can collide horizontally; labels
       // on different rows are vertically separated by the stagger.
       if ((rowOf.get(prev.placement_name) ?? 0) !== (rowOf.get(cur.placement_name) ?? 0)) continue;
@@ -963,11 +966,11 @@ const POOR_ALIGNMENT_DRIFT_FACTOR = 3;
 const OVERLOAD_ROW_DROP_COUNT = 4;
 
 // Per-zone label-label de-overlap by distinct-row stagger (Phase B). Partitions
-// the zone's labels by placement MODE and ladders each group in its OWN direction
-// (bottom labels DOWN toward the padded floor, top labels UP toward the padded
-// top). The two modes are vertically disjoint, so each ladders independently and a
-// top/bottom pair never shares a row collision. Only _labelY (via w.y) changes
-// here; w.x is preserved so Phase A's artwork separation survives.
+// the zone's labels by placement MODE and vertical depth tier, then ladders each
+// group in its OWN direction (bottom labels DOWN toward the padded floor, top
+// labels UP toward the padded top). The two modes and the already-separated tiers
+// must never share a ladder. Only _labelY (via w.y) changes here; w.x is preserved
+// so Phase A's artwork separation survives.
 function restaggerZoneLabels(
   zoneLabels: LabelWork[],
   zone: Zone,
@@ -975,11 +978,24 @@ function restaggerZoneLabels(
   tolerance: number,
 ): void {
   if (zoneLabels.length < 2) return;
-  const topGroup = zoneLabels.filter((w) => w.placementMode === "top");
-  const bottomGroup = zoneLabels.filter((w) => w.placementMode !== "top");
-  // -1 ladders the top group UP, +1 ladders the bottom group DOWN.
-  restaggerGroup(topGroup, zone, zonePad, tolerance, -1);
-  restaggerGroup(bottomGroup, zone, zonePad, tolerance, 1);
+  const groups = new Map<string, LabelWork[]>();
+  for (const w of zoneLabels) {
+    const key = `${w.placementMode}:${depthTierOf(w.item)}`;
+    const group = groups.get(key) ?? [];
+    group.push(w);
+    groups.set(key, group);
+  }
+  const orderedGroups = [...groups.values()].sort((a, b) => {
+    const aPlacement = a[0]?.placementMode ?? "bottom";
+    const bPlacement = b[0]?.placementMode ?? "bottom";
+    if (aPlacement !== bPlacement) return aPlacement === "top" ? -1 : 1;
+    return depthTierOf(a[0]!.item) - depthTierOf(b[0]!.item);
+  });
+  for (const group of orderedGroups) {
+    // -1 ladders the top group UP, +1 ladders the bottom group DOWN.
+    const direction = group[0]?.placementMode === "top" ? -1 : 1;
+    restaggerGroup(group, zone, zonePad, tolerance, direction);
+  }
 }
 
 // One placement group's distinct-row stagger, laddered in `direction`. Mirrors the

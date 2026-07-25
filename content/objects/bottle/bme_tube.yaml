@@ -7,7 +7,7 @@ state_fields:
     allowed:
       - empty
       - bme
-    default: empty
+    default: bme
     description: Contents currently in the tube.
   - field_name: material_volume
     type: float
@@ -27,8 +27,11 @@ visual_states:
         output:
           asset_name: falcon_15ml
   material_volume:
-    kind: composite
-    formula: fill_height(state(material_volume), capacity_ml=15)
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ml: 15
 capabilities:
   - clickable
   - material_container

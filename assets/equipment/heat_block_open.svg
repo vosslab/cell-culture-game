@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120">
+  <rect width="160" height="120" rx="12" fill="#f4f7fa"/>
+  <path d="M31 55V24c0-4 3-7 7-7h75c4 0 7 3 7 7v31" fill="#d7edf4" fill-opacity="0.44" stroke="#547486" stroke-width="2.5"/>
+  <path d="M39 23h72" stroke="#ffffff" stroke-opacity="0.85" stroke-width="2" stroke-linecap="round"/>
+  <path d="M25 61h110v35c0 5-4 9-9 9H34c-5 0-9-4-9-9z" fill="#38566a" stroke="#193747" stroke-width="3"/>
+  <path d="M30 58h100l-9 14H39z" fill="#263f4e" stroke="#193747" stroke-width="3" stroke-linejoin="round"/>
+  <rect x="41" y="42" width="78" height="25" rx="4" fill="#c8d1d2" stroke="#65757b" stroke-width="2"/>
+  <g fill="#4c5a5e" stroke="#28383e" stroke-width="1.7">
+    <circle cx="52" cy="50" r="4"/><circle cx="68" cy="50" r="4"/><circle cx="84" cy="50" r="4"/><circle cx="100" cy="50" r="4"/>
+    <circle cx="52" cy="60" r="4"/><circle cx="68" cy="60" r="4"/><circle cx="84" cy="60" r="4"/><circle cx="100" cy="60" r="4"/>
+  </g>
+  <g stroke="#425a70" stroke-width="2.5" stroke-linejoin="round">
+    <path d="M48 50v-17h8v17z" fill="#d7ebf7"/>
+    <path d="M64 60V38h8v22z" fill="#f1c36d"/>
+    <path d="M80 50V29h8v21z" fill="#e7d6f2"/>
+    <path d="M96 60V36h8v24z" fill="#d7ebf7"/>
+  </g>
+  <path d="M52 33h0M68 38h0M84 29h0M100 36h0" stroke="#eef8fb" stroke-width="2" stroke-linecap="round"/>
+  <rect x="36" y="77" width="48" height="18" rx="3" fill="#172b36" stroke="#12222b" stroke-width="1.5"/>
+  <rect x="40" y="81" width="40" height="10" rx="1.5" fill="#b9edf7"/>
+  <g fill="#183a47">
+    <path d="M45 82h5v1h-5zM45 82h1v3h-1zM45 85h5v1h-5zM45 86h1v3h-1zM45 88h5v1h-5zM49 86h1v3h-1z"/>
+    <path d="M53 82h5v1h-5zM53 82h1v3h-1zM53 85h5v1h-5zM57 86h1v3h-1zM53 88h5v1h-5z"/>
+    <path d="M61 82h5v1h-5zM61 82h1v3h-1zM61 86h1v3h-1zM61 88h5v1h-5z"/>
+  </g>
+  <circle cx="101" cy="85" r="5" fill="#4fac78" stroke="#1c5b43" stroke-width="1.5"/>
+  <circle cx="118" cy="85" r="5" fill="#f2b54d" stroke="#855719" stroke-width="1.5"/>
+  <path d="M30 101h100" stroke="#9bb5c1" stroke-width="2" stroke-linecap="round"/>
+</svg>

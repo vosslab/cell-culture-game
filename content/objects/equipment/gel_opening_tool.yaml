@@ -15,7 +15,7 @@ visual_states:
       - when: true
         output: { asset_name: gel_opening_tool }
       - when: false
-        output: { asset_name: gel_opening_tool }
+        output: { asset_name: gel_opening_tool_hidden }
 
 capabilities: [clickable, cursor_attachable]
 

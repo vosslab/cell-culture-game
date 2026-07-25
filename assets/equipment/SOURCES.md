@@ -16,12 +16,12 @@ The following SVG files have been adopted directly from the Servier Medical Art 
 
 | Our Filename                 | Servier Source                                      | Notes                                                        |
 | ---------------------------- | --------------------------------------------------- | ------------------------------------------------------------ |
-| `rocking_shaker_idle.svg`    | `Lab_apparatus/Servier/agitator.svg`                | Platform agitator / shaker                                   |
-| `rocking_shaker_running.svg` | `Lab_apparatus/Servier/agitator.svg`                | Same as idle; state differentiation via YAML `visual_states` |
 | `electrophoresis_tank.svg`   | `Lab_apparatus/Servier/electrophoresis-chamber.svg` | Electrophoresis chamber                                      |
 | `gel_cassette.svg`           | `Lab_apparatus/Servier/gel-electrophoresis.svg`     | Gel electrophoresis apparatus                                |
 | `mini_protean_gel.svg`       | `Lab_apparatus/Servier/gel-electrophoresis.svg`     | Same source as gel_cassette; represents gel slab             |
 | `gel_comb.svg`               | `Lab_apparatus/Servier/gel-electrophoresis.svg`     | Comb detail from gel apparatus                               |
+| `water_bath.svg`             | `Lab_apparatus/Servier/bath-empty.svg`              | Direct normalized empty water-bath state; shared frame and runtime anchors only |
+| `water_bath_occupied.svg`    | `Lab_apparatus/Servier/bath_filled.svg`             | Direct normalized occupied water-bath state; shared frame and runtime anchors only |
 
 ### Chemistry / Servier
 
@@ -82,14 +82,22 @@ Commercial use permitted.
 
 | Our Filename           | Servier Source                      | Notes                                                                |
 | ---------------------- | ----------------------------------- | -------------------------------------------------------------------- |
-| `microwave_closed.svg` | `Lab_apparatus/Servier/incubator.svg` | Front-loading benchtop box; used as lab microwave (closed/off state) |
 | `microwave_open.svg`   | `Lab_apparatus/Servier/incubator.svg` | Same source; no open-door variant available in source library        |
 
 ### Hand-authored SVGs
 
-| Our Filename      | Notes                                                               |
-| ----------------- | ------------------------------------------------------------------- |
-| `lightbox_off.svg` | Matches `lightbox_on.svg` structure (dark body, dim screen/buttons) |
+| Our Filename            | Notes                                                                        |
+| ----------------------- | ---------------------------------------------------------------------------- |
+| `lightbox_off.svg`      | Matches `lightbox_on.svg` structure (dark body, dim screen/buttons)         |
+| `kimwipe_pad.svg`       | Four Kimwipes loosely tied in a knot for the SDS-PAGE destain workflow      |
+| `lens_tissue.svg`       | Folded lint-free tissue for wicking excess liquid from slide edges          |
+| `paper_towel_pad.svg`   | Layered absorbent paper-towel stack used beneath a 96-well plate             |
+| `mtt_powder_vial.svg`   | Sealed small vial with a visible pre-weighed yellow MTT powder bed            |
+| `mtt_powder_vial_empty.svg` | Matching emptied vial after the MTT powder transfer                       |
+| `microwave_closed.svg` | Closed idle microwave with door, handle, controls, and display                 |
+| `microwave_heating.svg` | Closed microwave with visible heating waves and active indicator              |
+| `rocking_shaker_idle.svg` | Idle benchtop rocking shaker                                                  |
+| `rocking_shaker_running.svg` | Tilted platform, active indicators, and motion cues                         |
 
 ## Placeholder SVGs
 
@@ -99,7 +107,6 @@ The following objects have no suitable source and remain as dashed placeholder S
 - `power_supply_on.svg` - Power Supply (on state) - no benchtop PSU icon found
 - `gel_opening_tool.svg` - Gel Opening Tool - no matching icon found
 - `microtube_rack_24_placeholder.svg` - Microtube Rack (24-slot) - see note below
-- `kimwipe_pad.svg` - Kimwipe Pad - no tissue/wipe box icon found
 - `electrode_module.svg` - Electrode Module
 
 Note on `microtube_rack_24`: the existing `tube_rack.svg` (isometric rack with multiple tube positions) is a viable substitute.

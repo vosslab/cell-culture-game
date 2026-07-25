@@ -7,30 +7,6 @@ state_fields:
     type: bool
     default: true
     description: Whether the tank lid is in place.
-  - field_name: inner_chamber_material_name
-    type: enum
-    allowed: [empty, running_buffer_1x, running_buffer_1x_used]
-    default: empty
-    description: Contents currently in the inner chamber.
-  - field_name: inner_chamber_material_volume
-    type: float
-    unit: ml
-    min: 0
-    max: 800
-    default: 0
-    description: Volume of contents in the inner chamber, in milliliters.
-  - field_name: outer_chamber_material_name
-    type: enum
-    allowed: [empty, running_buffer_1x, running_buffer_1x_used]
-    default: empty
-    description: Contents currently in the outer chamber.
-  - field_name: outer_chamber_material_volume
-    type: float
-    unit: ml
-    min: 0
-    max: 500
-    default: 0
-    description: Volume of contents in the outer chamber, in milliliters.
   - field_name: module_present
     type: bool
     default: false
@@ -38,37 +14,21 @@ state_fields:
 
 visual_states:
   lid_present:
-    kind: composite
-    composite: []
+    kind: svg
+    cases:
+      - when: false
+        output: { asset_name: electrophoresis_tank_open }
+      - when: true
+        output: { asset_name: electrophoresis_tank_lidded }
   module_present:
+    # The electrode module is a separately placed, stateful object.  Its
+    # mounted/cassette/clamp evidence remains visible in the assembled scene;
+    # a second whole-tank SVG selector would overwrite lid_present in the
+    # one-base-asset resolver and would duplicate the module artwork.
     kind: composite
     composite: []
-  inner_chamber_material_name:
-    kind: svg
-    cases:
-      - when: empty
-        output: { asset_name: electrophoresis_tank_inner_chamber }
-      - when: running_buffer_1x
-        output: { asset_name: electrophoresis_tank_inner_chamber }
-      - when: running_buffer_1x_used
-        output: { asset_name: electrophoresis_tank_inner_chamber }
-  inner_chamber_material_volume:
-    kind: composite
-    formula: fill_height(state(inner_chamber_material_volume), capacity_ml=800)
-  outer_chamber_material_name:
-    kind: svg
-    cases:
-      - when: empty
-        output: { asset_name: electrophoresis_tank_outer_chamber }
-      - when: running_buffer_1x
-        output: { asset_name: electrophoresis_tank_outer_chamber }
-      - when: running_buffer_1x_used
-        output: { asset_name: electrophoresis_tank_outer_chamber }
-  outer_chamber_material_volume:
-    kind: composite
-    formula: fill_height(state(outer_chamber_material_volume), capacity_ml=500)
 
-capabilities: [clickable, material_container]
+capabilities: [clickable]
 
 layout:
   default_width: 18

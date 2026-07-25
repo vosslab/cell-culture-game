@@ -2,26 +2,25 @@
 //
 // Node --test suite for the store-driven SceneOpDeps (WS-M3-D). Proves that
 // each scene operation drives the reactive scene_store correctly, and that the
-// SceneChange reset policy holds across a transition.
+// SceneChange identity-reconciliation policy holds across a transition.
 //
 // These deps replace the old imperative build_scene_op_deps that poked DOM
 // attributes. Here the contract is: ObjectStateChange/CursorAttach write the
-// store; SceneChange reseeds (via the injected render_scene closure) and
-// preserves cursor-held state; LayoutMove fails loudly while unsupported;
-// TimedWait writes runtime equipment-phase flags and delegates scheduling.
+// store; SceneChange reconciles the destination target set and preserves
+// declared state for exact shared identities; LayoutMove fails loudly while
+// unsupported; TimedWait writes runtime equipment-phase flags and delegates
+// scheduling.
 //
 // The render_scene closure is the test seam: in the browser, protocol_host
-// passes a closure that runs runPipeline + mountScene (which reseeds the store
-// from the new scene's PipelineResult, dropping scene-local state). Here we
-// inject a closure that reseeds an explicit target list, which is exactly the
-// reset behavior under test.
+// passes a closure that runs mountScene in reconcile mode. Here we inject an
+// explicit destination target list and run the same store operation directly.
 //
-// Reset matrix (PRIMARY_SPEC.md / plan WS-M3-D):
-//   - scene-local vessel state clears on SceneChange
-//   - cursor-held tool persists
-//   - cursor-held material persists
-//   - active-target + selected flags clear
-//   - subpart state clears on leaving the scene
+// Transition matrix:
+//   - exact shared targets retain declared state
+//   - new targets seed schema defaults
+//   - absent targets and their subparts drop
+//   - runtime-only flags reset
+//   - cursor-held tool/material is restored when the tool remains present
 
 import { test, describe } from "node:test";
 import assert from "node:assert";
@@ -46,11 +45,11 @@ function seed_scene(store) {
   ]);
 }
 
-// Build deps with a render_scene closure that reseeds the store from a fixed
-// next-scene target list (the way mountScene reseeds from a PipelineResult).
+// Build deps with a render_scene closure that reconciles a fixed destination
+// target list (the way protocol_host mounts a SceneChange destination).
 function deps_with_next_scene(store, nextSceneSeeds) {
   const render_scene = (_scene_name) => {
-    store.seed_from_scene(nextSceneSeeds);
+    store.reconcile_scene(nextSceneSeeds);
   };
   return build_store_scene_op_deps(store, render_scene);
 }
@@ -247,24 +246,50 @@ describe("scene_op_deps CursorAttach", () => {
 });
 
 //============================================
-// SceneChange reset matrix
+// SceneChange reconciliation matrix
 //============================================
 
-describe("scene_op_deps SceneChange reset matrix", () => {
-  test("scene-local vessel state clears on SceneChange", () => {
+describe("scene_op_deps SceneChange reconciliation matrix", () => {
+  test("a shared target retains its declared scientific state", () => {
     const store = create_scene_store();
     seed_scene(store);
-    // The next scene re-seeds bme_tube fresh (same object placed again).
+    // The next scene contains the same identity-bearing vessel.
     const deps = deps_with_next_scene(store, [{ target: "bme_tube", object_name: "bme_tube" }]);
-    // Read the schema default so this assertion stays valid if the YAML default changes.
-    const vol_default = OBJECT_LIBRARY["bme_tube"].state_schema["material_volume"].default;
-    // Dirty the vessel in the current scene.
-    store.set_object_state("bme_tube", { material_name: "bme", material_volume: 2 });
+    const schema = OBJECT_LIBRARY["bme_tube"].state_schema;
+    const changed_name = schema["material_name"].allowed.find(
+      (name) => name !== schema["material_name"].default,
+    );
+    if (changed_name === undefined) throw new Error("bme_tube needs an alternate material state");
+    const changed_volume = schema["material_volume"].default === 0 ? 1 : 0;
+    store.set_object_state("bme_tube", {
+      material_name: changed_name,
+      material_volume: changed_volume,
+    });
     deps.apply_scene_change({ type: "SceneChange", to_scene: "next" });
-    // After the transition the vessel is back at its seeded defaults.
-    assert.strictEqual(store.state["bme_tube"].state.material_name, "empty");
-    assert.notStrictEqual(store.state["bme_tube"].state.material_volume, undefined);
-    assert.strictEqual(store.state["bme_tube"].state.material_volume, vol_default);
+    assert.deepStrictEqual(
+      {
+        material_name: store.state["bme_tube"].state.material_name,
+        material_volume: store.state["bme_tube"].state.material_volume,
+      },
+      {
+        material_name: changed_name,
+        material_volume: changed_volume,
+      },
+    );
+  });
+
+  test("a new target starts at defaults while absent targets are dropped", () => {
+    const store = create_scene_store();
+    seed_scene(store);
+    const deps = deps_with_next_scene(store, [
+      { target: "well_plate_96.A1", object_name: "well_plate_96" },
+    ]);
+    deps.apply_scene_change({ type: "SceneChange", to_scene: "next" });
+    assert.strictEqual(store.state["centrifuge"], undefined);
+    assert.strictEqual(
+      store.state["well_plate_96.A1"].state.material_name,
+      OBJECT_LIBRARY["well_plate_96"].subpart_state_schema["material_name"].default,
+    );
   });
 
   test("cursor-held tool and material persist across SceneChange", () => {
@@ -299,7 +324,7 @@ describe("scene_op_deps SceneChange reset matrix", () => {
   test("subpart state clears on leaving the scene", () => {
     // A subpart material write is registry-backed (D1): the store carries a
     // registry that registers the written material so acceptance passes. The
-    // test's subject is the scene-change reset, not material acceptance.
+    // test's subject is destination membership, not material acceptance.
     const store = create_scene_store({
       media: { label: "Growth media", display_color: "#6c6c00" },
     });

@@ -3,22 +3,33 @@ extends: bench_basic
 
 scene_notes: |
   Plate reader workspace for MTT solubilization absorbance readout. The plate
-  reader instrument is the primary object at center. The treated 96-well plate
-  (well_plate_96, inherited from bench_basic at center_well_plate_96) is
-  already present; protocols target well_plate_96.all_wells to insert the plate.
+  reader instrument is the primary object at center. A visible, explicit plate
+  loading target remains at the rear-left station; protocols target
+  well_plate_96.all_wells to insert the plate.
 
 remove_placements:
+  # This is a reader-led scene, so inherited bench inventory is removed rather
+  # than shown as unrelated decoration. The two explicit placements below are
+  # the only authored interaction targets in this scene.
+  - rear_left_waste
+  - rear_left_media_bottle
+  - rear_center_pbs
+  - rear_center_ethanol
+  - rear_right_vortex
+  - rear_right_heat_block
   - center_water_bath
   - center_centrifuge
-  - rear_left_media_bottle
-  - rear_center_ethanol
-  - rear_right_heat_block
+  - base_right_tip_box
+  - base_right_micropipette
 
 add_placements:
-  # well_plate_96 is now placed in the inherited bench_basic center band (single
-  # plate); the former microtube_rack_24 proxy (rear_center_treated_plate) was
-  # removed here. Protocols target well_plate_96.all_wells against the inherited
-  # center_well_plate_96 placement.
+  # The reader scene stays reader-led, but the learner can still see the plate
+  # that is about to be loaded and click its explicit target.
+  - placement_name: rear_left_plate_loading_target
+    object_name: well_plate_96
+    zone: rear_left
+    depth_tier: 1
+    align_stop: center
 
   # Plate reader instrument at center -- the main instrument for readout
   - placement_name: center_plate_reader

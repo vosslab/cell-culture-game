@@ -2,5 +2,19 @@ scene_name: sdspage_heat_denature_samples_workspace
 extends: heat_block_bench
 
 scene_notes: |
-  Heat block workspace for SDS-PAGE sample denaturation. Extends heat_block_bench
-  which provides heat_block in center and microtube_rack_24 in rear_left.
+  Heat block workspace for SDS-PAGE sample denaturation. The heat block and
+  front microtube rack form the complete visible workflow; mixing reagents and
+  spare tools belong to the preceding sample-preparation learning block.
+
+remove_placements:
+  - rear_left_protein_sample
+  - rear_left_protein_ladder
+  - rear_center_laemmli
+  - rear_center_bme
+  - rear_right_ddh2o
+  - rear_right_waste
+  - mid_eppendorf_rack
+  - mid_p10_tip_box
+  - mid_microtube_sample
+  - front_micropipette
+  - right_tool_area_tip_box

@@ -1,43 +1,14 @@
 scene_name: plate_workspace
-extends: hood_basic
+extends: plate_focus_hood
 scene_notes: |
   Hood workspace for drug treatment mini-protocol. Adds carboplatin and
   metformin working stock rack (rear center zone), seeded well plate
-  (center zone), and micropipette (right tool area). The well_plate_96 object is
-  placed in the inherited hood_basic center; protocols target well_plate_96.*.
-
-remove_placements:
-  # The base PBS and waste bottles are context decoration here (not protocol
-  # targets). Left in rear_center they crowd the two drug-stock targets and
-  # their labels ran under the waste-container art. align_stop cannot be
-  # changed by reposition, so remove and re-add them at the free center stops
-  # of the rear_left and rear_right zones, clear of the other shelf items.
-  - base_rear_center_pbs
-  - rear_center_waste
-  # The drug-addition protocol pipettes exclusively with the micropipette. The
-  # two inherited base pipettes are non-targets that crowd the right tool band,
-  # so remove them (fully, not deactivate: a deactivated placement is still laid
-  # out and rendered) to make the micropipette the lone, unambiguous tool.
-  - right_aspirating_pipette
-  - base_right_serological_pipette
+  (foreground zone), micropipette (right tool area), and a secondary incubator
+  destination (rear-right context). The plate-focused base supplies the readable
+  plate; the additions below are the protocol's visible targets, with the plate
+  remaining the foreground teaching surface.
 
 add_placements:
-  # PBS re-added at the rear_left center stop (context decoration), between the
-  # ethanol (left) and tip box (right) columns on the rear shelf.
-  - placement_name: rear_left_pbs_decor
-    object_name: pbs_bottle
-    zone: rear_left
-    depth_tier: 2
-    align_stop: center
-
-  # Waste container re-added at the rear_right center stop (context
-  # decoration), between the media (left) and sterile water (right) columns.
-  - placement_name: rear_right_waste_decor
-    object_name: waste_container
-    zone: rear_right
-    depth_tier: 2
-    align_stop: center
-
   # Drug stock tube rack in rear_center (left side)
   - placement_name: rear_center_carb_stocks
     object_name: dilution_tube_rack_8
@@ -52,12 +23,17 @@ add_placements:
     depth_tier: 2
     align_stop: right
 
-  # well_plate_96 is now placed in the inherited hood_basic center band (single
-  # plate); the former microtube_rack_24 placeholder was removed here.
-
   # Micropipette in right tool area
   - placement_name: right_micropipette
     object_name: micropipette
     zone: right_tool_area
     depth_tier: 2
+    align_stop: center
+
+  # The incubator is the explicit final destination for the treated foreground
+  # plate. It stays secondary context so the plate remains the teaching focus.
+  - placement_name: rear_right_incubator
+    object_name: incubator
+    zone: rear_right
+    depth_tier: 1
     align_stop: center

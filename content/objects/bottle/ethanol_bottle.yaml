@@ -7,7 +7,7 @@ state_fields:
     allowed:
       - empty
       - ethanol_70
-    default: empty
+    default: ethanol_70
     description: Contents currently in the bottle.
   - field_name: material_volume
     type: float
@@ -18,8 +18,11 @@ state_fields:
     description: Volume of ethanol remaining, in milliliters.
 visual_states:
   material_volume:
-    kind: composite
-    formula: fill_height(state(material_volume), capacity_ml=500)
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ml: 500
   material_name:
     kind: svg
     cases:

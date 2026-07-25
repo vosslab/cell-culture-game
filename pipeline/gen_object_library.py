@@ -23,6 +23,8 @@ Output: generated/object_library.ts with:
 import os
 import sys
 import subprocess
+import math
+import re
 
 # PIP3 modules
 import yaml
@@ -147,13 +149,16 @@ def get_svg_aspect(svg_path: str) -> float:
 
 #============================================
 
-# Recorded PATH-B grid parameters for structured grid objects, keyed by
-# object_name. The base SVG draws each well as a cubic-Bezier circle (not a
-# <circle> element), so exact per-shape extraction by element type is not
-# available; instead we record the regular grid the art lays the wells on and
-# derive each well center from it (PATH-B). These constants are calibrated to
-# the base art and validated by an overlay screenshot
-# (tools/well_grid_overlay.mjs), NOT an authored YAML field.
+# Recorded PATH-B geometry parameters for structured grid objects, keyed by
+# object_name. Base SVG art does not always expose a convenient semantic shape
+# element, so this is the one generated-geometry calibration seam. It is not
+# authored YAML: a structured object's exterior remains layout-managed, while
+# these regions describe only its declared internal subparts.
+#
+# Geometry may be a regular circle grid (the well plate) or a regular rect
+# grid (the eight visible tube interiors). The derivation remains generic:
+# object-specific evidence lives in this calibration table, not in emitted
+# runtime behavior.
 #
 # well_plate_96 (asset 96well_pcr_plate.svg, viewBox 0 0 393.3275 278.5243):
 #   origin_x/origin_y are the center of well A1 (top-left), measured directly
@@ -164,18 +169,44 @@ def get_svg_aspect(svg_path: str) -> float:
 #     row H center = 49.260 + 7*28.347 = 247.69 both land on the measured wells.
 #   radius is the rendered disc radius (inner fill 10.57, outer ring 12.68);
 #     11.0 sits inside the gray ring so the tint disc reads as the well.
-PLATE_WELL_GRID = {
+RECORDED_SUBPART_GRIDS = {
 	"well_plate_96": {
 		"origin_x": 45.010,
 		"origin_y": 49.260,
-		"x_spacing": 28.347,
-		"y_spacing": 28.347,
+		"row_dx": 0.0,
+		"row_dy": 28.347,
+		"col_dx": 28.347,
+		"col_dy": 0.0,
 		"radius": 11.0,
 		"view_box": {
 			"min_x": 0.0,
 			"min_y": 0.0,
 			"width": 393.3275,
 			"height": 278.5243,
+		},
+	},
+	# dilution_tube_rack_8 (asset dilution_tube_rack.svg, viewBox 0 0 80 50):
+	# each front-row tube body spans x=5..9, x=14..18, ... x=68..72. The
+	# material region deliberately stays in the straight body (y=10..28),
+	# avoiding the cap and tapered tip while still reading as liquid in the
+	# protocol-addressed tube.
+	"dilution_tube_rack_8": {
+		"shape": "rect",
+		"origin_x": 5.0,
+		"origin_y": 10.0,
+		# The YAML's eight declared row entries are drawn as a horizontal row in
+		# this asset. A row/column basis keeps that recorded orientation explicit.
+		"row_dx": 9.0,
+		"row_dy": 0.0,
+		"col_dx": 0.0,
+		"col_dy": 0.0,
+		"width": 4.0,
+		"height": 18.0,
+		"view_box": {
+			"min_x": 0.0,
+			"min_y": 0.0,
+			"width": 80.0,
+			"height": 50.0,
 		},
 	},
 }
@@ -195,55 +226,59 @@ def derive_grid_geometry(object_name: str, structure: dict) -> tuple:
 	"""
 	Derive a typed SubpartGeometryMap from recorded PATH-B grid parameters.
 
-	Reads the rows/cols grid from the object's structure block and the recorded
-	grid constants from PLATE_WELL_GRID. Computes one circle per subpart, keyed
-	by name_pattern (A1..H12, row A = top), ordered row-major so the emitted map
-	is deterministic. Returns (geometry_map, view_box) or (None, None) when the
-	object has no recorded grid (non-grid or unconfigured structured objects).
-
-	geometry_map: {subpart_name: {"shape": "circle", "cx", "cy", "r"}}.
+	Reads rows/cols/name_pattern from structure and the recorded calibration for
+	the object. Computes one circle or rect per declared subpart, ordered by the
+	same row-major expansion as derive_subpart_names. Returns
+	(geometry_map, view_box) or (None, None) when no geometry is recorded.
 	"""
-	grid = PLATE_WELL_GRID.get(object_name)
+	grid = RECORDED_SUBPART_GRIDS.get(object_name)
 	if grid is None:
 		return None, None
 
 	layout = structure.get("layout")
 	if layout != "grid":
 		raise ValueError(
-			f"PLATE_WELL_GRID recorded for {object_name} but structure.layout"
+			f"recorded subpart geometry for {object_name} but structure.layout"
 			f" is {layout!r}, expected 'grid'"
 		)
 
-	rows = int(structure["rows"])
 	cols = int(structure["cols"])
-	name_pattern = structure["name_pattern"]
-	# This generator derives only the row-letter + column-number naming the
-	# 96-well plate uses; a different pattern needs an explicit deriver.
-	if name_pattern != "{row_letter}{col}":
-		raise ValueError(
-			f"derive_grid_geometry only supports name_pattern"
-			f" '{{row_letter}}{{col}}', got {name_pattern!r} for {object_name}"
-		)
-
 	origin_x = grid["origin_x"]
 	origin_y = grid["origin_y"]
-	x_spacing = grid["x_spacing"]
-	y_spacing = grid["y_spacing"]
-	radius = grid["radius"]
+	row_dx = grid["row_dx"]
+	row_dy = grid["row_dy"]
+	col_dx = grid["col_dx"]
+	col_dy = grid["col_dy"]
+	shape = grid.get("shape", "circle")
+	if shape not in ("circle", "rect"):
+		raise ValueError(
+			f"recorded subpart geometry for {object_name} has unsupported "
+			f"shape {shape!r}"
+		)
 
-	# Build the map row-major (A1..A12, B1..B12, ...) so iteration order is
-	# A1 (top-left) through the last row's last column (H12, bottom-right).
+	# Preserve declared row-major order for all structured grids. It matters for
+	# both plate wells and tube racks: sorting strings would make A10 precede A2.
+	subpart_names = derive_subpart_names(object_name, structure)
 	geometry_map = {}
-	for row in range(rows):
-		for col in range(cols):
-			subpart_name = row_letter(row) + str(col + 1)
-			cx = origin_x + col * x_spacing
-			cy = origin_y + row * y_spacing
+	for index, subpart_name in enumerate(subpart_names):
+		row = index // cols
+		col = index % cols
+		cx = origin_x + row * row_dx + col * col_dx
+		cy = origin_y + row * row_dy + col * col_dy
+		if shape == "circle":
 			geometry_map[subpart_name] = {
 				"shape": "circle",
 				"cx": round(cx, 4),
 				"cy": round(cy, 4),
-				"r": round(radius, 4),
+				"r": round(grid["radius"], 4),
+			}
+		else:
+			geometry_map[subpart_name] = {
+				"shape": "rect",
+				"x": round(cx, 4),
+				"y": round(cy, 4),
+				"w": round(grid["width"], 4),
+				"h": round(grid["height"], 4),
 			}
 
 	view_box = grid["view_box"]
@@ -370,6 +405,11 @@ def parse_state_fields(data: dict, yaml_path: str) -> tuple:
 # src/scene_runtime/layout/types.ts.
 RENDER_EFFECTS = ("material_tint", "fill_height")
 RENDER_TARGETS = ("subpart_geometry", "anchor_liquid_bounds", "anchor_liquid_clip")
+FILL_HEIGHT_FORMULA = re.compile(
+	r"fill_height\(state\((?P<field>[A-Za-z_][A-Za-z0-9_]*)\), "
+	r"(?P<capacity_key>capacity_(?:ul|ml))=(?P<capacity>"
+	r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)\)"
+)
 
 
 #============================================
@@ -383,7 +423,7 @@ def parse_visual_states(data: dict, yaml_path: str) -> dict:
 	- render-effect-based (MATERIAL_CONVENTION.md D12) with render_effect +
 	  target, the declarative material form, which omits kind.
 	Returns {field_name: {applies_to, kind?, cases?, formula?, render_effect?,
-	target?, clip?, capacity_ul?}}.
+	target?, clip?, capacity_ul?, capacity_ml?}}.
 	"""
 	raw_vs = data.get("visual_states", {})
 	if not raw_vs:
@@ -417,9 +457,30 @@ def parse_visual_states(data: dict, yaml_path: str) -> dict:
 			entry["target"] = target
 			# Optional anchor clip + capacity for fill_height; pass through if set.
 			if "clip" in vs_def:
-				entry["clip"] = vs_def["clip"]
+				clip = vs_def["clip"]
+				if clip not in RENDER_TARGETS:
+					raise ValueError(
+						f"visual_states.{field_name}.clip"
+						f" '{clip}' not in {RENDER_TARGETS}: {yaml_path}"
+					)
+				entry["clip"] = clip
 			if "capacity_ul" in vs_def:
 				entry["capacity_ul"] = vs_def["capacity_ul"]
+			if "capacity_ml" in vs_def:
+				entry["capacity_ml"] = vs_def["capacity_ml"]
+			if render_effect == "fill_height":
+				capacities = [key for key in ("capacity_ul", "capacity_ml") if key in entry]
+				if len(capacities) != 1:
+					raise ValueError(
+						f"visual_states.{field_name}.fill_height must declare exactly one "
+						f"of capacity_ul/capacity_ml: {yaml_path}"
+					)
+				capacity = entry[capacities[0]]
+				if not isinstance(capacity, (int, float)) or isinstance(capacity, bool) or capacity <= 0:
+					raise ValueError(
+						f"visual_states.{field_name}.{capacities[0]} must be a positive number: "
+						f"{yaml_path}"
+					)
 			result[field_name] = entry
 			continue
 
@@ -435,6 +496,158 @@ def parse_visual_states(data: dict, yaml_path: str) -> dict:
 		result[field_name] = entry
 
 	return result
+
+
+#============================================
+
+def parse_fill_height_formula(formula: object, yaml_path: str, field_name: str) -> tuple:
+	"""Parse one closed fill-height formula without accepting near matches."""
+	if not isinstance(formula, str):
+		raise ValueError(
+			f"visual_states.{field_name}.formula must be a string: {yaml_path}"
+		)
+	match = FILL_HEIGHT_FORMULA.fullmatch(formula)
+	if match is None:
+		raise ValueError(
+			f"visual_states.{field_name}.formula must be an exact fill_height "
+			f"formula with capacity_ul or capacity_ml: {yaml_path}"
+		)
+	capacity = float(match.group("capacity"))
+	if not math.isfinite(capacity) or capacity <= 0:
+		raise ValueError(
+			f"visual_states.{field_name}.formula capacity must be finite and positive: "
+			f"{yaml_path}"
+		)
+	return match.group("field"), match.group("capacity_key"), capacity
+
+
+#============================================
+
+def paired_identity_field(volume_field: str) -> str | None:
+	"""Return the runtime's conventional shared-prefix material identity field."""
+	if not volume_field.endswith("_volume"):
+		return None
+	base = volume_field[:-len("_volume")]
+	if base == "material":
+		return "material_name"
+	if base.endswith("_material"):
+		return base + "_name"
+	return base + "_material_name"
+
+
+#============================================
+
+def single_case_asset(
+	identity: dict,
+	yaml_path: str,
+	field_name: str,
+) -> str:
+	"""Require a legacy identity table to select one unambiguous base asset."""
+	cases = identity.get("cases")
+	if not isinstance(cases, list) or not cases:
+		raise ValueError(
+			f"visual_states.{field_name}.cases must be a non-empty list: {yaml_path}"
+		)
+	assets = []
+	seen_when = set()
+	for case in cases:
+		if not isinstance(case, dict) or "when" not in case:
+			raise ValueError(
+				f"visual_states.{field_name}.cases has an invalid case: {yaml_path}"
+			)
+		when = case["when"]
+		if when in seen_when:
+			raise ValueError(
+				f"visual_states.{field_name}.cases repeats {when!r}: {yaml_path}"
+			)
+		seen_when.add(when)
+		output = case.get("output")
+		if not isinstance(output, dict) or set(output) != {"asset_name"}:
+			raise ValueError(
+				f"visual_states.{field_name}.cases must each select one asset_name: "
+				f"{yaml_path}"
+			)
+		asset_name = output["asset_name"]
+		if not isinstance(asset_name, str) or not asset_name:
+			raise ValueError(
+				f"visual_states.{field_name}.cases has an invalid asset_name: {yaml_path}"
+			)
+		assets.append(asset_name)
+	if len(set(assets)) != 1:
+		raise ValueError(
+			f"visual_states.{field_name}.cases must use one base asset for "
+			f"a paired fill-height material: {yaml_path}"
+		)
+	return assets[0]
+
+
+#============================================
+
+def lower_legacy_subpart_material_effects(
+	visual_states: dict,
+	yaml_path: str,
+	has_subpart_geometry: bool,
+) -> dict:
+	"""
+	Lower paired legacy subpart SVG/formula declarations to render effects.
+
+	The source schema remains the compatibility surface. Once a structured object
+	has generated subpart regions, an eligible pair is recognized only by its
+	declaration: a subpart composite fill_height formula and the matching
+	shared-prefix subpart SVG identity field. No object name, material spelling,
+	or subpart spelling participates in the emitted behavior.
+	"""
+	if not has_subpart_geometry:
+		return visual_states
+
+	lowered = dict(visual_states)
+	for amount_field, amount in visual_states.items():
+		if amount.get("applies_to") != "subpart" or amount.get("kind") != "composite":
+			continue
+		formula = amount.get("formula")
+		if not isinstance(formula, str) or not formula.startswith("fill_height("):
+			continue
+
+		driver_field, capacity_key, capacity = parse_fill_height_formula(
+			formula, yaml_path, amount_field
+		)
+		if driver_field != amount_field:
+			raise ValueError(
+				f"visual_states.{amount_field}.formula must drive its own field, "
+				f"not {driver_field!r}: {yaml_path}"
+			)
+		identity_field = paired_identity_field(driver_field)
+		if identity_field is None:
+			raise ValueError(
+				f"visual_states.{amount_field}.formula field {driver_field!r} has no "
+				f"shared-prefix identity pairing: {yaml_path}"
+			)
+		identity = visual_states.get(identity_field)
+		if identity is None:
+			raise ValueError(
+				f"visual_states.{amount_field} needs paired identity "
+				f"visual_states.{identity_field}: {yaml_path}"
+			)
+		if identity.get("applies_to") != "subpart" or identity.get("kind") != "svg":
+			raise ValueError(
+				f"visual_states.{identity_field} must be a subpart svg identity "
+				f"for visual_states.{amount_field}: {yaml_path}"
+			)
+		# Validate the original table before replacing it. extract_primary_asset
+		# runs on the authored table, preserving base-asset selection compatibility.
+		single_case_asset(identity, yaml_path, identity_field)
+		lowered[identity_field] = {
+			"applies_to": "subpart",
+			"render_effect": "material_tint",
+			"target": "subpart_geometry",
+		}
+		lowered[amount_field] = {
+			"applies_to": "subpart",
+			"render_effect": "fill_height",
+			"target": "subpart_geometry",
+			capacity_key: capacity,
+		}
+	return lowered
 
 
 #============================================
@@ -584,6 +797,8 @@ def emit_visual_states_ts(visual_states: dict, indent: str) -> list:
 				lines.append(f"{indent}\t\tclip: {repr(vs_def['clip'])},")
 			if "capacity_ul" in vs_def:
 				lines.append(f"{indent}\t\tcapacity_ul: {vs_def['capacity_ul']},")
+			if "capacity_ml" in vs_def:
+				lines.append(f"{indent}\t\tcapacity_ml: {vs_def['capacity_ml']},")
 		lines.append(f"{indent}\t" + "},")
 	lines.append(f"{indent}" + "},")
 	return lines
@@ -706,10 +921,18 @@ def process_object_yaml(
 		if key in layout:
 			layout_dict[key] = layout[key]
 
-	# Derive PATH-B subpart geometry for recorded grid objects (e.g. well_plate_96).
-	# Geometry is emitted ONCE per object def here, not per scene/placement.
+	# Derive recorded subpart geometry once per object def, never per scene or
+	# placement. It covers only the internal regions of a structured object.
 	structure = data.get("structure", {})
 	subpart_geometry, view_box = derive_grid_geometry(object_name, structure)
+	# The source's legacy SVG case table still selected the primary asset above.
+	# Structured legacy material pairs lower into the typed render-effect contract
+	# only after their internal target geometry is known.
+	visual_states = lower_legacy_subpart_material_effects(
+		visual_states,
+		yaml_path,
+		subpart_geometry is not None,
+	)
 
 	# Declared subpart vocabulary for structured objects: every subpart instance
 	# name (tube_A, lane_1, A1..H12) plus the flattened subpart_groups map

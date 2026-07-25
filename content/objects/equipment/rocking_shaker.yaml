@@ -41,7 +41,7 @@ visual_states:
       - when: false
         output: { asset_name: rocking_shaker_idle }
       - when: true
-        output: { asset_name: rocking_shaker_idle }
+        output: { asset_name: rocking_shaker_running }
   tray_present:
     kind: composite
     composite: []

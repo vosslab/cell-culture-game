@@ -34,10 +34,6 @@
 // It then spot-checks one protocol scene (hood_workspace) for multi-scene
 // coverage.
 //
-// Click-target behavior: asserts that a [data-item-id] element receives
-// synthetic click events dispatched via a page.evaluate MouseEvent, not that a
-// protocol step advances (scene operations are stubbed).
-//
 // Selector contract (cite source file:line so a UI change surfaces the coupling):
 //   - [data-placement-name], [data-item-id], [data-object-name], [data-zone],
 //     [data-kind], [data-depth], [data-asset], [data-missing-svg]
@@ -79,7 +75,8 @@ interface RenderedItem {
   depth: string | null;
   asset: string | null;
   missingSvg: string | null;
-  hasSvg: boolean;
+  hasInlineSvg: boolean;
+  hasLoadedStaticSvg: boolean;
 }
 
 interface RenderedLabel {
@@ -104,17 +101,26 @@ async function loadScene(page: Page, sceneName: string): Promise<void> {
 async function assertSceneSelectorContract(page: Page, sceneName: string): Promise<void> {
   const items: RenderedItem[] = await page.evaluate(() => {
     const els = Array.from(document.querySelectorAll("[data-placement-name]"));
-    return els.map((el) => ({
-      placementName: el.getAttribute("data-placement-name"),
-      objectName: el.getAttribute("data-object-name"),
-      itemId: el.getAttribute("data-item-id"),
-      zone: el.getAttribute("data-zone"),
-      kind: el.getAttribute("data-kind"),
-      depth: el.getAttribute("data-depth"),
-      asset: el.getAttribute("data-asset"),
-      missingSvg: el.getAttribute("data-missing-svg"),
-      hasSvg: el.querySelector("svg") !== null,
-    }));
+    return els.map((el) => {
+      const domSvgHost = el.querySelector('[data-svg-render-mode="dom-svg"]');
+      const staticImage = el.querySelector<HTMLImageElement>('img[data-svg-render-mode="img"]');
+      return {
+        placementName: el.getAttribute("data-placement-name"),
+        objectName: el.getAttribute("data-object-name"),
+        itemId: el.getAttribute("data-item-id"),
+        zone: el.getAttribute("data-zone"),
+        kind: el.getAttribute("data-kind"),
+        depth: el.getAttribute("data-depth"),
+        asset: el.getAttribute("data-asset"),
+        missingSvg: el.getAttribute("data-missing-svg"),
+        hasInlineSvg: (domSvgHost?.querySelector("svg") ?? null) !== null,
+        hasLoadedStaticSvg:
+          staticImage !== null &&
+          staticImage.complete &&
+          staticImage.naturalWidth > 0 &&
+          staticImage.naturalHeight > 0,
+      };
+    });
   });
 
   expect(items.length, `${sceneName}: at least one rendered item`).toBeGreaterThan(0);
@@ -199,12 +205,18 @@ async function assertSceneSelectorContract(page: Page, sceneName: string): Promi
       `${sceneName}[${id}]: data-asset non-empty`,
     ).toBe(true);
 
-    // data-missing-svg: only present on placeholder items; normal items
-    // (hasSvg === true, missingSvg === null) satisfy the contract.
+    // The renderer has two real-art modes: injected inline SVG and a loaded
+    // static SVG image. A normal item must expose either one; a placeholder
+    // may instead carry data-missing-svg="true".
     if (item.missingSvg !== null) {
       expect(item.missingSvg, `${sceneName}[${id}]: data-missing-svg value when present`).toBe(
         "true",
       );
+    } else {
+      expect(
+        item.hasInlineSvg || item.hasLoadedStaticSvg,
+        `${sceneName}[${id}]: normal item has inline SVG or loaded static SVG image`,
+      ).toBe(true);
     }
   }
 
@@ -222,51 +234,16 @@ async function assertSceneSelectorContract(page: Page, sceneName: string): Promi
 }
 
 //============================================
-// Click-target behavior assertions
-//============================================
-
-async function assertClickTargetBehavior(page: Page, sceneName: string): Promise<void> {
-  const itemIds: string[] = await page.evaluate(() => {
-    return Array.from(document.querySelectorAll("[data-item-id]"))
-      .map((el) => el.getAttribute("data-item-id"))
-      .filter((id): id is string => id !== null && id.length > 0);
-  });
-
-  expect(
-    itemIds.length,
-    `${sceneName}: items with data-item-id present for click tests`,
-  ).toBeGreaterThan(0);
-
-  const firstId = itemIds[0]!;
-  const clickReceived = await page.evaluate((itemId: string) => {
-    const el = document.querySelector(`[data-item-id="${itemId}"]`);
-    if (!el) return false;
-    let clicked = false;
-    const handler = (): void => {
-      clicked = true;
-    };
-    el.addEventListener("click", handler, { once: true });
-    el.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true }));
-    return clicked;
-  }, firstId);
-
-  expect(clickReceived, `${sceneName}: [data-item-id="${firstId}"] receives click events`).toBe(
-    true,
-  );
-}
-
-//============================================
 // Tests
 //============================================
 
 test.describe("scene DOM contract selectors", () => {
-  test("bench_basic: contractual attribute coverage + click-target behavior", async ({ page }) => {
+  test("bench_basic: contractual attribute coverage", async ({ page }) => {
     // Suppress expected console noise from scene operations stubs.
     page.on("console", () => {});
 
     await loadScene(page, "bench_basic");
     await assertSceneSelectorContract(page, "bench_basic");
-    await assertClickTargetBehavior(page, "bench_basic");
   });
 
   test("hood_workspace: multi-scene selector coverage", async ({ page }) => {

@@ -195,7 +195,12 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: biohazard_decant
+              state:
+                material_name: mixed
+                material_volume: 7.9
     step_validator:
       preset: sequence_complete
     outcome:

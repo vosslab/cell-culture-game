@@ -3,90 +3,36 @@ workspace: bench
 capabilities:
   - item_workspace
 
-scene_bounds:
-  left: 1
-  right: 99
-  top: 5
-  bottom: 95
-
 background:
   asset: bench_workspace_bg
 
 zones:
-  # Rear shelf band: reagent bottles at top
+  # Rear shelf: reagent bottles
   - zone_name: rear_left
-    bounds:
-      left: 5
-      right: 30
-      top: 5
-      bottom: 36
-    baseline: 32
     align: center
     label: Rear left zone
   - zone_name: rear_center
-    bounds:
-      left: 35
-      right: 65
-      top: 5
-      bottom: 36
-    baseline: 32
     align: center
     label: Rear center zone
   - zone_name: rear_right
-    bounds:
-      left: 70
-      right: 95
-      top: 5
-      bottom: 36
-    baseline: 32
     align: center
     label: Rear right zone
-  # Center working-surface band: tank, carboys, pipettes center-stage
+  # Center working surface: tank, carboys, pipettes center-stage
   - zone_name: center
-    bounds:
-      left: 10
-      right: 85
-      top: 38
-      bottom: 76
-    baseline: 64
     align: tab-stops
     label: Bench work surface
   # Right tool area: pipettes and tip boxes
   - zone_name: right_tool_area
-    bounds:
-      left: 82
-      right: 97
-      top: 38
-      bottom: 76
-    baseline: 64
     align: center
     label: Right tool rack
-  # Front working band (~70-92%): gel, cassette, and small consumables
+  # Front working area: gel, cassette, and small consumables
   - zone_name: front_left
-    bounds:
-      left: 5
-      right: 30
-      top: 72
-      bottom: 94
-    baseline: 90
     align: center
     label: Front left zone
   - zone_name: front_center
-    bounds:
-      left: 35
-      right: 65
-      top: 72
-      bottom: 94
-    baseline: 90
     align: tab-stops
     label: Front center zone
   - zone_name: front_right
-    bounds:
-      left: 70
-      right: 95
-      top: 72
-      bottom: 94
-    baseline: 90
     align: center
     label: Front right zone
 
@@ -147,7 +93,7 @@ placements:
     object_name: gel_opening_tool
     zone: rear_right
     depth_tier: 2
-  # Front band: gel and gel comb at lower canvas
+  # Front area: gel and gel comb
   - placement_name: front_left_mini_protean_gel
     object_name: mini_protean_gel
     zone: front_left
@@ -166,12 +112,8 @@ placements:
     object_name: gel_comb
     zone: front_right
     depth_tier: 1
-    # gel_comb sits in the lower front band; the right_tool_area tip box sits in
-    # the mid band directly above and its zone overlaps front_right's x-range in
-    # the bottom-right corner. With the default top label, gel_comb's label rises
-    # into that corner and collides with the tip box's label (unresolved_label_
-    # overlap Error). Placing gel_comb's label below the comb moves it down, clear
-    # of the tip box above.
+    # The gel comb's label sits below the comb so it remains distinct from the
+    # nearby tip-box label.
     layout:
       label_placement: bottom
 

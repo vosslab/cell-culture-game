@@ -14,10 +14,10 @@ visual_states:
     cases:
       - when: true
         output:
-          asset_name: kimwipe_pad
+          asset_name: lens_tissue
       - when: false
         output:
-          asset_name: kimwipe_pad
+          asset_name: lens_tissue
 
 capabilities: [clickable, cursor_attachable]
 

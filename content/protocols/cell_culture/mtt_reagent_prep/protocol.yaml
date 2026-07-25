@@ -4,19 +4,18 @@ entry_step: pick_up_mtt_powder
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
-    powder handling, mass measurement on an analytical balance, aseptic dissolution
-    technique, and verification of final reagent concentration.
+    handling a pre-weighed powder vial, aseptic dissolution technique, and
+    verification of final reagent concentration.
   outcomes:
-    Students completing this mini-protocol will be able to weigh a precise
-    mass of powder, dissolve it in a measured volume of solvent to reach a target
-    concentration (12 mM MTT from 5 mg in 1 mL PBS), and verify solution readiness
-    for use in the MTT assay.
+    Students completing this mini-protocol will be able to combine a pre-weighed
+    5 mg MTT powder vial with 1 mL PBS, dissolve it to reach 12 mM MTT, and verify
+    solution readiness for use in the MTT assay.
   goals:
     Overall, this mini-protocol aims to accomplish the MTT reagent preparation
     step (Part 3, Day 4, action A39 of the OVCAR8 assay). A 12 mM MTT solution is
     the critical reagent for the colorimetric viability assay; preparation requires
-    accurate powder weighing, dissolution in PBS, and mixing to ensure complete solubilization
-    before use in downstream assay steps.
+    adding PBS, transferring the pre-weighed powder, and mixing to ensure complete
+    solubilization before use in downstream assay steps.
 steps:
   - step_name: pick_up_mtt_powder
     prompt: Pick up the MTT powder vial from the bench.
@@ -40,8 +39,7 @@ steps:
     next_step: prepare_solution_tube
   - step_name: prepare_solution_tube
     prompt:
-      Transfer 1 mL of PBS into the MTT tube, then mix until the MTT powder is
-      fully dissolved.
+      Transfer 1 mL of PBS into the empty MTT solution tube.
     sequence:
       - target: micropipette
         gesture: click
@@ -80,7 +78,7 @@ steps:
             - type: ObjectStateChange
               target: mtt_solution_tube
               state:
-                material_name: mtt_solution_12mm
+                material_name: pbs
                 material_volume: 1.0
     step_validator:
       preset: sequence_complete
@@ -131,6 +129,11 @@ steps:
               target: vortex
               duration_min: 0.5
               display: dissolving MTT
+            - type: ObjectStateChange
+              target: mtt_solution_tube
+              state:
+                material_name: mtt_solution_12mm
+                material_volume: 1.0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -152,6 +155,7 @@ steps:
       preset: final_state_matches
       target: mtt_solution_tube
       contains:
+        material_name: mtt_solution_12mm
         material_volume: 1.0
     outcome:
       on_success: complete

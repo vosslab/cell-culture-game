@@ -133,9 +133,7 @@ def run_all_rules(paths: list[Path]) -> list[Finding]:
 	from validation.scene_lint.rules_group_a import (
 		check_duplicate_scene_name,
 		check_duplicate_placement_name,
-		check_invalid_scene_bounds,
-		check_invalid_zone_bounds,
-		check_zone_outside_scene_bounds,
+		check_forbidden_source_geometry,
 		check_missing_svg_asset,
 		check_invalid_svg_viewbox,
 		check_inheritance_errors,
@@ -178,9 +176,7 @@ def run_all_rules(paths: list[Path]) -> list[Finding]:
 
 		# Group A rules: deterministic data blockers.
 		findings.extend(check_duplicate_placement_name(scene, scene_name))
-		findings.extend(check_invalid_scene_bounds(scene, scene_name))
-		findings.extend(check_invalid_zone_bounds(scene, scene_name))
-		findings.extend(check_zone_outside_scene_bounds(scene, scene_name))
+		findings.extend(check_forbidden_source_geometry(scene, scene_name))
 		findings.extend(check_missing_svg_asset(scene, scene_name))
 		findings.extend(check_invalid_svg_viewbox(scene, scene_name))
 		findings.extend(check_inheritance_errors(scene, scene_name, path))

@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 150" role="img" aria-labelledby="towel-title towel-desc">
+  <title id="towel-title">Stack of absorbent paper towels</title>
+  <desc id="towel-desc">Three soft folded paper towels with wavy layered edges and subtle embossed texture.</desc>
+  <path d="M25 89c7-7 15-8 23-5l157-25c8-1 17 4 18 11l6 17c2 6-4 12-11 12L61 125c-8 2-17-2-19-9z" fill="#d9c184" stroke="#8f784d" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M34 78c7-7 15-8 23-5l159-25c8-1 17 4 18 11l5 15c2 6-4 12-11 12L69 112c-8 2-17-2-19-9z" fill="#ebd9a8" stroke="#a88d59" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M27 66c7-7 15-8 24-5l157-25c8-1 17 4 18 11l6 16c2 6-4 12-11 12L63 101c-8 2-17-2-19-9z" fill="#fff3cf" stroke="#b69a62" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M46 69c23 4 44 2 63-5m-30 30c23 4 45 1 65-6m-13-34c3 12 8 22 16 31m28-41c4 12 9 22 17 31m-84-19c3 12 8 22 16 31" fill="none" stroke="#dcc796" stroke-width="3" stroke-linecap="round"/>
+  <path d="M61 75l2 2m12-5 2 2m13-5 2 2m14-5 2 2m15-5 2 2m15-5 2 2m14-5 2 2m15-5 2 2m14-5 2 2m15-5 2 2" fill="none" stroke="#d3bb83" stroke-width="3" stroke-linecap="round"/>
+  <path d="M45 103c6 2 12 1 18-2m140-29c6 2 11 1 16-2m-158 43c6 2 12 1 18-2" fill="none" stroke="#f8eac3" stroke-width="3" stroke-linecap="round"/>
+</svg>

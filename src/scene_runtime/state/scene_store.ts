@@ -123,10 +123,14 @@ export interface SceneStore {
   // Initialize targets for a scene, seeding declared fields to schema
   // defaults and runtime flags to off. Replaces any prior contents.
   seed_from_scene(seeds: ReadonlyArray<TargetSeed>): void;
-  // Ensure a single target is seeded WITHOUT disturbing other targets. Used by
-  // the scene-op layer to add a subpart instance ("plate.A1") on first write,
-  // since the subpart instance set is not enumerable from the PipelineResult.
-  // A no-op when the target is already seeded; never resets sibling targets.
+  // Transition to another scene without discarding the scientific state of
+  // exact target identities that remain present. New targets start at schema
+  // defaults, absent targets are dropped, and runtime-only flags reset.
+  reconcile_scene(seeds: ReadonlyArray<TargetSeed>): void;
+  // Ensure a single target is seeded WITHOUT disturbing other targets. Scene
+  // mounting seeds declared subparts, while this remains a no-op safety net for
+  // a valid target reached by a first write outside a normal mounted scene.
+  // Never resets an already-seeded target or any sibling target.
   seed_target(seed: TargetSeed): void;
   // Partial-merge a declared-state write into a seeded target. Every key is
   // validated against the target's resolved schema; an undeclared key throws.
@@ -388,9 +392,12 @@ export function create_scene_store(material_registry: MaterialRegistry | null = 
   const [state, set_state] = createStore<SceneStoreState>({});
 
   //----------------------------------------
-  function seed_from_scene(seeds: ReadonlyArray<TargetSeed>): void {
-    // Build the full next map first so a malformed seed throws before any
-    // store mutation (seeding is all-or-nothing).
+  function build_scene_state(
+    seeds: ReadonlyArray<TargetSeed>,
+    preserve_existing: boolean,
+  ): SceneStoreState {
+    // Build the full next map before any mutation so a malformed seed makes
+    // both replacement and reconciliation all-or-nothing.
     const next: SceneStoreState = {};
     for (const seed of seeds) {
       const { object_name, subpart } = split_target(seed.target);
@@ -403,16 +410,40 @@ export function create_scene_store(material_registry: MaterialRegistry | null = 
         );
       }
       const schema = resolve_schema(object_name, subpart);
-      next[seed.target] = {
+      const fresh: TargetState = {
         object_name,
         subpart,
         state: build_default_state(schema),
         flags: build_default_flags(),
       };
+      const existing = preserve_existing ? state[seed.target] : undefined;
+      if (
+        existing !== undefined &&
+        existing.object_name === object_name &&
+        existing.subpart === subpart
+      ) {
+        // Declared state belongs to the identity-bearing object/subpart and
+        // survives a workspace change. Copy primitives out of the Solid proxy;
+        // runtime flags deliberately remain at fresh defaults.
+        fresh.state = { ...existing.state };
+      }
+      next[seed.target] = fresh;
     }
+    return next;
+  }
+
+  //----------------------------------------
+  function seed_from_scene(seeds: ReadonlyArray<TargetSeed>): void {
+    const next = build_scene_state(seeds, false);
     // Replace the target set for a (re)entered scene. Clear stale keys first:
     // Solid's createStore merges a plain-object write and never deletes keys
     // absent from the new object, so an explicit delete pass is required.
+    replace_all(next);
+  }
+
+  //----------------------------------------
+  function reconcile_scene(seeds: ReadonlyArray<TargetSeed>): void {
+    const next = build_scene_state(seeds, true);
     replace_all(next);
   }
 
@@ -583,6 +614,7 @@ export function create_scene_store(material_registry: MaterialRegistry | null = 
   const store: SceneStore = {
     state,
     seed_from_scene,
+    reconcile_scene,
     seed_target,
     set_object_state,
     set_cursor,

@@ -28,7 +28,7 @@ steps:
         response:
           scene_operations:
             - type: SceneChange
-              to_scene: electrophoresis_bench
+              to_scene: sdspage_load_protein_ladder_workspace
     step_validator:
       preset: sequence_complete
     outcome:

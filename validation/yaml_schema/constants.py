@@ -87,9 +87,10 @@ KIND_MATERIAL_FIELD_CONVENTION = {
 # ============================================
 
 # spec: docs/specs/SCENE_YAML_FORMAT.md "Top-level fields"
-BASE_SCENE_REQUIRED_KEYS = {'scene_name', 'workspace', 'capabilities', 'scene_bounds', 'zones', 'placements'}
+BASE_SCENE_REQUIRED_KEYS = {'scene_name', 'workspace', 'capabilities', 'zones', 'placements'}
 BASE_SCENE_OPTIONAL_KEYS = {'background', 'layout_rules', 'accent_rules', 'wrong_order_message'}
 BASE_SCENE_ALL_KEYS = BASE_SCENE_REQUIRED_KEYS | BASE_SCENE_OPTIONAL_KEYS
+
 
 # spec: docs/specs/SCENE_YAML_FORMAT.md "Layout rules" and docs/specs/SCENE_VOCABULARY.md "label_placement"
 # Closed enum for scene-wide and per-placement label position.
@@ -110,7 +111,7 @@ PLACEMENT_LOCKED_FIELDS = {
 }
 
 # spec: docs/specs/SCENE_INHERITANCE.md "Reposition operations"
-REPOSITION_ALLOWED_FIELDS = {'placement_name', 'zone', 'position', 'depth', 'anchor', 'depth_tier', 'align_stop'}
+REPOSITION_ALLOWED_FIELDS = {'placement_name', 'zone', 'depth', 'depth_tier', 'align_stop'}
 
 
 # ============================================

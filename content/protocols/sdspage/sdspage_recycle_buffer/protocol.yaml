@@ -29,6 +29,18 @@ steps:
           scene_operations:
             - type: SceneChange
               to_scene: sdspage_recycle_buffer_workspace
+            # The full sequence runner reaches this scene after a gel run. These
+            # writes also make this mini-protocol truthful when launched alone.
+            - type: ObjectStateChange
+              target: electrophoresis_inner_chamber
+              state:
+                material_name: running_buffer_1x_used
+                material_volume: 600
+            - type: ObjectStateChange
+              target: electrophoresis_outer_chamber
+              state:
+                material_name: running_buffer_1x_used
+                material_volume: 400
     step_validator:
       preset: sequence_complete
     outcome:
@@ -37,10 +49,10 @@ steps:
     next_step: pour_inner_chamber
   - step_name: pour_inner_chamber
     prompt:
-      Pour the used buffer from the inner chamber of the electrophoresis tank
-      into the buffer recycle bottle.
+      Pour the used buffer from the focused inner chamber into the buffer recycle
+      bottle.
     sequence:
-      - target: electrophoresis_tank
+      - target: electrophoresis_inner_chamber
         gesture: click
         validator:
           preset: correct_target
@@ -53,15 +65,15 @@ steps:
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: electrophoresis_tank
+              target: electrophoresis_inner_chamber
               state:
-                inner_chamber_material_name: empty
-                inner_chamber_material_volume: 0
+                material_name: empty
+                material_volume: 0
             - type: ObjectStateChange
               target: recycle_buffer_bottle
               state:
                 material_name: running_buffer_1x_used
-                material_volume: 300
+                material_volume: 600
     step_validator:
       preset: sequence_complete
     outcome:
@@ -70,10 +82,10 @@ steps:
     next_step: pour_outer_chamber
   - step_name: pour_outer_chamber
     prompt:
-      Pour the used buffer from the outer chamber of the electrophoresis tank
-      into the buffer recycle bottle to complete the recycling process.
+      Pour the used buffer from the focused outer chamber into the buffer recycle
+      bottle to complete the recycling process.
     sequence:
-      - target: electrophoresis_tank
+      - target: electrophoresis_outer_chamber
         gesture: click
         validator:
           preset: correct_target
@@ -86,15 +98,15 @@ steps:
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: electrophoresis_tank
+              target: electrophoresis_outer_chamber
               state:
-                outer_chamber_material_name: empty
-                outer_chamber_material_volume: 0
+                material_name: empty
+                material_volume: 0
             - type: ObjectStateChange
               target: recycle_buffer_bottle
               state:
                 material_name: running_buffer_1x_used
-                material_volume: 800
+                material_volume: 1000
     step_validator:
       preset: sequence_complete
     outcome:

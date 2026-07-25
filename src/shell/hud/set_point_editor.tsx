@@ -28,9 +28,9 @@
 //     handle_adjust_commit, not any internal state write.
 //   - The component reads a read-only snapshot accessor; it never mutates it.
 //
-// Overlay independence: like TypeInput, this mounts to document.body so it works
-// under ?shell=off. A set-point editor nested inside the optional shell would
-// vanish when the shell is off and break the walker.
+// Host independence: like TypeInput, this mounts into a permanent in-flow host
+// outside the optional shell. It stays available under ?shell=off without
+// covering the scene, guidance, or outline regions.
 //
 // Layer boundary: this is a shell/interface control (Solid is allowed under
 // src/shell/). It carries no protocol-flow logic; it only surfaces the active
@@ -142,46 +142,16 @@ export function SetPointEditor(props: SetPointEditorProps): JSXElement {
 
   return (
     <Show when={is_adjust_active()}>
-      <div
-        data-adjust-panel=""
-        style={{
-          position: "fixed",
-          bottom: "16px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          "z-index": "1000",
-          display: "flex",
-          "align-items": "center",
-          gap: "8px",
-          padding: "10px 14px",
-          "background-color": "#ffffff",
-          border: "2px solid #4a90d9",
-          "border-radius": "6px",
-          "box-shadow": "0 2px 10px rgba(0, 0, 0, 0.2)",
-          "font-family": '"PT Sans", Arial, sans-serif',
-        }}
-      >
-        <label
-          data-adjust-label=""
-          for="protocol-adjust-input"
-          style={{ "font-size": "14px", color: "#333333" }}
-        >
+      <div data-adjust-panel="" class="value-entry-panel">
+        <label data-adjust-label="" for="protocol-adjust-input" class="value-entry-label">
           Set value:
         </label>
         <button
           data-adjust-decrement=""
           type="button"
           onClick={() => step(-1)}
-          style={{
-            "font-size": "16px",
-            width: "32px",
-            padding: "4px 0",
-            "background-color": "#e8eef6",
-            color: "#333333",
-            border: "1px solid #999999",
-            "border-radius": "4px",
-            cursor: "pointer",
-          }}
+          class="value-entry-button value-entry-button--stepper"
+          aria-label="Decrease set value"
         >
           -
         </button>
@@ -192,33 +162,20 @@ export function SetPointEditor(props: SetPointEditorProps): JSXElement {
           type="number"
           value={draft()}
           aria-invalid={rejected() ? "true" : undefined}
+          aria-describedby={rejected() ? "protocol-adjust-reject-message" : undefined}
           onInput={(event) => {
             set_draft(event.currentTarget.value);
             set_rejected(false);
           }}
           onKeyDown={on_keydown}
-          style={{
-            "font-size": "14px",
-            padding: "4px 8px",
-            border: "1px solid #999999",
-            "border-radius": "4px",
-            "min-width": "100px",
-          }}
+          class="value-entry-input"
         />
         <button
           data-adjust-increment=""
           type="button"
           onClick={() => step(1)}
-          style={{
-            "font-size": "16px",
-            width: "32px",
-            padding: "4px 0",
-            "background-color": "#e8eef6",
-            color: "#333333",
-            border: "1px solid #999999",
-            "border-radius": "4px",
-            cursor: "pointer",
-          }}
+          class="value-entry-button value-entry-button--stepper"
+          aria-label="Increase set value"
         >
           +
         </button>
@@ -226,26 +183,17 @@ export function SetPointEditor(props: SetPointEditorProps): JSXElement {
           data-adjust-commit=""
           type="button"
           onClick={() => commit()}
-          style={{
-            "font-size": "14px",
-            padding: "5px 12px",
-            "background-color": "#4a90d9",
-            color: "#ffffff",
-            border: "none",
-            "border-radius": "4px",
-            cursor: "pointer",
-          }}
+          class="value-entry-button"
         >
           Commit
         </button>
         <Show when={rejected()}>
           <span
+            id="protocol-adjust-reject-message"
             data-adjust-reject-message=""
-            style={{
-              "font-size": "13px",
-              color: "#c0392b",
-              "margin-left": "6px",
-            }}
+            class="value-entry-feedback"
+            role="status"
+            aria-live="polite"
           >
             Set-point not accepted, try again
           </span>

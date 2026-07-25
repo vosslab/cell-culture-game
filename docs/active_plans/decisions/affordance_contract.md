@@ -96,10 +96,12 @@ entries below.
 
 ### type
 
-- Render shape: `TypeInput` overlay (`src/shell/hud/type_input.tsx`, the
-  template). A fixed overlay panel appended to `document.body`, shown only while
-  `active_interaction_gesture === "type"`. Contains a labeled text input, a
-  Commit button, and a visible rejection message.
+- Render shape: `TypeInput` control (`src/shell/hud/type_input.tsx`, the
+  template). An in-flow panel mounted in the permanent host
+  `#type-input-root`, shown only while `active_interaction_gesture === "type"`.
+  Contains a labeled text input, a Commit button, and a visible rejection
+  message. The host is outside the optional HUD shell, so `?shell=off` remains
+  functional without a body-mounted overlay.
 - Stable selectors: `[data-type-input-panel]` (container), `[data-type-input]`
   (the input), `[data-type-target]` (carries the active target),
   `[data-type-commit]` (the button), `[data-type-reject-message]` (rejection).
@@ -117,12 +119,13 @@ entries below.
 
 ### adjust
 
-- Render shape: `SetPointEditor` overlay (new, M12), mirroring `TypeInput`. A
-  fixed overlay panel appended to `document.body`, shown only while
-  `active_interaction_gesture === "adjust"`. Contains a decrement button, a
-  direct numeric input, an increment button (the stepper), a Commit button, and
-  a visible rejection message. One editor instance serves every set-point field;
-  the field being set is named by the active interaction, not by the widget.
+- Render shape: `SetPointEditor` control (new, M12), mirroring `TypeInput`. An
+  in-flow panel mounted in the permanent host `#adjust-editor-root`, shown only
+  while `active_interaction_gesture === "adjust"`. Contains a decrement button,
+  a direct numeric input, an increment button (the stepper), a Commit button,
+  and a visible rejection message. One editor instance serves every set-point
+  field; the field being set is named by the active interaction, not by the
+  widget.
 - Stable selectors (frozen for M12 and the walker): `[data-adjust-panel]`
   (container), `[data-adjust-input]` (the numeric input), `[data-adjust-target]`
   (carries the active target), `[data-adjust-decrement]` and
@@ -186,8 +189,8 @@ outside the registry.
 | --- | --- | --- | --- |
 | `click` | rendered scene object | `handle_click(target, "click")` | `correct_target` |
 | `select` | rendered scene object (equal candidate rings) | `handle_click(target, "select")` | `correct_choice` |
-| `type` | `TypeInput` overlay | `handle_type_commit(target, committed_text)` | `target_with_value` |
-| `adjust` | `SetPointEditor` overlay (M12) | `handle_adjust_commit(target, committed_number)` | `target_with_value` |
+| `type` | `TypeInput` control | `handle_type_commit(target, committed_text)` | `target_with_value` |
+| `adjust` | `SetPointEditor` control (M12) | `handle_adjust_commit(target, committed_number)` | `target_with_value` |
 | `drag` | host drag surface (M12) | `handle_drag_commit(target, destination_placement)` | interaction `validator` / `step_validator` |
 
 ## Selector families (frozen)

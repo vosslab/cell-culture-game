@@ -24,6 +24,7 @@ import { collectItemOverlapDiagnostics } from "./diagnostics/item_overlap.js";
 import { collectUnfittableAssets, promoteBelowViewport } from "./diagnostics/promote.js";
 import { buildUnifiedDiagnostics } from "./diagnostics/unified.js";
 import { normalizeSchema } from "./normalize_schema.js";
+import { lowerSceneZones } from "./lower_semantic_zones.js";
 import { resolveInheritance } from "./resolve_inheritance.js";
 import { scaleToRealWorld } from "./scale_to_real_world.js";
 import { PLACEMENT_PHASES, VERTICAL_TAIL_PHASES, runPhases } from "./phases.js";
@@ -41,6 +42,7 @@ import type {
   PassRecord,
   PipelineInputs,
   PipelineResult,
+  ResolvedScene,
   ScaledPlacement,
   SceneA,
 } from "./types.js";
@@ -69,15 +71,19 @@ export function runPipeline(scene: SceneA, opts: Partial<PipelineInputs> = {}): 
 
   // Identity resolution (prepare / resolve-metadata / measure), single pass.
   const normalized = normalizeSchema(scene);
-  const normalScene = normalized.scene ?? scene;
-  const inheritance = resolveInheritance(normalScene, baseSceneMap);
+  const sourceScene = normalized.scene ?? scene;
+  const inheritance = resolveInheritance(sourceScene, baseSceneMap);
   const bound = bindObjects(inheritance.placements, library, assets, diagnostics);
   let scaled: ScaledPlacement[] = scaleToRealWorld(
     bound,
-    normalScene.workspace,
+    sourceScene.workspace,
     { workspacePxPerCm },
     diagnostics,
   );
+  // Lower source-zone meaning only after binding and real-world scaling. This
+  // gives the planner actual object footprints and label reserves while keeping
+  // sourceScene geometry-free and immutable.
+  const normalScene = lowerSceneZones(sourceScene, scaled);
 
   const identityDiagCount = diagnostics.length;
 
@@ -287,16 +293,16 @@ export function runPipeline(scene: SceneA, opts: Partial<PipelineInputs> = {}): 
   // build-failing severity Error, but the raw report-only stream stays as-is.
   const offCanvasDiagnostics = lastCtx?.offCanvas ?? [];
 
-  // Preventive never-crop regression guard (M17): promote each fully_off_canvas
+  // Preventive never-crop regression guard: promote each fully_off_canvas
   // item to a build-failing art_below_viewport severity Error. This is a
   // regression guard -- 0 real scenes trip it today (the historical below-viewport
   // clipping was fixed by the uniform rescale); it fails loud if one ever
-  // regresses. The build gate (wired by M19) exempts the documented
+  // regresses. The build gate exempts the documented
   // intentional-void scenes and the adversarial dev fixture via
   // isBuildGateExemptScene; the engine still reports the diagnostic here.
   const belowViewportDiagnostics = promoteBelowViewport(offCanvasDiagnostics);
 
-  // D2 "unfittable asset" advisory (M17): a Warning (never fails the build) for
+  // "Unfittable asset" advisory: a Warning (never fails the build) for
   // each final item shrunk below the readable floor to fit its zone. It names the
   // objects the dense shrink scenes squeezed past a readable size without blocking
   // the build (the ~20 shrink scenes stay green).
@@ -366,7 +372,7 @@ export function runPipeline(scene: SceneA, opts: Partial<PipelineInputs> = {}): 
 // reflects that zone's overrides. This reads the final layout only; it mutates
 // nothing.
 function buildSceneDecisionMetadata(
-  scene: SceneA,
+  scene: ResolvedScene,
   clamped: Map<string, ComputedItem[]>,
   config: LayoutConfig,
   opts: Partial<PipelineInputs>,

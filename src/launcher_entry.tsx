@@ -11,7 +11,7 @@
 
 import { render } from "solid-js/web";
 import { PROTOCOLS_INDEX_SLIM } from "../generated/protocols_index_slim.js";
-import { Launcher } from "./launcher/Launcher.js";
+import { Launcher } from "./launcher/protocol_launcher.js";
 
 const root = document.getElementById("launcher-root");
 if (!(root instanceof HTMLElement)) {

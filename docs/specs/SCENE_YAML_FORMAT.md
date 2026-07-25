@@ -8,8 +8,10 @@ doc is the authority.
 This document specifies the per-scene YAML schema in its cleaned, post-split
 form. A scene YAML file declares one workspace surface: scene identity, a
 static background, named placement zones, a list of object placements (each
-referencing an object from the object library by id), the outer scene bounds,
-and the layout-rule hints the layout engine consumes. Object identity,
+referencing an object from the object library by id), and the layout-rule hints
+the layout engine consumes. Scene YAML is coordinate-free: the layout manager
+derives scene bounds, zone bounds, and baselines after it measures the objects.
+Object identity,
 state, and the state-to-visual map live in object YAML
 ([OBJECT_YAML_FORMAT.md](OBJECT_YAML_FORMAT.md)). Protocol steps and
 state-mutating operations live in protocol YAML
@@ -89,16 +91,14 @@ keys. The "Section" column links to the per-section detail below.
 | `workspace`           | string          | yes                | [Scene identity](#scene-identity)             |
 | `capabilities`        | list of string  | yes                | [Capability names](#capability-names)         |
 | `background`          | mapping         | no                 | [Background](#background)                     |
-| `scene_bounds`        | mapping         | yes                | [Scene bounds](#scene-bounds)                 |
 | `zones`               | list of mapping | yes (may be empty) | [Zones](#zones)                               |
 | `placements`          | list of mapping | yes (may be empty) | [Placements](#placements)                     |
 | `layout_rules`        | mapping         | no                 | [Layout rules](#layout-rules)                 |
-| `accent_rules`        | mapping         | no                 | [Accent rules](#accent-rules)                 |
 | `wrong_order_message` | mapping         | no                 | [Wrong-order messages](#wrong-order-messages) |
 
 The cleaned scene-YAML top-level keys cover scene identity, the static
-background, scene-side spatial arrangement (`scene_bounds`, `zones`,
-`layout_rules`, `accent_rules`), the placement list, capability declarations,
+background, semantic scene arrangement (`zones`, `layout_rules`), the placement
+list, capability declarations,
 and the scene-level UI-feedback string. Object identity, state, and the
 state-to-visual map are object-side; see
 [Migration from the fused format](#migration-from-the-fused-format) for
@@ -129,50 +129,31 @@ region is (identity, capabilities such as `clickable`, `visual_states`).
 | Field               | Type           | Required                      | Meaning                                                                                                                |
 | ------------------- | -------------- | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `background.asset`  | string         | yes (if `background` present) | Asset id (image or SVG) used as the static backdrop. The asset library resolves the file.                              |
-| `background.bounds` | mapping (rect) | no                            | Optional explicit bounds (`left`, `right`, `top`, `bottom`, percent of scene). Defaults to the scene's `scene_bounds`. |
 
 The cleaned scene YAML never declares clickable behavior on the background
 and never attaches state, capabilities, or visual_states to it. State and
 behavior live on objects; see
 [OBJECT_YAML_FORMAT.md](OBJECT_YAML_FORMAT.md).
 
-## Scene bounds
+## Derived scene geometry
 
-The `scene_bounds` block defines the active rendering bounds for the scene
-in normalized percent units. All four fields are required.
-
-| Field    | Type                  | Required | Meaning                                        |
-| -------- | --------------------- | -------- | ---------------------------------------------- |
-| `left`   | number (float or int) | yes      | Left bound (0-100, percent of scene width).    |
-| `right`  | number (float or int) | yes      | Right bound (0-100, percent of scene width).   |
-| `top`    | number (float or int) | yes      | Top bound (0-100, percent of scene height).    |
-| `bottom` | number (float or int) | yes      | Bottom bound (0-100, percent of scene height). |
-
-Example:
-
-```yaml
-scene_bounds:
-  left: 1
-  right: 99
-  top: 1
-  bottom: 98
-```
+`scene_bounds`, zone `bounds`, and zone `baseline` are internal geometry,
+derived by the layout manager. They never appear in authored scene YAML. The
+same rule forbids source `x`, `y`, `left`, `right`, `top`, `bottom`,
+`position`, `scale`, `width_scale`, `baseline_override`, and scene-side size
+overrides.
 
 ## Zones
 
-A zone is a named region inside the scene. Zones are how the scene
-expresses "this group of placements belongs together spatially": the layout
-engine arranges placements within a zone using the zone's own rules, then
-arranges zones within the scene using `scene_bounds`. Zones are scene-side
-because they describe where things go, not what any one thing is. A zone
-carries geometry and arrangement; it never carries identity, state, or
-rendering. See [LAYOUT_ENGINE.md](LAYOUT_ENGINE.md) for how the layout
-engine consumes zones.
+A zone is a named, ordered semantic group. Its declaration order, measured
+placement demand, and approved alignment hint guide the layout manager; the
+name itself is not a coordinate instruction. Zones are scene-side because they
+describe semantic grouping, not object identity, state, or rendering. See
+[LAYOUT_ENGINE.md](LAYOUT_ENGINE.md) for derived layout behavior.
 
 | Field        | Type           | Required | Meaning                                                                                                                                          |
 | ------------ | -------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `zone_name`  | string         | yes      | Stable zone name, scoped to this scene. Placements reference it via `placement.zone`. Zone names must be unique within the scene.                |
-| `bounds`     | mapping (rect) | yes      | Zone bounds inside the scene (`left`, `right`, `top`, `bottom`, percent units). The layout engine uses these to size and position the zone.      |
 | `align`      | enum           | no       | Arrangement rule for placements inside the zone. Includes `tab-stops` (paired with per-placement `align_stop`) and `center`.                     |
 | `label`  | string         | no       | Optional human-readable label for authoring and debugging.                                                                                  |
 
@@ -181,13 +162,12 @@ Example:
 ```yaml
 zones:
   - zone_name: back_row
-    bounds: { left: 5, right: 95, top: 70, bottom: 80 }
     align: tab-stops
 ```
 
-The fused-format `x0`/`x1`/`baseline`/`gap` zone sub-fields are replaced by
-a single `bounds` rect plus `align`; the gap budget is folded into
-[Layout rules](#layout-rules).
+Zone `bounds`, `baseline`, and coordinate sub-fields are forbidden source
+geometry. `align` and [Layout rules](#layout-rules) are the bounded scene-side
+layout inputs.
 
 ## Placements
 
@@ -200,8 +180,7 @@ declare object identity, structure, `state_fields`, `visual_states`, or
 A placement may not override object identity. The identity tuple
 `(object_name, kind, label)` is owned by the object library and is
 locked from scene-side override. A placement may carry instance overrides
-only for the layout hints `default_width`, `label_width`,
-`anchor_y_offset`, `width_scale`, and `anchor_y`. A placement may not
+only for categorical `layout.anchor_y` and `layout.label_placement`. A placement may not
 override `state_fields`, `visual_states`, or `capabilities`. The
 boundary rule is authoritative; see
 [OBJECT_YAML_FORMAT.md](OBJECT_YAML_FORMAT.md) for the full
@@ -211,11 +190,10 @@ object-side field list and which fields may be overridden.
 | ------------------- | --------------------- | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `placement_name`    | string                | yes      | Stable per-scene name for this placement. Distinct from `object_name`: a scene may place the same object more than once, and each placement needs its own scene-scoped name (for example two `dilution_tube_rack` instances).                        |
 | `object_name`       | string                | yes      | Name of the object in the object library. The object resolves identity, structure, `state_fields`, `visual_states`, and `capabilities`.                                                                                                              |
-| `zone`              | string                | yes      | Zone id this placement belongs to. Must match a declared `zones[].id`.                                                                                                                                                                               |
+| `zone`              | string                | yes      | Zone name this placement belongs to. Must match a declared `zones[].zone_name`.                                                                                                                                                                      |
 | `depth_tier`        | int                   | no       | Numeric layering hint within the zone (front-to-back ordering).                                                                                                                                                                                      |
 | `align_stop`        | enum                  | no       | One of `left`, `center`, `right`. Tab-stop group for the layout engine.                                                                                                                                                                              |
-| `baseline_override` | number (float or int) | no       | Per-placement baseline override (rare; one observed use).                                                                                                                                                                                            |
-| `layout`            | mapping               | no       | Instance override of object layout hints. Same shape as the object's `layout` block (`default_width`, `label_width`, `anchor_y_offset`, `width_scale`, `anchor_y`, `label_placement`). A placement may set any subset; unset fields fall through to the object default. |
+| `layout`            | mapping               | no       | Optional categorical hints: `anchor_y` and `label_placement`. |
 
 Notes:
 
@@ -225,8 +203,8 @@ Notes:
   and rendering, and the protocol mutates state semantically through
   `ObjectStateChange` (see
   [PROTOCOL_YAML_FORMAT.md](PROTOCOL_YAML_FORMAT.md)).
-- The placement's `layout` block mirrors the object's `layout` block by
-  field name so an author reads override and default in the same shape.
+- `layout` may contain only `anchor_y` and `label_placement`; it cannot change
+  object dimensions or inject numeric geometry.
 
 Example placement:
 
@@ -237,9 +215,7 @@ placements:
     zone: back_row
     depth_tier: 4
     align_stop: center
-    baseline_override: 52
     layout:
-      width_scale: 1.2
       anchor_y: bottom
 ```
 
@@ -287,25 +263,17 @@ placement, not here. See [LAYOUT_ENGINE.md](LAYOUT_ENGINE.md).
 
 | Field                    | Type                     | Required | Meaning                                                                                        |
 | ------------------------ | ------------------------ | -------- | ---------------------------------------------------------------------------------------------- |
-| `cluster_spacing_px`     | int                      | no       | Spacing between placement clusters (in pixels).                                                |
-| `tier_brightness_factor` | mapping (tier -> number) | no       | Per-tier brightness multiplier for rendered placements.                                        |
-| `tier_opacity`           | mapping (tier -> number) | no       | Per-tier opacity (0..1) for rendered placements.                                               |
 | `default_align_stop`     | enum                     | no       | Default alignment for placements that do not specify `align_stop` (`left`, `center`, `right`). |
 | `label_font_size`        | number (float or int)    | no       | Font size for placement labels (in pixels; must be positive).                                  |
 | `label_line_height`      | number (float or int)    | no       | Line height for placement labels (must be positive).                                           |
-| `label_offset_y`         | number (float or int)    | no       | Vertical offset for placement labels from the placement baseline (in scene-percent units).                  |
+| `label_offset_y`         | number (float or int)    | no       | Label offset hint relative to the manager-derived object anchor. |
 | `label_placement`        | enum (`top` or `bottom`) | no       | Scene-wide label position relative to the object. Default `top` (labels render above artwork). Per-placement `layout.label_placement` overrides this. |
-| `zone_gap`               | number (float or int)    | no       | Inter-placement gap inside a zone (in scene units). Replaces today's per-zone `gap` field.     |
+| `zone_gap`               | number (float or int)    | no       | Preferred separation between semantic zones. |
 
 Example:
 
 ```yaml
 layout_rules:
-  cluster_spacing_px: 10
-  tier_brightness_factor:
-    1: 1.0
-    2: 0.95
-    3: 0.9
   default_align_stop: center
   label_font_size: 12
   label_line_height: 1.2
@@ -380,7 +348,7 @@ enforces these rules against the fused format:
   string `id`. Zone ids must be unique within the scene.
 - `placements`, if present, must be a list of mappings. Every
   `placement.object_name` must resolve against the object library, every
-  `placement.zone` must match a declared `zones[].id`, and per-placement
+  `placement.zone` must match a declared `zones[].zone_name`, and per-placement
   override fields must be in the override surface.
 
 Gaps not validated today:
@@ -435,12 +403,6 @@ workspace: modal_overlay
 capabilities:
   - incubator_workspace
 
-scene_bounds:
-  left: 0
-  right: 100
-  top: 0
-  bottom: 100
-
 zones: []
 placements: []
 
@@ -460,18 +422,10 @@ capabilities:
 background:
   asset: bench_backdrop
 
-scene_bounds:
-  left: 1
-  right: 99
-  top: 1
-  bottom: 98
-
 zones:
   - zone_name: back_shelf
-    bounds: { left: 5, right: 95, top: 17, bottom: 27 }
     align: tab-stops
   - zone_name: mid_bench
-    bounds: { left: 5, right: 95, top: 70, bottom: 80 }
     align: tab-stops
 
 placements:

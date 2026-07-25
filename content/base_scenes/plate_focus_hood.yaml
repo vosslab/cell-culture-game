@@ -1,0 +1,53 @@
+scene_name: plate_focus_hood
+workspace: hood
+capabilities:
+  - item_workspace
+
+background:
+  type: gradient
+  from: "#E8E2D0"
+  to: "#D4CBB3"
+  angle: 180
+
+# The foreground plate is purposefully oversized for well-level teaching. The
+# rear context zones and narrow tool rack receive only protocol-authored support
+# items, so the composition stays a pedagogical perspective rather than a scale
+# error.
+zones:
+  - zone_name: rear_left
+    align: tab-stops
+    label: Rear-left context
+  - zone_name: rear_center
+    align: tab-stops
+    label: Rear-center context
+  - zone_name: rear_right
+    align: tab-stops
+    label: Rear-right context
+  - zone_name: center
+    align: tab-stops
+    label: Secondary context
+  - zone_name: right_tool_area
+    align: tab-stops
+    label: Secondary tool rack
+  # The foreground teaching row is declared last so layout plans all supporting
+  # context before placing the plate as the focal learning surface.
+  - zone_name: foreground_plate
+    align: tab-stops
+    label: Foreground 96-well plate
+
+placements:
+  - placement_name: foreground_well_plate_96
+    object_name: well_plate_96
+    zone: foreground_plate
+    depth_tier: 2
+    align_stop: center
+
+layout_rules:
+  label_line_height: 1.1
+  label_offset_y: 4
+  zone_gap: 4
+  default_align_stop: center
+
+wrong_order_message:
+  template: "Try using the {expected_label}."
+  toast_duration_ms: 2000

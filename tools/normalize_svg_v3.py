@@ -9,8 +9,7 @@ to assets/. The tool has exactly one job: it either NORMALIZES a file to a
 guaranteed-safe result or REJECTS it with a stable reason code and a suggested
 author fix. There is no "success with a warning" path and no --strict mode.
 
-This file (WP-1a) is the single shared skeleton that the other v3 work packages
-build on. It establishes:
+This file provides the shared v3 normalization framework. It establishes:
 
 - The pure-math geometry backend (path tokenizer, rel->abs path conversion,
   exact elliptical-arc extrema, curve/path/element bbox). These helpers operate
@@ -22,20 +21,18 @@ build on. It establishes:
   REASON_CODES token set, and NormalizeResult. On rejection v3 writes NO output
   and leaves the input untouched (especially under --in-place), and the CLI
   exits non-zero.
-- The classify() seam. WP-1c and WP-3b extend the classifier with the full
-  reject set; they MUST NOT redefine the public functions established here.
+- The classify() seam, which combines the supported feature detectors without
+  redefining the public functions established here.
 
-What v3 currently does (M1 scope): crop to drawn bbox, shift to origin, rewrite
+The normalizer crops to the drawn bbox, shifts it to the origin, rewrites the
 viewBox, convert relative path commands to absolute (M/m L/l H/h V/v C/c S/s
 Q/q T/t A/a Z/z), ASCII-clean id/data-name and rewrite references, preserve
 dc/cc/rdf/xlink/sodipodi/inkscape namespace prefixes, preserve pre-root
 comments, in-root comments, <title>, and <desc>.
 
-All M1-M3 work packages are implemented here: transform flattening (A1,
-WP-2a), shape->path (A2, WP-2b), stroke-aware bbox and text reject (A3/A5,
-WP-3a), the full feature classifier and reject set plus ref-integrity and F8
-and B1 (S1/S2/F8/B1, WP-3b), floor-shadow removal (D1, WP-3c), and
-simple-clipPath flattening (A6, WP-3e).
+The implementation flattens transforms and supported clip paths, converts
+supported shapes to paths, computes stroke-aware bounds, rejects unsupported
+text and features, verifies references, and removes floor shadows.
 
 Bounding boxes for cubic and quadratic curves are approximate: they use the
 control points and endpoints (a conservative superset of the true curve, so the
@@ -74,7 +71,7 @@ import shapely.geometry  # shapely
 SVG_NS = "http://www.w3.org/2000/svg"
 
 # Matches an event-handler attribute name (onclick, onload, onmouseover, ...).
-# Hoisted to module scope (WP-3b nit) so _detect_script_or_handler does not
+# Module scope avoids recompiling this expression for each SVG.
 # recompile it on every call.
 _ON_HANDLER_RE = re.compile(r"^on[a-zA-Z]")
 
@@ -108,11 +105,22 @@ COORD_ATTRS_X = {"x", "x1", "x2", "cx"}
 COORD_ATTRS_Y = {"y", "y1", "y2", "cy"}
 # Shape tags for bbox and shape->path processing. "text" is deliberately absent:
 # text elements are rejected by the classifier (A5 TEXT_UNSUPPORTED) and must
-# never contribute geometry (WP-3a). "tspan" and "textPath" are children of text
+# never contribute geometry. "tspan" and "textPath" are children of text
 # and are handled by the same classifier path.
 SHAPE_TAGS = {"path", "rect", "circle", "ellipse", "line", "polyline", "polygon"}
 
-# Stable rejection reason tokens. WP-1c and WP-3b add the detectors that emit
+# Runtime material overlays resolve this clip after the SVG has been injected
+# into the scene DOM.  It intentionally has no source-SVG clip-path user, so
+# local-reference pruning must retain this one closed contract anchor.
+RUNTIME_EXTERNAL_CLIP_IDS = frozenset({"anchor_liquid_clip"})
+
+# The material renderer reads this hidden SVGRectElement's x/y/width/height
+# directly after instance injection.  Keeping it as a rect is therefore a DOM
+# contract, not an incidental source-art representation.  It is intentionally
+# excluded from the otherwise path-only visible-art invariant.
+RUNTIME_BOUNDS_RECT_ID = "anchor_liquid_bounds"
+
+# Stable rejection reason tokens emitted by the feature detectors.
 # these; the set itself is the shared vocabulary so reports, tests, and future
 # automation agree on codes. Sourced from the plan's Rejection reason schema.
 class UnsupportedUnitError(Exception):
@@ -826,7 +834,7 @@ def path_bbox_from_segments(segments: Iterable[PathSegment]) -> BBox | None:
 
 
 #============================================
-# Transform flattening (A1, WP-2a).
+# Transform flattening.
 #
 # Math ported BY HAND from svgo (MIT) plugins/_transforms.js (transform2js,
 # transformToMatrix, multiplyTransformMatrices, transformsMultiply, transformArc)
@@ -868,7 +876,7 @@ class UnsupportedTransformError(Exception):
 class NonScalingStrokeError(Exception):
 	"""Raised when a non-scaling-stroke element cannot be safely flattened.
 
-	WP-2a does not resolve non-scaling stroke geometry under a transform, so an
+	Non-scaling stroke geometry under a transform is not resolved, so an
 	element carrying vector-effect=non-scaling-stroke together with a transform
 	that actually changes stroke width is refused (NONSCALING_STROKE_UNRESOLVED)
 	rather than emitting wrong geometry.
@@ -1192,9 +1200,9 @@ def apply_matrix_to_segments(
 def shape_to_segments(elem: lxml.etree._Element, element_location: str) -> list[PathSegment] | None:
 	"""Convert a basic shape element to an equivalent absolute PathSegment list.
 
-	WP-2a uses this only to flatten a transform onto a non-path shape (so the
+	This flattens a transform onto a non-path shape (so the
 	transform can be removed and the invariant holds). It covers rect (sharp and
-	rounded), circle, ellipse, line, polyline, and polygon. WP-2b owns the
+	rounded), circle, ellipse, line, polyline, and polygon. The path converter owns the
 	general transform-free shape->path DOM rewrite and may reuse this helper.
 
 	A circle/ellipse is emitted as two arc halves; a rounded rect uses arc
@@ -1454,6 +1462,24 @@ def _flatten_one(elem: lxml.etree._Element, matrix: tuple[float, ...]) -> None:
 		UnsupportedUnitError: When a required size attr carries a non-user unit.
 	"""
 	location = elem.getroottree().getpath(elem)
+	# A material bounds anchor is a hidden runtime resource, not visible artwork.
+	# The renderer deliberately reads SVGRectElement geometry instead of getBBox()
+	# because getBBox() on display:none content is browser-dependent.  Preserve a
+	# valid authored rect in root coordinates; a non-identity own or inherited
+	# transform would require path conversion, so reject it through the normal
+	# transform path instead of emitting a runtime-incompatible anchor.
+	if (
+		local_name(elem.tag) == "rect"
+		and elem.get("id") == RUNTIME_BOUNDS_RECT_ID
+	):
+		if not matrix_is_identity(matrix):
+			raise UnsupportedTransformError(
+				location,
+				"anchor_liquid_bounds must be an untransformed root-coordinate rect",
+			)
+		if elem.get("transform") is not None:
+			del elem.attrib["transform"]
+		return
 	# If the composed matrix is identity, only strip the (now-redundant) attr.
 	if matrix_is_identity(matrix):
 		if elem.get("transform") is not None:
@@ -1853,7 +1879,7 @@ def find_geometry_transform_violation(root: lxml.etree._Element) -> str | None:
 
 
 #============================================
-# Shape -> path conversion (A2, WP-2b).
+# Shape-to-path conversion.
 #
 # Math ported BY HAND from svgo (MIT) plugins/convertShapeToPath.js:
 #   - rect (sharp): M/H/V/H/z template.
@@ -1862,11 +1888,11 @@ def find_geometry_transform_violation(root: lxml.etree._Element) -> str | None:
 #   - polygon:      M + repeated L + z.
 #   - circle/ellipse: two-arc trick (ported from svgo convertShapeToPath.js
 #       with convertArcs=true path); v3 uses a left-right split (M cx-rx cy /
-#       A cx+rx cy / A cx-rx cy / Z) from WP-2a's _ellipse_segments, which is
+#       A cx+rx cy / A cx-rx cy / Z) from _ellipse_segments, which is
 #       geometrically equivalent to svgo's top-bottom split.
 #   - rounded-rect: svgo omits this case; authored here as four quarter-arcs
 #       (sweep=1, large-arc=0) with straight edges between them, matching the
-#       WP-2a _rect_segments implementation.
+#       _rect_segments implementation.
 # No svgo file is copied into this repo.
 #============================================
 
@@ -1882,12 +1908,12 @@ def convert_shapes_to_paths(root: lxml.etree._Element) -> None:
 	(no-transform rect/circle/ellipse/line/polyline/polygon elements).
 
 	Elements inside <defs> are NOT converted: clipPath geometry and paint-only
-	shapes in defs are managed by WP-3b/3e; converting them here would change
+	shapes in defs are handled separately; converting them here would change
 	the structure those WPs expect.
 
 	Each shape's presentation attributes (fill, stroke, id, class, clip-path,
 	url(#) refs, etc.) are preserved on the new <path> via _COPY_THROUGH_ATTRS
-	so reference integrity (WP-3b) and ASCII-id rewrite remain correct.
+	so reference integrity and ASCII-id rewriting remain correct.
 
 	Args:
 		root: The parsed SVG root element. Modified in place.
@@ -1929,7 +1955,11 @@ def _collect_shapes(
 	tag = local_name(elem.tag)
 	entering_defs = in_defs or tag == "defs"
 	# Shapes in defs are paint/clip space -- skip them.
-	if not entering_defs and tag in {"rect", "circle", "ellipse", "line", "polyline", "polygon"}:
+	if (
+		not entering_defs
+		and tag in {"rect", "circle", "ellipse", "line", "polyline", "polygon"}
+		and not (tag == "rect" and elem.get("id") == RUNTIME_BOUNDS_RECT_ID)
+	):
 		out.append(elem)
 		# Basic shapes have no element children to recurse into.
 		return
@@ -2044,7 +2074,7 @@ def _stroke_padded_bbox(geom_bbox: BBox, elem: lxml.etree._Element) -> BBox:
 	    paths but correct for the bbox contract).
 	  butt linecap (default): no endpoint extension.
 	  dashed strokes: treated as solid envelope (same pad).
-	  markers: not padded (markers are rejected by WP-3b classifier).
+	  markers: not padded (markers are rejected by the classifier).
 	  vector-effect=non-scaling-stroke: stroke is already unscaled in root coords
 	    (elements that cannot be resolved are rejected by flatten_transforms before
 	    bbox is computed); pad uses stroke-width directly.
@@ -2133,7 +2163,7 @@ def _element_geometry_bbox(elem: lxml.etree._Element) -> "BBox | str | None":
 	# the presentation attribute) so style="display:none" and
 	# style="fill:none;stroke:none" exclude the element from the bbox, matching
 	# the bare-attribute semantics. fill:none alone with a visible stroke still
-	# contributes geometry; both none -> excluded (M1).
+	# contributes geometry; both none -> excluded.
 	if _resolved_property(elem, "display") == "none":
 		return None
 	if _resolved_property(elem, "fill") == "none" and _resolved_property(elem, "stroke") == "none":
@@ -2212,7 +2242,7 @@ def _element_geometry_bbox(elem: lxml.etree._Element) -> "BBox | str | None":
 		# Text elements are rejected by classify() (A5 TEXT_UNSUPPORTED) before
 		# bbox is ever computed. Return None here so that if a text element somehow
 		# reaches bbox computation it is silently skipped rather than contributing
-		# a phantom zero-size point (WP-3a; previously v2 returned a zero-size
+		# a phantom zero-size point (previously v2 returned a zero-size
 		# bbox as a placeholder).
 		return None
 
@@ -2262,6 +2292,10 @@ def compute_bbox(root: lxml.etree._Element) -> BBox:
 		if not isinstance(elem.tag, str):
 			# Skip comments and processing instructions (lxml yields these).
 			continue
+		# Definitions are paint, clip, and runtime-anchor resources, not rendered
+		# artwork.  Their geometry must not influence the visible crop.
+		if _is_definition_content(elem):
+			continue
 		eb = element_bbox(elem)
 		if eb is None:
 			continue
@@ -2274,6 +2308,17 @@ def compute_bbox(root: lxml.etree._Element) -> BBox:
 	if bbox is None:
 		raise ValueError("No drawable SVG elements found")
 	return bbox
+
+
+#============================================
+def _is_definition_content(elem: lxml.etree._Element) -> bool:
+	"""Return True when elem is nested in a SVG <defs> resource subtree."""
+	node: lxml.etree._Element | None = elem
+	while node is not None:
+		if isinstance(node.tag, str) and local_name(node.tag) == "defs":
+			return True
+		node = node.getparent()
+	return False
 
 
 #============================================
@@ -2544,7 +2589,7 @@ def _detect_script_or_handler(root: lxml.etree._Element) -> RejectionReason | No
 	Security + non-determinism: scripts and event handlers are never supported by
 	the normalizer gate. Any file containing them is rejected with SCRIPT_OR_HANDLER.
 
-	WP-1c: always-reject detector composed into classify().
+	Reject script elements and inline event handlers.
 
 	Args:
 		root: The parsed SVG root element.
@@ -2552,7 +2597,7 @@ def _detect_script_or_handler(root: lxml.etree._Element) -> RejectionReason | No
 	Returns:
 		RejectionReason with code SCRIPT_OR_HANDLER when found, else None.
 	"""
-	# _ON_HANDLER_RE is a module-level constant (hoisted; WP-3b nit).
+	# _ON_HANDLER_RE is a module-level constant reused across elements.
 	for elem in root.iter():
 		if not isinstance(elem.tag, str):
 			continue
@@ -2588,7 +2633,7 @@ def _detect_animation_elements(root: lxml.etree._Element) -> RejectionReason | N
 	Animation introduces non-determinism and is never supported. Any file containing
 	animation elements is rejected with ANIMATION_UNSUPPORTED.
 
-	WP-1c: always-reject detector composed into classify().
+	Reject animation elements.
 
 	Args:
 		root: The parsed SVG root element.
@@ -2620,7 +2665,7 @@ def _detect_foreignobject(root: lxml.etree._Element) -> RejectionReason | None:
 	foreignObject embeds HTML and renders inconsistently across renderers. Any file
 	containing it is rejected with FOREIGNOBJECT_UNSUPPORTED.
 
-	WP-1c: always-reject detector composed into classify().
+	Reject foreignObject elements.
 
 	Args:
 		root: The parsed SVG root element.
@@ -2656,7 +2701,7 @@ def detect_doctype_or_entity(source_text: str) -> RejectionReason | None:
 	The check is cheap: scan the first 4096 bytes for "<!DOCTYPE" or "<!ENTITY".
 	Case-insensitive to catch unusual capitalizations.
 
-	WP-1c: always-reject detector called by normalize_svg_file before classify().
+	Reject unsafe document declarations before XML parsing.
 
 	Args:
 		source_text: Raw text content of the SVG file.
@@ -2679,9 +2724,9 @@ def detect_doctype_or_entity(source_text: str) -> RejectionReason | None:
 
 
 #============================================
-# WP-3b reject detectors (S2 full reject set) + F8 + B1 + S1.
+# Feature reject detectors and reference-integrity helpers.
 #
-# These fill the WP-1c seam slots. Each detector takes root and returns a
+# Each detector takes root and returns a
 # RejectionReason or None, matching the classify() composition contract. They
 # are composed into classify() in priority order (see classify()).
 #============================================
@@ -2938,7 +2983,7 @@ def _detect_external_href(root: lxml.etree._Element) -> RejectionReason | None:
 
 
 #============================================
-# Simple-clipPath flattening (A6, WP-3e).
+# Simple clipPath flattening.
 #
 # Flattens a SIMPLE clipPath into the clipped target's path geometry using
 # shapely, then drops the clip reference and the now-unused clipPath def. Curves
@@ -3510,9 +3555,9 @@ def flatten_clip_paths(root: lxml.etree._Element) -> None:
 	    intersection is empty), handling Polygon and MultiPolygon (holes emitted
 	    as reverse-wound subpaths);
 	  - remove the clip-path attribute.
-	After all references are processed, remove every <clipPath> def that is no
-	longer referenced anywhere (S1-safe: a def still referenced elsewhere is
-	kept; no dangling ref is created).
+	After all references are processed, remove every ordinary <clipPath> def that
+	is no longer referenced anywhere.  The closed runtime material anchor remains
+	available even though it is referenced only after DOM injection.
 
 	Args:
 		root: The parsed (transform-flattened, shape-converted) SVG root. Modified
@@ -3781,8 +3826,10 @@ def _remove_unreferenced_clip_defs(root: lxml.etree._Element) -> None:
 	"""Remove <clipPath> defs no longer referenced by any clip-path in the tree.
 
 	S1-safe: a clipPath whose id still appears in some clip-path reference is
-	kept; only fully-unreferenced clipPath defs are detached. Removing them keeps
-	the document free of dead defs without creating a dangling reference.
+	kept; only fully-unreferenced ordinary clipPath defs are detached.  The closed
+	runtime material anchor is also kept because the renderer references it only
+	after DOM injection.  Removing other dead defs keeps the document free of
+	dead resources without creating a dangling reference.
 
 	Args:
 		root: The parsed SVG root element. Modified in place.
@@ -3798,7 +3845,8 @@ def _remove_unreferenced_clip_defs(root: lxml.etree._Element) -> None:
 		cid = _clip_ref_id(clip_ref)
 		if cid is not None:
 			referenced.add(cid)
-	# Detach clipPath defs whose id is not referenced.
+	# Detach clipPath defs whose id is neither locally referenced nor a closed
+	# runtime material anchor.
 	to_remove: list[lxml.etree._Element] = []
 	for elem in root.iter():
 		if not isinstance(elem.tag, str):
@@ -3806,7 +3854,7 @@ def _remove_unreferenced_clip_defs(root: lxml.etree._Element) -> None:
 		if local_name(elem.tag) != "clipPath":
 			continue
 		cid = elem.get("id")
-		if cid is None or cid not in referenced:
+		if cid is None or (cid not in referenced and cid not in RUNTIME_EXTERNAL_CLIP_IDS):
 			to_remove.append(elem)
 	for elem in to_remove:
 		parent = elem.getparent()
@@ -3818,13 +3866,13 @@ def _remove_unreferenced_clip_defs(root: lxml.etree._Element) -> None:
 def _detect_clippath(root: lxml.etree._Element) -> RejectionReason | None:
 	"""Detect only COMPLEX clip-path usage; simple clips are flattened, not rejected.
 
-	WP-3e carves the simple-clip allowlist out of the blanket WP-3b reject: the
+	The simple-clip allowlist permits the supported cases while the classifier rejects
 	actual flattening (and the complex-clip rejection) is performed by
 	flatten_clip_paths inside normalize_svg_file, which raises ComplexClipError ->
 	CLIPPATH_UNSUPPORTED_COMPLEX for anything outside the allowlist. Because the
 	flattening step is the authority on simple-vs-complex, this classifier no
 	longer rejects clip-path on its own: doing so would wrongly refuse the simple
-	clips WP-3e is meant to normalize.
+	unsupported clips.
 
 	The function is kept in classify()'s detector list (signature unchanged) so
 	the composition contract is preserved; it simply always returns None now. The
@@ -4181,13 +4229,12 @@ def _detect_text_elements(root: lxml.etree._Element) -> RejectionReason | None:
 	"""Detect <text>, <tspan>, or <textPath> anywhere in the document (A5).
 
 	Text elements cannot be normalized by v3 (glyph geometry is font-dependent
-	and not computable from path math alone). The authoring rule is: convert text
-	to paths before ingestion. Any file containing a text element is rejected with
+	and not computable from path math alone). Prose belongs in layout-manager DOM
+	or object data; only approved intrinsic markings may be converted to paths
+	before ingestion. Any file containing a text element is rejected with
 	TEXT_UNSUPPORTED.
 
-	WP-3b may call this or add further detectors to classify(). The function
-	follows the same single-reason-return contract as classify() so it composes
-	cleanly via an early return.
+	The classifier calls this detector as part of its single-reason-return flow.
 
 	Args:
 		root: The parsed SVG root element.
@@ -4207,7 +4254,10 @@ def _detect_text_elements(root: lxml.etree._Element) -> RejectionReason | None:
 			reason = RejectionReason(
 				code="TEXT_UNSUPPORTED",
 				message="Text elements are not normalized by v3.",
-				fix="Convert text to paths before ingestion.",
+				fix=(
+					"Remove prose text and move it to layout-manager DOM or object data; "
+					"convert only approved intrinsic markings to paths before ingestion."
+				),
 				element=element_location,
 			)
 			return reason
@@ -4215,13 +4265,68 @@ def _detect_text_elements(root: lxml.etree._Element) -> RejectionReason | None:
 
 
 #============================================
+def _detect_runtime_bounds_anchor(root: lxml.etree._Element) -> RejectionReason | None:
+	"""Reject an ambiguous or runtime-incompatible material bounds anchor.
+
+	The bounds anchor is optional for generic SVGs. When present, the material
+	runtime needs exactly one bare, outside-``defs`` ``<rect>`` to read after
+	injection. A duplicate id cannot resolve to one target, and a non-rect or
+	definition-space element cannot supply direct rectangle geometry.
+
+	Args:
+		root: Parsed SVG root before normalization mutates geometry.
+
+	Returns:
+		A UNRESOLVED_REFERENCE reason for an invalid bounds-anchor declaration, or
+		None when the optional anchor is absent or valid.
+	"""
+	anchors = [
+		elem
+		for elem in root.iter()
+		if isinstance(elem.tag, str) and elem.get("id") == RUNTIME_BOUNDS_RECT_ID
+	]
+	if not anchors:
+		return None
+	if len(anchors) != 1:
+		return RejectionReason(
+			code="UNRESOLVED_REFERENCE",
+			message=(
+				"Material anchor 'anchor_liquid_bounds' must resolve to exactly one "
+				"outside-defs rect."
+			),
+			fix=(
+				"Keep one bare id='anchor_liquid_bounds' on the hidden bounds rect; "
+				"remove that id from clip geometry and all other elements."
+			),
+			element=anchors[0].getroottree().getpath(anchors[0]),
+		)
+	anchor = anchors[0]
+	if local_name(anchor.tag) != "rect":
+		return RejectionReason(
+			code="UNRESOLVED_REFERENCE",
+			message="Material anchor 'anchor_liquid_bounds' must resolve to an outside-defs rect.",
+			fix="Move the bare id='anchor_liquid_bounds' to one hidden outside-defs rect.",
+			element=anchor.getroottree().getpath(anchor),
+		)
+	parent = anchor.getparent()
+	while parent is not None:
+		if isinstance(parent.tag, str) and local_name(parent.tag) == "defs":
+			return RejectionReason(
+				code="UNRESOLVED_REFERENCE",
+				message="Material anchor 'anchor_liquid_bounds' must resolve outside <defs>.",
+				fix="Move the hidden bounds rect outside <defs>; keep clip geometry under anchor_liquid_clip.",
+				element=anchor.getroottree().getpath(anchor),
+			)
+		parent = parent.getparent()
+	return None
+
+
+#============================================
 def classify(root: lxml.etree._Element) -> RejectionReason | None:
 	"""Classify the parsed SVG for unsupported features (S2 seam).
 
-	This is the shared classifier seam. WP-3a adds the text detector here;
-	WP-3b extends by adding further detectors (use/symbol, filter, mask, marker,
-	image, foreignObject, CSS geometry rules, etc.) without changing this
-	signature.
+	This is the shared classifier seam. It checks text, structural, effect,
+	resource, clip, and style features without changing this signature.
 
 	Each detector is a function that takes root and returns a RejectionReason or
 	None. They are called in priority order; the first non-None reason is returned
@@ -4233,12 +4338,15 @@ def classify(root: lxml.etree._Element) -> RejectionReason | None:
 	Returns:
 		A RejectionReason when an unsupported feature is found, else None.
 	"""
-	# A5: text/tspan/textPath reject (WP-3a).
+	# Reject text, tspan, and textPath elements.
 	reason = _detect_text_elements(root)
 	if reason is not None:
 		return reason
+	reason = _detect_runtime_bounds_anchor(root)
+	if reason is not None:
+		return reason
 
-	# WP-1c: always-reject detectors (script/handler, animation, foreignObject).
+	# Always reject scripts, event handlers, animation, and foreignObject.
 	reason = _detect_script_or_handler(root)
 	if reason is not None:
 		return reason
@@ -4249,7 +4357,7 @@ def classify(root: lxml.etree._Element) -> RejectionReason | None:
 	if reason is not None:
 		return reason
 
-	# WP-3b reject set. Each detector follows the same single-reason contract.
+	# Remaining feature rejects use the same single-reason contract.
 	# Order: structural rejects (use/symbol), effect rejects (filter/mask/marker),
 	# resource rejects (image embedded/external, external href), clip, style, then
 	# pattern. The first non-None reason wins as the primary rejection.
@@ -4276,7 +4384,7 @@ def parse_svg(input_path: Path) -> lxml.etree._ElementTree:
 
 	The v3 gate parses exactly once and never normalizes recovered XML. A parse
 	failure is the caller's signal to reject the file with PARSER_ERROR; the
-	wild runner (WP-1c) may separately re-parse with recover only to classify
+	feature classification may separately re-parse with recover only to classify
 	the likely feature, but the normalizer here does not.
 
 	Args:
@@ -4459,7 +4567,7 @@ def normalize_svg_file(
 ) -> NormalizeResult:
 	"""Normalize an SVG, or reject it; the single public entry point.
 
-	Pipeline (M3 scope): parse once (no recover) -> classify (seam) ->
+	Pipeline: parse once (no recover) -> classify ->
 	ASCII-clean ids -> flatten transforms (A1) -> shape->path (A2) ->
 	B1 editor-cruft removal -> [D1 floor-shadow removal when enabled] ->
 	compute bbox -> shift to origin -> rewrite viewBox -> canonical serialize
@@ -4467,7 +4575,7 @@ def normalize_svg_file(
 
 	D1 (floor-shadow removal) runs BEFORE compute_bbox so the single crop
 	tightens around the real object.  It is gated by remove_floor_shadow; with
-	that False (the default) the pipeline is unchanged from the M2 path.
+	that False (the default) the normal output path is unchanged.
 
 	On rejection no output is written and the input is left untouched, even when
 	output_path equals input_path (the --in-place case): the write only happens
@@ -4496,7 +4604,7 @@ def normalize_svg_file(
 		)
 	pre_root_comments = extract_pre_root_comments(source_text)
 
-	# DOCTYPE/ENTITY check on raw text before parsing (WP-1c). parse_svg uses
+	# Check raw text for DOCTYPE and entities before parsing. parse_svg uses
 	# resolve_entities=False so a DOCTYPE may parse without error; we reject it
 	# explicitly here so the gate is cheap and correct.
 	doctype_rejection = detect_doctype_or_entity(source_text)
@@ -4522,7 +4630,7 @@ def normalize_svg_file(
 
 	root = tree.getroot()
 
-	# Feature classification seam (S2). WP-1c / WP-3b fill in detectors; a
+	# Feature classification returns one stable rejection reason when needed.
 	# non-None result short-circuits to a rejection before any geometry edit.
 	rejection = classify(root)
 	if rejection is not None:
@@ -4602,7 +4710,7 @@ def normalize_svg_file(
 		)
 
 	# A6: flatten simple clipPaths into the clipped target's path geometry, drop
-	# the clip ref, and remove unreferenced clipPath defs (WP-3e). Runs AFTER
+	# the clip ref, and remove unreferenced clipPath defs. Runs AFTER
 	# transform-flatten + shape->path (so target and clip are absolute root-coord
 	# geometry) and BEFORE compute_bbox/S1 (so the bbox is measured on the clipped
 	# region and S1 never sees the dropped clip ref). A clip outside the simple
@@ -4628,7 +4736,7 @@ def normalize_svg_file(
 	# cleans non-portable editor state.
 	remove_editor_cruft(root)
 
-	# D1: floor-shadow removal (WP-3c).  Runs BEFORE compute_bbox so the single
+	# Floor-shadow removal runs before compute_bbox so the single
 	# crop tightens around the real object after shadow removal.  A preliminary
 	# bbox pass is needed to identify the bottom-band threshold; this is a cheap
 	# pass over the already-prepared geometry.  Removal does NOT affect the gate
@@ -4736,7 +4844,7 @@ def normalize_svg_file(
 
 
 #============================================
-# D1: floor-shadow removal (WP-3c).
+# Floor-shadow removal.
 #
 # Detection: a path element is a floor-shadow CANDIDATE when ALL three criteria hold:
 #   1. Wide-flat: its own bbox width/height > _SHADOW_ASPECT_THRESHOLD.
@@ -4758,7 +4866,7 @@ def normalize_svg_file(
 #   (i.e. the property is absent from inline style and presentation attribute),
 #   treat it as "no signal" from that sub-criterion -- do NOT guess.
 #
-# By WP-2b all shapes are <path> by the time D1 runs; detection uses
+# By this stage all shapes are <path>; detection uses
 # _element_geometry_bbox (pure geometry, no stroke pad) to avoid double-counting.
 #============================================
 
@@ -4843,7 +4951,7 @@ def detect_floor_shadow_candidates(
 	a <style> class rule, that sub-criterion is treated as no signal.  Blur filter
 	alone is never a signal (filters are already rejected by the classifier).
 
-	By WP-2b all shapes are <path> by the time this runs, so element geometry is
+	By this stage all shapes are <path>, so element geometry is
 	available from _element_geometry_bbox.
 
 	A candidate satisfies ALL three criteria:
@@ -4875,7 +4983,7 @@ def detect_floor_shadow_candidates(
 			continue
 		tag = local_name(elem.tag)
 		if tag != "path":
-			# By WP-2b all geometry is <path>; skip non-path nodes.
+			# All geometry is <path> at this stage; skip non-path nodes.
 			continue
 		# Criterion 1: compute element geometry bbox (no stroke pad).
 		elem_geom = _element_geometry_bbox(elem)

@@ -75,7 +75,7 @@ steps:
     prompt:
       Perform trituration to fully dissolve the formazan precipitate. Using the
       multichannel pipette, pipette up and down approximately 10 times per well across
-      the whole plate. Mechanical mixing ensures complete dissolution of the yellow
+      the whole plate. Mechanical mixing ensures complete dissolution of the purple
       formazan product.
     sequence:
       - target: micropipette

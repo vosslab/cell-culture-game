@@ -16,7 +16,7 @@
 // around the guard calls; the throwing wrappers simply re-raise the
 // violation the pure core already found.
 
-import type { ComputedItem, SceneA, Bounds } from "../layout/types.js";
+import type { Bounds, ComputedItem, ResolvedScene } from "../layout/types.js";
 import { ASSET_SPECS } from "../../../generated/object_library.js";
 import { SVG_MANIFEST } from "../../../generated/svg_manifest.js";
 import {
@@ -76,6 +76,7 @@ export interface StructuralViolation {
 const JITTER_TOLERANCE = 0.5; // percent units
 const LABEL_OVERLAP_TOLERANCE = 1; // percent units
 const ASPECT_TOLERANCE = 0.05; // 5% tolerance
+const GAP_FLOAT_TOLERANCE = 1e-6; // scene-percent float noise only
 // AVG_CHAR_WIDTH_PCT and LABEL_LINE_HEIGHT_PCT are imported from layout/constants.ts
 // to keep bbox estimates consistent with the engine's width/height model.
 const DEFAULT_ZONE_GAP = 8; // px, converted to percent using viewport width
@@ -121,7 +122,7 @@ function bboxContained(inner: Bounds, outer: Bounds, tolerance: number): boolean
 // Guard 1: every item lies inside its zone bbox
 //============================================
 
-function checkItemsInZones(final: ComputedItem[], scene: SceneA): StructuralViolation[] {
+function checkItemsInZones(final: ComputedItem[], scene: ResolvedScene): StructuralViolation[] {
   const violations: StructuralViolation[] = [];
 
   const zoneMap = new Map<string, Bounds>();
@@ -165,7 +166,7 @@ function checkItemsInZones(final: ComputedItem[], scene: SceneA): StructuralViol
 // Guard 2: every zone lies inside scene_bounds
 //============================================
 
-function checkZonesInScene(scene: SceneA): StructuralViolation[] {
+function checkZonesInScene(scene: ResolvedScene): StructuralViolation[] {
   const violations: StructuralViolation[] = [];
 
   const sceneBounds = scene.scene_bounds;
@@ -220,58 +221,62 @@ function checkNoItemOverlap(final: ComputedItem[]): StructuralViolation[] {
 }
 
 //============================================
-// Guard 4: same-zone gap >= layout_rules.zone_gap
+// Guard 4: same-row, same-cluster gap >= layout_rules.zone_gap
 //============================================
 
-function checkSameZoneGap(final: ComputedItem[], scene: SceneA): StructuralViolation[] {
+function checkSameZoneGap(final: ComputedItem[], scene: ResolvedScene): StructuralViolation[] {
   const violations: StructuralViolation[] = [];
 
-  const zoneGapPx = scene.layout_rules?.zone_gap ?? DEFAULT_ZONE_GAP;
-  // Use the canonical viewport width from layout/constants.ts (1920) so this
-  // guard matches every other pipeline consumer.
-  const viewportWidth = DEFAULT_VIEWPORT.w;
-  const zoneGapPct = (zoneGapPx / viewportWidth) * 100;
+  // LayoutConfig and every computed item use scene-percent units. Keep this
+  // guard in that coordinate space; interpreting an authored 2% gap as two CSS
+  // pixels weakens the guard to roughly 0.1%.
+  const zoneGapPct = scene.layout_rules?.zone_gap ?? DEFAULT_ZONE_GAP;
 
-  // Group items by zone
-  const itemsByZone = new Map<string, ComputedItem[]>();
+  // Horizontal layout partitions each zone by depth_tier before placing rows.
+  // A tier is a separate vertical row, so cross-tier edge alignment is not a
+  // horizontal-gap failure. `tab-stops` makes one further semantic partition:
+  // its left, center, and right clusters are independently anchored, while
+  // `zone_gap` spaces members *within* each cluster. Comparing items across
+  // those anchors invents a coordinate constraint the placer never promises.
+  // Mirror the layout control layer here so a structural guard cannot reject a
+  // valid coordinate-free tab-stop scene.
+  const zoneAlignments = new Map(scene.zones.map((zone) => [zone.id, zone.align]));
+  const itemsByRow = new Map<string, { zoneId: string; items: ComputedItem[] }>();
   for (const item of final) {
     if (!item.zone) {
       continue;
     }
-    if (!itemsByZone.has(item.zone)) {
-      itemsByZone.set(item.zone, []);
+    const alignStop =
+      zoneAlignments.get(item.zone) === "tab-stops"
+        ? (item.align_stop ?? scene.layout_rules?.default_align_stop ?? "center")
+        : "shared-row";
+    const rowKey = `${item.zone}\u0000${item.depth_tier ?? 0}\u0000${alignStop}`;
+    const row = itemsByRow.get(rowKey);
+    if (row === undefined) {
+      itemsByRow.set(rowKey, { zoneId: item.zone, items: [item] });
+    } else {
+      row.items.push(item);
     }
-    itemsByZone.get(item.zone)!.push(item);
   }
 
-  // For each zone, check horizontal gaps
-  for (const [zoneId, items] of itemsByZone) {
-    for (let i = 0; i < items.length; i++) {
-      for (let j = i + 1; j < items.length; j++) {
-        const itemA: ComputedItem | undefined = items[i];
-        const itemB: ComputedItem | undefined = items[j];
-        if (!itemA || !itemB) {
-          continue;
-        }
-        const bboxA = itemBbox(itemA);
-        const bboxB = itemBbox(itemB);
-
-        // Check horizontal adjacency
-        const horizontalGap = Math.min(
-          Math.abs(bboxA.right - bboxB.left),
-          Math.abs(bboxB.right - bboxA.left),
-        );
-
-        // Only enforce gap if horizontally adjacent
-        if (horizontalGap < 1 && horizontalGap >= 0) {
-          if (horizontalGap < zoneGapPct) {
-            violations.push({
-              guard: "zone_gap",
-              placement_name: itemA.placement_name,
-              message: `Structural guard failure (zone gap): items "${itemA.placement_name}" and "${itemB.placement_name}" in zone "${zoneId}" have horizontal gap ${horizontalGap.toFixed(1)}% < required ${zoneGapPct.toFixed(1)}%.`,
-            });
-          }
-        }
+  // For each zone row, check horizontal gaps.
+  for (const { zoneId, items } of itemsByRow.values()) {
+    const ordered = [...items].sort((left, right) => itemBbox(left).left - itemBbox(right).left);
+    for (let i = 0; i < ordered.length - 1; i++) {
+      const itemA = ordered[i];
+      const itemB = ordered[i + 1];
+      if (itemA === undefined || itemB === undefined) {
+        continue;
+      }
+      const horizontalGap = itemBbox(itemB).left - itemBbox(itemA).right;
+      // Guard 3 owns overlaps. This guard owns the non-negative clearance
+      // between adjacent members of one horizontal row.
+      if (horizontalGap >= 0 && horizontalGap + GAP_FLOAT_TOLERANCE < zoneGapPct) {
+        violations.push({
+          guard: "zone_gap",
+          placement_name: itemA.placement_name,
+          message: `Structural guard failure (zone gap): items "${itemA.placement_name}" and "${itemB.placement_name}" in zone "${zoneId}" have horizontal gap ${horizontalGap.toFixed(1)}% < required ${zoneGapPct.toFixed(1)}%.`,
+        });
       }
     }
   }
@@ -336,7 +341,7 @@ function checkAspectRatio(
 // Guard 6: asset resolves in the SVG manifest
 //============================================
 
-function checkAssetsResolved(final: ComputedItem[], scene: SceneA): StructuralViolation[] {
+function checkAssetsResolved(final: ComputedItem[], scene: ResolvedScene): StructuralViolation[] {
   const violations: StructuralViolation[] = [];
   for (const item of final) {
     // Placeholder items deliberately have missing assets; skip the manifest check.
@@ -360,7 +365,7 @@ function checkAssetsResolved(final: ComputedItem[], scene: SceneA): StructuralVi
 // Guard 7: no label outside scene
 //============================================
 
-function checkLabelsInScene(final: ComputedItem[], scene: SceneA): StructuralViolation[] {
+function checkLabelsInScene(final: ComputedItem[], scene: ResolvedScene): StructuralViolation[] {
   const violations: StructuralViolation[] = [];
   const sceneBounds = scene.scene_bounds;
   if (!sceneBounds) {
@@ -426,13 +431,13 @@ function checkNoLabelOwnSvgOverlap(final: ComputedItem[]): StructuralViolation[]
  * this to degrade-not-blank; tests/CI use the throwing wrapper below.
  *
  * @param final - computed layout items
- * @param scene - source scene (SceneA)
+ * @param scene - internally resolved scene geometry
  * @param viewport - pixel dimensions used by the pipeline (for aspect check)
  * @returns every structural violation, in guard order; empty when clean
  */
 export function collectStructuralViolations(
   final: ComputedItem[],
-  scene: SceneA,
+  scene: ResolvedScene,
   viewport?: { w: number; h: number },
 ): StructuralViolation[] {
   const effectiveViewport = viewport ?? DEFAULT_VIEWPORT;
@@ -472,7 +477,7 @@ export function collectStructuralViolations(
  */
 export function runStructuralGuards(
   final: ComputedItem[],
-  scene: SceneA,
+  scene: ResolvedScene,
   viewport?: { w: number; h: number },
 ): void {
   const violations = collectStructuralViolations(final, scene, viewport);

@@ -1,86 +1,58 @@
 scene_name: hood_workspace
-extends: hood_basic
+extends: plate_focus_hood
 scene_notes: |
   Hood workspace for pellet reseed mini-protocol. Adds T75 flask (center),
   conical 15ml rack (rear center), fresh media bottle (rear left), label pen
-  (right tool area), and incubator (rear right, replacing base media bottles).
-  The well_plate_96 object is placed in the inherited hood_basic center;
-  protocols target well_plate_96.* against that inherited placement.
-
-remove_placements:
-  # Fully remove (not just deactivate) the base rear-right bottles. Deactivated
-  # placements are still laid out and rendered, so they sat underneath the large
-  # incubator and produced item-box overlaps. Removing them frees the rear_right
-  # band for the incubator alone.
-  - base_rear_right_media
-  - base_rear_right_sterile_water
-  # The inherited serological pipette is not a target of this mini-protocol
-  # (pellet reseed uses the aspirating pipette only) and its right_tool_area slot
-  # collided with the incubator, which overflows that band. Remove it.
-  - base_right_serological_pipette
-  # The inherited tip box is not a target here and shared the rear_left band with
-  # ethanol and the fresh media bottle, overlapping the media bottle. Remove it
-  # so rear_left holds just ethanol, fresh media, and the conical rack.
-  - base_rear_left_tip_box
+  (right tool area), and incubator (rear right). The foreground plate is the
+  readout focus; all other placements below support authored protocol actions.
 
 add_placements:
-  # T75 flask in center work area (front row, left).
+  # T75 flask is a secondary context vessel beside the foreground plate.
   - placement_name: center_t75_flask
     object_name: t75_flask
     zone: center
     depth_tier: 1
     align_stop: left
 
-  # Conical 15ml rack in rear_left (right slot, beside the fresh media bottle).
-  # rear_center now carries PBS, the relocated tip box, and waste, so the rack
-  # goes to rear_left where ethanol (left) leaves the right slot open.
+  # Conical rack and fresh media are the reseeding supports in rear-left context.
   - placement_name: center_conical_rack
     object_name: conical_15ml_rack
     zone: rear_left
     depth_tier: 2
     align_stop: right
-    # Tall rear-zone object: its top label is clamped at the 6.5 zone ceiling and
-    # collides with the adjacent rear_left_fresh_media label (also clamped at
-    # 6.5). Above is structurally blocked by the clamp; below (obj_bottom 32) has
-    # room.
+    # A lower label keeps the rack readable beside the fresh-media bottle.
     layout:
       label_placement: bottom
 
-  # Fresh media bottle in rear_left (center slot, between ethanol and the rack).
   - placement_name: rear_left_fresh_media
     object_name: media_bottle
     zone: rear_left
     depth_tier: 1
     align_stop: center
 
-  # well_plate_96 is now placed in the inherited hood_basic center band (single
-  # plate); the former microtube_rack_24 placeholder was removed here.
-
-  # Incubator in rear_right (40cm). It is tall equipment on the right side;
-  # align_stop center keeps it clear of the zone edges. Its X-range still
-  # reaches into right_tool_area, so the aspirating pipette keeps the left slot
-  # there and the label pen is placed in the center band, below.
+  # Incubator is the post-reseeding destination in rear-right context.
   - placement_name: rear_right_incubator
     object_name: incubator
     zone: rear_right
     depth_tier: 1
     align_stop: center
 
-  # Label pen in the center band (back row, center). Keeping it out of
-  # right_tool_area avoids the incubator overlap; the back row (depth_tier 2)
-  # offsets it vertically from the front-row flask so the two do not touch.
+  # Label pen and aspirating pipette are the two authored tools in the
+  # secondary rack.
   - placement_name: center_label_pen
     object_name: label_pen
-    zone: center
-    depth_tier: 2
-    align_stop: center
+    zone: right_tool_area
+    depth_tier: 1
+    align_stop: right
 
-  # Standalone conical 15ml tube in rear_center (right slot, depth 1). The
-  # transfer_to_conical entry step clicks conical_15ml_rack while in this
-  # scene, but its response writes ObjectStateChange/CursorAttach state onto
-  # the standalone conical_15ml object (the rack is the click target, the
-  # tube is the state-bearing object). rear_center holds only PBS (left) and
-  # waste (center) at depth 1, so the right slot is free and overlap-clean.
+  - placement_name: right_aspirating_pipette
+    object_name: aspirating_pipette
+    zone: right_tool_area
+    depth_tier: 1
+    align_stop: left
+
+  # The protocol clicks the rack while its response changes this standalone
+  # conical tube's state; both must be present in the focused scene.
   - placement_name: rear_center_conical_tube
     object_name: conical_15ml
     zone: rear_center

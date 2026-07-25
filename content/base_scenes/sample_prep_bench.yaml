@@ -3,12 +3,6 @@ workspace: bench
 capabilities:
   - item_workspace
 
-scene_bounds:
-  left: 1
-  right: 99
-  top: 5
-  bottom: 95
-
 background:
   type: gradient
   from: "#E8E2D0"
@@ -16,71 +10,29 @@ background:
   angle: 180
 
 zones:
-  # Rear shelf band: reagent bottles at top
+  # Rear shelf: reagent bottles
   - zone_name: rear_left
-    bounds:
-      left: 5
-      right: 30
-      top: 5
-      bottom: 32
-    baseline: 28
     align: tab-stops
     label: Rear left - reagents
   - zone_name: rear_center
-    bounds:
-      left: 35
-      right: 65
-      top: 5
-      bottom: 32
-    baseline: 28
     align: tab-stops
     label: Rear center - reagents
   - zone_name: rear_right
-    bounds:
-      left: 70
-      right: 95
-      top: 5
-      bottom: 32
-    baseline: 28
     align: tab-stops
     label: Rear right - reagents
-  # Mid working band: racks and tubes staged mid-bench
+  # Mid working area: racks and tubes staged mid-bench
   - zone_name: mid_left
-    bounds:
-      left: 5
-      right: 48
-      top: 38
-      bottom: 64
-    baseline: 60
     align: tab-stops
     label: Mid bench - left
   - zone_name: mid_right
-    bounds:
-      left: 52
-      right: 95
-      top: 38
-      bottom: 64
-    baseline: 60
     align: tab-stops
     label: Mid bench - right
-  # Front working band: active tools center-stage (named 'center' for inheritors)
+  # Front working area: active tools center-stage (named 'center' for inheritors)
   - zone_name: center
-    bounds:
-      left: 8
-      right: 84
-      top: 66
-      bottom: 94
-    baseline: 90
     align: tab-stops
     label: Bench work surface
   # Right tool area: tip box
   - zone_name: right_tool_area
-    bounds:
-      left: 84
-      right: 99
-      top: 66
-      bottom: 94
-    baseline: 90
     align: tab-stops
     label: Right tool rack
 

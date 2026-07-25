@@ -117,9 +117,7 @@ Source: `validation/scene_lint/rules_group_a.py`. All findings carry
 | --- | --- | --- |
 | `duplicate_scene_name` | Two or more scene YAML files declare the same `scene_name`. | vocab lint (partial overlap) |
 | `duplicate_placement_name` | A scene has two placements with the same `placement_name` after inheritance resolution. | vocab lint |
-| `invalid_scene_bounds` | `scene_bounds` missing, non-numeric, outside `[0, 100]`, or `left >= right` / `top >= bottom`. | vocab lint |
-| `invalid_zone_bounds` | A zone's `bounds` missing, non-numeric, outside `[0, 100]`, or `left >= right` / `top >= bottom`. | vocab lint |
-| `zone_outside_scene_bounds` | A zone's bounds rectangle extends outside `scene_bounds` on any edge. | unique to scene lint |
+| `forbidden_source_geometry` | Scene YAML supplies coordinates, bounds, baselines, numeric placement geometry, or an unknown source-scene key. | vocab lint |
 | `missing_svg_asset` | A placement's `asset` path does not resolve to a file under `assets/`. | unique to scene lint |
 | `invalid_svg_viewbox` | A placement's asset SVG has missing or non-positive `viewBox` dimensions. | unique to scene lint |
 | `inheritance_unknown_base` | A scene's `extends` references a base that does not exist. | unique to scene lint |
@@ -149,7 +147,7 @@ per [#suppression-manifest](#suppression-manifest).
 | `B7` `label_offscreen` | `label_bbox` | `label_bbox` extends outside `scene_bounds` horizontally. | Left and right edges only. |
 | `B8` `label_object_overlap` | `label_bbox` | `label_bbox` intersects a placement's `visual_bbox` with > 10 px^2 area. | Conservative: checks all placements, not just scientific kinds. |
 | `B9` `invisible_placement` | `visual_bbox` | Five triggers: area < 100 px^2, height > 2 * zone height, `scale_source='skipped_error'`, missing `default_width`, or `fallback_authored` scale source. | Confidence varies per trigger. |
-| `B10` `zone_overlap` | (static) | Two zone bounds rectangles have non-zero intersection. | No SIM dependency; runs from `scene.zones` directly. |
+| `B10` `zone_overlap` | derived zone geometry | Two rendered zones have non-zero intersection. | Uses renderer-produced geometry; source YAML does not contain zone bounds. |
 
 A `dump_error` finding (verdict `BLOCKED`, confidence `low`) is emitted
 when `dump_scene_geometry` raises on a scene; all Group B rules for that

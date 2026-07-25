@@ -26,16 +26,16 @@ visual_states:
     cases:
       - when: empty
         output:
-          asset_name: bottle
+          asset_name: hemocytometer_slide
       - when: trypan_blue
         output:
-          asset_name: bottle
+          asset_name: hemocytometer_slide
       - when: cell_suspension
         output:
-          asset_name: bottle
+          asset_name: hemocytometer_slide
       - when: trypan_blue_mixture
         output:
-          asset_name: bottle
+          asset_name: hemocytometer_slide
   material_volume:
     kind: composite
     composite: []

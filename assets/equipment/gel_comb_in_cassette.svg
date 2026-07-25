@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 234 316">
+  <defs>
+    <linearGradient id="cassette-plastic" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#edf8fc" stop-opacity="0.96"/>
+      <stop offset="1" stop-color="#91adba" stop-opacity="0.90"/>
+    </linearGradient>
+    <linearGradient id="gel-blue" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#c8e8f6"/>
+      <stop offset="1" stop-color="#6aa7cc"/>
+    </linearGradient>
+    <linearGradient id="comb-blue" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#4b9ac6"/>
+      <stop offset="1" stop-color="#1d628c"/>
+    </linearGradient>
+  </defs>
+  <!-- The cassette remains visibly behind the comb so the assembled state is clear. -->
+  <path fill="url(#cassette-plastic)" stroke="#29495a" stroke-width="7" d="M 29 64 L 205 64 A 13 13 0 0 1 218 77 L 218 287 A 13 13 0 0 1 205 300 L 29 300 A 13 13 0 0 1 16 287 L 16 77 A 13 13 0 0 1 29 64 Z"/>
+  <path d="M 34 111 L 200 111 L 200 277 L 34 277 Z" fill="url(#gel-blue)" stroke="#456f84" stroke-width="4"/>
+  <path d="M 41 141 L 193 141 M 41 251 L 193 251" fill="none" stroke="#edfaff" stroke-width="3" opacity="0.78"/>
+  <path d="M 37 124 L 37 253 M 197 124 L 197 253" fill="none" stroke="#f8fcfd" stroke-width="4" opacity="0.76"/>
+  <!-- A dark collar and short teeth make the comb visibly seated, not loose. -->
+  <path d="M 29 85 L 205 85 L 205 114 L 29 114 Z" fill="#254d64" stroke="#163f59" stroke-width="5"/>
+  <path d="M 35 16 L 199 16 A 13 13 0 0 1 212 29 L 212 74 A 13 13 0 0 1 199 87 L 35 87 A 13 13 0 0 1 22 74 L 22 29 A 13 13 0 0 1 35 16 Z" fill="url(#comb-blue)" stroke="#163f59" stroke-width="7"/>
+  <path d="M 38 39 L 196 39" fill="none" stroke="#c9ecf7" stroke-width="6" stroke-linecap="round" opacity="0.83"/>
+  <g fill="#4d97bd" stroke="#163f59" stroke-width="3" stroke-linejoin="round">
+    <path d="M 37 87 L 50 87 L 50 126 L 37 126 Z"/><path d="M 54 87 L 67 87 L 67 126 L 54 126 Z"/>
+    <path d="M 71 87 L 84 87 L 84 126 L 71 126 Z"/><path d="M 88 87 L 101 87 L 101 126 L 88 126 Z"/>
+    <path d="M 105 87 L 118 87 L 118 126 L 105 126 Z"/><path d="M 122 87 L 135 87 L 135 126 L 122 126 Z"/>
+    <path d="M 139 87 L 152 87 L 152 126 L 139 126 Z"/><path d="M 156 87 L 169 87 L 169 126 L 156 126 Z"/>
+    <path d="M 173 87 L 186 87 L 186 126 L 173 126 Z"/><path d="M 190 87 L 203 87 L 203 126 L 190 126 Z"/>
+  </g>
+  <path d="M 29 289 L 205 289" stroke="#29495a" stroke-width="8" stroke-linecap="round"/>
+</svg>

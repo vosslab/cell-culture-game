@@ -139,6 +139,64 @@ export function resolveSelector(itemId) {
   return `#scene-root [data-item-id="${itemId}"]`;
 }
 
+// Save evidence for the authored active target immediately before its visible
+// interaction. This stays schema-driven: the target and gesture come from the
+// read-only game-state projection, and the element is the same scene-scoped DOM
+// node that clickTargetAndWaitProgress will actionability-click.
+//
+// `visibleTargetBounds` is the intersection of the rendered target box and the
+// current viewport, rather than a raw DOMRect that could be nonempty while the
+// target is offscreen. A zero-area intersection is a hard evidence failure.
+export async function captureVisibleTargetCheckpoint(
+  page,
+  { protocol, step, target, gesture, interactionIndex, resultsDir },
+) {
+  const selector = resolveSelector(target);
+  const locator = page.locator(selector).first();
+  if ((await locator.count()) === 0) {
+    throw new Error(`checkpoint_target_missing: ${selector}`);
+  }
+  if (!(await locator.isVisible())) {
+    throw new Error(`checkpoint_target_hidden: ${selector}`);
+  }
+
+  // Match Playwright's normal visible-action path before reading geometry; this
+  // never dispatches an event or bypasses actionability.
+  await locator.scrollIntoViewIfNeeded();
+  const bounds = await locator.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const left = Math.max(0, rect.left);
+    const top = Math.max(0, rect.top);
+    const right = Math.min(window.innerWidth, rect.right);
+    const bottom = Math.min(window.innerHeight, rect.bottom);
+    return {
+      x: left,
+      y: top,
+      width: Math.max(0, right - left),
+      height: Math.max(0, bottom - top),
+      viewportWidth: window.innerWidth,
+      viewportHeight: window.innerHeight,
+    };
+  });
+  if (bounds.width <= 0 || bounds.height <= 0) {
+    throw new Error(`checkpoint_target_outside_viewport: ${selector}`);
+  }
+
+  const safeStep = step.replace(/[^a-z0-9_]/gi, "_");
+  const safeTarget = target.replace(/[^a-z0-9_]/gi, "_");
+  const screenshot = `${resultsDir}/checkpoint_${safeStep}_i${interactionIndex}_${safeTarget}.png`;
+  await page.screenshot({ path: screenshot });
+  return {
+    protocol,
+    step,
+    target,
+    gesture,
+    interactionIndex,
+    screenshot,
+    visibleTargetBounds: bounds,
+  };
+}
+
 //============================================
 // Real-click + wait-for-progress
 //============================================
@@ -177,7 +235,7 @@ export async function clickTargetAndWaitProgress(
   const before = await readProgressSnapshot(page);
 
   // Rule a: real, actionability-checked click on the visible element.
-  await locator.click();
+  await locator.click({ timeout: clickBudgetMs });
   report.summary.totalClicks++;
   report.info(`Clicked ${itemId}`);
 
@@ -464,8 +522,16 @@ export async function dragToAndWaitProgress(
 // Wrong-order item picker
 //============================================
 
-// Pick a visible scene item that is NOT the required target. Used by
-// --wrong-order mode to inject a real visible click on a non-required object.
+// Pick a visible, pointer-actionable scene item that is NOT the required target.
+// Used by --wrong-order mode to inject a real browser click on a non-required
+// object. The runtime still evaluates that input under the authored `click` or
+// `select` gesture; those protocol semantics remain distinct.
+//
+// Visibility alone is insufficient: structured-object hit surfaces keep inert
+// subpart nodes in the DOM while a whole-object interaction is active. Those
+// nodes have non-zero geometry, but the base SVG correctly receives pointer
+// events instead. Match the candidate against the topmost data-item-id at its
+// center so the picker follows the same hit-testing path as a real click.
 export async function pickWrongOrderItem(page, requiredItemId) {
   return await page.evaluate((required) => {
     const items = document.querySelectorAll("#scene-root [data-item-id]");
@@ -476,6 +542,19 @@ export async function pickWrongOrderItem(page, requiredItemId) {
       if (style.display === "none" || style.visibility === "hidden") continue;
       const rect = elem.getBoundingClientRect();
       if (rect.width === 0 || rect.height === 0) continue;
+      const centerX = rect.left + rect.width / 2;
+      const centerY = rect.top + rect.height / 2;
+      if (
+        centerX < 0 ||
+        centerY < 0 ||
+        centerX >= window.innerWidth ||
+        centerY >= window.innerHeight
+      ) {
+        continue;
+      }
+      const hit = document.elementFromPoint(centerX, centerY);
+      const hitItem = hit?.closest?.("[data-item-id]") ?? null;
+      if (hitItem?.getAttribute("data-item-id") !== itemId) continue;
       return itemId;
     }
     return null;

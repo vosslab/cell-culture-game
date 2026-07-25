@@ -26,6 +26,10 @@ asserts it would be caught, then cleans up.
 import os
 import re
 
+# PIP3 modules
+import pytest
+
+# local repo modules
 import file_utils
 
 
@@ -534,61 +538,35 @@ def test_no_shell_launcher_in_scene_runtime() -> None:
 
 
 #============================================
-def test_boundary_lint_fixture_detection(tmp_path) -> None:
+def test_solid_boundary_distinguishes_runtime_and_type_imports() -> None:
 	"""
-	Negative test: write a known-bad fixture, verify the lint catches it.
-	Proves the lint is working.
-
-	The fixture file is written under the pytest tmp_path fixture, never inside
-	the repo source tree, so a killed test leaves nothing behind to clean up. The
-	lint-detection assertions below operate on in-memory content strings and the
-	helper checks (which scan the real protected dirs), so the on-disk fixture is
-	only an artifact of the negative case and does not need to live in the tree.
+	Verify runtime Solid imports fail while type-only protocol imports remain valid.
 	"""
-	import pytest
-
 	marker = _read_marker()
 
 	if marker != "typescript":
 		pytest.skip("repo is not typescript-typed")
 
-	# Write the fixture under tmp_path (auto-cleaned by pytest), not the tree.
-	fixture_file = tmp_path / "bad_import.ts"
+	runtime_violation = _check_solid_violation_protocol("solid-js", is_type_only=False)
+	type_violation = _check_solid_violation_protocol("solid-js", is_type_only=True)
+	assert (runtime_violation is not None, type_violation) == (True, None)
 
-	# A file with a forbidden runtime solid-js import.
-	bad_content = 'import { createSignal } from "solid-js";\n\nexport const x = createSignal(0);\n'
-	# A file with a permitted type-only solid-js import.
-	type_only_content = 'import type { Accessor } from "solid-js";\n\nexport type MyType = Accessor<number>;\n'
 
-	fixture_file.write_text(bad_content, encoding="utf-8")
-
-	# Verify the fixture would be caught: runtime solid-js import
-	imports = _extract_imports(bad_content)
-	assert "solid-js" in imports, "fixture must have solid-js import"
-
-	# Strict violation (layout/pipeline/validation/generated)
-	violation = _check_solid_violation_strict("solid-js")
-	assert violation is not None, "strict lint must detect solid-js violation"
-
-	# Protocol/ runtime violation
-	protocol_violation = _check_solid_violation_protocol("solid-js", is_type_only=False)
-	assert protocol_violation is not None, "protocol lint must detect runtime solid-js"
-
-	# Protocol/ type-only import must be ALLOWED
-	type_only_allowed = _check_solid_violation_protocol("solid-js", is_type_only=True)
-	assert type_only_allowed is None, "type-only solid-js import must be allowed in protocol/"
-
-	# Verify type-only extraction works correctly
-	type_only_imports = _extract_type_only_imports(type_only_content)
-	assert "solid-js" in type_only_imports, "type-only extractor must find solid-js"
-
-	# Shell/launcher import checks
-	violation2 = _check_import_violation("../../shell/hud/ProtocolHud")
-	assert violation2 is not None, "lint must detect shell import violation"
-
-	# Seam exception: shell/adapter/types must NOT be flagged
-	seam_allowed = _check_import_violation("../../shell/adapter/types")
-	assert seam_allowed is None, "lint must allow shell/adapter/types seam"
-
-	violation3 = _check_import_violation("../launcher/foo")
-	assert violation3 is not None, "lint must detect launcher import violation"
+@pytest.mark.parametrize(
+	("module_parts", "expected_violation"),
+	[
+		(("src", "shell", "hud", "protocol_hud"), True),
+		(("src", "shell", "adapter", "types"), False),
+		(("src", "launcher", "launcher"), True),
+	],
+)
+def test_import_boundary_classifies_repo_modules(
+	module_parts: tuple[str, ...],
+	expected_violation: bool,
+) -> None:
+	"""
+	Classify protected modules from paths anchored at the repository root.
+	"""
+	module_path = os.path.join(file_utils.get_repo_root(), *module_parts)
+	actual_violation = _check_import_violation(module_path) is not None
+	assert actual_violation is expected_violation

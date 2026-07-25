@@ -220,8 +220,8 @@ steps:
     next_step: incubate_for_detachment
   - step_name: incubate_for_detachment
     prompt:
-      Incubate the flask at room temperature for approximately 2 minutes to allow
-      trypsin to detach the cells.
+      Allow trypsin to act for approximately 2 minutes while checking for cell
+      detachment.
     sequence:
       - target: incubator
         gesture: click
@@ -232,7 +232,7 @@ steps:
             - type: TimedWait
               target: incubator
               duration_min: 2
-              display: "Incubating: allow trypsin to work"
+              display: "Allowing trypsin to act; check detachment"
     step_validator:
       preset: sequence_complete
     outcome:

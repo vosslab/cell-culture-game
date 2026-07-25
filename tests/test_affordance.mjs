@@ -20,7 +20,8 @@
 // Covered cases for enumerate_candidate_targets:
 //   top-level object names (no ".") with the "clickable" capability are
 //     included in the returned set
-//   subpart names containing "." (e.g. "well_plate_96.A1") are excluded
+//   generated declared subparts are included with their placement identity
+//   dotted placement names are excluded (only generated subparts may be dotted)
 //   items lacking the "clickable" capability (decoration_only) are excluded
 //   empty result.final yields an empty set
 //   returned set contains exactly the top-level clickable names provided
@@ -183,12 +184,38 @@ test("enumerate_candidate_targets: top-level names are included", () => {
   assert.ok(result.has("plate_c"), "plate_c should be in candidate set");
 });
 
-test("enumerate_candidate_targets: subpart names containing '.' are excluded", () => {
-  const fixture = make_pipeline_result(["well_plate_96", "well_plate_96.A1", "well_plate_96.B2"]);
-  const result = enumerate_candidate_targets(fixture);
-  assert.ok(result.has("well_plate_96"), "top-level well_plate_96 should be included");
-  assert.ok(!result.has("well_plate_96.A1"), "subpart well_plate_96.A1 should be excluded");
-  assert.ok(!result.has("well_plate_96.B2"), "subpart well_plate_96.B2 should be excluded");
+test("enumerate_candidate_targets: declared geometry adds a clickable subpart", () => {
+  const fixture = make_pipeline_result(["rack"]);
+  fixture.final[0].object_name = "rack_with_tube";
+  const library = {
+    rack_with_tube: {
+      subpart_geometry: { tube: { shape: "rect", x: 1, y: 1, w: 4, h: 8 } },
+      view_box: { min_x: 0, min_y: 0, width: 10, height: 10 },
+      subparts: ["tube"],
+    },
+  };
+
+  assert.ok(enumerate_candidate_targets(fixture, library).has("rack.tube"));
+});
+
+test("enumerate_candidate_targets: absent or malformed geometry creates no phantom hit", () => {
+  const fixture = make_pipeline_result(["rack"]);
+  fixture.final[0].object_name = "declared_rack";
+  const library = {
+    declared_rack: {
+      subpart_geometry: {
+        absent: { shape: "rect", x: 0, y: 0, w: 0, h: 12 },
+      },
+      view_box: { min_x: 0, min_y: 0, width: 10, height: 10 },
+      subparts: ["absent", "missing"],
+    },
+  };
+  const result = enumerate_candidate_targets(fixture, library);
+  assert.ok(result.has("rack"), "the valid whole-object target remains available");
+  assert.ok(
+    !result.has("rack.absent") && !result.has("rack.missing"),
+    "missing or invalid geometry must not create a subpart target",
+  );
 });
 
 test("enumerate_candidate_targets: empty result.final yields empty set", () => {

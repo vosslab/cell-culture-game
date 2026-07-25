@@ -3,7 +3,9 @@
 This document is a comprehensive reference for the layout and aesthetic improvement
 work remaining after the cycle that shipped in June 2026. It describes what has
 already shipped, what is pending, who owns each item, and the recommended order
-of attack. It is a durable reference doc, not an active-plans artifact.
+of attack. Historical measurements are retained as evidence, but current authors
+must use the coordinate-free scene vocabulary in
+[specs/SCENE_YAML_FORMAT.md](specs/SCENE_YAML_FORMAT.md).
 
 ## 1. Purpose and status
 
@@ -83,8 +85,8 @@ Error-diagnostic details are in
 
 | Category | Nature | Owner | Risk level | Crosses pedagogical-composition boundary? |
 | --- | --- | --- | --- | --- |
-| Void-collapse | Scene YAML zone `y` baselines and `align_stop` edits | Scene author | Low per-scene; medium for multi-scene sweep | YES -- zone repositioning changes which objects appear in which curriculum context; must align with protocol intent |
-| Focal-promotion | Object YAML `display_width_cm` or scene YAML dedicated-zone edits | Object/scene author | Low-medium; "primary" picks are often debatable | YES -- enlarging an object implies it is the focal teaching object; must match protocol's first-interaction target |
+| Void-collapse | Zone declaration order, membership, and `align_stop` edits | Scene author | Low per-scene; medium for multi-scene sweep | YES -- zone regrouping changes which objects appear in which curriculum context; must align with protocol intent |
+| Focal-promotion | Object intrinsic metric or semantic dedicated-zone edits | Object/scene author | Low-medium; "primary" picks are often debatable | YES -- enlarging an object implies it is the focal teaching object; must match protocol's first-interaction target |
 | Error diagnostics | 2 label Errors RESOLVED by WP-6. Remaining: 1 object-overlap Error (seeding_workspace) + severity-contract decision | Scene author | Low for remaining fix; medium if contract change needed first | Partially -- the object-overlap Error is a correctness defect; label Errors resolved |
 | Label-Error severity contract | Deciding whether cross-zone label grazes that the label layer cannot resolve should be Error or Warning | Human (contract decision) | Low implementation; high if wrong (degrades gate signal) | NO -- purely a diagnostic-system design question |
 | Baseline-tool gap | Add `severityDiagnostics` column to `tests/e2e/e2e_layout_diagnostics_baseline.mjs` | Engine/tooling developer | Low | NO -- purely a tooling fix |
@@ -94,8 +96,8 @@ algorithm changes. The evidence in
 [aesthetic_geometry_levers_evidence.md](active_plans/reports/aesthetic_geometry_levers_evidence.md)
 confirmed that the placement engine (`horizontal_layout`, `vertical_layout`,
 `row_strategy`) places objects correctly within their zones. Voids arise from
-sparsely positioned zones in scene YAML, not from engine bugs. Fix the YAML
-authoring, not the engine.
+semantic grouping choices in scene YAML, not from engine bugs. Fix zone order,
+membership, and categorical hints rather than adding source geometry.
 
 ---
 
@@ -154,12 +156,11 @@ The round-0 `focal_dominance` score of 4 confirms this.
 **Label status.** Clean. No standing Errors on this scene.
 
 **Recommendation.**
-Target: collapse the mid-canvas void by raising the `y_start` of the upper zone
-(or lowering the `y_end` of the lower zone) by approximately 10-12 scene-percent
-units. Do NOT move objects to different zones. Verify that the three upper objects
-(slide cartridge, Trypan Blue, cell suspension) still cluster visually around the
-instrument workflow after the zone adjustment. This is a low-risk, self-contained
-authoring edit.
+Target: collapse the mid-canvas void by reviewing the two zone declarations and
+their placement membership. Preserve the upper workflow cluster (slide cartridge,
+Trypan Blue, cell suspension) while expressing its intended relationship to the
+instrument through zone order and approved categorical hints. This is a low-risk,
+self-contained authoring edit.
 
 ---
 
@@ -175,7 +176,8 @@ This is a genuine composition defect: two separately-authored zones with the
 reagent row in the top band and the microwave/tray/waste in the lower band create
 a large dead stripe through the scene center. Note that the round-0 reviewer gave
 `canvas_balance` a 4 (good), meaning the scene is not lopsided -- it is balanced
-but empty in the middle. The fix is a zone-y edit, not a column redistribution.
+but empty in the middle. The fix is a semantic zone regrouping, not a coordinate
+or column redistribution.
 
 **Focal status.**
 Primary object: `staining_tray`, primary area ~3.1%. The reviewer noted the
@@ -196,11 +198,11 @@ Re-render and re-check after shipping the label fix before deciding whether
 further zone-geometry label work is needed on this scene. No standing Error.
 
 **Recommendation.**
-Highest-priority void-collapse target in the set. Reduce the inter-zone vertical
-gap at y=32-44 by editing zone `y_end` / `y_start` boundaries in the scene YAML.
-Verify that neither zone's object list overflows after the gap is closed (the
-packer may need to adjust column counts). Defer focal-promotion until the
-"primary" designation is confirmed against the protocol.
+Highest-priority void-collapse target in the set. Re-evaluate the declaration
+order and membership of the reagent and equipment groups so the derived layout
+does not leave the historical middle gap. Re-render to verify that neither group
+is crowded. Defer focal-promotion until the "primary" designation is confirmed
+against the protocol.
 
 ---
 
@@ -322,8 +324,8 @@ Owner: scene author (zone too small) / object author (object too large).
 Fix the `unresolved_overlap` Error first -- this is the one genuine correctness
 defect in the set. Two options:
 
-1. Give the incubator a dedicated tall right-side zone (height >=50 scene-percent)
-   so the object fits at minimum scale.
+1. Give the incubator its own semantic zone so the layout manager can allocate
+   demand-aware space for it.
 2. Reduce `rear_right_incubator`'s `display_width_cm` from 55 to approximately 25
    in the object library. This affects the incubator across all scenes, so verify
    the visual result in every scene that uses this object.
@@ -701,19 +703,18 @@ update the snapshot. This is a self-contained Node script change.
 ### Priority 3 -- the two cross-zone label Errors
 
 Once the label-Error severity decision is made (Priority 2a), address the two
-cross-zone `unresolved_label_overlap` Errors as small authored zone-geometry edits.
+cross-zone `unresolved_label_overlap` Errors as small semantic authoring edits.
 
 **3a. bench_basic.**
-Raise the `center` zone `y_start` to >=40, or reduce the `rear_left`
-`label_offset_y` so the waste label sits at y<=34. Estimated effort: edit 2-3
-lines in the `bench_basic` scene YAML. Re-run the baseline to confirm the
-Error clears.
+Review the `center` and `rear_left` zone membership and use the allowed
+categorical label-placement policy if it expresses the intended relationship.
+Estimated effort: edit 2-3 lines in the `bench_basic` scene YAML. Re-render and
+run scene lint to confirm the Error clears.
 
 **3b. passage_hood_detachment_microscope_view.**
-Move `instrument_t75_flask` to the `left_bench` zone (`align_stop` left end),
-or narrow `instrument_area` left bound to `x_start >= 37`. The flask-move option
-is lower risk. Estimated effort: edit 2-3 lines in the scene YAML. Do NOT
-touch the microscope position, scale, or the overall void framing.
+Move `instrument_t75_flask` to the `left_bench` zone (`align_stop: left`) if that
+matches the workflow. The move is lower risk than changing the overall semantic
+grouping. Do not add source geometry or scene-side size overrides.
 
 ---
 
@@ -723,9 +724,9 @@ Do NOT mass-rewrite all scenes. Pick only the worst, clearest cases.
 
 **Approved void-collapse targets (clear defects):**
 
-- `staining_bench` (~85% center void from a vertical inter-zone gap at y=32-44):
-  highest priority in this category. Reduce the inter-zone gap by editing
-  zone `y_end` / `y_start` boundaries. Re-check packer column counts after.
+- `staining_bench` (~85% center void in the historical render): highest priority
+  in this category. Revisit zone order and membership, then re-render to inspect
+  the derived composition.
 - `electrophoresis_bench` (~72% center void): second priority, but this scene
   has a placeholder asset blocker ("Electrode module") that must be resolved
   by a human before any layout redesign is useful. Do not invest layout effort
@@ -789,7 +790,6 @@ They are recorded here so a human can action them in the appropriate order.
 
 | Item | Action | Notes |
 | --- | --- | --- |
-| Rename `clamp_scene_bounds.ts` to `validate_bounds.ts` | `git mv src/scene_runtime/layout/clamp_scene_bounds.ts src/scene_runtime/layout/validate_bounds.ts` | Also rename the exported function `clampSceneBounds` to `validateBounds` and update all import sites. |
 | Move `devel/ai_polish_review.mjs` to `tools/` | `git mv devel/ai_polish_review.mjs tools/ai_polish_review.mjs` | This script is a developer helper with no build-chain role; per AGENTS.md it belongs in `tools/`, not `devel/`. Update `docs/FILE_STRUCTURE.md` to reflect the move. |
 | Commit untracked new files | completed: all new markdown files were committed | Was: `git add` the ~11 new markdown files causing `tests/test_markdown_links.py` failures; all are now tracked. |
 | Reconcile M7 evidence table | Edit `docs/active_plans/workstreams/m7_wp_valid1_evidence_table.md` to note that the "zero Error" line was inaccurate for `seeding_workspace` | The `seeding_workspace` `unresolved_overlap` was introduced by M6 (same day as M7) and should be noted in the M7 table with a correction. |
@@ -872,46 +872,27 @@ category means, and how to act on findings.
 
 ### 8.1 Generating the report
 
-For scene designers, the entry command is:
+Render the current scene evidence first:
 
 ```bash
-python3 run_scene_health.py
+npm run scene:png -- --all
 ```
 
-Check a single scene:
+Then run the current composition validator:
 
 ```bash
-python3 run_scene_health.py <scene_name>
+source source_me.sh && python3 -m validation.scene_design.cli --markdown
 ```
 
-No npm or node knowledge required -- the script handles the full pipeline.
-For a quickstart, category reference, finding reference, evidence-field
-glossary, and provisional band tables, see
-[SCENE_METRICS.md](specs/SCENE_METRICS.md).
-
-The underlying node commands (for maintainers) are:
+For one scene, pass its YAML file:
 
 ```bash
-node --import tsx tools/layout_health_report.mjs --all
+source source_me.sh && python3 -m validation.scene_design.cli --markdown content/base_scenes/<scene_name>.yaml
 ```
 
-Or use the npm alias:
-
-```bash
-npm run layout:health
-```
-
-To run the underlying tool for a single scene: `node --import tsx tools/layout_health_report.mjs --scene <scene_name>`.
-
-Outputs:
-
-- `test-results/layout_health/health_report.md` -- designer-facing summary,
-  worst-first ranked.
-- `test-results/layout_health/health_report.json` -- machine-readable data
-  with per-scene diagnoses, categories, findings, severity scores, and the
-  distribution-derived provisional bands.
-
-The tool source is at `tools/layout_health_report.mjs`.
+Run `validation.scene_lint` alongside the composition validator when an issue
+may be a render-risk defect. See [specs/SCENE_METRICS.md](specs/SCENE_METRICS.md)
+for the complete current workflow.
 
 ### 8.2 Categories, findings, and evidence glossary
 
@@ -921,94 +902,28 @@ provisional metric bands live in
 
 ---
 
-## 9. Provisional metric bands
+## 9. Retired health-report evidence
 
-See [SCENE_METRICS.md](specs/SCENE_METRICS.md) for the canonical
-band tables (fill, largest empty rectangle, shrink, label conflict) with
-distribution-derived values and provisional status notes.
-
----
-
-## 10. Authoring-problem scenes from the current build
-
-These 16 scenes were classified `authoring` by the health report as of
-the WS-C/WS-D wave (2026-06-26). Each needs a scene YAML edit to reduce
-shrink stress. Scenes are listed worst-first by severity score.
-
-The typical fix is to reduce the object count in the named zone, or to add
-a zone row so the packer has more vertical space. Do not remove pedagogically
-necessary objects without author review and protocol alignment.
-
-Regenerate by running:
-```bash
-node --import tsx tools/layout_health_report.mjs --all
-```
-then reading `test-results/layout_health/health_report.json` for `finding = "authoring"` scenes.
-
-| Scene | Severity | Categories | One-line diagnosis | Authoring target |
-| --- | --- | --- | --- | --- |
-| `passage_hood_detachment_hood_workspace` | 60.3 | shrink-stressed | Content shrunk to floor; too many objects for zones | Reduce count in zone `center` or add a zone row |
-| `extraction_workspace` | 56.3 | shrink-stressed, crowded, label-stressed | Too many objects; overlaps and label conflicts present | Reduce object count or split zone `rear_center` across an added row |
-| `electrophoresis_bench` | 48.3 | shrink-stressed, label-stressed | Content shrunk to floor; label conflicts | Reduce count in zone `rear_center` or add a zone row |
-| `sdspage_attach_lid_and_leads_workspace` | 48.3 | shrink-stressed, label-stressed | Content shrunk to floor; label conflicts | Reduce count in zone `rear_center` or add a zone row |
-| `sdspage_fill_tank_buffer_workspace` | 48.3 | shrink-stressed, label-stressed | Content shrunk to floor; label conflicts | Reduce count in zone `rear_center` or add a zone row |
-| `sdspage_load_sample_single_lane_workspace` | 48.3 | shrink-stressed, label-stressed | Content shrunk to floor; label conflicts | Reduce count in zone `rear_center` or add a zone row |
-| `sdspage_prepare_running_buffer_workspace` | 48.3 | shrink-stressed, label-stressed | Content shrunk to floor; label conflicts | Reduce count in zone `rear_center` or add a zone row |
-| `sdspage_recycle_buffer_workspace` | 48.3 | shrink-stressed, label-stressed | Content shrunk to floor; label conflicts | Reduce count in zone `rear_center` or add a zone row |
-| `sdspage_run_electrophoresis_workspace` | 48.3 | shrink-stressed, label-stressed | Content shrunk to floor; label conflicts | Reduce count in zone `rear_center` or add a zone row |
-| `plate_drug_treatment_media_adjustment_plate_workspace` | 42.3 | shrink-stressed | Content shrunk to floor; too many objects for zones | Reduce count in zone `rear_center` or add a zone row |
-| `hood_workspace` | 41.1 | shrink-stressed | Content shrunk to floor; too many objects for zones | Reduce count in zone `rear_right` or add a zone row |
-| `plate_workspace` | 38.4 | shrink-stressed | Content shrunk to floor; too many objects for zones | Reduce count in zone `rear_right` or add a zone row |
-| `bench_basic` | 36.4 | shrink-stressed | Content shrunk to floor; too many objects for zones | Reduce count in zone `center` or add a zone row |
-| `dilution_workspace` | 33.7 | shrink-stressed | Content shrunk to floor; too many objects for zones | Reduce count in zone `rear_right` or add a zone row |
-| `mtt_reagent_prep_bench_workspace` | 33.2 | shrink-stressed | Content shrunk to floor; too many objects for zones | Reduce count in zone `center` or add a zone row |
-| `centrifuge_workspace` | 33.1 | shrink-stressed | Content shrunk to floor; too many objects for zones | Reduce count in zone `center` or add a zone row |
-
-Cross-references to existing analysis in this document:
-
-- `electrophoresis_bench`: additional detail in section 3.6, including a
-  placeholder asset blocker. Resolve the placeholder before redesigning zones.
-- `bench_basic`: label Error history in section 3.8, now resolved by WP-6.
+The June 2026 health report's provisional bands, scene classifications, and
+rankings are historical evidence only. Its scripts and generated reports are
+retired and must not be regenerated. Use the rendered-evidence workflow in
+[SCENE_METRICS.md](specs/SCENE_METRICS.md) to assess a current scene.
 
 ---
 
-## 11. Engine-fit scenes: authoring remedy (widen packed zone)
+## Appendix: historical error diagnostics cross-reference
 
-These 5 scenes were classified `engine-fit` by the geometry audit (M3/WS-E,
-2026-06-27). In each case the packer fills its assigned zone correctly but the
-zone spans only part of the scene, leaving a large empty region outside it.
-The fix is a scene YAML edit to widen the packed zone so the packer fills more
-of the available space. Do not reduce object count for these scenes.
-
-These are distinct from the 16 `authoring`-class scenes in section 10, which need
-object-count reduction. Engine-fit scenes have adequate objects; the zone geometry
-is too narrow.
-
-| Scene | Audit severity | Remedy |
-| --- | --- | --- |
-| `seeding_workspace` | Flagged (engine-fit) | Widen the packed zone in scene YAML to fill more of the horizontal range; see also section 3.5 for the correctness defect (`unresolved_overlap`) that must be fixed first |
-| `sdspage_destain_gel_rock_workspace` | Flagged (engine-fit) | Widen the packed zone to use more of the scene |
-| `staining_bench` | Flagged (engine-fit) | Widen inter-zone gap region (see section 3.2 for void-collapse analysis); a zone-y edit also resolves the center void |
-| `drug_dilution_setup_bench_setup` | Flagged (engine-fit) | Widen the packed zone in scene YAML |
-| `hood_basic` | Flagged (engine-fit) | Widen the packed zone; see section 3.4 for guidance on the orphan BSC workspace label slot |
-
-Note: `adversarial_overflow_smoke` was also flagged by the audit but is a dev
-fixture intentionally designed to stress overflow paths. It is excluded from
-this table because engine-fit remedies do not apply to adversarial fixtures.
-
----
-
-## Appendix: Error diagnostics cross-reference
-
-Full Error table reproduced from
+Historical Error table reproduced from
 [layout_error_diagnostics_investigation.md](active_plans/reports/layout_error_diagnostics_investigation.md)
-for convenience. "Owner" column reflects authoring vs contract responsibility.
+for convenience. The measurements record the June 2026 investigation; they do
+not authorize source-coordinate edits. "Owner" reflects authoring vs contract
+responsibility.
 
 | Code | Scene | Involved items | Overshoot or depth | Root cause | Owner | Minimal fix |
 | --- | --- | --- | --- | --- | --- | --- |
-| `unresolved_label_overlap` | `bench_basic` | `rear_left_waste` label vs `center_centrifuge` ARTWORK | 2.4 scene-pct | `rear_left` zone top y=5-36 and `center` zone top y=38-94 share left edge x=5; centrifuge artwork top y=38 clips waste label band at y~36; label nudge hits zone boundary and cannot clear | Scene author | Raise `center` zone `y_start` to >=40, or reduce `rear_left` `label_offset_y` so waste label sits at y<=34 |
-| `unresolved_label_overlap` | `passage_hood_detachment_microscope_view` | `left_cell_suspension` label vs `instrument_t75_flask` LABEL (symmetric, 2 entries) | ~0.95 each | `instrument_area` (x=31-71) and `left_bench` (x=4-36) overlap at x=31-36; t75 flask in that band collides with cell_suspension label | Scene author | Move `instrument_t75_flask` to `left_bench` zone, or narrow `instrument_area` left bound to x_start>=37 |
-| `unresolved_overlap` | `seeding_workspace` | `rear_right_incubator` | 12.85 worst-axis | Incubator `display_width_cm=55` -> visual width ~38 scene-pct, height exceeds `rear_right` zone (height 31 scene-pct); pre-existing from M6 | Scene author (zone too small) / object author (object too wide) | Dedicated tall zone (>=50 pct height) or reduce incubator `display_width_cm` to ~25 |
+| `unresolved_label_overlap` | `bench_basic` | `rear_left_waste` label vs `center_centrifuge` ARTWORK | 2.4 scene-pct | Historical render showed adjacent semantic groups competing for the same label/artwork band. | Scene author | Review membership, zone order, and categorical label placement; then re-render. |
+| `unresolved_label_overlap` | `passage_hood_detachment_microscope_view` | `left_cell_suspension` label vs `instrument_t75_flask` LABEL (symmetric, 2 entries) | ~0.95 each | Historical render showed overlapping semantic groups. | Scene author | Move `instrument_t75_flask` to `left_bench` if it matches the workflow; then re-render. |
+| `unresolved_overlap` | `seeding_workspace` | `rear_right_incubator` | 12.85 worst-axis | Historical render showed that the incubator did not fit its derived allocation. | Scene author / object author | Give the incubator a dedicated semantic zone, or correct its intrinsic object metric everywhere it appears. |
 
 ---
 

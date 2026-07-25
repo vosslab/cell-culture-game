@@ -7,6 +7,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { runPipeline } from "../../src/scene_runtime/layout/index.ts";
 import { runStructuralGuards } from "../../src/scene_runtime/renderer/structural_guards.ts";
@@ -33,7 +34,7 @@ import { ASSET_SPECS } from "../../generated/object_library.ts";
  */
 
 function findRepoRoot() {
-  let current = new URL(".", import.meta.url).pathname;
+  let current = path.dirname(fileURLToPath(import.meta.url));
   while (current !== "/") {
     if (fs.existsSync(path.join(current, ".git"))) {
       return current;
@@ -111,7 +112,7 @@ function runPreflightOnScene(sceneName) {
 
     // Run structural guards
     try {
-      runStructuralGuards(pipelineResult.final, scene);
+      runStructuralGuards(pipelineResult.final, pipelineResult.scene);
     } catch (err) {
       result.guard_verdict = "FAIL";
       result.guard_error = err instanceof Error ? err.message : String(err);
@@ -153,7 +154,7 @@ function generateMarkdownReport(results) {
   lines.push("");
   lines.push("Each preflight invokes:");
   lines.push("`runPipeline(scene, { library: OBJECT_LIBRARY, assets: ASSET_SPECS })`");
-  lines.push("followed by `runStructuralGuards(result.final, scene)` to verify");
+  lines.push("followed by `runStructuralGuards(result.final, result.scene)` to verify");
   lines.push("layout geometry before D4 attempts rendering.");
   lines.push("");
   lines.push("## Results: summary table");
@@ -226,8 +227,6 @@ function generateMarkdownReport(results) {
   lines.push("");
 
   const passCount = results.filter((r) => r.guard_verdict === "PASS").length;
-  const _failCount = results.length - passCount;
-
   lines.push(`**D4-ready (preflight pass):** ${passCount} / ${results.length}`);
   lines.push("");
 
@@ -306,11 +305,10 @@ function main() {
 
   if (passCount === results.length) {
     console.log("All scenes ready for D4 rendering.");
-    process.exit(0);
-  } else {
-    console.log(`${results.length - passCount} scene(s) need fixes before D4.`);
-    process.exit(0);
+    return;
   }
+  console.error(`${results.length - passCount} scene(s) need fixes before D4.`);
+  process.exitCode = 1;
 }
 
 main();

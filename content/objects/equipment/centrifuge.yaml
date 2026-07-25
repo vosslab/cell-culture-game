@@ -37,7 +37,7 @@ visual_states:
       - when: false
         output: { asset_name: centrifuge }
       - when: true
-        output: { asset_name: centrifuge }
+        output: { asset_name: centrifuge_running }
 
 capabilities: [clickable, instrument_with_setpoint]
 

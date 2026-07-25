@@ -3,75 +3,33 @@ workspace: bench
 capabilities:
   - item_workspace
 
-scene_bounds:
-  left: 1
-  right: 99
-  top: 5
-  bottom: 95
-
 background:
   asset: bench_workspace_bg
 
 zones:
   # Rear shelf: reagent bottles and small tools, split for even spread
   - zone_name: rear_left
-    bounds:
-      left: 5
-      right: 32
-      top: 5
-      bottom: 34
-    baseline: 30
     align: tab-stops
     label: Rear left - reagents
   - zone_name: rear_center
-    bounds:
-      left: 34
-      right: 66
-      top: 5
-      bottom: 34
-    baseline: 30
     align: tab-stops
     label: Rear center - reagents
   - zone_name: rear_right
-    bounds:
-      left: 68
-      right: 95
-      top: 5
-      bottom: 34
-    baseline: 30
     align: tab-stops
     label: Rear right - accessories
 
   # Center working surface: lightbox and staining tray, instruments center-stage
   - zone_name: center
-    bounds:
-      left: 20
-      right: 80
-      top: 38
-      bottom: 92
-    baseline: 84
     align: tab-stops
     label: Bench work surface
 
   # Left tool area: imaging consumables
   - zone_name: left_tool_area
-    bounds:
-      left: 3
-      right: 19
-      top: 38
-      bottom: 92
-    baseline: 84
     align: tab-stops
     label: Left tool area
 
   # Right tool area: imaging consumables
   - zone_name: right_tool_area
-    bounds:
-      left: 81
-      right: 97
-      top: 38
-      bottom: 92
-    baseline: 84
     align: tab-stops
     label: Right tool area
 

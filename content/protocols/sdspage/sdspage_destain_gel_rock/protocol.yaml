@@ -55,6 +55,10 @@ steps:
               target: rocking_shaker
               duration_min: 10
               display: Rocking gel in destain
+            - type: ObjectStateChange
+              target: rocking_shaker
+              state:
+                running: false
     step_validator:
       preset: sequence_complete
     outcome:

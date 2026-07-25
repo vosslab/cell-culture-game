@@ -30,7 +30,7 @@ steps:
         response:
           scene_operations:
             - type: SceneChange
-              to_scene: staining_bench
+              to_scene: sdspage_stain_gel_workspace
       - target: ddh2o_bottle
         gesture: click
         validator:
@@ -121,6 +121,10 @@ steps:
               target: microwave
               duration_min: 0.833
               display: Heating stain
+            - type: ObjectStateChange
+              target: microwave
+              state:
+                running: false
     step_validator:
       preset: sequence_complete
     outcome:
@@ -172,6 +176,10 @@ steps:
               target: rocking_shaker
               duration_min: 7
               display: Rocking stain
+            - type: ObjectStateChange
+              target: rocking_shaker
+              state:
+                running: false
     step_validator:
       preset: sequence_complete
     outcome:

@@ -57,10 +57,10 @@
 //   -h, --help             Show help and exit.
 //
 // Server ownership is injectable (fix the design, not the symptom):
-//   - SELF-SERVE (default, no --server-url): the walker picks a random port
-//     8000 + floor(random*1000) -> [8000,8999] (same shape as
-//     run_web_server.sh line 64, overridable by --port or the PORT env var),
-//     spawns its own python3 -m http.server on it, and tears it down at the end.
+//   - SELF-SERVE (default, no --server-url): the walker asks the OS for a free
+//     port, starts its own python3 -m http.server, confirms that child bound the
+//     port, and tears down only that child at the end. --port and PORT remain
+//     explicit overrides and fail before navigation if already occupied.
 //   - INJECTED-SERVER (--server-url URL): the walker does NOT spawn a server; it
 //     navigates against URL/<protocol>.html and uses URL's origin for the
 //     request-failure filter and the readiness wait.
@@ -68,11 +68,15 @@
 // Output: <out-dir>/ (screenshots + playthrough_report.json).
 
 import { chromium } from "playwright";
-import { spawn } from "node:child_process";
 import path from "node:path";
 import fs from "node:fs";
 
 import { REPO_ROOT } from "../repo_root.mjs";
+import {
+  resolveSelfServePort,
+  startOwnedStaticServer,
+  stopOwnedStaticServer,
+} from "./walker_server.mjs";
 
 import {
   waitForExports,
@@ -83,6 +87,7 @@ import {
   pickWrongOrderItem,
   recordInjection,
   attachPageErrorCapture,
+  captureVisibleTargetCheckpoint,
   readSubpartOverlay,
   verifyMaterialAreaAfterInteraction,
 } from "./walker_helpers.mjs";
@@ -92,31 +97,6 @@ const DIST_DIR = path.join(REPO_ROOT, "dist");
 // historical report filename (playthrough_report.json); parallel callers pass a
 // distinct --out-dir.
 const DEFAULT_RESULTS_DIR = path.join(REPO_ROOT, "test-results", "walker");
-
-// Pick a random static-server port in [8000, 8999]. This mirrors the canonical
-// pattern in run_web_server.sh line 64 (PORT="${PORT:-$((8000 + RANDOM % 1000))}")
-// so every server this repo spins up shares one port convention. There is no
-// free-port scan and no collision-retry loop: a collision means too many servers
-// are running, which is a different problem out of scope here.
-function randomPort() {
-  return 8000 + Math.floor(Math.random() * 1000);
-}
-
-// Resolve the self-serve port: an explicit --port wins, then the PORT env var
-// (the same override run_web_server.sh honors), then a fresh random port.
-function resolveSelfServePort(explicitPort) {
-  if (explicitPort !== null) {
-    return explicitPort;
-  }
-  const envPort = process.env.PORT;
-  if (envPort !== undefined && envPort !== "") {
-    const parsed = Number.parseInt(envPort, 10);
-    if (Number.isInteger(parsed) && parsed >= 1 && parsed <= 65535) {
-      return parsed;
-    }
-  }
-  return randomPort();
-}
 
 // Whole-run budget: 10 minutes.
 const RUN_BUDGET_MS = 600000;
@@ -153,7 +133,7 @@ function parseArgs() {
     wrongOrder: false,
     screenshotMode: "per-step",
     // port stays null unless --port is passed; main() resolves the self-serve
-    // port (explicit --port, then PORT env, then random) only in self-serve mode.
+    // port (explicit --port, then PORT env, then OS-assigned) only in self-serve mode.
     port: null,
     // serverUrl null means self-serve; a non-null URL selects injected-server mode.
     serverUrl: null,
@@ -178,7 +158,7 @@ Options:
                            running static server at URL; spawn no server. The
                            sweep uses this so all walks share ONE server.
       --port N             Self-serve port override (ignored with --server-url).
-                           Default: PORT env var, else a random [8000,8999] port.
+                           Default: PORT env var, else an OS-assigned free port.
       --out-dir PATH       Results directory (default test-results/walker).
   -h, --help               Show this help message and exit.`;
     console.log(usage);
@@ -224,17 +204,10 @@ Options:
 }
 
 //============================================
-// Server
+// Injected-server readiness
 //============================================
 
-function startServer(port) {
-  return spawn("python3", ["-m", "http.server", String(port), "--directory", DIST_DIR], {
-    stdio: ["ignore", "pipe", "pipe"],
-    cwd: REPO_ROOT,
-  });
-}
-
-async function waitForServer(url, maxMs = 5000) {
+async function waitForInjectedServer(url, maxMs = 5000) {
   const deadline = Date.now() + maxMs;
   while (Date.now() < deadline) {
     try {
@@ -245,7 +218,7 @@ async function waitForServer(url, maxMs = 5000) {
     }
     await new Promise((r) => setTimeout(r, 100));
   }
-  throw new Error("server never came up");
+  throw new Error("injected server never came up");
 }
 
 //============================================
@@ -259,6 +232,7 @@ class WalkerReport {
     this.wrongOrderMode = false;
     this.screenshotMode = "per-step";
     this.entries = [];
+    this.checkpointManifest = [];
     this.summary = {
       stepsWalked: 0,
       stepsPassed: 0,
@@ -290,6 +264,34 @@ class WalkerReport {
     }
     fs.writeFileSync(filePath, JSON.stringify(this, null, 2));
   }
+
+  addCheckpoint(checkpoint) {
+    this.checkpointManifest.push(checkpoint);
+    this.info(`Checkpoint: ${checkpoint.step} / ${checkpoint.target}`, { checkpoint });
+  }
+}
+
+function checkpointManifestProblems(report) {
+  return report.checkpointManifest.flatMap((checkpoint, index) => {
+    const bounds = checkpoint.visibleTargetBounds;
+    const missing =
+      !checkpoint.protocol ||
+      !checkpoint.step ||
+      !checkpoint.target ||
+      !checkpoint.gesture ||
+      !checkpoint.screenshot ||
+      !fs.existsSync(checkpoint.screenshot) ||
+      !bounds ||
+      bounds.width <= 0 ||
+      bounds.height <= 0 ||
+      bounds.x < 0 ||
+      bounds.y < 0 ||
+      bounds.x + bounds.width > bounds.viewportWidth ||
+      bounds.y + bounds.height > bounds.viewportHeight;
+    return missing
+      ? [`checkpoint ${index} is missing a screenshot or nonempty viewport bounds`]
+      : [];
+  });
 }
 
 //============================================
@@ -378,6 +380,19 @@ async function walkActiveStep(page, step, report, opts) {
         });
       }
     }
+
+    // Capture after any negative probe and immediately before the authored
+    // interaction, so the manifest documents the exact visible target the
+    // student-path action will use.
+    const checkpoint = await captureVisibleTargetCheckpoint(page, {
+      protocol: report.protocol,
+      step: step.id,
+      target,
+      gesture,
+      interactionIndex: gs.interactionIndex,
+      resultsDir,
+    });
+    report.addCheckpoint(checkpoint);
 
     // Structured material-area verification (generic, schema-driven). When the
     // active interaction's response writes a structured object's declared
@@ -486,25 +501,12 @@ async function main() {
 
   // Injectable server ownership. In injected-server mode the caller (the sweep)
   // owns a single shared server and passes its URL; the walker spawns nothing.
-  // In self-serve mode the walker owns its own server on a random (or overridden)
-  // port and tears it down at the end.
+  // In self-serve mode the walker owns a child server and proves its child bound
+  // the requested port before it creates a browser or navigates anywhere.
   const injectedServer = args.serverUrl !== null;
   let selfServePort = null;
-  let baseUrl;
-  if (injectedServer) {
-    baseUrl = args.serverUrl;
-  } else {
-    selfServePort = resolveSelfServePort(args.port);
-    baseUrl = `http://127.0.0.1:${selfServePort}`;
-  }
-  // Origin used for the request-failure filter and readiness wait.
-  const originForFilter = new URL(baseUrl).origin;
-
-  const serverDesc = injectedServer ? `injected ${baseUrl}` : `self-serve port ${selfServePort}`;
-  console.log(
-    `Starting walker: protocol=${args.protocol}, wrongOrder=${args.wrongOrder}, ` +
-      `screenshots=${args.screenshotMode}, server=${serverDesc}, outDir=${RESULTS_DIR}`,
-  );
+  let baseUrl = args.serverUrl;
+  let server = null;
 
   if (!fs.existsSync(RESULTS_DIR)) {
     fs.mkdirSync(RESULTS_DIR, { recursive: true });
@@ -515,15 +517,74 @@ async function main() {
   report.wrongOrderMode = args.wrongOrder;
   report.screenshotMode = args.screenshotMode;
 
+  if (injectedServer) {
+    try {
+      await waitForInjectedServer(`${baseUrl}/`);
+    } catch (error) {
+      report.error(`Injected server startup failed: ${error.message}`);
+      report.save(path.join(RESULTS_DIR, "playthrough_report.json"));
+      process.exitCode = 1;
+      return;
+    }
+  } else {
+    selfServePort = resolveSelfServePort(args.port);
+    try {
+      const ownedServer = await startOwnedStaticServer({
+        port: selfServePort,
+        directory: DIST_DIR,
+        cwd: REPO_ROOT,
+      });
+      server = ownedServer.child;
+      selfServePort = ownedServer.port;
+      baseUrl = ownedServer.baseUrl;
+    } catch (error) {
+      report.error(`Self-serve startup failed: ${error.message}`);
+      report.save(path.join(RESULTS_DIR, "playthrough_report.json"));
+      process.exitCode = 1;
+      return;
+    }
+  }
+
+  const serverDesc = injectedServer ? `injected ${baseUrl}` : `self-serve port ${selfServePort}`;
+  console.log(
+    `Starting walker: protocol=${args.protocol}, wrongOrder=${args.wrongOrder}, ` +
+      `screenshots=${args.screenshotMode}, server=${serverDesc}, outDir=${RESULTS_DIR}`,
+  );
+
+  // The URL is now either caller-owned and reachable, or backed by the child
+  // that this walker just confirmed bound its port.
+  const originForFilter = new URL(baseUrl).origin;
+
   const runStart = Date.now();
   // The new host serves a per-protocol page at dist/<protocol>.html.
   const gameUrl = `${baseUrl}/${encodeURIComponent(args.protocol)}.html`;
 
-  // Self-serve mode owns its server; injected mode leaves server null.
-  const server = injectedServer ? null : startServer(selfServePort);
+  let browser;
+  try {
+    browser = await chromium.launch({ headless: true });
+  } catch (error) {
+    report.error(`Browser launch failed: ${error.message}`);
+    report.save(path.join(RESULTS_DIR, "playthrough_report.json"));
+    if (server !== null) {
+      await stopOwnedStaticServer(server);
+    }
+    process.exitCode = 1;
+    return;
+  }
 
-  const browser = await chromium.launch({ headless: true });
-  const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  let page;
+  try {
+    page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  } catch (error) {
+    report.error(`Browser page setup failed: ${error.message}`);
+    report.save(path.join(RESULTS_DIR, "playthrough_report.json"));
+    await browser.close();
+    if (server !== null) {
+      await stopOwnedStaticServer(server);
+    }
+    process.exitCode = 1;
+    return;
+  }
 
   // Capture uncaught page exceptions (see docs/active_plans/audits/
   // adjust_did_not_advance_rootcause.md) so the wait-for-progress drivers can
@@ -550,20 +611,6 @@ async function main() {
       // ignore parse errors
     }
   });
-
-  try {
-    // Wait for readiness in both modes: self-serve waits for the child server to
-    // bind; injected mode confirms the shared server is reachable.
-    await waitForServer(`${baseUrl}/`);
-  } catch (err) {
-    report.error(`Server startup failed: ${err.message}`);
-    // Only tear down a server this walker owns; never kill an injected one.
-    if (server !== null) {
-      server.kill();
-    }
-    await browser.close();
-    process.exit(1);
-  }
 
   try {
     // Normal browser entry.
@@ -677,6 +724,14 @@ async function main() {
       report.error(`Network errors detected: ${networkErrors.length}`, { errors: networkErrors });
     }
 
+    const checkpointProblems = checkpointManifestProblems(report);
+    if (report.checkpointManifest.length === 0) {
+      report.error("Checkpoint manifest is empty after a visible-UI walk");
+    }
+    for (const problem of checkpointProblems) {
+      report.error(`Checkpoint manifest invalid: ${problem}`);
+    }
+
     const errorCount = report.entries.filter((e) => e.severity === "error").length;
     if (errorCount > 0 || report.summary.stepsFailed > 0) {
       console.log(
@@ -706,8 +761,7 @@ async function main() {
     await browser.close();
     // Only tear down a server this walker owns; the injected server outlives it.
     if (server !== null) {
-      server.kill();
-      await new Promise((r) => setTimeout(r, 100));
+      await stopOwnedStaticServer(server);
     }
   }
 }

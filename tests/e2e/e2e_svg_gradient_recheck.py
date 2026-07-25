@@ -204,16 +204,62 @@ def run_batch_render(manifest_entries: list[dict], engine: str, tmp_dir: Path) -
 		text=True,
 	)
 	if proc.returncode != 0:
-		print(f"  WARN: batch renderer [{engine}] exit {proc.returncode}", file=sys.stderr)
+		raise RuntimeError(f"Batch renderer [{engine}] exited {proc.returncode}.")
 
 	results_path = str(manifest_path) + ".results.json"
 	if not Path(results_path).exists():
-		print(f"  WARN: no results JSON for {engine}", file=sys.stderr)
-		return {}
+		raise RuntimeError(f"Batch renderer [{engine}] did not produce results JSON.")
 
 	with open(results_path) as f:
 		raw = json.load(f)
-	return {r["output_png"]: r for r in raw}
+	if not isinstance(raw, list):
+		raise RuntimeError(f"Batch renderer [{engine}] results JSON is not a list.")
+	results = {r["output_png"]: r for r in raw}
+	return results
+
+
+#============================================
+def require_render_evidence(
+	manifest_entries: list[dict],
+	render_results: dict[str, dict],
+	engine: str,
+) -> None:
+	"""Require one successful, nonempty render result for every manifest entry.
+
+	Args:
+		manifest_entries: Expected {output_png, ...} entries for one engine.
+		render_results: Renderer results indexed by output PNG path.
+		engine: Requested browser engine name.
+
+	Raises:
+		RuntimeError: The renderer did not produce complete browser evidence.
+	"""
+	if not manifest_entries:
+		raise RuntimeError(f"No render manifest entries were built for requested engine [{engine}].")
+
+	missing = []
+	failed = []
+	for entry in manifest_entries:
+		output_png = entry["output_png"]
+		result = render_results.get(output_png)
+		if result is None:
+			missing.append(output_png)
+			continue
+		if not result["ok"]:
+			failed.append(f"{output_png}: {result['error']}")
+			continue
+		png_path = Path(output_png)
+		if not png_path.is_file() or png_path.stat().st_size == 0:
+			failed.append(f"{output_png}: missing or empty PNG evidence")
+
+	if missing or failed:
+		parts = []
+		if missing:
+			parts.append(f"missing results={len(missing)}")
+		if failed:
+			parts.append(f"failed renders={len(failed)}")
+		message = ", ".join(parts)
+		raise RuntimeError(f"Incomplete render evidence for [{engine}]: {message}.")
 
 
 #============================================
@@ -477,8 +523,9 @@ def write_markdown_report(
 	md += "Gallery before/after PNGs are saved to `test-results/svg_gradient_recheck/` (gitignored).\n"
 
 	REPORTS_DIR.mkdir(parents=True, exist_ok=True)
+	clean_md = "\n".join(line.rstrip() for line in md.splitlines()).rstrip() + "\n"
 	with open(OUT_MD, "w") as f:
-		f.write(md)
+		f.write(clean_md)
 	print(f"Markdown report: {OUT_MD}")
 
 
@@ -511,6 +558,7 @@ def main() -> None:
 			manifest = build_engine_manifest(TARGET_FILES, norm_map, engine, tmp_path)
 			per_engine_manifests[engine] = manifest
 			render_results = run_batch_render(manifest, engine, tmp_path)
+			require_render_evidence(manifest, render_results, engine)
 			hashes = hash_engine_results(manifest, render_results)
 			per_engine_hashes[engine] = hashes
 			print(f"  Engine {engine}: hashed {len(hashes)} files")
