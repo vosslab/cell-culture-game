@@ -58,11 +58,14 @@ The core loop is:
    has none, so this is a no-op there).
 6. Read the compiled step list from `window.PROTOCOL_STEPS`.
 7. Drive the active step: read `gameState.activeTarget` / `gameState.activeGesture`
-   and act on the resolved target via a real visible click, repeating until the
-   runtime advances `activeStepId`.
-8. Wait for an observable progress signal after each click.
-9. Verify step completion and next-step advancement through the read-only state.
-10. Save report and screenshot evidence.
+   and prove that the same target is advertised by the visible action cue and
+   painted scene affordance before acting through the visible control.
+8. When a timed operation intentionally removes the active target, require the
+   visible scene timer and explanatory waiting rail before waiting for the next
+   action.
+9. Wait for an observable progress signal after each action.
+10. Verify step completion and next-step advancement through the read-only state.
+11. Save report and screenshot evidence.
 
 The walker is both an E2E test and a playable audit. It is an E2E test because
 it starts the built app in a browser and completes the protocol through real
@@ -87,7 +90,14 @@ Specifically, it proves:
 - Runtime state is available through `window.gameState`, including the current
   interaction's `activeTarget` / `activeGesture`.
 - Required scene objects exist as DOM elements with `data-item-id`.
-- Required click targets are visible when the walker clicks them.
+- Required targets are visible and intersect the viewport when the walker acts.
+- The target carries the expected painted `active` or `candidate` affordance.
+- The visible current-action rail advertises the same target and gesture.
+- Directed instructions name the generated learner-facing object label.
+- Choice-style `select` instructions do not reveal the answer and expose at
+  least two visible candidates.
+- Intentional timed waits show both a scene timer and an explanatory waiting
+  rail before the walker waits for the next action.
 - Clicks go through browser event handlers, not direct protocol APIs.
 - Each click that uses `clickTargetAndWaitProgress()` produces observable state
   progress.
@@ -108,11 +118,8 @@ checks, focused unit tests, or visual regression tests.
 
 Current limits:
 
-- It does not save a screenshot after every click.
-- It does not save a screenshot after every interaction inside a step's
-  `sequence`.
-- It does not attach screenshot paths to individual click entries in
-  `playthrough_report.json`.
+- It saves the actionable state before every interaction, but not the rendered
+  result after every click unless per-click screenshots are enabled.
 - It does not compare screenshots against golden baselines.
 - It does not prove that every intermediate teaching visual is correct.
 - It does not inspect every visual style detail such as exact highlight color,
@@ -246,6 +253,11 @@ Current outputs include:
   notes, console errors, and same-origin network errors.
 - `initial_state.png`: screenshot after browser entry, localStorage clearing,
   reload, and welcome dismissal.
+- `checkpoint_<step>_i<n>_<target>.png`: actionable-state evidence saved before
+  every interaction. Each corresponding manifest entry records viewport
+  geometry, painted-affordance evidence, and the visible action cue.
+- `waiting_<step>.png`: evidence that an intentional timed phase is explained
+  in both the scene and current-action rail.
 - `step_<n>_<step_name>.png`: screenshot after each passed step.
 - `fail_<step_name>.png`: screenshot after a step failure.
 - `final_screen.png`: screenshot after final checks.
@@ -309,6 +321,14 @@ validated interaction and changes `activeStepId` when the step completes, so the
 walker simply loops: read the active interaction, click its target, wait for
 progress, repeat until the step id changes.
 
+Reading the answer from `gameState` is routing data, not proof that a learner
+could find it. Before every interaction,
+`captureVisibleTargetCheckpoint()` independently requires the visible product
+UI to advertise the same target and gesture. Directed interactions need a
+painted active affordance plus a cue containing the generated object label.
+`select` needs painted candidate affordances and an answer-neutral cue. The
+walker fails instead of clicking when this learner-facing evidence is absent.
+
 The walker acts only on the closed gesture set (`click`, `drag`, `adjust`,
 `select`, `type`). `click`, `select`, `type`, and `adjust` all have a visible
 affordance in the new host: the click resolver promotes a click on the active
@@ -328,7 +348,8 @@ See `docs/specs/GESTURE_MODEL.md` for the distinction between this
 browser-driving mechanism and the authored gesture semantics, including the
 reopened status of the unused `select` value.
 
-The central click helper is `clickTargetAndWaitProgress()`. It resolves a
+The central click helper is `clickTargetAndWaitProgress()`. After the separate
+checkpoint has proved the learner-facing cue and affordance, it resolves a
 scene-scoped `data-item-id` selector, verifies that the element exists, verifies
 that it is visible, clicks it via Playwright's actionability-checked
 `locator.click()`, increments `report.summary.totalClicks`, and waits for
@@ -444,16 +465,16 @@ because the browser logged application errors or same-origin asset failures.
 When a new protocol or scene fails in the walker, check these cases before
 adding special-case code.
 
-| Symptom                                         | Likely cause                                                                                 | Better fix                                                                      |
-| ----------------------------------------------- | -------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------- |
-| `Element ... does not exist in DOM`             | Item id is missing from scene YAML, render output, or modal markup                           | Add the item to the scene/render path or fix the id                             |
-| `Element ... is not visible`                    | Wrong scene is active, hidden duplicate was selected, or overlay state blocks the target     | Fix scene switching or pass a scoped scene selector                             |
-| `click_did_not_advance`                         | Click handler is missing, handler changes only CSS, or state signal is delayed beyond budget | Add the runtime handler or expose an observable state change                    |
-| Active step advances to the wrong `step_name`   | Step completes but the runtime resolves `next_step` to a wrong or missing step               | Fix protocol YAML `next_step` value or completion dispatch                      |
-| Protocol never reaches `isComplete`             | Terminal step did not complete, or a later step stalled                                      | Fix the terminal step's completion path or the stalled step                     |
-| Wrong-order injection advances the step         | Runtime accepts a non-required interaction as valid progress                                 | Tighten interaction-validator dispatch and active-target checks                 |
-| Mini-protocol enters hood or bench unexpectedly | Scene isolation is broken for a workspace-only protocol                                      | Fix the `SceneChange` `scene_operation` chain in the affected step's `response` |
-| `unsupported_gesture` on a step                 | Active interaction needs `drag`; the sweep does not drive `drag` until a content protocol authors one | Author the drag protocol, then add `drag` to the walker's supported set (a one-line change) |
+| Symptom                                         | Likely cause                                                                                                       | Better fix                                                                                                   |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------ |
+| `Element ... does not exist in DOM`             | Item id is missing from scene YAML, render output, or modal markup                                                 | Add the item to the scene/render path or fix the id                                                          |
+| `Element ... is not visible`                    | Wrong scene is active, hidden duplicate was selected, or overlay state blocks the target                           | Fix scene switching or pass a scoped scene selector                                                          |
+| `click_did_not_advance`                         | Click handler is missing, handler changes only CSS, or state signal is delayed beyond budget                       | Add the runtime handler or expose an observable state change                                                 |
+| Active step advances to the wrong `step_name`   | Step completes but the runtime resolves `next_step` to a wrong or missing step                                     | Fix protocol YAML `next_step` value or completion dispatch                                                   |
+| Protocol never reaches `isComplete`             | Terminal step did not complete, or a later step stalled                                                            | Fix the terminal step's completion path or the stalled step                                                  |
+| Wrong-order injection advances the step         | Runtime accepts a non-required interaction as valid progress                                                       | Tighten interaction-validator dispatch and active-target checks                                              |
+| Mini-protocol enters hood or bench unexpectedly | Scene isolation is broken for a workspace-only protocol                                                            | Fix the `SceneChange` `scene_operation` chain in the affected step's `response`                              |
+| `unsupported_gesture` on a step                 | Active interaction needs `drag`; the sweep does not drive `drag` until a content protocol authors one              | Author the drag protocol, then add `drag` to the walker's supported set (a one-line change)                  |
 | `type_input_missing` / `type_did_not_advance`   | `type` interaction active but the type-input affordance is missing/hidden, or the committed value did not validate | Confirm `[data-type-input]`/`[data-type-commit]` render and the validator `value` matches the committed text |
 
 Prefer fixing runtime schema, YAML, render output, or dispatch behavior before
@@ -609,11 +630,11 @@ final screen, and crash state.
 
 Finer-grained screenshot modes are available via the `--screenshots` flag:
 
-| Mode | Description |
-| --- | --- |
-| `per-step` | One screenshot after each step (default, existing behavior) |
+| Mode              | Description                                                                                                                                                     |
+| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `per-step`        | One screenshot after each step (default, existing behavior)                                                                                                     |
 | `per-interaction` | Screenshot after every interaction in a step's `sequence`; report entries link each screenshot to its `step_name`, `interaction_index`, `gesture`, and `target` |
-| `per-click` | Screenshot after every individual click within an interaction; same report fields |
+| `per-click`       | Screenshot after every individual click within an interaction; same report fields                                                                               |
 
 Screenshots are always saved under `test-results/walker/`. Naming conventions:
 
@@ -647,11 +668,11 @@ walkthrough must run through each step and click each required interaction
 through the real browser UI. Passing TypeScript, validators, and walker setup
 is not enough.
 
-The current walker saves step-boundary screenshot evidence. The required next
-improvement is per-interaction or per-click screenshots, so completion evidence
-can show that intended objects are visible, active click targets are
-highlighted, clicks advance the protocol, and visible state changes appear
-after each interaction.
+The current walker saves a checkpoint before every interaction and a
+step-boundary screenshot after each completed step. The checkpoint manifest
+shows that intended targets are visible, action cues and painted affordances
+agree, and the action remains schema-driven. Per-click mode remains available
+when evidence of every post-action rendered state is needed.
 
 ## Headless browser contract
 

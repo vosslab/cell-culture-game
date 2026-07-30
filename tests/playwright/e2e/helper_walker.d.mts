@@ -37,6 +37,19 @@ export interface TargetCheckpoint {
     viewportWidth: number;
     viewportHeight: number;
   };
+  affordance: {
+    expectedKind: "active" | "candidate";
+    renderedKind: string;
+    indicatorWidth: number;
+    indicatorStyle: string;
+    candidateCount: number;
+  };
+  actionCue: {
+    target: string | null;
+    label: string | null;
+    gesture: string | null;
+    text: string;
+  };
 }
 
 export declare function runProtocolWalk(page: Page, options: WalkOptions): Promise<WalkOutcome>;

@@ -4,21 +4,23 @@ import { Show } from "solid-js";
 import type { Gesture, LastRejection, ShellViewSnapshot } from "../adapter/types";
 import { AuthoredTip } from "./authored_tip.js";
 
-// The authored prompt names the scientific item and action. The runtime target
-// is a placement or subpart identifier for scene routing, not learner-facing
-// language, so this cue intentionally never renders it.
-export function gesture_instruction(gesture: Gesture | null): string {
+// Pair the gesture with the generated object label so the learner can connect
+// the action rail to the highlighted scene object without decoding a placement
+// identifier. Select deliberately omits the correct target label: every blue
+// candidate must remain an equal visual choice.
+export function gesture_instruction(gesture: Gesture | null, target_label: string | null): string {
+  const label = target_label ?? "the highlighted lab item";
   switch (gesture) {
     case "adjust":
-      return "Set the requested value in the highlighted control below.";
+      return `Set the requested value for ${label} using the control below.`;
     case "type":
-      return "Enter your observation in the highlighted field below.";
+      return `Enter the requested value for ${label} in the field below.`;
     case "select":
-      return "Choose the highlighted item or option.";
+      return "Choose from the blue outlined lab items.";
     case "drag":
-      return "Move the highlighted lab item to the indicated destination.";
+      return `Move ${label} to the indicated destination.`;
     case "click":
-      return "Click the highlighted lab item.";
+      return `Click ${label}.`;
     default:
       return "Follow the highlighted next action in the scene.";
   }
@@ -67,28 +69,54 @@ export function GuidanceBar(props: GuidanceBarProps): JSXElement {
           </div>
         }
       >
-        <div class="action-rail" data-current-action="">
-          <p class="protocol-kicker">Do this next</p>
-          <strong id="guidance-text" class="action-rail-prompt">
-            {props.snapshot().current_prompt ?? "Preparing your lab scene..."}
-          </strong>
-          <p class="action-rail-cue">
-            {gesture_instruction(props.snapshot().active_interaction_gesture)}
-          </p>
-          <Show when={props.snapshot().last_outcome?.resolution === "complete"}>
-            <p class="action-rail-acknowledgement" data-action-acknowledgement="">
-              [OK] Previous step complete. Continue when ready.
-            </p>
-          </Show>
-          <Show when={props.snapshot().last_rejection}>
-            {(rejection) => (
-              <p class="action-rail-recovery" data-action-recovery="" role="status">
-                {recovery_copy(rejection())}
+        <Show
+          when={props.snapshot().pending_timed_wait}
+          fallback={
+            <div
+              class="action-rail"
+              data-current-action=""
+              data-action-target={props.snapshot().active_interaction_target ?? undefined}
+              data-action-label={props.snapshot().active_interaction_label ?? undefined}
+              data-action-gesture={props.snapshot().active_interaction_gesture ?? undefined}
+            >
+              <p class="protocol-kicker">Do this next</p>
+              <strong id="guidance-text" class="action-rail-prompt">
+                {props.snapshot().current_prompt ?? "Preparing your lab scene..."}
+              </strong>
+              <p class="action-rail-cue">
+                {gesture_instruction(
+                  props.snapshot().active_interaction_gesture,
+                  props.snapshot().active_interaction_label,
+                )}
               </p>
-            )}
-          </Show>
-          <AuthoredTip snapshot={props.snapshot} />
-        </div>
+              <Show when={props.snapshot().last_outcome?.resolution === "complete"}>
+                <p class="action-rail-acknowledgement" data-action-acknowledgement="">
+                  [OK] Previous step complete. Continue when ready.
+                </p>
+              </Show>
+              <Show when={props.snapshot().last_rejection}>
+                {(rejection) => (
+                  <p class="action-rail-recovery" data-action-recovery="" role="status">
+                    {recovery_copy(rejection())}
+                  </p>
+                )}
+              </Show>
+              <AuthoredTip snapshot={props.snapshot} />
+            </div>
+          }
+        >
+          {(wait) => (
+            <div class="action-rail action-rail--waiting" data-timed-wait-status="" role="status">
+              <p class="protocol-kicker">Lab process running</p>
+              <strong id="guidance-text" class="action-rail-prompt">
+                Waiting: {wait().display ?? "Timed lab process"}
+              </strong>
+              <p class="action-rail-cue">
+                The next highlighted action will appear automatically when this finishes.
+              </p>
+            </div>
+          )}
+        </Show>
       </Show>
     </section>
   );

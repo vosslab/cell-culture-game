@@ -182,6 +182,112 @@ export async function captureVisibleTargetCheckpoint(
     throw new Error(`checkpoint_target_outside_viewport: ${selector}`);
   }
 
+  // An existing, visible target is not enough: the schema-driven walker knows
+  // the answer from gameState, while a learner does not. Require the product UI
+  // to advertise that same target through its rendered affordance and current
+  // action rail before the walker is allowed to click it.
+  const expectedAffordance = gesture === "select" ? "candidate" : "active";
+  const affordance = await locator.evaluate((element) => {
+    const computed = window.getComputedStyle(element);
+    const subpartKind = element.getAttribute("data-subpart-affordance");
+    const itemKind = element.getAttribute("data-affordance");
+    const kind = subpartKind ?? itemKind ?? "none";
+    const isSubpart = subpartKind !== null;
+    const indicatorWidth = isSubpart
+      ? Number.parseFloat(computed.strokeWidth)
+      : Number.parseFloat(computed.outlineWidth);
+    const indicatorStyle = isSubpart ? computed.stroke : computed.outlineStyle;
+    return {
+      kind,
+      isSubpart,
+      indicatorWidth,
+      indicatorStyle,
+    };
+  });
+  if (affordance.kind !== expectedAffordance) {
+    throw new Error(
+      `checkpoint_target_not_advertised: ${selector} has affordance ` +
+        `'${affordance.kind}', expected '${expectedAffordance}'`,
+    );
+  }
+  if (
+    !Number.isFinite(affordance.indicatorWidth) ||
+    affordance.indicatorWidth <= 0 ||
+    affordance.indicatorStyle === "none"
+  ) {
+    throw new Error(
+      `checkpoint_affordance_not_visible: ${selector} has no painted ` +
+        `${affordance.isSubpart ? "stroke" : "outline"}`,
+    );
+  }
+
+  const actionRail = page.locator("[data-current-action]").first();
+  if ((await actionRail.count()) === 0 || !(await actionRail.isVisible())) {
+    throw new Error("checkpoint_action_cue_missing: visible [data-current-action] not found");
+  }
+  const actionCue = await actionRail.evaluate((element) => {
+    const cue = element.querySelector(".action-rail-cue");
+    return {
+      target: element.getAttribute("data-action-target"),
+      label: element.getAttribute("data-action-label"),
+      gesture: element.getAttribute("data-action-gesture"),
+      text: cue?.textContent?.trim() ?? "",
+    };
+  });
+  if (actionCue.target !== target || actionCue.gesture !== gesture) {
+    throw new Error(
+      `checkpoint_action_cue_mismatch: rail advertises target '${String(actionCue.target)}' ` +
+        `gesture '${String(actionCue.gesture)}', expected '${target}' / '${gesture}'`,
+    );
+  }
+  if (actionCue.text === "") {
+    throw new Error("checkpoint_action_cue_empty: current action has no learner-facing cue");
+  }
+  if (gesture !== "select") {
+    if (actionCue.label === null || actionCue.label === "") {
+      throw new Error(`checkpoint_action_label_missing: no learner label for '${target}'`);
+    }
+    if (!actionCue.text.includes(actionCue.label)) {
+      throw new Error(
+        `checkpoint_action_label_unlinked: cue '${actionCue.text}' does not name ` +
+          `'${actionCue.label}'`,
+      );
+    }
+  } else if (actionCue.label !== null && actionCue.text.includes(actionCue.label)) {
+    throw new Error(
+      `checkpoint_select_answer_revealed: select cue exposes correct label '${actionCue.label}'`,
+    );
+  }
+
+  const candidateCount =
+    gesture === "select"
+      ? await page
+          .locator(
+            [
+              '#scene-root [data-affordance="candidate"]',
+              '#scene-root [data-subpart-affordance="candidate"]',
+            ].join(", "),
+          )
+          .evaluateAll(
+            (elements) =>
+              elements.filter((element) => {
+                const rect = element.getBoundingClientRect();
+                const style = window.getComputedStyle(element);
+                return (
+                  rect.width > 0 &&
+                  rect.height > 0 &&
+                  style.visibility !== "hidden" &&
+                  style.display !== "none"
+                );
+              }).length,
+          )
+      : 0;
+  if (gesture === "select" && candidateCount < 2) {
+    throw new Error(
+      `checkpoint_select_candidates_missing: only ${candidateCount} visible candidates`,
+    );
+  }
+
   const safeStep = step.replace(/[^a-z0-9_]/gi, "_");
   const safeTarget = target.replace(/[^a-z0-9_]/gi, "_");
   const screenshot = `${resultsDir}/checkpoint_${safeStep}_i${interactionIndex}_${safeTarget}.png`;
@@ -194,7 +300,61 @@ export async function captureVisibleTargetCheckpoint(
     interactionIndex,
     screenshot,
     visibleTargetBounds: bounds,
+    affordance: {
+      expectedKind: expectedAffordance,
+      renderedKind: affordance.kind,
+      indicatorWidth: affordance.indicatorWidth,
+      indicatorStyle: affordance.indicatorStyle,
+      candidateCount,
+    },
+    actionCue,
   };
+}
+
+// Verify that an intentional TimedWait is visibly explained in both the scene
+// and the action rail, capture that state, then wait for the runtime to reveal
+// the next interaction. A no-active-target interval without these cues is a
+// learner-facing dead end and must fail the walkthrough.
+export async function waitForVisibleTimedWait(
+  page,
+  stepName,
+  resultsDir,
+  report,
+  waitBudgetMs = 3000,
+) {
+  const equipmentStatus = page.locator('[data-timed-wait="active"]:visible').first();
+  if ((await equipmentStatus.count()) === 0 || !(await equipmentStatus.isVisible())) {
+    throw new Error(`timed_wait_scene_status_missing: step ${stepName}`);
+  }
+  const waitRail = page.locator("[data-timed-wait-status]").first();
+  if ((await waitRail.count()) === 0 || !(await waitRail.isVisible())) {
+    throw new Error(`timed_wait_action_status_missing: step ${stepName}`);
+  }
+  const waitText = (await waitRail.textContent())?.trim() ?? "";
+  if (waitText === "" || !waitText.includes("next highlighted action")) {
+    throw new Error(`timed_wait_recovery_cue_missing: step ${stepName}`);
+  }
+  const safeStep = stepName.replace(/[^a-z0-9_]/gi, "_");
+  const screenshot = `${resultsDir}/waiting_${safeStep}.png`;
+  await page.screenshot({ path: screenshot });
+  report.addEntry("info", `Visible timed wait: ${stepName}`, {
+    step_name: stepName,
+    screenshot,
+    wait_text: waitText,
+  });
+
+  await page.waitForFunction(
+    (stepId) => {
+      const state = window.gameState;
+      return (
+        state.activeStepId !== stepId ||
+        state.activeTarget !== null ||
+        document.querySelector('[data-timed-wait="active"]') === null
+      );
+    },
+    stepName,
+    { timeout: waitBudgetMs },
+  );
 }
 
 //============================================

@@ -8,21 +8,26 @@ import { gesture_instruction, recovery_copy } from "../src/shell/regions/guidanc
 
 describe("guidance-bar gesture cue", () => {
   const learner_actions = [
-    ["click", /Click.*highlighted/],
-    ["select", /Choose.*highlighted/],
-    ["drag", /Move.*highlighted/],
-    ["adjust", /Set.*highlighted/],
-    ["type", /Enter.*highlighted/],
+    ["click", /Click PBS/],
+    ["drag", /Move PBS/],
+    ["adjust", /Set.*PBS/],
+    ["type", /Enter.*PBS/],
   ];
 
   for (const [gesture, expected_copy] of learner_actions) {
     test(`${gesture} gives a visible learner-facing action`, () => {
-      assert.match(gesture_instruction(gesture), expected_copy);
+      assert.match(gesture_instruction(gesture, "PBS"), expected_copy);
     });
   }
 
+  test("select identifies the candidate set without revealing the correct target", () => {
+    const copy = gesture_instruction("select", "Correct answer");
+    assert.match(copy, /blue outlined/);
+    assert.doesNotMatch(copy, /Correct answer/);
+  });
+
   test("uses a generic highlighted-action cue while no interaction is active", () => {
-    assert.match(gesture_instruction(null), /highlighted next action/);
+    assert.match(gesture_instruction(null, null), /highlighted next action/);
   });
 });
 

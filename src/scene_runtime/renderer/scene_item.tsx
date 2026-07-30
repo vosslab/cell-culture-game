@@ -699,6 +699,7 @@ export function SceneItem(props: {
         data-depth={item.depth ?? undefined}
         data-item-id={is_clickable ? placement_target : undefined}
         data-asset={item.asset}
+        data-affordance={affordance_kind()}
         data-missing-svg="true"
         data-placeholder-kind={placeholder_kind}
         style={{

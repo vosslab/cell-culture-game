@@ -152,7 +152,9 @@ export function initial_snapshot(protocol_name: string): ShellViewSnapshot {
     active_scene_name: null,
     is_complete: false,
     active_interaction_target: null,
+    active_interaction_label: null,
     active_interaction_gesture: null,
+    pending_timed_wait: null,
   };
   return snapshot;
 }
@@ -201,6 +203,7 @@ function get_active_interaction(
 function create_snapshot_reducer(
   config: ProtocolConfig,
   resolve_target_to_placement: (target: string) => string = (target) => target,
+  resolve_target_label: (target: string) => string = (target) => target,
 ): SnapshotReducer {
   // Resolve an active target to its placement_name, passing through null.
   function to_active_placement(target: string | null): string | null {
@@ -208,6 +211,15 @@ function create_snapshot_reducer(
       return null;
     }
     return resolve_target_to_placement(target);
+  }
+  // Resolve an authored target to the object library's learner-facing label,
+  // passing through null. The host supplies the generated-label resolver;
+  // adapter-less unit tests use the identity default.
+  function to_active_label(target: string | null): string | null {
+    if (target === null) {
+      return null;
+    }
+    return resolve_target_label(target);
   }
   return (prev, event) => {
     switch (event.kind) {
@@ -222,7 +234,9 @@ function create_snapshot_reducer(
           is_complete: false,
           last_rejection: null,
           active_interaction_target: null,
+          active_interaction_label: null,
           active_interaction_gesture: null,
+          pending_timed_wait: null,
         };
         return next;
       }
@@ -246,7 +260,9 @@ function create_snapshot_reducer(
           last_outcome: null,
           last_rejection: null,
           active_interaction_target: to_active_placement(active.target),
+          active_interaction_label: to_active_label(active.target),
           active_interaction_gesture: active.gesture,
+          pending_timed_wait: null,
         };
         return next;
       }
@@ -259,6 +275,7 @@ function create_snapshot_reducer(
           pending_validator_kind: event.validator_preset,
           last_rejection: null,
           active_interaction_target: to_active_placement(active.target),
+          active_interaction_label: to_active_label(active.target),
           active_interaction_gesture: active.gesture,
         };
         return next;
@@ -290,7 +307,9 @@ function create_snapshot_reducer(
           },
           current_interaction_index: 0,
           active_interaction_target: null,
+          active_interaction_label: null,
           active_interaction_gesture: null,
+          pending_timed_wait: null,
         };
         return next;
       }
@@ -303,7 +322,9 @@ function create_snapshot_reducer(
           last_rejection: null,
           is_complete: true,
           active_interaction_target: null,
+          active_interaction_label: null,
           active_interaction_gesture: null,
+          pending_timed_wait: null,
         };
         return next;
       }
@@ -333,12 +354,42 @@ function create_snapshot_reducer(
           ...prev,
           active_scene_name: event.to_scene,
           active_interaction_target: to_active_placement(active.target),
+          active_interaction_label: to_active_label(active.target),
           active_interaction_gesture: active.gesture,
         };
         return next;
       }
       case "scene_operation_applied": {
         return prev;
+      }
+      case "timed_wait_started": {
+        const next: ShellViewSnapshot = {
+          ...prev,
+          active_interaction_target: null,
+          active_interaction_label: null,
+          active_interaction_gesture: null,
+          pending_timed_wait: {
+            target_name: event.target_name,
+            display: event.display,
+            duration_min: event.duration_min,
+          },
+        };
+        return next;
+      }
+      case "timed_wait_elapsed": {
+        const active = get_active_interaction(
+          config,
+          prev.current_step_name,
+          prev.current_interaction_index,
+        );
+        const next: ShellViewSnapshot = {
+          ...prev,
+          active_interaction_target: to_active_placement(active.target),
+          active_interaction_label: to_active_label(active.target),
+          active_interaction_gesture: active.gesture,
+          pending_timed_wait: null,
+        };
+        return next;
       }
       case "modal_opened": {
         const next: ShellViewSnapshot = {
@@ -867,6 +918,13 @@ export function create_step_machine(
       scene_op_handler(op);
       emit_applied_scene_op(op);
       if (op.type === "TimedWait") {
+        const wait_started: ProtocolShellEvent = {
+          kind: "timed_wait_started",
+          target_name: op.target,
+          display: op.display ?? null,
+          duration_min: op.duration_min,
+        };
+        emitter.emit(wait_started);
         return;
       }
     }
@@ -1231,6 +1289,11 @@ export function create_step_machine(
       return;
     }
     pending_timed_wait = null;
+    const wait_elapsed: ProtocolShellEvent = {
+      kind: "timed_wait_elapsed",
+      target_name: equipment_name,
+    };
+    emitter.emit(wait_elapsed);
     apply_response_scene_ops_from(step, pending.operations, pending.next_operation_index);
   }
 

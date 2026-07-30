@@ -55,6 +55,10 @@ export function _check_exhaustive(event: ProtocolShellEvent): string {
       return event.to_scene;
     case "scene_operation_applied":
       return event.operation_type;
+    case "timed_wait_started":
+      return event.target_name;
+    case "timed_wait_elapsed":
+      return event.target_name;
     case "modal_opened":
       return event.modal_kind;
     case "modal_closed":
@@ -100,7 +104,9 @@ const _snapshot_shape_check: ShellViewSnapshot = {
   active_scene_name: null,
   is_complete: false,
   active_interaction_target: null,
+  active_interaction_label: null,
   active_interaction_gesture: null,
+  pending_timed_wait: null,
 };
 void _snapshot_shape_check;
 

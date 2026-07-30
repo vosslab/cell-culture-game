@@ -185,10 +185,19 @@ describe("step machine - TimedWait sequencing", () => {
       scene_ops.map((op) => op.type),
       ["TimedWait"],
     );
-    // The interaction validator has fired, so the read-only shell snapshot may
-    // project the next interaction index; step completion remains blocked until
-    // the timed phase elapses.
-    assert.strictEqual(emitter.get_snapshot().is_complete, false);
+    const waiting_snapshot = emitter.get_snapshot();
+    assert.deepStrictEqual(
+      [waiting_snapshot.active_interaction_target, waiting_snapshot.pending_timed_wait],
+      [
+        null,
+        {
+          target_name: "centrifuge",
+          display: "Centrifuging",
+          duration_min: 1,
+        },
+      ],
+    );
+    assert.strictEqual(events.filter((event) => event.kind === "timed_wait_started").length, 1);
 
     machine.handle_click("centrifuge", "click");
     assert.strictEqual(events.at(-1).kind, "interaction_rejected");
@@ -205,8 +214,12 @@ describe("step machine - TimedWait sequencing", () => {
       scene_ops.map((op) => op.type),
       ["TimedWait", "ObjectStateChange"],
     );
-    assert.strictEqual(emitter.get_snapshot().is_complete, true);
-    assert.strictEqual(events.filter((event) => event.kind === "interaction_validated").length, 1);
+    const completed_snapshot = emitter.get_snapshot();
+    assert.deepStrictEqual(
+      [completed_snapshot.is_complete, completed_snapshot.pending_timed_wait],
+      [true, null],
+    );
+    assert.strictEqual(events.filter((event) => event.kind === "timed_wait_elapsed").length, 1);
   });
 });
 
@@ -818,6 +831,27 @@ describe("step machine - reducer snapshot derivation", () => {
 });
 
 describe("step machine - active_interaction_target and active_interaction_gesture", () => {
+  test("snapshot resolves a learner label independently from the DOM placement", () => {
+    const cfg = make_config([make_click_step("a", "pbs_bottle", null)], "a");
+    const start_snapshot = initial_snapshot(cfg.protocol_name);
+    const reducer = create_snapshot_reducer(
+      cfg,
+      (target) => `rear_${target}`,
+      () => "PBS",
+    );
+    const emitter = createProtocolShellEmitter(start_snapshot, reducer);
+    const machine = create_step_machine(cfg, emitter, () => {}, {
+      lookup_state_field: stub_lookup_state_field,
+      read_object_state: () => ({}),
+    });
+    machine.start();
+    const snapshot = emitter.get_snapshot();
+    assert.deepStrictEqual(
+      [snapshot.active_interaction_target, snapshot.active_interaction_label],
+      ["rear_pbs_bottle", "PBS"],
+    );
+  });
+
   test("step_started sets target and gesture to the first interaction", () => {
     const cfg = make_config([make_two_click_step("a", "t1", "t2", null)], "a");
     const { machine, emitter } = build_harness(cfg);

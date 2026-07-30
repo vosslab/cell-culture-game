@@ -41,6 +41,7 @@ import {
   recordInjection,
   attachPageErrorCapture,
   captureVisibleTargetCheckpoint,
+  waitForVisibleTimedWait,
   readSubpartOverlay,
   verifyMaterialAreaAfterInteraction,
 } from "./walker_helpers.mjs";
@@ -124,6 +125,13 @@ function checkpointManifestProblems(report) {
       !checkpoint.gesture ||
       !checkpoint.screenshot ||
       !fs.existsSync(checkpoint.screenshot) ||
+      !checkpoint.actionCue ||
+      checkpoint.actionCue.text === "" ||
+      checkpoint.actionCue.target !== checkpoint.target ||
+      checkpoint.actionCue.gesture !== checkpoint.gesture ||
+      !checkpoint.affordance ||
+      checkpoint.affordance.expectedKind !== checkpoint.affordance.renderedKind ||
+      checkpoint.affordance.indicatorWidth <= 0 ||
       !bounds ||
       bounds.width <= 0 ||
       bounds.height <= 0 ||
@@ -132,7 +140,7 @@ function checkpointManifestProblems(report) {
       bounds.x + bounds.width > bounds.viewportWidth ||
       bounds.y + bounds.height > bounds.viewportHeight;
     return missing
-      ? [`checkpoint ${index} is missing a screenshot or nonempty viewport bounds`]
+      ? [`checkpoint ${index} is missing learner-cue, affordance, screenshot, or viewport proof`]
       : [];
   });
 }
@@ -173,18 +181,7 @@ async function walkActiveStep(page, step, report, opts) {
       const timedWait = page.locator('[data-timed-wait="active"]:visible').first();
       if ((await timedWait.count()) > 0) {
         report.info(`Waiting for visible timed phase on step ${step.id}`);
-        await page.waitForFunction(
-          (stepId) => {
-            const state = window.gameState;
-            return (
-              state.activeStepId !== stepId ||
-              state.activeTarget !== null ||
-              document.querySelector('[data-timed-wait="active"]') === null
-            );
-          },
-          step.id,
-          { timeout: CLICK_BUDGET_MS },
-        );
+        await waitForVisibleTimedWait(page, step.id, resultsDir, report, CLICK_BUDGET_MS);
         continue;
       }
       throw new Error(

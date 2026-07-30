@@ -144,7 +144,7 @@ export function SetPointEditor(props: SetPointEditorProps): JSXElement {
     <Show when={is_adjust_active()}>
       <div data-adjust-panel="" class="value-entry-panel">
         <label data-adjust-label="" for="protocol-adjust-input" class="value-entry-label">
-          Set value:
+          Set value for {props.snapshot().active_interaction_label ?? "the highlighted item"}:
         </label>
         <button
           data-adjust-decrement=""

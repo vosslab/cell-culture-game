@@ -98,7 +98,7 @@ export function TypeInput(props: TypeInputProps): JSXElement {
     <Show when={is_type_active()}>
       <div data-type-input-panel="" class="value-entry-panel">
         <label data-type-input-label="" for="protocol-type-input" class="value-entry-label">
-          Enter value:
+          Enter value for {props.snapshot().active_interaction_label ?? "the highlighted item"}:
         </label>
         <input
           id="protocol-type-input"

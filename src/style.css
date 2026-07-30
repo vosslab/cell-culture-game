@@ -424,6 +424,15 @@ body {
   border-left: 6px solid #176b6f;
 }
 
+.action-rail--waiting {
+  background: #fff7d6;
+  border-left-color: #8a6500;
+}
+
+.action-rail--waiting .protocol-kicker {
+  color: #6b4f00;
+}
+
 .protocol-kicker {
   margin: 0 0 3px;
   color: #176b6f;

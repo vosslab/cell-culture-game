@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-07-29
+
+### Behavior or Interface Changes
+
+- The current-action rail now names the generated learner-facing label for
+  every directed click, drag, type, and adjust interaction while retaining the
+  matching scene highlight. Choice-style `select` interactions continue to
+  conceal the correct answer and direct learners to the equally highlighted
+  candidates.
+- Timed protocol operations now replace the action prompt with an explicit
+  `Lab process running` state. The rail names the running process and explains
+  that the next highlighted action will appear automatically, so an
+  intentionally inactive interval no longer looks like a dead end. Authored lab
+  durations project to a brief 0.3-0.6 second browser acknowledgment rather
+  than making the learner wait.
+
+### Developer Tests and Notes
+
+- Strengthened the schema-driven browser walker without adding protocol-specific
+  branches. Before acting, it now proves that the authored target is visible
+  and in the viewport, carries the expected painted active or candidate
+  affordance, and matches a visible action cue for the same target and gesture.
+  Directed cues must name the learner-facing object; `select` cues must not
+  reveal the correct label and must present at least two visible candidates.
+- Added timed-wait browser evidence. The walker requires both the scene timer
+  and the explanatory action-rail state, captures a `waiting_<step>.png`
+  screenshot, and resumes only after the visible runtime state changes.
+- Made the walker's owned static-server startup independent of reverse DNS and
+  Python's human-readable `http.server` banner. A loopback-only helper now
+  publishes a machine-readable ready port before the browser navigates.
+
 ## 2026-07-23
 
 ### Additions and New Features

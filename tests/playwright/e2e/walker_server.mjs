@@ -5,8 +5,10 @@
 // local server might already answer there.
 
 import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
 
 const STARTUP_TIMEOUT_MS = 5000;
+const OWNED_SERVER_SCRIPT = fileURLToPath(new URL("./owned_static_server.py", import.meta.url));
 
 // Use the OS-assigned ephemeral port in the normal self-serve case. An
 // explicitly supplied --port or PORT value remains an intentional override.
@@ -24,7 +26,7 @@ export function resolveSelfServePort(explicitPort, envPort = process.env.PORT) {
 }
 
 function readReadyPort(output) {
-  const readyMatch = output.match(/Serving HTTP on .* port (\d+) \(/);
+  const readyMatch = output.match(/WALKER_SERVER_READY (\d+)/);
   if (readyMatch === null) {
     return null;
   }
@@ -98,7 +100,7 @@ export async function startOwnedStaticServer({
 }) {
   const child = spawn(
     "python3",
-    ["-u", "-m", "http.server", String(port), "--bind", "127.0.0.1", "--directory", directory],
+    ["-u", OWNED_SERVER_SCRIPT, "--port", String(port), "--directory", directory],
     {
       stdio: ["ignore", "pipe", "pipe"],
       cwd,

@@ -39,6 +39,7 @@ import type {
 import { PROTOCOLS } from "../generated/protocols.js";
 import { PROTOCOLS_INDEX_SLIM } from "../generated/protocols_index_slim.js";
 import { SCENES } from "../generated/scenes.js";
+import { OBJECT_LIBRARY } from "../generated/object_library.js";
 
 import type { PipelineResult } from "./scene_runtime/layout/types.js";
 import { resolvePrecomputedResult } from "./scene_runtime/layout/precomputed_result.js";
@@ -179,7 +180,9 @@ function build_initial_snapshot(config: ProtocolConfig): ShellViewSnapshot {
     active_scene_name: null,
     is_complete: false,
     active_interaction_target: null,
+    active_interaction_label: null,
     active_interaction_gesture: null,
+    pending_timed_wait: null,
   };
   return initial;
 }
@@ -369,8 +372,26 @@ function mount(): void {
   // placement_name as it enters the snapshot, so active_interaction_target
   // matches the data-item-id the walker clicks, the select-promotion equality,
   // and the affordance highlight. Delegates to the live per-scene adapter.
-  const reducer = create_snapshot_reducer(active_config, (target: string): string =>
-    current_adapter.resolve_to_placement(target),
+  function resolve_target_label(target: string): string {
+    const object_target = current_adapter.resolve_to_object(target);
+    const dot_index = object_target.indexOf(".");
+    const object_name = dot_index < 0 ? object_target : object_target.slice(0, dot_index);
+    const subpart_name = dot_index < 0 ? null : object_target.slice(dot_index + 1);
+    const object_def = OBJECT_LIBRARY[object_name];
+    if (object_def === undefined) {
+      throw new Error(`protocol_host: no learner-facing label for target "${target}"`);
+    }
+    if (subpart_name === null || subpart_name === "") {
+      return object_def.label;
+    }
+    const readable_subpart = subpart_name.split("_").join(" ");
+    return `${object_def.label} ${readable_subpart}`;
+  }
+
+  const reducer = create_snapshot_reducer(
+    active_config,
+    (target: string): string => current_adapter.resolve_to_placement(target),
+    resolve_target_label,
   );
   const emitter = createProtocolShellEmitter(initial_snapshot, reducer);
 

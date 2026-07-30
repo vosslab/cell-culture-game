@@ -98,6 +98,16 @@ export interface LastRejection {
   readonly gesture: Gesture;
 }
 
+// A TimedWait temporarily blocks further learner input. The runtime owns this
+// fact and projects only the learner-facing display text and duration needed by
+// the shell; the shell does not infer a wait by scraping scene DOM or running
+// its own timer.
+export interface PendingTimedWait {
+  readonly target_name: string;
+  readonly display: string | null;
+  readonly duration_min: number;
+}
+
 // The single readonly object the shell components consume. Every Solid
 // signal in the shell maps to a property here.
 export interface ShellViewSnapshot {
@@ -117,7 +127,9 @@ export interface ShellViewSnapshot {
   readonly active_scene_name: string | null;
   readonly is_complete: boolean;
   readonly active_interaction_target: string | null;
+  readonly active_interaction_label: string | null;
   readonly active_interaction_gesture: Gesture | null;
+  readonly pending_timed_wait: PendingTimedWait | null;
 }
 
 //============================================
@@ -191,6 +203,18 @@ export interface SceneOperationAppliedEvent {
   readonly target_name: string | null;
 }
 
+export interface TimedWaitStartedEvent {
+  readonly kind: "timed_wait_started";
+  readonly target_name: string;
+  readonly display: string | null;
+  readonly duration_min: number;
+}
+
+export interface TimedWaitElapsedEvent {
+  readonly kind: "timed_wait_elapsed";
+  readonly target_name: string;
+}
+
 // Modal / help / tray surface events.
 
 export interface ModalOpenedEvent {
@@ -231,6 +255,8 @@ export type ProtocolShellEvent =
   | InteractionRejectedEvent
   | SceneChangedEvent
   | SceneOperationAppliedEvent
+  | TimedWaitStartedEvent
+  | TimedWaitElapsedEvent
   | ModalOpenedEvent
   | ModalClosedEvent
   | HelpOpenedEvent
