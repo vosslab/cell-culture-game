@@ -19,11 +19,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - name: Set up Node.js
+        uses: actions/setup-node@v6
         with:
           node-version: 24
-      - run: npm install
-      - run: ./build_github_pages.sh
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: pip_requirements-dev.txt
+      - name: Install Node.js dependencies
+        run: npm ci
+      - name: Install Python dependencies
+        run: python3 -m pip install -r pip_requirements-dev.txt
+      - name: Build GitHub Pages
+        run: ./build_github_pages.sh
       - uses: actions/upload-pages-artifact@v5
         with:
           path: dist
