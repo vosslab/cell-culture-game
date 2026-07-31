@@ -1,0 +1,14 @@
+You are an expert designer. I think the material rendering hack that we currently have is garbage. We need to actually change the liquid in the SVG,
+not do some stupid overlay. For instance if you compare these three SVG files:
+OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Microbiology/Servier/bottle-medium-pink.svg
+OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Microbiology/Servier/bottle-medium-orange.svg
+OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Microbiology/Servier/bottle-medium-green.svg; we can literally figure out the SVG objects in the file that
+make it pink, orange, or green respectively. We can use this knowledge to change the color of the liquid. With a little better design, we could
+increase or decrease the area of the colored areas to make it look like we added or removed volume. This is the robust way to do. Back in version 1 of
+this code we had it working, but that was before YAML files were introduced, so the old version was not compatible with the new version and was
+dropped. since then we have had this overlay hack, that I asked to be removed because it sucked twice and it keeps coming back. I am sure since the
+material crappy overlay hack keeps coming back it must be deeply engrained the docs: ls docs/specs/MATERIAL_*
+docs/specs/MATERIAL_CONVENTION.md  docs/specs/MATERIAL_LINT.md              docs/specs/MATERIAL_VOCABULARY.md
+docs/specs/MATERIAL_DESIGN.md      docs/specs/MATERIAL_STRUCTURED_AREAS.md  docs/specs/MATERIAL_YAML_FORMAT.md; but I want to make a plan for the more
+elegant, yes harder, but significantly more real approach of coloring liquids within the SVG file. make a plan
+/blueprint-plan-drafter
