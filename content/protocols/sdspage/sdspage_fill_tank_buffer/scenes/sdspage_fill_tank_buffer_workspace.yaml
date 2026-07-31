@@ -10,6 +10,7 @@ remove_placements:
   # Keep the tank, 1x carboy, and serological pipette needed to compare the
   # inner and outer reservoirs. Remove loading and unrelated reagent context.
   - rear_left_running_buffer_10x
+  - center_running_buffer_1x_carboy
   - rear_right_power_supply
   - center_ddh2o_bottle
   - center_electrode_module
@@ -24,6 +25,11 @@ remove_placements:
   - front_right_gel_comb
 
 add_placements:
+  - placement_name: center_running_buffer_preparation_carboy
+    object_name: running_buffer_preparation_carboy
+    zone: center
+    depth_tier: 2
+    align_stop: left
   - placement_name: front_left_electrophoresis_inner_chamber
     object_name: electrophoresis_inner_chamber
     zone: front_left

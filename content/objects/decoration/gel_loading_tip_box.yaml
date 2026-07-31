@@ -1,0 +1,25 @@
+object_name: gel_loading_tip_box
+kind: decoration
+label: Gel-loading tip box (P20/P200 compatible)
+
+state_fields:
+  - field_name: visible
+    type: bool
+    default: true
+    description: Whether the gel-loading tip box is visible.
+
+visual_states:
+  visible:
+    kind: svg
+    cases:
+      - when: true
+        output: { asset_name: gel_loading_tip_box }
+      - when: false
+        output: { asset_name: gel_loading_tip_box }
+
+capabilities: [clickable, cursor_attachable]
+
+layout:
+  default_width: 8
+  display_width_cm: 12
+  label_width: 12

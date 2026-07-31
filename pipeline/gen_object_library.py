@@ -209,6 +209,59 @@ RECORDED_SUBPART_GRIDS = {
 			"height": 50.0,
 		},
 	},
+	# gel_cassette (asset gel_cassette.svg, viewBox 0 0 214 308): the ten
+	# lanes are a horizontal row across the resolving gel. Each 16 x 228 rect
+	# stays inside its visible lane and leaves a small gutter for the lane walls.
+	"gel_cassette": {
+		"shape": "rect",
+		"origin_x": 19.0,
+		"origin_y": 57.0,
+		"row_dx": 0.0,
+		"row_dy": 0.0,
+		"col_dx": 18.0,
+		"col_dy": 0.0,
+		"width": 16.0,
+		"height": 228.0,
+		"view_box": {
+			"min_x": 0.0,
+			"min_y": 0.0,
+			"width": 214.0,
+			"height": 308.0,
+		},
+	},
+	# hemocytometer_slide (asset hemocytometer_slide.svg, viewBox 0 0 400 220):
+	# the central ruled mixing chamber and the right-side loading chamber are
+	# physically distinct, non-grid regions.  Record their real liquid areas so
+	# both the visual tint and exact click surface match the depicted hardware.
+	"hemocytometer_slide": {
+		"explicit_geometry": {
+			"diamond": {"shape": "rect", "x": 153.0, "y": 82.0, "w": 94.0, "h": 54.0},
+			"semicircle": {"shape": "rect", "x": 282.0, "y": 82.0, "w": 55.0, "h": 54.0},
+		},
+		"view_box": {
+			"min_x": 0.0,
+			"min_y": 0.0,
+			"width": 400.0,
+			"height": 220.0,
+		},
+	},
+	# microtube_rack_8 (asset microtube_rack_8.svg, viewBox 0 0 320 210):
+	# measured circular tube interiors, row-major to match slot_A1..slot_B4.
+	"microtube_rack_8": {
+		"origin_x": 67.0,
+		"origin_y": 67.0,
+		"row_dx": 0.0,
+		"row_dy": 58.0,
+		"col_dx": 60.0,
+		"col_dy": 0.0,
+		"radius": 20.0,
+		"view_box": {
+			"min_x": 0.0,
+			"min_y": 0.0,
+			"width": 320.0,
+			"height": 210.0,
+		},
+	},
 }
 
 
@@ -243,6 +296,17 @@ def derive_grid_geometry(object_name: str, structure: dict) -> tuple:
 		)
 
 	cols = int(structure["cols"])
+	# Named instrument chambers use measured geometry rather than a uniform pitch.
+	# They still emit through the same declaration-owned subpart rendering path.
+	if "explicit_geometry" in grid:
+		subpart_names = derive_subpart_names(object_name, structure)
+		explicit_geometry = grid["explicit_geometry"]
+		if set(explicit_geometry) != set(subpart_names):
+			raise ValueError(
+				f"recorded explicit subpart geometry for {object_name} must match "
+				"the declared subpart vocabulary"
+			)
+		return explicit_geometry, grid["view_box"]
 	origin_x = grid["origin_x"]
 	origin_y = grid["origin_y"]
 	row_dx = grid["row_dx"]
@@ -307,6 +371,20 @@ def derive_subpart_names(object_name: str, structure: dict) -> list:
 		return []
 	rows = int(structure["rows"])
 	cols = int(structure["cols"])
+	explicit_names = structure.get("subpart_names")
+	if explicit_names is not None:
+		if not isinstance(explicit_names, list) or len(explicit_names) != rows * cols:
+			raise ValueError(
+				f"structure.subpart_names for {object_name} must name exactly "
+				f"{rows * cols} grid subparts"
+			)
+		if not all(isinstance(name, str) and name for name in explicit_names):
+			raise ValueError(
+				f"structure.subpart_names for {object_name} must contain non-empty strings"
+			)
+		if len(set(explicit_names)) != len(explicit_names):
+			raise ValueError(f"structure.subpart_names for {object_name} must be unique")
+		return explicit_names
 	name_pattern = structure["name_pattern"]
 	names = []
 	# Row-major expansion so the emitted order is stable and reads top-left first.

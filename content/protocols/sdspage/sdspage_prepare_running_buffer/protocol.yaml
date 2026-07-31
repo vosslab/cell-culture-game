@@ -1,6 +1,13 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_prepare_running_buffer
 entry_step: dilute_10x_concentrate
+initial_state:
+  - target: running_buffer_preparation_carboy
+    state: { material_name: empty, material_volume: 0 }
+  - target: running_buffer_10x_bottle
+    state: { material_name: running_buffer_10x, material_volume: 500 }
+  - target: ddh2o_carboy
+    state: { material_name: ddh2o, material_volume: 1000 }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with

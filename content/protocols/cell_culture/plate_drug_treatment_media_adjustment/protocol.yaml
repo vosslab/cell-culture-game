@@ -1,170 +1,267 @@
 protocol_type: mini_protocol
 protocol_name: plate_drug_treatment_media_adjustment
-entry_step: adjust_media_quadrant_a1_h6
+entry_step: fill_columns_1_6
+initial_state:
+  # Direct play starts after Day-1 seeding and working-stock preparation.  In
+  # cell_culture_full the runner owns this same handoff and ignores these seeds.
+  - target: media_bottle
+    state: { material_name: media, material_volume: 469.58 }
+  - target: well_plate_96.all_wells
+    state: { material_name: cells, material_volume: 100 }
 learning:
-  objectives:
-    Students completing this mini-protocol will have achieved understanding
-    of media-volume adjustments needed before multi-drug dosing on a 96-well plate,
-    and how to distribute exact micropipette volumes uniformly across named plate
-    blocks using a multichannel pipette organized by plate half and row block.
-  outcomes:
-    Students completing this mini-protocol will be able to adjust media volumes
-    in each of four plate blocks (row A halves and rows B-H halves) to achieve uniform
-    200 microL final well volumes after Day 2 drug additions, and validate that each
-    block received the correct pre-drug media adjustment.
-  goals:
-    Overall, this mini-protocol aims to accomplish the critical pre-dosing media-adjustment
-    step for a two-drug dose-response experiment. Each of four geometric blocks of
-    the 96-well plate receives a specific media volume before carboplatin and metformin
-    are added, ensuring that every well reaches the same final volume (200 microL)
-    and that volumetric dilution factors are uniform across the plate. This step bridges
-    the cell-seeding phase (Day 1, 100 microL per well) and the drug-addition phase
-    (Day 2, adding 5-10 microL per well of working stocks), keeping the assay's quantitative
-    rigor intact.
+  objectives: >
+    Students completing this mini-protocol will have achieved fluency using an
+    eight-channel pipette for column-wise plate fills and a single-channel
+    micropipette for the row-A control adjustment.
+  outcomes: >
+    Students completing this mini-protocol will be able to establish the exact
+    pre-drug volumes needed for a 200 uL final volume in every well of a
+    two-drug dose-response plate.
+  goals: >
+    Overall, this mini-protocol aims to accomplish a physically executable
+    pre-drug media adjustment: it fills columns 1-6 to 195 uL and columns 7-12
+    to 190 uL with an eight-channel pipette, then adds 5 uL to every row-A
+    control well. Every multichannel stroke addresses one complete eight-well
+    column and every partial row-A correction is a real single-channel transfer,
+    not a hidden batch write.
 steps:
-  - step_name: adjust_media_quadrant_a1_h6
-    prompt:
-      "Adjust media volumes in columns 1-6 before drug additions. Row A (untreated
-      control, no drug Day 2) receives 100 microL media. Rows B-H (carboplatin to be
-      added Day 2) receive 95 microL media. Post-step well totals: A1-A6 at 200 microL
-      (100 cells + 100 media); B-H 1-6 at 195 microL (100 cells + 95 media). The carboplatin
-      5 microL added on Day 2 brings rows B-H to 200 microL."
+  - step_name: fill_columns_1_6
+    prompt: >
+      Use the eight-channel pipette to add 95 uL of media to each complete
+      column from 1 through 6. Each stroke fills A-H in one column, bringing
+      every well in those columns from 100 to 195 uL. Row A will receive its
+      extra 5 uL control adjustment after the second column block.
     sequence:
       - target: multichannel_pipette
         gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations:
-            - type: SceneChange
-              to_scene: plate_drug_treatment_media_adjustment_plate_workspace
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: SceneChange, to_scene: plate_drug_treatment_media_adjustment_plate_workspace }] }
       - target: multichannel_pipette
         gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 100
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: multichannel_pipette
-              state:
-                set_volume: 100
+        validator: { preset: target_with_value, value: { set_volume: 95 } }
+        response: { scene_operations: [{ type: ObjectStateChange, target: multichannel_pipette, state: { set_volume: 95 } }] }
       - target: media_bottle
         gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
-      - target: well_plate_96
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 468.82 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: media, held_material_volume: 95 } }] }
+      - target: well_plate_96.col_1
         gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: well_plate_96.block_A_1_6
-              state:
-                material_name: cells
-                material_volume: 200
-      - target: multichannel_pipette
-        gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 95
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: multichannel_pipette
-              state:
-                set_volume: 95
-      - target: well_plate_96
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.col_1, state: { material_name: mixed, material_volume: 195 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
         gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: well_plate_96.block_B_H_1_6
-              state:
-                material_name: cells
-                material_volume: 195
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: adjust_media_quadrant_a7_h12
-  - step_name: adjust_media_quadrant_a7_h12
-    prompt:
-      "Adjust media volumes in columns 7-12 before drug additions. Row A (metformin-only
-      control, 5 microL metformin Day 2) receives 95 microL media. Rows B-H (carboplatin
-      + metformin co-treatment, 10 microL drugs Day 2) receive 90 microL media. Post-step
-      well totals: A7-A12 at 195 microL (100 cells + 95 media); B-H 7-12 at 190 microL
-      (100 cells + 90 media). The Day 2 drug additions bring every well to 200 microL."
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 468.06 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: media, held_material_volume: 95 } }] }
+      - target: well_plate_96.col_2
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.col_2, state: { material_name: mixed, material_volume: 195 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 467.30 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: media, held_material_volume: 95 } }] }
+      - target: well_plate_96.col_3
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.col_3, state: { material_name: mixed, material_volume: 195 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 466.54 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: media, held_material_volume: 95 } }] }
+      - target: well_plate_96.col_4
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.col_4, state: { material_name: mixed, material_volume: 195 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 465.78 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: media, held_material_volume: 95 } }] }
+      - target: well_plate_96.col_5
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.col_5, state: { material_name: mixed, material_volume: 195 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 465.02 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: media, held_material_volume: 95 } }] }
+      - target: well_plate_96.col_6
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.col_6, state: { material_name: mixed, material_volume: 195 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
+    next_step: fill_columns_7_12
+  - step_name: fill_columns_7_12
+    prompt: >
+      Set the eight-channel pipette to 90 uL and fill each complete column from
+      7 through 12. These wells will receive either 5 uL metformin alone in row
+      A or 5 uL carboplatin plus 5 uL metformin in rows B-H on Day 2.
     sequence:
       - target: multichannel_pipette
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
-      - target: multichannel_pipette
         gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 95
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: multichannel_pipette
-              state:
-                set_volume: 95
+        validator: { preset: target_with_value, value: { set_volume: 90 } }
+        response: { scene_operations: [{ type: ObjectStateChange, target: multichannel_pipette, state: { set_volume: 90 } }] }
       - target: media_bottle
         gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
-      - target: well_plate_96
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 464.30 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: media, held_material_volume: 90 } }] }
+      - target: well_plate_96.col_7
         gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: well_plate_96.block_A_7_12
-              state:
-                material_name: cells
-                material_volume: 195
-      - target: multichannel_pipette
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.col_7, state: { material_name: mixed, material_volume: 190 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 463.58 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: media, held_material_volume: 90 } }] }
+      - target: well_plate_96.col_8
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.col_8, state: { material_name: mixed, material_volume: 190 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 462.86 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: media, held_material_volume: 90 } }] }
+      - target: well_plate_96.col_9
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.col_9, state: { material_name: mixed, material_volume: 190 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 462.14 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: media, held_material_volume: 90 } }] }
+      - target: well_plate_96.col_10
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.col_10, state: { material_name: mixed, material_volume: 190 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 461.42 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: media, held_material_volume: 90 } }] }
+      - target: well_plate_96.col_11
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.col_11, state: { material_name: mixed, material_volume: 190 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 460.70 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: media, held_material_volume: 90 } }] }
+      - target: well_plate_96.col_12
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.col_12, state: { material_name: mixed, material_volume: 190 } }, { type: ObjectStateChange, target: multichannel_pipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
+    next_step: correct_row_a_controls
+  - step_name: correct_row_a_controls
+    prompt: >
+      Use a single-channel micropipette set to 5 uL to add the final control-media
+      adjustment to A1 through A12. This raises A1-A6 from 195 to 200 uL and
+      A7-A12 from 190 to 195 uL, leaving space for the planned Day-2 drugs.
+    sequence:
+      - target: micropipette
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [] }
+      - target: micropipette
         gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 90
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: multichannel_pipette
-              state:
-                set_volume: 90
-      - target: well_plate_96
+        validator: { preset: target_with_value, value: { set_volume: 5 } }
+        response: { scene_operations: [{ type: ObjectStateChange, target: micropipette, state: { set_volume: 5 } }] }
+      - target: media_bottle
         gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: well_plate_96.block_B_H_7_12
-              state:
-                material_name: cells
-                material_volume: 190
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 460.695 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: media, held_material_volume: 5 } }] }
+      - target: well_plate_96.A1
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.A1, state: { material_volume: 200 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 460.690 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: media, held_material_volume: 5 } }] }
+      - target: well_plate_96.A2
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.A2, state: { material_volume: 200 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 460.685 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: media, held_material_volume: 5 } }] }
+      - target: well_plate_96.A3
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.A3, state: { material_volume: 200 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 460.680 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: media, held_material_volume: 5 } }] }
+      - target: well_plate_96.A4
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.A4, state: { material_volume: 200 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 460.675 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: media, held_material_volume: 5 } }] }
+      - target: well_plate_96.A5
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.A5, state: { material_volume: 200 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 460.670 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: media, held_material_volume: 5 } }] }
+      - target: well_plate_96.A6
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.A6, state: { material_volume: 200 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 460.665 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: media, held_material_volume: 5 } }] }
+      - target: well_plate_96.A7
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.A7, state: { material_volume: 195 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 460.660 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: media, held_material_volume: 5 } }] }
+      - target: well_plate_96.A8
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.A8, state: { material_volume: 195 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 460.655 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: media, held_material_volume: 5 } }] }
+      - target: well_plate_96.A9
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.A9, state: { material_volume: 195 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 460.650 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: media, held_material_volume: 5 } }] }
+      - target: well_plate_96.A10
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.A10, state: { material_volume: 195 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 460.645 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: media, held_material_volume: 5 } }] }
+      - target: well_plate_96.A11
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.A11, state: { material_volume: 195 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+      - target: media_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: media_bottle, state: { material_volume: 460.640 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: media, held_material_volume: 5 } }] }
+      - target: well_plate_96.A12
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: well_plate_96.A12, state: { material_volume: 195 } }, { type: ObjectStateChange, target: micropipette, state: { held_material_name: empty, held_material_volume: 0 } }] }
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
     next_step: null

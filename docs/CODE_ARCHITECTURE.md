@@ -34,7 +34,10 @@ by DOM-element presence, not by URL.
 `protocol_host.tsx` mount order:
 
 1. Resolve protocol name from `?protocol=` query string or `window.__PROTOCOL_NAME__`.
-2. Look up `ProtocolConfig` from `generated/protocols.ts`.
+2. Look up `ProtocolConfig` from `generated/protocols.ts`. A
+   `sequence_runner` is flattened once here into its direct, unique
+   `mini_protocol` leaves; the runner root remains the sole owner of any
+   `initial_state` declaration.
 3. Resolve entry scene via `resolve_entry_scene_name` (see scene_runtime/protocol below).
 4. Paint `#scene-root` from the precomputed layout. The shipped bundle loads
    `PRECOMPUTED_LAYOUT[scene_name]` from `generated/precomputed_layout.ts`
@@ -159,13 +162,13 @@ Step machine, validators, scene operations, and click resolver.
 | [validators.ts](../src/scene_runtime/protocol/validators.ts)                             | Interaction and step validator dispatch (`correct_target`, `correct_choice`, `target_with_value`, `sequence_complete`, `final_state_matches`)                                                                                                                                                                                                    |
 | [gesture_registry.ts](../src/scene_runtime/protocol/gesture_registry.ts)                 | `GESTURE_REGISTRY`: one row per closed `Gesture` (render shape, `data-*` selectors, value extraction, single dispatch entry, walker driver); owns `scene_click_to_command` and `dispatch_gesture` (the single gesture-routing point, exhaustive `never` default)                                                                                 |
 | [target_adapter.ts](../src/scene_runtime/protocol/target_adapter.ts)                     | Protocol-target -> DOM identity adapter: `resolve_to_placement` / `resolve_to_object`, `AmbiguousTargetError` on non-unique object_name, `TARGET_DOM_ATTR` / `TARGET_DOM_SELECTOR`                                                                                                                                                               |
-| [flatten_sequence_runner.ts](../src/scene_runtime/protocol/flatten_sequence_runner.ts)   | Flattens a `sequence_runner` into the concatenated steps of its constituent mini-protocols so the step machine drives one chained flow                                                                                                                                                                                                           |
+| [flatten_sequence_runner.ts](../src/scene_runtime/protocol/flatten_sequence_runner.ts)   | Validates and flattens a `sequence_runner` into one chained step list. Constituents must be present, direct `mini_protocol` leaves, and unique; each leaf step is namespaced and terminal steps chain to the next leaf.                                                                                                                                                                                                           |
 | [authored_value_check.ts](../src/scene_runtime/protocol/authored_value_check.ts)         | Load-time authored-value guard for `target_with_value` / `final_state_matches` (UnknownAuthored*/BadAuthoredValue errors)                                                                                                                                                                                                                        |
 | [gesture_affordance_check.ts](../src/scene_runtime/protocol/gesture_affordance_check.ts) | Load-time invariant `validate_gesture_affordances`: an authored gesture whose `GESTURE_REGISTRY` row is absent or `wired: false` throws `UnaffordancedGestureError` at protocol load                                                                                                                                                             |
 | [target_existence_check.ts](../src/scene_runtime/protocol/target_existence_check.ts)     | Load-time invariant: an authored `target` that does not resolve to a scene object throws at protocol load                                                                                                                                                                                                                                        |
 | [scene_operations.ts](../src/scene_runtime/protocol/scene_operations.ts)                 | Routes five `SceneOperation` primitives to injected deps (exhaustive switch over `ObjectStateChange`, `CursorAttach`, `SceneChange`, `LayoutMove`, `TimedWait`)                                                                                                                                                                                  |
-| [scene_op_deps.ts](../src/scene_runtime/protocol/scene_op_deps.ts)                       | Store-driven `SceneOpDeps`: `ObjectStateChange`/`CursorAttach` write `scene_store`; `SceneChange` reconciles destination seeds while preserving declared state for exact shared targets and reapplying cursor-held state; `LayoutMove` is a reported no-op (Option A); `TimedWait` keeps observable semantics through the subsequent state write |
-| [walker_debug.ts](../src/scene_runtime/protocol/walker_debug.ts)                         | Read-only walker/debug surface: installs `window.PROTOCOL_STEPS` + `window.gameState` projected from the emitter snapshot + scene store (frozen contract)                                                                                                                                                                                        |
+| [scene_op_deps.ts](../src/scene_runtime/protocol/scene_op_deps.ts)                       | Store-driven `SceneOpDeps`: `ObjectStateChange`/`CursorAttach` write `scene_store`; `SceneChange` reconciles the destination projection against the session archive and reapplies cursor-held state; `LayoutMove` is a reported no-op (Option A); `TimedWait` exposes an observable equipment phase before the next write |
+| [walker_debug.ts](../src/scene_runtime/protocol/walker_debug.ts)                         | Read-only walker/debug surface: installs `window.PROTOCOL_STEPS` + `window.gameState` projected from the emitter snapshot + scene store, including `stateRevision` and the concrete `lastStateDelta` (frozen contract)                                                                                                                                                                                        |
 | [click_resolver.ts](../src/scene_runtime/protocol/click_resolver.ts)                     | Attaches DOM click listener; maps click target to interaction validator                                                                                                                                                                                                                                                                          |
 | [affordance.ts](../src/scene_runtime/protocol/affordance.ts)                             | Pure affordance-kind mapping: `compute_affordance_kind` + types `AffordanceKind`, `AffordanceGesture` (= canonical `Gesture` \| null), `ActiveAffordanceAccessor`, `ComputeAffordanceKindArgs`; no Solid reactive reads, no I/O, no layout import                                                                                                |
 | [emitter.ts](../src/scene_runtime/protocol/emitter.ts)                                   | `ProtocolShellEmitter` and `RuntimeEmitterHandle`; snapshot reducer pattern                                                                                                                                                                                                                                                                      |
@@ -175,6 +178,29 @@ interaction's `ObjectStateChange` writes declared object state, the Solid
 renderer reacts, and a `SceneChange` re-renders the next scene while preserving
 cursor-held tool/material. `protocol_host.tsx` wires the store-driven deps and
 restores the read-only `window.PROTOCOL_STEPS` / `window.gameState` surfaces.
+
+#### Protocol session state (`src/scene_runtime/state/scene_store.ts`)
+
+The store separates durable scientific state from the currently rendered scene.
+Its archive is keyed by authored target identity, including dotted subparts such
+as `microtube_rack_8.slot_A1`; its reactive projection contains only targets in
+the active scene. `start_session(seeds, initial_state)` clears the archive,
+validates the optional root-level `initial_state`, expands declared subpart
+groups, rejects overlapping resolved targets, and mounts the first projection.
+`reconcile_scene(seeds)` replaces that projection and rehydrates each target
+from the archive or declared defaults, with runtime-only flags reset.
+`snapshot_declared_state()` returns a detached declared-state view, including
+targets that are temporarily absent from the rendered scene. A fresh session or
+`reset()` clears retained state.
+
+`initial_state` has the same closed primitive state domain as an
+`ObjectStateChange`: object, declared subpart, and declared subpart-group
+targets are allowed only when their fields, types, ranges, enums, units, and
+material registry entries validate. The YAML validator and
+[gen_protocols.py](../pipeline/gen_protocols.py) enforce this at generation
+time; the store repeats the runtime boundary checks. A direct mini-protocol
+uses its own declaration. A flattened sequence runner uses only the runner
+root's declaration, so a constituent cannot silently seed a shared session.
 
 ### Scene runtime - renderer (`src/scene_runtime/renderer/`)
 
@@ -187,9 +213,10 @@ facade and `scene_item.tsx` / `scene_view.tsx` own item and label rendering.
 | File                                                                               | Purpose                                                                                                                                                                                                                                                                        |
 | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | [render_scene.tsx](../src/scene_runtime/renderer/render_scene.tsx)                 | Public Solid mount facade: creates the scene store, mounts `SceneView` into `#scene-root`, returns a dispose handle                                                                                                                                                            |
-| [affordance_candidates.ts](../src/scene_runtime/renderer/affordance_candidates.ts) | `enumerate_candidate_targets(result)`: renderer-layer candidate-set enumeration over `PipelineResult.final` (top-level object names only, subparts excluded); single source of truth with the click resolver                                                                   |
+| [affordance_candidates.ts](../src/scene_runtime/renderer/affordance_candidates.ts) | `enumerate_candidate_targets(result)`: renderer-layer candidate-set enumeration over clickable placements plus geometry-complete declared subparts and groups; single source of truth with the click resolver                                                                  |
 | [scene_view.tsx](../src/scene_runtime/renderer/scene_view.tsx)                     | Solid `SceneView`: renders background, one `SceneItem` per placement, and label elements; runs structural guards (collects violations) and sets `data-scene-degraded`                                                                                                          |
-| [scene_item.tsx](../src/scene_runtime/renderer/scene_item.tsx)                     | Solid `SceneItem`: reactive single-item paint (position, depth, SVG inject, missing-svg placeholder dashed box, `data-*` attributes)                                                                                                                                           |
+| [scene_item.tsx](../src/scene_runtime/renderer/scene_item.tsx)                     | Solid `SceneItem`: reactive single-item paint (position, depth, SVG inject, missing-svg placeholder dashed box, `data-*` attributes), including focused scaling around an active exact subpart or declared group                                                                                                                       |
+| [subpart_hit_surface.tsx](../src/scene_runtime/renderer/subpart_hit_surface.tsx)   | Generic declaration-owned SVG hit surface for dotted targets. It requires generated geometry, maps a declared group to each concrete member, preserves nonmember sibling identities for rejection, and throws rather than falling back to the parent object when target geometry is incomplete.                                      |
 | [visual_state_resolver.ts](../src/scene_runtime/renderer/visual_state_resolver.ts) | Pure (no-DOM, no-Solid) resolver mapping object state + authored `visual_states` + per-protocol material registry to a renderable description                                                                                                                                  |
 | [render_background.ts](../src/scene_runtime/renderer/render_background.ts)         | Render scene background (gradient or asset)                                                                                                                                                                                                                                    |
 | [structural_guards.ts](../src/scene_runtime/renderer/structural_guards.ts)         | Six structural guards (item count, bounds, aspect ratio, asset presence, etc.); collects all violations rather than throwing on the first; throwing wrapper is exposed for tests/CI                                                                                            |
@@ -228,7 +255,7 @@ All scripts that emit to `generated/` or produce `dist/` artifacts. Run by
 | [gen_object_library.py](../pipeline/gen_object_library.py)     | YAML under `content/objects/` -> `generated/object_library.ts`; emits `OBJECT_LIBRARY` (per-object `state_schema`, `visual_states`, `subpart_state_schema`, and for grid-structured objects `subpart_geometry` + `view_box` per PATH-B), `ASSET_SPECS`, `OBJECT_STATE_SCHEMAS` (object-level state-field contract for store validation), `OBJECT_SUBPART_STATE_SCHEMAS` (subpart-level state-field contract). `state_fields` are the contract; `visual_states` are the rendering map.                 |
 | [gen_svg_manifest.py](../pipeline/gen_svg_manifest.py)         | `assets/equipment/*.svg` -> `generated/svg_manifest.ts` (asset_name -> relative file path) + copied static SVG files                                                                                                                                                                                                                                                                                                                                                                                  |
 | [gen_scene_index.py](../pipeline/gen_scene_index.py)           | Scene YAML -> `generated/scenes.ts` + `generated/scene_manifest.json` (per-scene classification: emitted/skipped/errored); `--missing-svg=strict                                                                                                                                                                                                                                                                                                                                                      | placeholder`flag (default`placeholder`) |
-| [gen_protocols.py](../pipeline/gen_protocols.py)               | Protocol YAML -> `generated/protocols.ts` + `generated/protocols_index_slim.ts` + `generated/protocol_materials.ts` (per-protocol material registry from each package `materials.yaml`)                                                                                                                                                                                                                                                                                                               |
+| [gen_protocols.py](../pipeline/gen_protocols.py)               | Protocol YAML -> `generated/protocols.ts` + `generated/protocols_index_slim.ts` + `generated/protocol_materials.ts` (per-protocol material registry from each package `materials.yaml`). It validates and emits root `initial_state` entries as typed `InitialStateEntry` data rather than a free-form runtime payload.                                                                                                                                                                                                                                                                                                               |
 | [gen_flow_view.py](../pipeline/gen_flow_view.py)               | Protocol YAML -> `generated/flow_views/<protocol_name>.txt`, a per-protocol audit view rendering the step chain, click path, gestures, and state changes already authored in `protocol.yaml`. An audit/consistency artifact only; the design source is the flow sketch an author writes before implementation, per [PRIMARY_DESIGN.md](PRIMARY_DESIGN.md) and [PROTOCOL_AUTHORING_GUIDE.md](specs/PROTOCOL_AUTHORING_GUIDE.md). Skips `sequence_runner` protocols (no authored `steps` of their own). |
 | [entity_decode.py](../pipeline/entity_decode.py)               | Shared codegen helper: `decode_entities(s)` converts authored HTML entities (named + numeric) to Unicode at the string-emit choke points in `gen_protocols.py` (`to_ts_literal`) and `gen_object_library.py` (label emit), so committed source stays ASCII while `generated/**` carries the rendered glyph.                                                                                                                                                                                           |
 | [build_protocol_index.py](../pipeline/build_protocol_index.py) | Protocol index helpers                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
@@ -245,7 +272,7 @@ Entry point: [validate.py](../validation/validate.py).
 | Subtree                      | Purpose                                                                                                                                                                                                                                                |
 | ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `validation/yaml_schema/`    | Schema and cross-field rules for protocol, object, and scene YAML                                                                                                                                                                                      |
-| `validation/stepper/`        | Protocol step-flow walker: simulates execution, checks validator/outcome/scene-op semantics                                                                                                                                                            |
+| `validation/stepper/`        | Protocol step-flow walker: holds one `StateMap` across every direct leaf of a runner, applies initial state, checks validator/outcome/scene-op semantics, and audits material transfer ledgers (units, fanout, channel/subpart addressing, source decrement, held-pipette clear, and timed transformations)                                                                                                                                                            |
 | `validation/svg/`            | SVG asset usage audit                                                                                                                                                                                                                                  |
 | `validation/manual/`         | Human-readable protocol manual renderer                                                                                                                                                                                                                |
 | `validation/scene_lint/`     | Pre-render failure predictor (BLOCKED Group A / advisory Group B)                                                                                                                                                                                      |
@@ -446,6 +473,10 @@ dist_entry.tsx: sees window.__PROTOCOL_NAME__ + #scene-root + #shell-root
 protocol_host.tsx: look up ProtocolConfig in generated/protocols.ts
   |
   v
+flatten_sequence_runner(): validate unique direct mini leaves and form one
+  chained step list; retain only the runner root initial_state
+  |
+  v
 resolve_entry_scene_name(): entry step's scene: field -> SceneChange fallback -> throw
   |
   v
@@ -485,19 +516,24 @@ ProtocolHud.mount(#shell-root): StepOutline, TipsBubble, StepCounter, GuidanceBa
 step_machine.start(): emits step_started for entry step -> HUD renders first prompt
   |
   v
-Student clicks scene item -> click_resolver -> step_machine.handle_click()
+Student clicks a visible whole-object or exact-subpart data-item-id
+  -> click_resolver -> step_machine.handle_click()
   -> dispatch_interaction_validator() -> on success: scene_operations write
      the reactive scene_store -> Solid renderer reacts (artwork/highlight) and
      window.gameState reflects progress
   -> emit step progress events -> HUD re-renders
 ```
 
-Scene operations are store-driven (WS-M3-D): `ObjectStateChange` writes declared
-object state and the Solid renderer updates the affected item reactively;
-`SceneChange` re-renders the next scene while preserving cursor-held
-tool/material; `LayoutMove` is an explicit reported no-op (zero authored uses,
-Option A). The read-only `window.gameState` / `window.PROTOCOL_STEPS` surfaces
-are restored for the walker. Full PRIMARY_CONTRACT item 4 completion (every
+Scene operations are store-driven (WS-M3-D): `ObjectStateChange` writes both
+the active projection and the durable session archive, so the Solid renderer
+updates the affected item reactively and a later scene can rehydrate it.
+`SceneChange` re-renders the next scene, reconciles its target projection, and
+preserves cursor-held tool/material. `TimedWait` marks a visible, input-blocking
+equipment phase and supports the following authored state transformation;
+`LayoutMove` is an explicit reported no-op (zero authored uses, Option A). The
+read-only `window.gameState` / `window.PROTOCOL_STEPS` surfaces give the walker
+the active target, revision, and last declared-state delta without allowing it
+to mutate protocol progress. Full PRIMARY_CONTRACT item 4 completion (every
 student-visible protocol walked end-to-end) is the M4 corpus gate.
 
 ## Solid.js import boundary
@@ -612,12 +648,8 @@ for browser-test conventions.
 
 ## Known gaps
 
-- Scene operations are store-driven (WS-M3-D): `ObjectStateChange` and
-  `CursorAttach` write the reactive `scene_store`, `SceneChange` re-renders the
-  next scene and reconciles exact shared targets while defaulting new targets,
-  dropping absent targets, and resetting runtime flags. `TimedWait` is
-  observable through the subsequent state write, and `LayoutMove` is an
-  explicit reported no-op (zero authored uses, Option A).
+- `LayoutMove` remains an explicit reported no-op (zero authored uses, Option
+  A). Verify a real authored drag workflow before changing this semantic seam.
 - `drag` has no content protocol yet. The drag affordance and
   `step_machine.handle_drag_commit` are wired and unit-tested, but the walker
   sweep still classifies a `drag` interaction `unsupported_gesture` because no

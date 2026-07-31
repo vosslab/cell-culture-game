@@ -9,6 +9,15 @@
 protocol_type: mini_protocol
 protocol_name: mtt_plate_reaction
 entry_step: gather_mtt_materials
+initial_state:
+  - target: mtt_solution_tube
+    state:
+      material_name: mtt_solution_12mm
+      material_volume: 4.0
+  - target: well_plate_96.all_wells
+    state:
+      material_name: treated_cell_culture
+      material_volume: 200
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
@@ -35,7 +44,7 @@ steps:
       12 mM MTT solution. Ensure the MTT has been freshly prepared and stored at room
       temperature. Place both on the incubator workspace.
     sequence:
-      - target: mtt_stock_tube
+      - target: mtt_solution_tube
         gesture: click
         validator:
           preset: correct_target
@@ -90,7 +99,7 @@ steps:
   - step_name: add_mtt_to_wells
     prompt:
       "Using the multichannel pipette set to 25 microL per channel, draw 12 mM
-      MTT from the solution bottle and dispense 25 microL into every well of the 96-well
+      MTT from the prepared MTT solution tube and dispense 25 microL into every well of the 96-well
       plate. Each well receives the same 25 microL volume; in wet-lab practice the 8-channel
       pipette walks across the 12 columns (each stroke loads 200 microL across 8 tips
       and dispenses one column). Note: 25 microL per channel sits near the low-precision
@@ -104,7 +113,7 @@ steps:
           preset: correct_target
         response:
           scene_operations: []
-      - target: mtt_stock_tube
+      - target: mtt_solution_tube
         gesture: click
         validator:
           preset: correct_target
@@ -113,8 +122,13 @@ steps:
             - type: ObjectStateChange
               target: multichannel_pipette
               state:
-                held_material_name: mtt
+                held_material_name: mtt_solution_12mm
                 held_material_volume: 25
+            - type: ObjectStateChange
+              target: mtt_solution_tube
+              state:
+                material_name: mtt_solution_12mm
+                material_volume: 1.6
       - target: well_plate_96
         gesture: click
         validator:
@@ -124,8 +138,13 @@ steps:
             - type: ObjectStateChange
               target: well_plate_96.all_wells
               state:
-                material_name: mtt
+                material_name: mtt_reaction_mixture
                 material_volume: 225
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -159,7 +178,7 @@ steps:
             - type: ObjectStateChange
               target: well_plate_96.all_wells
               state:
-                material_name: formazan
+                material_name: formazan_crystals
                 material_volume: 225
     step_validator:
       preset: sequence_complete
@@ -191,7 +210,7 @@ steps:
             - type: ObjectStateChange
               target: well_plate_96.all_wells
               state:
-                material_name: empty
+                material_name: formazan_crystals
                 material_volume: 0
             - type: ObjectStateChange
               target: biohazard_decant_bin

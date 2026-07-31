@@ -54,12 +54,26 @@ add_placements:
     depth_tier: 1
     align_stop: right
 
-  # Aspirating pipette at right tool area
+  # Aspirating pipette is used only to remove supernatant at right tool area.
   - placement_name: right_aspirating_pipette
     object_name: aspirating_pipette
     zone: right_tool_area
     depth_tier: 1
     align_stop: center
+
+  # A serological pipette handles the milliliter-scale resuspension and split.
+  - placement_name: right_serological_pipette
+    object_name: serological_pipette
+    zone: right_tool_area
+    depth_tier: 1
+    align_stop: left
+
+  # The original flask receives the 6.86 mL return fraction after the split.
+  - placement_name: center_t75_flask_reseed
+    object_name: t75_flask
+    zone: center
+    depth_tier: 1
+    align_stop: right
 
   # Label pen at right tool area
   - placement_name: right_label_pen

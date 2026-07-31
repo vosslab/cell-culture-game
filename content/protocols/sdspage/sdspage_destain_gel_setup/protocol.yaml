@@ -1,6 +1,11 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_destain_gel_setup
 entry_step: rinse_first
+initial_state:
+  - target: ddh2o_bottle
+    state: { material_name: ddh2o, material_volume: 500 }
+  - target: destain_bottle
+    state: { material_name: destain, material_volume: 250 }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
@@ -41,6 +46,11 @@ steps:
               state:
                 material_name: ddh2o
                 material_volume: 200
+            - type: ObjectStateChange
+              target: ddh2o_bottle
+              state:
+                material_name: ddh2o
+                material_volume: 300
       - target: waste_container
         gesture: click
         validator:
@@ -79,6 +89,11 @@ steps:
               state:
                 material_name: ddh2o
                 material_volume: 200
+            - type: ObjectStateChange
+              target: ddh2o_bottle
+              state:
+                material_name: ddh2o
+                material_volume: 100
       - target: waste_container
         gesture: click
         validator:
@@ -115,6 +130,7 @@ steps:
               state:
                 material_name: destain
                 material_volume: 250
+                gel_state: destaining
             - type: ObjectStateChange
               target: destain_bottle
               state:

@@ -9,6 +9,7 @@ import pipeline.scene_inheritance as scene_inheritance
 from validation.scene_lint.rules_group_a import check_forbidden_source_geometry
 from validation.scene_lint.rules_group_b import check_zone_overlap
 from validation.yaml_schema.scene_base_validator import BaseSceneValidator
+from validation.yaml_schema.scene_protocol_validator import ProtocolSceneValidator
 
 #============================================
 
@@ -69,6 +70,42 @@ def test_base_scene_validator_names_forbidden_scene_geometry() -> None:
 	scene['scene_bounds'] = {}
 	findings = BaseSceneValidator().validate(scene, 'memory_scene.yaml')
 	assert any("authored geometry 'scene_bounds'" in finding.message for finding in findings)
+
+
+#============================================
+
+def test_base_scene_rejects_invalid_placement_align_stop_before_layout() -> None:
+	"""An invalid tab-stop bucket must fail schema validation, not crash layout."""
+	scene = _semantic_scene()
+	scene['placements'][0]['align_stop'] = 'lower'
+	findings = BaseSceneValidator().validate(scene, 'memory_scene.yaml')
+	assert any("placement.align_stop 'lower' is not valid" in finding.message for finding in findings)
+
+
+#============================================
+
+@pytest.mark.parametrize('operation', ('add_placements', 'reposition_placements'))
+def test_protocol_scene_rejects_invalid_align_stop_before_layout(operation: str) -> None:
+	"""Inherited placement operations share the same closed tab-stop vocabulary."""
+	base = _semantic_scene()
+	validator = ProtocolSceneValidator()
+	validator.set_base_scenes({base['scene_name']: base})
+	entry = {
+		'placement_name': (
+			'new_tool' if operation == 'add_placements'
+			else base['placements'][0]['placement_name']
+		),
+		'align_stop': 'lower',
+	}
+	if operation == 'add_placements':
+		entry.update({'object_name': 'micropipette', 'zone': 'front'})
+	scene = {
+		'scene_name': 'derived_scene',
+		'extends': base['scene_name'],
+		operation: [entry],
+	}
+	findings = validator.validate(scene, 'derived_scene.yaml')
+	assert any(f"{operation} align_stop 'lower' is not valid" in finding.message for finding in findings)
 
 
 #============================================

@@ -8,6 +8,7 @@ state_fields:
       - empty
       - mixed
       - mtt
+      - cell_supernatant
     default: empty
     description: Waste type (empty or mixed biohazard).
   - field_name: material_volume
@@ -28,6 +29,9 @@ visual_states:
         output:
           asset_name: biohazard_decant
       - when: mtt
+        output:
+          asset_name: biohazard_decant
+      - when: cell_supernatant
         output:
           asset_name: biohazard_decant
   material_volume:

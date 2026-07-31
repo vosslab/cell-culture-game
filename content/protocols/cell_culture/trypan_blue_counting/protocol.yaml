@@ -41,8 +41,8 @@ learning:
 steps:
   - step_name: add_trypan_blue_to_chamber
     prompt:
-      Add 10 microL of Trypan Blue stain to the diamond chamber of a clean hemocytometer
-      slide.
+      Add 10 microL of Trypan Blue stain to the central diamond mixing chamber of a
+      clean hemocytometer slide.
     sequence:
       - target: micropipette
         gesture: click
@@ -73,19 +73,24 @@ steps:
           preset: correct_target
         response:
           scene_operations:
+            # 10 uL = 0.01 mL; the pre-filled tube starts at 10 mL.
+            - type: ObjectStateChange
+              target: trypan_blue_tube
+              state:
+                material_volume: 9.99
             - type: ObjectStateChange
               target: micropipette
               state:
                 held_material_name: trypan_blue
                 held_material_volume: 10
-      - target: hemocytometer_slide
+      - target: hemocytometer_slide.diamond
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: hemocytometer_slide
+              target: hemocytometer_slide.diamond
               state:
                 material_name: trypan_blue
                 material_volume: 0.01
@@ -102,7 +107,7 @@ steps:
     next_step: add_cell_suspension_to_chamber
   - step_name: add_cell_suspension_to_chamber
     prompt:
-      Add 10 microL of cell suspension to the same diamond chamber, mixing with
+      Add 10 microL of cell suspension to the same central diamond chamber, mixing with
       the Trypan Blue.
     sequence:
       - target: micropipette
@@ -132,19 +137,24 @@ steps:
           preset: correct_target
         response:
           scene_operations:
+            # The counted suspension tube is pre-filled with 15 mL.
+            - type: ObjectStateChange
+              target: cell_suspension_tube
+              state:
+                material_volume: 14.99
             - type: ObjectStateChange
               target: micropipette
               state:
                 held_material_name: cell_suspension
                 held_material_volume: 10
-      - target: hemocytometer_slide
+      - target: hemocytometer_slide.diamond
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: hemocytometer_slide
+              target: hemocytometer_slide.diamond
               state:
                 material_name: trypan_blue_mixture
                 material_volume: 0.02
@@ -173,14 +183,14 @@ steps:
             - type: CursorAttach
               target: micropipette
               operation: attach
-      - target: hemocytometer_slide
+      - target: hemocytometer_slide.diamond
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: hemocytometer_slide
+              target: hemocytometer_slide.diamond
               state:
                 material_name: trypan_blue_mixture
     step_validator:
@@ -191,8 +201,8 @@ steps:
     next_step: load_semicircle_chamber
   - step_name: load_semicircle_chamber
     prompt:
-      Load 10 microL of the mixed trypan blue and cell suspension into the semicircle
-      loading chamber of the hemocytometer.
+      Aspirate 10 microL from the central diamond mixing chamber, then load it into the
+      right-hand semicircle loading chamber of the hemocytometer.
     sequence:
       - target: micropipette
         gesture: click
@@ -215,17 +225,33 @@ steps:
               target: micropipette
               state:
                 set_volume: 10
-      - target: hemocytometer_slide
+      - target: hemocytometer_slide.diamond
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: hemocytometer_slide
+              target: hemocytometer_slide.diamond
               state:
                 material_name: trypan_blue_mixture
-                material_volume: 0.03
+                material_volume: 0.01
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: trypan_blue_mixture
+                held_material_volume: 10
+      - target: hemocytometer_slide.semicircle
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: hemocytometer_slide.semicircle
+              state:
+                material_name: trypan_blue_mixture
+                material_volume: 0.01
             - type: ObjectStateChange
               target: micropipette
               state:

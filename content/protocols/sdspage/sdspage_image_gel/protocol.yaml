@@ -1,6 +1,11 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_image_gel
 entry_step: final_rinse
+initial_state:
+  - target: staining_tray
+    state: { material_name: destain, material_volume: 250, gel_present: true, gel_state: destained }
+  - target: ddh2o_bottle
+    state: { material_name: ddh2o, material_volume: 100 }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
@@ -52,6 +57,12 @@ steps:
           preset: correct_target
         response:
           scene_operations: []
+      - target: ddh2o_bottle
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations: []
       - target: staining_tray
         gesture: click
         validator:
@@ -63,6 +74,11 @@ steps:
               state:
                 material_name: ddh2o
                 material_volume: 100
+            - type: ObjectStateChange
+              target: ddh2o_bottle
+              state:
+                material_name: ddh2o
+                material_volume: 0
       - target: staining_tray
         gesture: click
         validator:
@@ -74,6 +90,11 @@ steps:
               state:
                 material_name: empty
                 material_volume: 0
+            - type: ObjectStateChange
+              target: waste_container
+              state:
+                material_name: mixed
+                material_volume: 100
       - target: waste_container
         gesture: click
         validator:
@@ -111,6 +132,7 @@ steps:
               target: lightbox
               state:
                 tray_present: true
+                gel_state: destained
     step_validator:
       preset: sequence_complete
     outcome:

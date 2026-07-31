@@ -77,6 +77,21 @@ export function enumerate_candidate_targets(
         candidates.add(`${placement_name}.${subpart_name}`);
       }
     }
+    for (const [group_name, members] of Object.entries(def.subpart_groups ?? {})) {
+      if (
+        members.length > 0 &&
+        members.every((member) => {
+          const geometry = def.subpart_geometry?.[member];
+          return (
+            def.subparts?.includes(member) === true &&
+            geometry !== undefined &&
+            is_interactable_subpart_geometry(geometry)
+          );
+        })
+      ) {
+        candidates.add(`${placement_name}.${group_name}`);
+      }
+    }
   }
   return candidates;
 }

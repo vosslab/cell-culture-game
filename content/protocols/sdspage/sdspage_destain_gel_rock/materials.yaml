@@ -1,4 +1,7 @@
 materials:
+  destain:
+    label: "Destain solution (20% MeOH / 10% AcOH)"
+    display_color: "#dbeafe"
   destain_used:
     label: Used destain
     display_color: "#bfdbfe"

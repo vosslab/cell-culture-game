@@ -359,37 +359,43 @@ def get_expected_subparts(object_name: str, object_data: dict[str, object]) -> s
 		return None
 
 	structure = object_data['structure']
+	explicit_names = structure.get('subpart_names')
+	if isinstance(explicit_names, list):
+		return set(explicit_names)
 	name_pattern = structure.get('name_pattern')
 
 	if not name_pattern:
 		return None
 
-	# Parse name_pattern like "lane_{row}"
-	if '{row}' in name_pattern and '{col}' in name_pattern:
-		rows = structure.get('rows', 1)
-		cols = structure.get('cols', 1)
-		subparts = set()
-		for r in range(1, rows + 1):
-			for c in range(1, cols + 1):
-				name = name_pattern.replace('{row}', str(r)).replace('{col}', str(c))
-				subparts.add(name)
-		return subparts
-	elif '{row}' in name_pattern:
-		rows = structure.get('rows', 1)
-		subparts = set()
-		for r in range(1, rows + 1):
-			name = name_pattern.replace('{row}', str(r))
-			subparts.add(name)
-		return subparts
-	elif '{col}' in name_pattern:
-		cols = structure.get('cols', 1)
-		subparts = set()
-		for c in range(1, cols + 1):
-			name = name_pattern.replace('{col}', str(c))
-			subparts.add(name)
-		return subparts
+	uses_row = '{row}' in name_pattern
+	uses_row_letter = '{row_letter}' in name_pattern
+	uses_col = '{col}' in name_pattern
+	if not (uses_row or uses_row_letter or uses_col):
+		return None
 
-	return None
+	# Structured grid names use the same row-major, 1-based numeric convention
+	# as pipeline.gen_object_library. The authoring vocabulary deliberately
+	# limits row letters to A..Z, so do not silently turn row 27 into '['.
+	rows = int(structure.get('rows', 1))
+	cols = int(structure.get('cols', 1))
+	if uses_row_letter and rows > 26:
+		raise ValueError(
+			f"{object_name}: {{row_letter}} supports at most 26 rows (A..Z), "
+			f"not {rows}"
+		)
+
+	row_indices = range(rows) if (uses_row or uses_row_letter) else range(1)
+	col_indices = range(cols) if uses_col else range(1)
+	subparts = set()
+	for row_index in row_indices:
+		for col_index in col_indices:
+			name = name_pattern
+			name = name.replace('{row_letter}', chr(ord('A') + row_index))
+			name = name.replace('{row}', str(row_index + 1))
+			name = name.replace('{col}', str(col_index + 1))
+			subparts.add(name)
+	return subparts
+
 
 def check_enum_coverage(
 	object_name: str,

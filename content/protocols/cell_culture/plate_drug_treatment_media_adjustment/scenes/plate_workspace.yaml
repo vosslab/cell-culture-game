@@ -16,8 +16,16 @@ add_placements:
     depth_tier: 1
     align_stop: center
 
+  # Row-A corrections are genuine 5 uL single-channel transfers, so the
+  # instructional target is visible rather than simulated as a hidden batch.
+  - placement_name: right_tool_micropipette
+    object_name: micropipette
+    zone: right_tool_area
+    depth_tier: 2
+    align_stop: right
+
 scene_notes: |
   Hood-side plate-workspace scene for plate_drug_treatment_media_adjustment.
   96-well plate (inherited as the foreground teaching surface), media bottle in
-  rear center, multichannel pipette in right tool area. Protocols target
-  well_plate_96.* against the inherited plate placement.
+  rear center, multichannel and single-channel pipettes in the right tool area.
+  Protocols target well_plate_96.* against the inherited plate placement.

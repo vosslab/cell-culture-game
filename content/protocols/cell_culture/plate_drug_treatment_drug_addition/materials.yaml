@@ -43,6 +43,10 @@ materials:
     label: "Growth media"
     display_color: "#6c6c00"
 
+  cells:
+    label: "Seeded cells (in plate wells)"
+    display_color: "#cc0066"
+
   carboplatin_metformin_combo:
     label: "Carboplatin and metformin mixture"
     display_color: "#b84db8"

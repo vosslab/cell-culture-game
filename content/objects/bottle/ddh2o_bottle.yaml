@@ -13,8 +13,8 @@ state_fields:
     type: float
     unit: ml
     min: 0
-    max: 500
-    default: 500
+    max: 1000
+    default: 1000
     description: Volume of deionized water remaining, in milliliters.
 visual_states:
   material_name:
@@ -31,7 +31,7 @@ visual_states:
     render_effect: fill_height
     target: anchor_liquid_bounds
     clip: anchor_liquid_clip
-    capacity_ml: 500
+    capacity_ml: 1000
 capabilities:
   - clickable
   - material_container

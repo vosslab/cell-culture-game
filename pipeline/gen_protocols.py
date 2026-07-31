@@ -39,6 +39,7 @@ Output ordering: PROTOCOLS_INDEX sorted by cluster then protocol_name (determini
 import os
 import re
 import subprocess
+from pathlib import Path
 
 # PIP3 modules
 import yaml
@@ -51,6 +52,7 @@ import yaml
 # local repo modules
 import pipeline.entity_decode
 import validation.yaml_schema.protocol_validator
+from validation.yaml_schema.database import ContentDatabase
 
 #============================================
 
@@ -269,7 +271,8 @@ def enforce_top_level_closure(protocol_data: dict, path: str) -> None:
 
 
 def validate_protocol(
-	protocol_data: dict, cluster: str, path: str
+	protocol_data: dict, cluster: str, path: str, all_protocols: dict | None = None,
+	db: ContentDatabase | None = None,
 ) -> None:
 	"""Validate a protocol against the closed schema."""
 	enforce_top_level_closure(protocol_data, path)
@@ -289,6 +292,8 @@ def validate_protocol(
 		)
 
 	protocol_name = protocol_data["protocol_name"]
+	if all_protocols is None:
+		all_protocols = {}
 	if not isinstance(protocol_name, str):
 		raise ValueError(f"protocol_name must be a string, got: {protocol_name}")
 
@@ -354,6 +359,39 @@ def validate_protocol(
 			raise ValueError(
 				f"Protocol {protocol_name}: mini_protocols is not a list"
 			)
+		if not mini_protocols:
+			raise ValueError(
+				f"Protocol {protocol_name}: mini_protocols must be non-empty"
+			)
+		seen_mini_names = set()
+		for mini_name in mini_protocols:
+			if not isinstance(mini_name, str):
+				raise ValueError(
+					f"Protocol {protocol_name}: mini_protocols entries must be strings"
+				)
+			if mini_name in seen_mini_names:
+				raise ValueError(
+					f"Protocol {protocol_name}: duplicate constituent mini-protocol '{mini_name}'"
+				)
+			seen_mini_names.add(mini_name)
+			if mini_name not in all_protocols:
+				raise ValueError(
+					f"Protocol {protocol_name}: sequence_runner references missing mini-protocol '{mini_name}'"
+				)
+			mini_data, _mini_cluster = all_protocols[mini_name]
+			if mini_data.get("protocol_type") != "mini_protocol":
+				raise ValueError(
+					f"Protocol {protocol_name}: sequence_runner must reference direct mini_protocol leaves; "
+					f"'{mini_name}' is {mini_data.get('protocol_type')!r}"
+				)
+
+	if db is not None:
+		initial_state_findings = validation.yaml_schema.protocol_validator.ProtocolValidator(
+			db=db
+		)._validate_initial_state(protocol_data, path)
+		if initial_state_findings:
+			messages = "; ".join(finding.format() for finding in initial_state_findings)
+			raise ValueError(f"Protocol initial_state violation: {messages}")
 
 
 #============================================
@@ -798,10 +836,13 @@ def main() -> None:
 	if not protocols:
 		raise RuntimeError("No protocols found in content/protocols")
 
+	db = ContentDatabase()
+	db.load_from_tree(Path(repo_root))
+
 	for protocol_name, (protocol_data, cluster) in protocols.items():
 		protocol_path = os.path.join(protocol_dirs[protocol_name], "protocol.yaml")
 		protocol_rel_path = os.path.relpath(protocol_path, repo_root)
-		validate_protocol(protocol_data, cluster, protocol_rel_path)
+		validate_protocol(protocol_data, cluster, protocol_rel_path, protocols, db)
 
 	emit_protocols_ts(repo_root, protocols)
 	emit_protocols_index_slim_ts(repo_root, protocols)

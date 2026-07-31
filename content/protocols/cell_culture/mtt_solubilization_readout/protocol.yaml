@@ -1,6 +1,15 @@
 protocol_type: mini_protocol
 protocol_name: mtt_solubilization_readout
 entry_step: add_dmso_to_wells
+initial_state:
+  - target: well_plate_96.all_wells
+    state:
+      material_name: formazan_crystals
+      material_volume: 0
+  - target: dmso_tube
+    state:
+      material_name: dmso
+      material_volume: 50.0
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
@@ -8,10 +17,11 @@ learning:
     technique for complete dissolution, and wavelength selection and optical absorbance
     measurement on a multi-well plate reader.
   outcomes:
-    Students completing this mini-protocol will be able to add DMSO to individual
-    wells of a 96-well plate containing formazan, perform manual trituration to dissolve
-    precipitated formazan, and measure absorbance at 560 nm on a plate reader, recording
-    the optical density for downstream IC50 calculations.
+    Students completing this mini-protocol will be able to use a multichannel
+    pipette to add DMSO uniformly across all columns and wells of a 96-well plate
+    containing formazan, perform manual trituration to dissolve precipitated formazan,
+    and measure absorbance at 560 nm on a plate reader, recording the optical density
+    for downstream IC50 calculations.
   goals:
     "Overall, this mini-protocol aims to accomplish the final quantification
     step in an MTT viability assay: converting the precipitated, insoluble formazan
@@ -28,7 +38,7 @@ steps:
       each well receives the same 200 microL volume. DMSO dissolves the precipitated
       formazan crystals so absorbance can be read."
     sequence:
-      - target: micropipette
+      - target: multichannel_pipette
         gesture: click
         validator:
           preset: correct_target
@@ -36,7 +46,7 @@ steps:
           scene_operations:
             - type: SceneChange
               to_scene: mtt_solubilization_readout_bench_workspace
-      - target: micropipette
+      - target: multichannel_pipette
         gesture: adjust
         validator:
           preset: target_with_value
@@ -45,7 +55,7 @@ steps:
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
+              target: multichannel_pipette
               state:
                 set_volume: 200
       - target: dmso_tube
@@ -53,8 +63,18 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
-      - target: well_plate_96
+          scene_operations:
+            - type: ObjectStateChange
+              target: dmso_tube
+              state:
+                material_name: dmso
+                material_volume: 30.8
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: dmso
+                held_material_volume: 200
+      - target: well_plate_96.all_wells
         gesture: click
         validator:
           preset: correct_target
@@ -64,7 +84,12 @@ steps:
               target: well_plate_96.all_wells
               state:
                 material_name: formazan_dmso_solution
-                material_volume: 0.2
+                material_volume: 200
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -78,13 +103,13 @@ steps:
       the whole plate. Mechanical mixing ensures complete dissolution of the purple
       formazan product.
     sequence:
-      - target: micropipette
+      - target: multichannel_pipette
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations: []
-      - target: well_plate_96
+      - target: well_plate_96.all_wells
         gesture: click
         validator:
           preset: correct_target
@@ -93,7 +118,7 @@ steps:
             - type: ObjectStateChange
               target: well_plate_96.all_wells
               state:
-                material_volume: 0.2
+                material_volume: 200
               transition: animated
     step_validator:
       preset: sequence_complete

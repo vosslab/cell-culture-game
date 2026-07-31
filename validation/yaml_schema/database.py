@@ -234,6 +234,9 @@ class ContentDatabase:
 		for sp in subparts:
 			if isinstance(sp, dict) and sp.get('name') == subpart_name:
 				return True
+		explicit_names = structure.get('subpart_names', [])
+		if isinstance(explicit_names, list) and subpart_name in explicit_names:
+			return True
 
 		# Check name_pattern regex; let re.error surface as a real failure
 		# (a malformed name_pattern is an object-spec bug, not a hidden case).

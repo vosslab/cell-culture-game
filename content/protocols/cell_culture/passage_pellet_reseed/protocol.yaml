@@ -1,6 +1,19 @@
 protocol_type: mini_protocol
 protocol_name: passage_pellet_reseed
 entry_step: transfer_to_conical
+initial_state:
+  # A direct run begins after neutralization with the same 12 mL suspension
+  # produced by passage_hood_detachment in the full runner. Constituent seeds
+  # are deliberately ignored by that runner, so its carried state remains
+  # authoritative.
+  - target: t75_flask
+    state:
+      material_name: cell_suspension
+      material_volume: 12
+  - target: media_bottle
+    state:
+      material_name: media
+      material_volume: 491
 learning:
   objectives:
     "Students completing this mini-protocol will have achieved fluency with
@@ -56,6 +69,10 @@ steps:
         response:
           scene_operations:
             - type: ObjectStateChange
+              target: t75_flask
+              state:
+                material_volume: 4
+            - type: ObjectStateChange
               target: conical_15ml
               state:
                 material_name: cell_suspension
@@ -78,6 +95,8 @@ steps:
           preset: correct_target
         response:
           scene_operations:
+            - type: SceneChange
+              to_scene: hood_workspace
             - type: CursorAttach
               target: label_pen
               operation: attach
@@ -158,7 +177,7 @@ steps:
             - type: ObjectStateChange
               target: conical_15ml
               state:
-                material_name: cell_pellet
+                material_name: cell_supernatant
     step_validator:
       preset: sequence_complete
     outcome:
@@ -189,7 +208,14 @@ steps:
               target: conical_15ml
               state:
                 material_name: cell_pellet
+                # Retain 0.1 mL so the pellet remains a real, visible source
+                # for the subsequent resuspension rather than disappearing.
                 material_volume: 0.1
+            - type: ObjectStateChange
+              target: aspirating_pipette
+              state:
+                held_material_name: cell_supernatant
+                held_material_volume: 7.9
       - target: biohazard_decant
         gesture: click
         validator:
@@ -199,8 +225,13 @@ steps:
             - type: ObjectStateChange
               target: biohazard_decant
               state:
-                material_name: mixed
+                material_name: cell_supernatant
                 material_volume: 7.9
+            - type: ObjectStateChange
+              target: aspirating_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -208,16 +239,17 @@ steps:
       on_failure: retry
     next_step: resuspend_pellet
   - step_name: resuspend_pellet
-    prompt: Resuspend the cell pellet in fresh media (approximately 8 mL).
+    prompt: Resuspend the retained 0.1 mL cell pellet in 7.9 mL fresh media to make
+      exactly 8.0 mL of cell suspension.
     sequence:
-      - target: aspirating_pipette
+      - target: serological_pipette
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: CursorAttach
-              target: aspirating_pipette
+              target: serological_pipette
               operation: attach
       - target: media_bottle
         gesture: click
@@ -226,10 +258,14 @@ steps:
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: aspirating_pipette
+              target: media_bottle
+              state:
+                material_volume: 483.1
+            - type: ObjectStateChange
+              target: serological_pipette
               state:
                 held_material_name: media
-                held_material_volume: 8
+                held_material_volume: 7.9
       - target: conical_15ml
         gesture: click
         validator:
@@ -239,32 +275,33 @@ steps:
             - type: ObjectStateChange
               target: conical_15ml
               state:
-                material_name: media
+                material_name: cell_suspension
                 material_volume: 8
+            - type: ObjectStateChange
+              target: serological_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
       on_success: complete
       on_failure: retry
     next_step: calculate_split_volume
-  # Gesture rubric note: this step teaches a precise-typed-value skill (the
-  # student computes 1.14 mL and measures it out), but stays click-only
-  # because aspirating_pipette carries no wired set-point or typed-value
-  # control (no set_volume field; see content/objects/pipette/aspirating_pipette.yaml).
   - step_name: calculate_split_volume
     prompt:
-      "Calculate the 1:7 split volume. You have ~8 mL of cell suspension.\nFor\
-      \ a 1:7 split: 8 mL / 7 = 1.14 mL to new culture;\n6.86 mL to return to original\
-      \ flask.\nMeasure out 1.14 mL (\xB10.2 mL tolerance) into a fresh plate well.\n"
+      "Calculate the 1:7 split volume. You have 8 mL of cell suspension.\nFor\
+      \ a 1:7 split, retain 1.14 mL for the new culture and return 6.86 mL to the\
+      \ original flask. Transfer the 6.86 mL portion with a serological pipette.\n"
     sequence:
-      - target: aspirating_pipette
+      - target: serological_pipette
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: CursorAttach
-              target: aspirating_pipette
+              target: serological_pipette
               operation: attach
       - target: conical_15ml
         gesture: click
@@ -273,43 +310,30 @@ steps:
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: aspirating_pipette
+              target: conical_15ml
               state:
-                held_material_name: media
-                held_material_volume: 1.14
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: add_fresh_media_to_plate
-  - step_name: add_fresh_media_to_plate
-    prompt:
-      Add fresh media (approximately 7-8 mL) to a fresh 96-well plate to prepare
-      for cell seeding.
-    sequence:
-      - target: media_bottle
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations:
-            - type: SceneChange
-              to_scene: hood_workspace
-            - type: CursorAttach
-              target: media_bottle
-              operation: attach
-      - target: well_plate_96
+                material_volume: 1.14
+            - type: ObjectStateChange
+              target: serological_pipette
+              state:
+                held_material_name: cell_suspension
+                held_material_volume: 6.86
+      - target: t75_flask
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: well_plate_96.all_wells
+              target: t75_flask
               state:
-                material_name: media
-                material_volume: 7
+                material_name: cell_suspension
+                material_volume: 10.86
+            - type: ObjectStateChange
+              target: serological_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -325,6 +349,8 @@ steps:
           preset: correct_target
         response:
           scene_operations:
+            - type: SceneChange
+              to_scene: hood_workspace
             - type: CursorAttach
               target: label_pen
               operation: attach

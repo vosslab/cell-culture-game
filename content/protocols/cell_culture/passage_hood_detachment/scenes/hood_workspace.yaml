@@ -75,6 +75,14 @@ add_placements:
     depth_tier: 1
     align_stop: center
 
+  # The sterile serological pipette is the compatible measured-transfer tool
+  # for 3-9 mL PBS, trypsin, and medium additions.
+  - placement_name: rear_center_serological_pipette
+    object_name: serological_pipette
+    zone: rear_center
+    depth_tier: 1
+    align_stop: center
+
 reposition_placements:
   # Keep ethanol in rear_left for sterilization step
   - placement_name: rear_left_ethanol

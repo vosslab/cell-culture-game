@@ -88,6 +88,7 @@ const _snapshot_shape_check: ShellViewSnapshot = {
   current_prompt: null,
   current_tip: null,
   current_interaction_index: 0,
+  current_interaction_count: 0,
   progress: { completed_step_count: 0, total_step_count: 0 },
   last_outcome: null,
   last_rejection: null,
@@ -106,6 +107,7 @@ const _snapshot_shape_check: ShellViewSnapshot = {
   active_interaction_target: null,
   active_interaction_label: null,
   active_interaction_gesture: null,
+  active_interaction_value: null,
   pending_timed_wait: null,
 };
 void _snapshot_shape_check;

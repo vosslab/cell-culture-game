@@ -40,6 +40,11 @@ import assert from "node:assert/strict";
 
 import { compute_affordance_kind } from "../src/scene_runtime/protocol/affordance.ts";
 import { enumerate_candidate_targets } from "../src/scene_runtime/renderer/affordance_candidates.ts";
+import {
+  assert_active_subpart_geometry,
+  is_interactable_subpart_geometry,
+  resolve_active_subpart_selection,
+} from "../src/scene_runtime/renderer/subpart_hit_surface.tsx";
 
 //============================================
 // Fixtures
@@ -70,6 +75,28 @@ test("select + item NOT in candidate_targets returns none", () => {
     candidate_targets: CANDIDATES,
   });
   assert.equal(result, "none");
+});
+
+test("select keeps exact sibling subparts answer-neutral", () => {
+  const exactCandidates = new Set(["rack.A1", "rack.A2"]);
+  assert.equal(
+    compute_affordance_kind({
+      active_target: "rack.A1",
+      active_gesture: "select",
+      item_target: "rack.A1",
+      candidate_targets: exactCandidates,
+    }),
+    "candidate",
+  );
+  assert.equal(
+    compute_affordance_kind({
+      active_target: "rack.A1",
+      active_gesture: "select",
+      item_target: "rack.A2",
+      candidate_targets: exactCandidates,
+    }),
+    "candidate",
+  );
 });
 
 //============================================
@@ -216,6 +243,93 @@ test("enumerate_candidate_targets: absent or malformed geometry creates no phant
     !result.has("rack.absent") && !result.has("rack.missing"),
     "missing or invalid geometry must not create a subpart target",
   );
+});
+
+//============================================
+// Exact dotted-target geometry contract
+//============================================
+
+const STRUCTURED_RACK = {
+  object_name: "rack_with_tube",
+  subparts: ["A1", "A2"],
+  subpart_groups: { all_tubes: ["A1", "A2"] },
+  view_box: { min_x: 0, min_y: 0, width: 40, height: 20 },
+  subpart_geometry: {
+    A1: { shape: "rect", x: 2, y: 2, w: 4, h: 12 },
+    A2: { shape: "circle", cx: 15, cy: 8, r: 3 },
+  },
+};
+
+test("exact dotted target resolves only its declared geometry", () => {
+  assert.equal(assert_active_subpart_geometry(STRUCTURED_RACK, "rack", "rack.A2"), "A2");
+  assert.equal(assert_active_subpart_geometry(STRUCTURED_RACK, "rack", "other.A2"), null);
+  assert.equal(assert_active_subpart_geometry(STRUCTURED_RACK, "rack", null), null);
+});
+
+test("declared dotted group resolves every concrete member without a parent shortcut", () => {
+  assert.deepEqual(resolve_active_subpart_selection(STRUCTURED_RACK, "rack", "rack.all_tubes"), {
+    target_name: "all_tubes",
+    member_names: ["A1", "A2"],
+    is_group: true,
+  });
+  assert.equal(
+    assert_active_subpart_geometry(STRUCTURED_RACK, "rack", "rack.all_tubes"),
+    "all_tubes",
+  );
+});
+
+test("exact dotted target rejects absent, undeclared, and non-interactable geometry", () => {
+  assert.throws(
+    () => assert_active_subpart_geometry(undefined, "rack", "rack.A1"),
+    /no object declaration/u,
+  );
+  assert.throws(
+    () => assert_active_subpart_geometry(STRUCTURED_RACK, "rack", "rack.C9"),
+    /undeclared subpart/u,
+  );
+  assert.throws(
+    () =>
+      assert_active_subpart_geometry(
+        {
+          ...STRUCTURED_RACK,
+          subpart_geometry: { A1: { shape: "rect", x: 0, y: 0, w: 0, h: 10 } },
+        },
+        "rack",
+        "rack.A1",
+      ),
+    /no interactable declared geometry/u,
+  );
+});
+
+test("declared dotted group rejects a member without usable geometry", () => {
+  assert.throws(
+    () =>
+      resolve_active_subpart_selection(
+        {
+          ...STRUCTURED_RACK,
+          subpart_groups: { broken_group: ["A1", "A3"] },
+        },
+        "rack",
+        "rack.broken_group",
+      ),
+    /group member "A3" is not a declared subpart/u,
+  );
+});
+
+test("enumerate_candidate_targets includes only geometry-complete declared groups", () => {
+  const fixture = make_pipeline_result(["rack"]);
+  fixture.final[0].object_name = "rack_with_tube";
+  const result = enumerate_candidate_targets(fixture, {
+    rack_with_tube: STRUCTURED_RACK,
+  });
+  assert.ok(result.has("rack.all_tubes"));
+});
+
+test("interactable geometry rejects zero-area shapes before they can become click targets", () => {
+  assert.equal(is_interactable_subpart_geometry({ shape: "circle", cx: 1, cy: 1, r: 2 }), true);
+  assert.equal(is_interactable_subpart_geometry({ shape: "circle", cx: 1, cy: 1, r: 0 }), false);
+  assert.equal(is_interactable_subpart_geometry({ shape: "rect", x: 0, y: 0, w: 2, h: 3 }), true);
+  assert.equal(is_interactable_subpart_geometry({ shape: "rect", x: 0, y: 0, w: 0, h: 3 }), false);
 });
 
 test("enumerate_candidate_targets: empty result.final yields empty set", () => {

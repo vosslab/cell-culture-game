@@ -9,7 +9,7 @@ scene_notes: |
 add_placements:
   # MTT solution bottle at rear left (right stop beside waste)
   - placement_name: mtt_solution
-    object_name: mtt_stock_tube
+    object_name: mtt_solution_tube
     zone: rear_left
     depth_tier: 1
     align_stop: right

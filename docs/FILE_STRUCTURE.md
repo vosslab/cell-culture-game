@@ -79,7 +79,7 @@ src/
 |  |  +- gesture_registry.ts   -- GESTURE_REGISTRY: per-gesture affordance contract + dispatch_gesture, scene_click_to_command
 |  |  +- resolve_entry_scene.ts -- entry-scene resolution + empty-scene guard
 |  |  +- target_adapter.ts     -- protocol-target -> DOM identity adapter (resolve_to_placement/object, AmbiguousTargetError)
-|  |  +- flatten_sequence_runner.ts -- flattens a sequence_runner into its constituent mini-protocol steps
+|  |  +- flatten_sequence_runner.ts -- rejects nested/repeated leaves and flattens unique direct mini-protocols into one chained step flow
 |  |  +- step_machine.ts       -- pure step machine (no DOM)
 |  |  +- validators.ts         -- interaction and step validator dispatch
 |  |  +- authored_value_check.ts -- load-time authored-value guard for target_with_value / final_state_matches
@@ -87,16 +87,17 @@ src/
 |  |  +- target_existence_check.ts -- load-time invariant: authored target must exist in the scene
 |  |  +- scene_operations.ts   -- routes the five SceneOperation primitives to injected store-backed deps
 |  |  +- scene_op_deps.ts      -- SceneOpDeps interface + store-backed factory
-|  |  +- walker_debug.ts       -- debug helpers for walkthrough evidence collection
+|  |  +- walker_debug.ts       -- read-only walkthrough evidence: active target, stateRevision, and lastStateDelta
 |  |  +- click_resolver.ts     -- DOM click -> step machine
 |  |  `- emitter.ts            -- ProtocolShellEmitter, RuntimeEmitterHandle
 |  +- state/                   -- Solid signal store for shared scene state
-|  |  `- scene_store.ts        -- createSceneStore: object state signals + updaters
+|  |  `- scene_store.ts        -- active Solid projection plus target-keyed durable protocol session archive; owns start_session/reconcile_scene/snapshot_declared_state
 |  `- renderer/                -- Solid DOM rendering from PipelineResult
 |     +- render_scene.tsx      -- public Solid mount facade (mounts SceneView)
 |     +- affordance_candidates.ts -- renderer-layer candidate enumeration (enumerate_candidate_targets)
 |     +- scene_view.tsx        -- Solid SceneView (bg, items, labels, guards)
 |     +- scene_item.tsx        -- Solid SceneItem (per-item + missing-svg placeholder)
+|     +- subpart_hit_surface.tsx -- declaration-geometry exact-subpart/group hit surfaces and focused affordances
 |     +- visual_state_resolver.ts -- state + visual_states -> renderable description
 |     +- render_background.ts  -- background (gradient or asset)
 |     +- structural_guards.ts  -- six layout validation guards
@@ -136,7 +137,7 @@ Every script that emits to `generated/`, assembles bundles, or produces
 | [gen_object_library.py](../pipeline/gen_object_library.py) | `content/objects/` YAML -> `generated/object_library.ts` |
 | [gen_svg_manifest.py](../pipeline/gen_svg_manifest.py) | `assets/**/*.svg` -> `generated/svg_manifest.ts` (asset_name -> relative file path) |
 | [gen_scene_index.py](../pipeline/gen_scene_index.py) | Scene YAML -> `generated/scenes.ts` + `generated/scene_manifest.json`; `--missing-svg=strict|placeholder` (default `placeholder`) |
-| [gen_protocols.py](../pipeline/gen_protocols.py) | Protocol YAML -> `generated/protocols.ts` + `generated/protocols_index_slim.ts` + `generated/protocol_materials.ts` (per-protocol material registry from each package `materials.yaml`) |
+| [gen_protocols.py](../pipeline/gen_protocols.py) | Protocol YAML -> `generated/protocols.ts` + `generated/protocols_index_slim.ts` + `generated/protocol_materials.ts` (per-protocol material registry and validated typed `initial_state` from each package) |
 | [entity_decode.py](../pipeline/entity_decode.py) | Codegen helper: `decode_entities()` maps authored HTML entities (`&micro;` etc.) to Unicode glyphs at emit time; imported by `gen_protocols.py` and `gen_object_library.py` so `generated/**` carries the glyph while source stays ASCII |
 | [gen_flow_view.py](../pipeline/gen_flow_view.py) | Protocol YAML -> `generated/flow_views/<protocol_name>.txt`, a per-protocol audit view (click path, gestures, state changes, transitions); not the design source, see [PROTOCOL_AUTHORING_GUIDE.md](specs/PROTOCOL_AUTHORING_GUIDE.md) |
 | [build_protocol_index.py](../pipeline/build_protocol_index.py) | Protocol index build helpers |
@@ -156,7 +157,7 @@ content/
 +- base_scenes/                -- shared base scenes (bench, hood, microscope, etc.)
 +- protocols/
 |  +- cell_culture/            -- cell culture mini-protocols and runners
-|  +- sdspage/                 -- SDS-PAGE mini-protocols and runners
+|  +- sdspage/                 -- SDS-PAGE mini-protocols, including direct-leaf batch preparation and loading packages
 |  `- runners/                 -- sequence-runner protocols
 +- objects_quarantine/         -- quarantined objects pending restoration review
 `- base_scenes_quarantine/     -- quarantined base scenes pending restoration review
@@ -171,6 +172,11 @@ content/protocols/<cluster>/<protocol_name>/
 `- scenes/                     -- per-protocol scene YAML overrides
 ```
 
+`content/protocols/sdspage/` owns the SDS batch packages
+`sdspage_prepare_sample_mix_batch` and `sdspage_load_samples_batch`; they are
+not reusable nested runners. Their `initial_state` declarations seed the
+normalized `microtube_rack_8` slots used by the associated SDS scenes.
+
 ### `validation/` - YAML and scene validators
 
 Standalone Python validators. Entry point: [validate.py](../validation/validate.py).
@@ -179,7 +185,7 @@ Standalone Python validators. Entry point: [validate.py](../validation/validate.
 validation/
 +- validate.py                 -- aggregate entry: runs every validation stage
 +- yaml_schema/                -- schema + cross-field rules for protocol, object, scene YAML
-+- stepper/                    -- step-flow walker: simulates execution, checks semantics
++- stepper/                    -- step-flow walker: shared StateMap, initial-state seeding, scene operations, and material transfer ledger
 +- svg/                        -- SVG asset usage audit
 +- manual/                     -- human-readable protocol manual renderer
 +- scene_lint/                 -- pre-render failure predictor (Group A BLOCKED, Group B advisory)
@@ -245,16 +251,22 @@ Key Node test files:
 | [test_protocol_emitter.mjs](../tests/test_protocol_emitter.mjs) | Emitter unit tests |
 | [test_shell_signals.mjs](../tests/test_shell_signals.mjs) | Shell signal binding tests |
 | [test_m2_integration.mjs](../tests/test_m2_integration.mjs) | M2 framed-layout integration |
+| [test_flatten_sequence_runner.mjs](../tests/test_flatten_sequence_runner.mjs) | Direct-leaf runner flattening, unique constituents, and root-only initial-state ownership |
+| [test_scene_store.mjs](../tests/test_scene_store.mjs) | Session archive lifecycle, initial-state expansion, rehydration, revision, and declared-state writes |
+| [test_walker_debug.mjs](../tests/test_walker_debug.mjs) | Walker debug projection, including `stateRevision` and `lastStateDelta` |
 | `test_material_color.mjs` | D3 resolver contract: all `resolve_color_result` success and failure cases |
 | `test_subpart_visual_state_renderer.mjs` | Subpart material-tint renderer: dispatch predicate, fill, transparent empty, degrade path |
-| [test_scene_store.mjs](../tests/test_scene_store.mjs) | Scene store: `getSubpartStateField` accessor, per-well independent reactivity |
+| `tests/test_protocol_initial_state.py` | YAML validation and generation rules for root `initial_state` |
+| `tests/test_stepper_runner_state.py` | Shared runner StateMap and direct-leaf runner semantics |
 | `test_material_acceptance_cross_layer.mjs` | Cross-layer acceptance: stepper D1 and TS runtime store accept and reject the same material names |
 | `tests/test_layout_offcanvas.mjs` | Off-canvas classifier unit tests (exercises `PipelineResult.offCanvasDiagnostics` fully_off_canvas and partial_overflow paths) |
 | `tests/test_layout_config.mjs` | Config-precedence unit tests: 16 behavioral tests covering zone_gap split, scene-level and zone-level overrides, and strategy-local values |
 
 ### `assets/` - Source SVG art
 
-`assets/equipment/` contains tracked source SVG files for all lab objects.
+`assets/equipment/` contains tracked source SVG files for all lab objects,
+including the normalized `microtube_rack_8.svg` and the lane-addressable
+`gel_cassette.svg` used by the SDS-PAGE sequence.
 Sidecar `*.colormap.json` files group element ids for the recolor pipeline.
 Processed by [gen_svg_manifest.py](../pipeline/gen_svg_manifest.py).
 

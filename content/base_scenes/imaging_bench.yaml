@@ -61,7 +61,9 @@ placements:
 
   # Rear center: ddH2O and ethanol bottles, plus rocking shaker (peripheral
   # accessory, not an imaging-protocol target; kept off the center stage)
-  - placement_name: rear_ddh2o
+  # Match the runner-root seed identity so this final rinse consumes the
+  # remaining shared water inventory rather than creating a scene-local copy.
+  - placement_name: center_ddh2o_bottle
     object_name: ddh2o_bottle
     zone: rear_center
     depth_tier: 1

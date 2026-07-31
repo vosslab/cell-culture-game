@@ -1,0 +1,16 @@
+materials:
+  protein_sample_raw:
+    label: "Miraculin protein sample (raw)"
+    display_color: "#f5f3ff"
+  protein_sample_mixed:
+    label: "Protein + Laemmli + BME mix"
+    display_color: "#3730a3"
+  protein_ladder:
+    label: "Molecular weight ladder"
+    display_color: "#06b6d4"
+  laemmli_4x:
+    label: "4x Laemmli sample buffer"
+    display_color: "#1e3a8a"
+  bme:
+    label: "beta-mercaptoethanol"
+    display_color: "#fef3c7"

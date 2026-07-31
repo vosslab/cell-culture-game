@@ -35,7 +35,6 @@ import {
   waitForExports,
   readGameState,
   clickTargetAndWaitProgress,
-  typeCommitAndWaitProgress,
   adjustCommitAndWaitProgress,
   pickWrongOrderItem,
   recordInjection,
@@ -43,7 +42,9 @@ import {
   captureVisibleTargetCheckpoint,
   waitForVisibleTimedWait,
   readSubpartOverlay,
-  verifyMaterialAreaAfterInteraction,
+  verifyMaterialAreaEffectsAfterInteraction,
+  pickWrongSiblingItem,
+  readVisibleAdjustValue,
 } from "./walker_helpers.mjs";
 
 // Whole-run budget: 10 minutes.
@@ -52,6 +53,10 @@ const RUN_BUDGET_MS = 600000;
 const STEP_BUDGET_MS = 30000;
 // Per-click budget: 3 seconds.
 const CLICK_BUDGET_MS = 3000;
+// Timed waits are intentionally compressed for browser learning sessions. This
+// hard ceiling catches an accidentally authored real-world wait without making
+// the evidence assertion depend on an exact animation duration.
+const TIMED_WAIT_BUDGET_MS = 1500;
 
 // Closed gesture set (PRIMARY_SPEC.md). "click", "select", "type", and "adjust"
 // have visible affordances in the host; "drag" stays classified-unsupported for
@@ -82,6 +87,8 @@ export class WalkerReport {
       stepsPassed: 0,
       stepsFailed: 0,
       totalClicks: 0,
+      wrongSiblingProbes: 0,
+      wrongOrderInjections: 0,
       failureReason: null,
     };
   }
@@ -130,6 +137,16 @@ function checkpointManifestProblems(report) {
       checkpoint.actionCue.target !== checkpoint.target ||
       checkpoint.actionCue.gesture !== checkpoint.gesture ||
       !checkpoint.affordance ||
+      !checkpoint.effectiveClickTarget ||
+      checkpoint.effectiveClickTarget.authoredDomTarget !== checkpoint.target ||
+      checkpoint.effectiveClickTarget.hitDomTarget !== checkpoint.target ||
+      checkpoint.effectiveClickTarget.coreWidth < 24 ||
+      checkpoint.effectiveClickTarget.coreHeight < 24 ||
+      !checkpoint.declaredStateBefore ||
+      !checkpoint.declaredStateAfter ||
+      !Array.isArray(checkpoint.declaredStateBefore.activeStateWrites) ||
+      (checkpoint.declaredStateBefore.activeStateWrites.length > 0 &&
+        (!checkpoint.stateAfterScreenshot || !fs.existsSync(checkpoint.stateAfterScreenshot))) ||
       checkpoint.affordance.expectedKind !== checkpoint.affordance.renderedKind ||
       checkpoint.affordance.indicatorWidth <= 0 ||
       !bounds ||
@@ -143,6 +160,148 @@ function checkpointManifestProblems(report) {
       ? [`checkpoint ${index} is missing learner-cue, affordance, screenshot, or viewport proof`]
       : [];
   });
+}
+
+function declaredStateEvidence(gameState) {
+  return {
+    revision: gameState.stateRevision,
+    snapshot: gameState.declaredState,
+    lastDelta: gameState.lastStateDelta,
+    stateDeltaLog: gameState.stateDeltaLog,
+    activeStateWrites: gameState.activeStateWrites,
+  };
+}
+
+function exactStateFields(expected, actual) {
+  const expectedKeys = Object.keys(expected).sort();
+  const actualKeys = Object.keys(actual).sort();
+  if (expectedKeys.length !== actualKeys.length) return false;
+  return expectedKeys.every(
+    (field, index) => field === actualKeys[index] && actual[field] === expected[field],
+  );
+}
+
+export function validateDeclaredStateMutation(before, after, target, step, interactionIndex) {
+  const expectedWrites = before.activeStateWrites;
+  if (
+    !Array.isArray(expectedWrites) ||
+    !Array.isArray(before.stateDeltaLog) ||
+    !Array.isArray(after.stateDeltaLog)
+  ) {
+    throw new Error(
+      `declared_state_contract_missing: ${step} interaction ${interactionIndex} on '${target}' ` +
+        "does not expose activeStateWrites and ordered stateDeltaLog on the read-only walker surface",
+    );
+  }
+  const observedDeltas = after.stateDeltaLog.slice(before.stateDeltaLog.length);
+  if (expectedWrites.length === 0) {
+    // Scene reconciliation can legitimately advance the diagnostic revision
+    // while a SceneChange mounts a new projection. It is not a declared write.
+    // A changed concrete delta, however, would falsely invent one.
+    if (observedDeltas.length !== 0) {
+      throw new Error(
+        `declared_state_unexpected_delta: ${step} interaction ${interactionIndex} recorded ` +
+          `${observedDeltas.length} state delta(s) without ObjectStateChange`,
+      );
+    }
+    return;
+  }
+  if (after.stateRevision <= before.stateRevision) {
+    throw new Error(
+      `declared_state_revision_missing: ${step} interaction ${interactionIndex} authored ObjectStateChange ` +
+        `but revision stayed ${before.stateRevision}`,
+    );
+  }
+  if (observedDeltas.length !== expectedWrites.length) {
+    throw new Error(
+      `declared_state_delta_count_mismatch: ${step} interaction ${interactionIndex} expected ` +
+        `${expectedWrites.length} ordered write(s), got ${observedDeltas.length}`,
+    );
+  }
+  for (let writeIndex = 0; writeIndex < expectedWrites.length; writeIndex++) {
+    const expectedWrite = expectedWrites[writeIndex];
+    const observedDelta = observedDeltas[writeIndex];
+    if (expectedWrite === undefined || observedDelta === undefined) {
+      throw new Error(`declared_state_delta_missing: ${step} interaction ${interactionIndex}`);
+    }
+    if (observedDelta.target !== expectedWrite.target) {
+      throw new Error(
+        `declared_state_delta_order_mismatch: ${step} interaction ${interactionIndex} write ${writeIndex} ` +
+          `expected '${expectedWrite.target}', got '${observedDelta.target}'`,
+      );
+    }
+    if (!exactStateFields(expectedWrite.state, observedDelta.after)) {
+      throw new Error(
+        `declared_state_delta_field_mismatch: ${step} interaction ${interactionIndex} write ${writeIndex} ` +
+          `does not exactly match '${expectedWrite.target}' fields`,
+      );
+    }
+  }
+  const finalWrite = expectedWrites[expectedWrites.length - 1];
+  const finalDelta = observedDeltas[observedDeltas.length - 1];
+  if (
+    finalWrite === undefined ||
+    finalDelta === undefined ||
+    after.lastStateDelta === null ||
+    after.lastStateDelta.target !== finalDelta.target ||
+    !exactStateFields(finalDelta.after, after.lastStateDelta.after)
+  ) {
+    throw new Error(
+      `declared_state_final_delta_mismatch: ${step} interaction ${interactionIndex} final log entry ` +
+        "does not agree with lastStateDelta",
+    );
+  }
+  // declaredState is a detached active-scene map, not a writable archive dump.
+  // It proves every concrete target that remains learner-visible after the
+  // action; the ordered writes and lastStateDelta cover a target that departed
+  // during a scene transition.
+  if (before.declaredState !== null && after.declaredState !== null) {
+    const expectedFinalState = new Map();
+    for (const write of expectedWrites) {
+      const prior = expectedFinalState.get(write.target) ?? {};
+      expectedFinalState.set(write.target, { ...prior, ...write.state });
+    }
+    for (const [writeTarget, expectedState] of expectedFinalState) {
+      const afterTarget = after.declaredState[writeTarget];
+      if (afterTarget === undefined) continue;
+      for (const [field, value] of Object.entries(expectedState)) {
+        if (afterTarget[field] !== value) {
+          throw new Error(
+            `declared_state_snapshot_field_mismatch: ${step} interaction ${interactionIndex} expected ` +
+              `${writeTarget}.${field}=${String(value)}, got ${String(afterTarget[field])}`,
+          );
+        }
+      }
+    }
+  }
+}
+
+// A TimedWait can deliberately defer ObjectStateChange operations until its
+// visible phase completes. The pre-click projected writes remain the source of
+// truth; this predicate only decides whether validation must wait for that
+// learner-visible phase instead of observing its intentionally unchanged start.
+export function shouldAwaitTimedStateWrite(gameState, timedWaitVisible) {
+  return (
+    Array.isArray(gameState.activeStateWrites) &&
+    gameState.activeStateWrites.length > 0 &&
+    timedWaitVisible
+  );
+}
+
+export function expectedRejectedClickCount(summary) {
+  return summary.wrongSiblingProbes + summary.wrongOrderInjections;
+}
+
+export function wrongOrderAccountingProblem(summary, observedWrongOrderClicks) {
+  const expected = expectedRejectedClickCount(summary);
+  if (observedWrongOrderClicks !== expected) {
+    return (
+      `wrong_order_accounting_mismatch: observed ${observedWrongOrderClicks} rejected click(s), ` +
+      `expected ${expected} (${summary.wrongSiblingProbes} wrong-sibling probe(s) + ` +
+      `${summary.wrongOrderInjections} --wrong-order injection(s))`
+    );
+  }
+  return null;
 }
 
 //============================================
@@ -181,7 +340,7 @@ async function walkActiveStep(page, step, report, opts) {
       const timedWait = page.locator('[data-timed-wait="active"]:visible').first();
       if ((await timedWait.count()) > 0) {
         report.info(`Waiting for visible timed phase on step ${step.id}`);
-        await waitForVisibleTimedWait(page, step.id, resultsDir, report, CLICK_BUDGET_MS);
+        await waitForVisibleTimedWait(page, step.id, resultsDir, report, TIMED_WAIT_BUDGET_MS);
         continue;
       }
       throw new Error(
@@ -207,11 +366,133 @@ async function walkActiveStep(page, step, report, opts) {
     // visible-click gestures (click/select); a `type` or `adjust` interaction is
     // driven through an overlay affordance, not an alternative scene object, so
     // injection is skipped for those.
+    if (target.includes(".")) {
+      const groupMembers = page.locator(
+        `#scene-root [data-subpart-group-target="${target}"][data-item-id="${target}"]`,
+      );
+      const groupMemberCount = await groupMembers.count();
+      if (groupMemberCount > 0) {
+        if (groupMemberCount < 2) {
+          throw new Error(
+            `subpart_group_incomplete: declared group '${target}' exposes only ` +
+              `${groupMemberCount} visible member surface`,
+          );
+        }
+        const expectedGroupAffordance = gesture === "select" ? "candidate" : "active";
+        const groupEvidence = await groupMembers.evaluateAll((elements) =>
+          elements.map((element) => {
+            const rect = element.getBoundingClientRect();
+            const indicator = element.querySelector(".subpart-focus-indicator");
+            const indicatorStyle = indicator === null ? null : window.getComputedStyle(indicator);
+            const hit = document
+              .elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
+              ?.closest?.("[data-item-id]");
+            return {
+              member: element.getAttribute("data-subpart-name"),
+              target: element.getAttribute("data-item-id"),
+              affordance: element.getAttribute("data-subpart-affordance"),
+              width: rect.width,
+              height: rect.height,
+              centerTarget: hit?.getAttribute("data-item-id") ?? null,
+              strokeWidth: Number.parseFloat(indicatorStyle?.strokeWidth ?? "0"),
+              stroke: indicatorStyle?.stroke ?? "none",
+            };
+          }),
+        );
+        const groupProblems = [];
+        const memberNames = new Set();
+        for (const member of groupEvidence) {
+          if (member.member === null || memberNames.has(member.member)) {
+            groupProblems.push(`duplicate or unnamed member '${String(member.member)}'`);
+          } else {
+            memberNames.add(member.member);
+          }
+          if (member.target !== target || member.centerTarget !== target) {
+            groupProblems.push(
+              `member '${String(member.member)}' resolves DOM '${String(member.target)}' / ` +
+                `centre '${String(member.centerTarget)}'`,
+            );
+          }
+          if (member.affordance !== expectedGroupAffordance) {
+            groupProblems.push(
+              `member '${String(member.member)}' affordance '${String(member.affordance)}'`,
+            );
+          }
+          if (member.width < 24 || member.height < 24) {
+            groupProblems.push(
+              `member '${String(member.member)}' core ${member.width}x${member.height}px`,
+            );
+          }
+          if (
+            !Number.isFinite(member.strokeWidth) ||
+            member.strokeWidth <= 0 ||
+            member.stroke === "none"
+          ) {
+            groupProblems.push(`member '${String(member.member)}' has no painted focus stroke`);
+          }
+        }
+        if (groupProblems.length > 0) {
+          throw new Error(
+            `subpart_group_not_obvious: '${target}' failed member proof: ` +
+              groupProblems.join("; "),
+          );
+        }
+        report.info(
+          `[subpart-group proof] ${target} exposes ${groupMemberCount} distinct, painted, ` +
+            `learner-sized member surfaces`,
+        );
+      }
+
+      const wrongSibling = await pickWrongSiblingItem(page, target);
+      if (wrongSibling === null) {
+        if (groupMemberCount === 0) {
+          throw new Error(
+            `wrong_sibling_missing: exact target '${target}' has no visible clickable sibling`,
+          );
+        }
+        const objectPrefix = `${target.slice(0, target.indexOf("."))}.`;
+        const nonMemberIdentities = await page
+          .locator("#scene-root [data-subpart-hit][data-item-id]")
+          .evaluateAll(
+            (elements, args) => [
+              ...new Set(
+                elements
+                  .map((element) => element.getAttribute("data-item-id"))
+                  .filter(
+                    (itemId) =>
+                      itemId !== null && itemId.startsWith(args.prefix) && itemId !== args.target,
+                  ),
+              ),
+            ],
+            { prefix: objectPrefix, target },
+          );
+        if (nonMemberIdentities.length > 0) {
+          throw new Error(
+            `wrong_sibling_not_actionable: group target '${target}' has non-member ` +
+              `identities ${nonMemberIdentities.join(", ")} but none has a visible 24px core`,
+          );
+        }
+        report.info(
+          `[wrong-sibling probe] ${target} covers every declared rendered member; ` +
+            `there is no false sibling to click`,
+        );
+      } else {
+        report.info(`[wrong-sibling probe] clicking ${wrongSibling} (not exact target ${target})`);
+        recordInjection(report, step.id, wrongSibling);
+        report.summary.wrongSiblingProbes++;
+        await clickTargetAndWaitProgress(page, wrongSibling, report, {
+          clickBudgetMs: CLICK_BUDGET_MS,
+          progressKind: "reject",
+        });
+      }
+    }
+
     if (wrongOrderMode && gesture !== "type" && gesture !== "adjust") {
       const wrongItem = await pickWrongOrderItem(page, target);
       if (wrongItem) {
         report.info(`[wrong-order injection] clicking ${wrongItem} (not the active target)`);
         recordInjection(report, step.id, wrongItem);
+        report.summary.wrongOrderInjections++;
         await clickTargetAndWaitProgress(page, wrongItem, report, {
           clickBudgetMs: CLICK_BUDGET_MS,
           progressKind: "reject",
@@ -234,42 +515,33 @@ async function walkActiveStep(page, step, report, opts) {
       interactionIndex: gs.interactionIndex,
       resultsDir,
     });
-    report.addCheckpoint(checkpoint);
+    const declaredBefore = await readGameState(page);
+    checkpoint.declaredStateBefore = declaredStateEvidence(declaredBefore);
 
     // Structured material-area verification (generic, schema-driven). When the
     // active interaction's response writes a structured object's declared
     // material-tint subpart field, snapshot that object's per-subpart overlay
     // BEFORE the click so the after-verify can assert the targeted members
-    // changed and nothing else did. activeMaterialEffect is a read-only
-    // projection of authored config + generated object schema; null for every
-    // non-material-write interaction. No per-protocol branch.
-    const materialEffect = gs.activeMaterialEffect;
-    let materialBeforeOverlay = null;
-    if (materialEffect !== null) {
-      materialBeforeOverlay = await readSubpartOverlay(page, materialEffect.object_name);
+    // changed and nothing else did. activeMaterialEffects is a read-only
+    // projection of authored config + generated object schema; it is empty for
+    // every non-material-write interaction. No per-protocol branch.
+    const materialEffects = gs.activeMaterialEffects;
+    const materialBeforeOverlays = new Map();
+    if (Array.isArray(materialEffects)) {
+      for (const objectName of new Set(materialEffects.map((effect) => effect.object_name))) {
+        materialBeforeOverlays.set(objectName, await readSubpartOverlay(page, objectName));
+      }
     }
 
     // Correct interaction: drive the active interaction through its visible
     // affordance and wait for a progress signal produced by the real handler.
     if (gesture === "type") {
-      const typedText = gs.activeTypeValue;
-      if (typedText === null) {
-        throw new Error(
-          `type_value_missing: step ${step.id} type interaction on '${target}' has no ` +
-            `activeTypeValue to type (validator declares no expected value)`,
-        );
-      }
-      await typeCommitAndWaitProgress(page, typedText, report, {
-        clickBudgetMs: CLICK_BUDGET_MS,
-      });
+      throw new Error(
+        `type_answer_not_visible: step ${step.id} type interaction on '${target}' has no ` +
+          "visible learner-facing answer source",
+      );
     } else if (gesture === "adjust") {
-      const setPoint = gs.activeAdjustValue;
-      if (setPoint === null) {
-        throw new Error(
-          `adjust_value_missing: step ${step.id} adjust interaction on '${target}' has no ` +
-            `activeAdjustValue to set (validator declares no expected value)`,
-        );
-      }
+      const setPoint = await readVisibleAdjustValue(page, target);
       await adjustCommitAndWaitProgress(page, setPoint, report, {
         clickBudgetMs: CLICK_BUDGET_MS,
       });
@@ -296,14 +568,62 @@ async function walkActiveStep(page, step, report, opts) {
       });
     }
 
+    // A response may intentionally start a visible TimedWait before applying
+    // its declared writes. Wait through that learner-visible phase here, in the
+    // SAME checkpoint, so validation reads the completed mutation rather than
+    // treating the expected delayed state as a missing write. This consumes the
+    // phase, so the next loop cannot duplicate the wait evidence.
+    const activeTimedWait = page.locator('[data-timed-wait="active"]:visible').first();
+    const timedWaitVisible =
+      (await activeTimedWait.count()) > 0 && (await activeTimedWait.isVisible());
+    if (shouldAwaitTimedStateWrite(declaredBefore, timedWaitVisible)) {
+      const timedWaitEvidence = await waitForVisibleTimedWait(
+        page,
+        step.id,
+        resultsDir,
+        report,
+        TIMED_WAIT_BUDGET_MS,
+      );
+      checkpoint.timedWait = timedWaitEvidence;
+    }
+
     // After the interaction settles, run the material-area assertion: every
     // targeted member subpart carries the authored material and its fill
     // changed, and every OTHER rendered subpart kept its prior material/fill.
-    // A mismatch throws material_area_mismatch / material_area_no_overlay, which
-    // fails this step (and reds the protocol in the sweep).
-    if (materialEffect !== null && materialBeforeOverlay !== null) {
-      await verifyMaterialAreaAfterInteraction(page, materialEffect, materialBeforeOverlay, report);
+    // A mismatch throws material_area_multi_mismatch, which fails this step
+    // (and reds the protocol in the sweep).
+    if (Array.isArray(materialEffects) && materialEffects.length > 0) {
+      await verifyMaterialAreaEffectsAfterInteraction(
+        page,
+        materialEffects,
+        materialBeforeOverlays,
+        report,
+      );
     }
+
+    const declaredAfter = await readGameState(page);
+    checkpoint.declaredStateAfter = declaredStateEvidence(declaredAfter);
+    validateDeclaredStateMutation(
+      declaredBefore,
+      declaredAfter,
+      target,
+      step.id,
+      gs.interactionIndex,
+    );
+    if (
+      Array.isArray(declaredBefore.activeStateWrites) &&
+      declaredBefore.activeStateWrites.length > 0 &&
+      resultsDir !== null
+    ) {
+      const safeTarget = target.replace(/[^a-z0-9_]/gi, "_");
+      const screenshotPath = `${resultsDir}/state_after_${step.id}_i${interactionCounter}_${safeTarget}.png`;
+      await page.screenshot({ path: screenshotPath });
+      checkpoint.stateAfterScreenshot = screenshotPath;
+    }
+    // The manifest is evidence of a completed checkpoint, never a pre-click
+    // promise. Add it only after the visible interaction and any delayed write
+    // have both been validated.
+    report.addCheckpoint(checkpoint);
 
     // Per-interaction screenshot after the interaction's click completes.
     if (screenshotMode === "per-interaction" && resultsDir !== null) {
@@ -478,8 +798,12 @@ export async function runProtocolWalk(page, options) {
           `completedSteps ${ending.completedSteps.length} !== step count ${steps.length}`,
         );
       }
-      if (ending.wrongOrderClicks > 0 && !wrongOrder) {
-        report.error(`wrongOrderClicks = ${ending.wrongOrderClicks} (should be 0)`);
+      const wrongOrderProblem = wrongOrderAccountingProblem(
+        report.summary,
+        ending.wrongOrderClicks,
+      );
+      if (wrongOrderProblem !== null) {
+        report.error(wrongOrderProblem);
       }
     }
 

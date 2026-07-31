@@ -48,8 +48,65 @@ export interface TargetCheckpoint {
     target: string | null;
     label: string | null;
     gesture: string | null;
+    value: string | null;
     text: string;
+  };
+  effectiveClickTarget: {
+    authoredDomTarget: string | null;
+    hitDomTarget: string | null;
+    coreWidth: number;
+    coreHeight: number;
+  };
+  declaredStateBefore: DeclaredStateEvidence;
+  declaredStateAfter: DeclaredStateEvidence;
+  stateAfterScreenshot?: string;
+  timedWait?: {
+    screenshot: string;
+    observedDurationMs: number;
+    waitBudgetMs: number;
   };
 }
 
+export interface DeclaredStateEvidence {
+  revision: number;
+  snapshot: Record<string, Record<string, string | number | boolean>> | null;
+  lastDelta: {
+    target: string;
+    before: Record<string, string | number | boolean>;
+    after: Record<string, string | number | boolean>;
+  } | null;
+  stateDeltaLog?: Array<{
+    target: string;
+    before: Record<string, string | number | boolean>;
+    after: Record<string, string | number | boolean>;
+  }> | null;
+  activeStateWrites?: Array<{
+    target: string;
+    state: Record<string, string | number | boolean>;
+  }> | null;
+}
+
 export declare function runProtocolWalk(page: Page, options: WalkOptions): Promise<WalkOutcome>;
+
+export declare function validateDeclaredStateMutation(
+  before: {
+    stateRevision: number;
+    lastStateDelta: DeclaredStateEvidence["lastDelta"];
+    activeStateWrites: NonNullable<DeclaredStateEvidence["activeStateWrites"]>;
+    declaredState: NonNullable<DeclaredStateEvidence["snapshot"]>;
+  },
+  after: {
+    stateRevision: number;
+    lastStateDelta: DeclaredStateEvidence["lastDelta"];
+    activeStateWrites: NonNullable<DeclaredStateEvidence["activeStateWrites"]>;
+    declaredState: NonNullable<DeclaredStateEvidence["snapshot"]>;
+  },
+  target: string,
+  step: string,
+  interactionIndex: number,
+): void;
+
+export declare function shouldAwaitTimedStateWrite(
+  gameState: { activeStateWrites: DeclaredStateEvidence["activeStateWrites"] },
+  timedWaitVisible: boolean,
+): boolean;

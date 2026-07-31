@@ -1,10 +1,22 @@
-# Simulation design: multi-well dispensing is authored as individual well interactions
-# (validation granularity). In wet-lab practice a multichannel pipette covers one column
-# per aspirate; a repeater pipette serializes wells without re-aspirating. The per-well
-# clicks here are an instrumentation abstraction, not a procedural prescription.
+# Simulation design: a multichannel pipette dispenses one complete 8-well column per
+# aspirate. The 12 authored column interactions model the actual 96-well seeding
+# procedure with explicit material accounting, rather than hiding it in a repeater or
+# per-well-click abstraction.
 protocol_type: mini_protocol
 protocol_name: cell_seeding_plate_setup
 entry_step: calculate_dilution_volume
+initial_state:
+  # A standalone run begins after the 10 uL trypan-blue count and the upstream
+  # pellet resuspension. In cell_culture_full, the runner carries these same
+  # object states forward and intentionally ignores constituent seeds.
+  - target: cell_suspension_tube
+    state:
+      material_name: cell_suspension
+      material_volume: 14.99
+  - target: media_bottle
+    state:
+      material_name: media
+      material_volume: 483.1
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
@@ -12,24 +24,25 @@ learning:
     target concentration.
   outcomes:
     Students completing this mini-protocol will be able to calculate the volume
-    of cell stock needed to prepare 12 mL of 2x10^5 cells/mL suspension, prepare the
+    of cell stock needed to prepare 9.6 mL of 2.5x10^5 cells/mL suspension, prepare the
     diluted suspension, seed a 96-well plate at 100 microL per well, and incubate
     the seeded plate for overnight cell attachment.
   goals:
     "Overall, this mini-protocol aims to accomplish the cell-seeding phase for
     a dose-response experiment: taking the counted cell suspension from MP-3 and preparing
-    a working suspension at the precise concentration and volume needed for experimental
-    seeding. Students apply C1V1 = C2V2 to calculate dilution volume (A29), perform
+    a 9.6 mL working suspension at the precise concentration and volume needed for
+    96-well experimental seeding. Students apply C1V1 = C2V2 to calculate dilution volume (A29), perform
     the physical seeding step (A30), and trigger incubation for cell attachment (A31)."
 steps:
   - step_name: calculate_dilution_volume
     prompt:
-      Calculate the volume of cell suspension needed to prepare 12 mL of 2x10^5
+      Calculate the volume of cell suspension needed to prepare 9.6 mL of 2.5x10^5
       cells/mL. Using C1V1 = C2V2, where C1 is your counted cell concentration from
       the hemocytometer (in cells/mL), V1 is the volume of stock cells you need, C2
-      is 2x10^5 cells/mL, and V2 is 12 mL. Solve for V1. For example, if the count
-      is 1x10^6 cells/mL, then 1x10^6 x V1 = 2x10^5 x 12, so V1 = (2x10^5 x 12) /
-      1x10^6 = 2.4 mL (2400 microL). Since this volume is in the milliliter range,
+      is 2.5x10^5 cells/mL, and V2 is 9.6 mL (exactly 96 wells x 100 microL). Solve
+      for V1. For example, if the count is 1x10^6 cells/mL, then 1x10^6 x V1 =
+      2.5x10^5 x 9.6, so V1 = (2.5x10^5 x 9.6) / 1x10^6 = 2.4 mL (2400 microL).
+      Since this volume is in the milliliter range,
       use a serological pipette (not a micropipette, which tops out at 1000 microL).
       Adjust the serological pipette to 2.4 mL.
     sequence:
@@ -55,10 +68,10 @@ steps:
     next_step: prepare_diluted_suspension
   - step_name: prepare_diluted_suspension
     prompt:
-      Prepare the working cell suspension at 2x10^5 cells/mL by mixing your calculated
-      volume of stock suspension with fresh media to reach 12 mL total. Using the serological
+      Prepare the working cell suspension at 2.5x10^5 cells/mL by mixing your calculated
+      volume of stock suspension with fresh media to reach 9.6 mL total. Using the serological
       pipette set to 2.4 mL, transfer cell suspension into a fresh 15 mL conical tube.
-      Then re-set the serological pipette to 9.6 mL (12 mL total minus the 2.4 mL stock)
+      Then re-set the serological pipette to 7.2 mL (9.6 mL total minus the 2.4 mL stock)
       and add fresh media. Mix gently by inversion or vortex briefly. A serological pipette
       is the correct instrument for milliliter-range transfers; micropipettes are limited
       to volumes at or below 1 mL.
@@ -88,6 +101,10 @@ steps:
         response:
           scene_operations:
             - type: ObjectStateChange
+              target: cell_suspension_tube
+              state:
+                material_volume: 12.59
+            - type: ObjectStateChange
               target: serological_pipette
               state:
                 held_material_name: cell_suspension
@@ -103,18 +120,23 @@ steps:
               state:
                 material_name: cell_suspension
                 material_volume: 2.4
+            - type: ObjectStateChange
+              target: serological_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
       - target: serological_pipette
         gesture: adjust
         validator:
           preset: target_with_value
           value:
-            set_volume: 9.6
+            set_volume: 7.2
         response:
           scene_operations:
             - type: ObjectStateChange
               target: serological_pipette
               state:
-                set_volume: 9.6
+                set_volume: 7.2
       - target: media_bottle
         gesture: click
         validator:
@@ -122,10 +144,14 @@ steps:
         response:
           scene_operations:
             - type: ObjectStateChange
+              target: media_bottle
+              state:
+                material_volume: 475.9
+            - type: ObjectStateChange
               target: serological_pipette
               state:
                 held_material_name: media
-                held_material_volume: 9.6
+                held_material_volume: 7.2
       - target: conical_tube_for_dilution
         gesture: click
         validator:
@@ -135,7 +161,12 @@ steps:
             - type: ObjectStateChange
               target: conical_tube_for_dilution
               state:
-                material_volume: 12.0
+                material_volume: 9.6
+            - type: ObjectStateChange
+              target: serological_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
       - target: vortex
         gesture: click
         validator:
@@ -160,18 +191,17 @@ steps:
     next_step: seed_96_well_plate
   - step_name: seed_96_well_plate
     prompt:
-      Seed the 96-well plate by dispensing 100 microL of the prepared 2x10^5 cells/mL
-      suspension into each well. You may use a multichannel pipette to fill entire rows
-      (columns A-H in one action per row), or a single-channel pipette to fill individual
-      wells. Each well receives exactly 100 microL of the diluted cell suspension.
+      Seed the 96-well plate with 100 microL per well of the prepared 2.5x10^5 cells/mL
+      suspension. Use the 8-channel pipette to fill one complete column (A-H) with
+      each aspiration; twelve exact column dispenses seed the full plate.
     sequence:
-      - target: micropipette
+      - target: multichannel_pipette
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations: []
-      - target: micropipette
+      - target: multichannel_pipette
         gesture: adjust
         validator:
           preset: target_with_value
@@ -180,7 +210,7 @@ steps:
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
+              target: multichannel_pipette
               state:
                 set_volume: 100
       - target: conical_tube_for_dilution
@@ -190,21 +220,371 @@ steps:
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
+              target: conical_tube_for_dilution
+              state:
+                material_volume: 8.8
+            - type: ObjectStateChange
+              target: multichannel_pipette
               state:
                 held_material_name: cell_suspension
                 held_material_volume: 100
-      - target: well_plate_96
+      - target: well_plate_96.col_1
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: well_plate_96.all_wells
+              target: well_plate_96.col_1
               state:
-                material_name: cells
+                material_name: cell_suspension
                 material_volume: 100
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
+      - target: conical_tube_for_dilution
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: conical_tube_for_dilution
+              state:
+                material_volume: 8
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: cell_suspension
+                held_material_volume: 100
+      - target: well_plate_96.col_2
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_2
+              state:
+                material_name: cell_suspension
+                material_volume: 100
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
+      - target: conical_tube_for_dilution
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: conical_tube_for_dilution
+              state:
+                material_volume: 7.2
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: cell_suspension
+                held_material_volume: 100
+      - target: well_plate_96.col_3
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_3
+              state:
+                material_name: cell_suspension
+                material_volume: 100
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
+      - target: conical_tube_for_dilution
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: conical_tube_for_dilution
+              state:
+                material_volume: 6.4
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: cell_suspension
+                held_material_volume: 100
+      - target: well_plate_96.col_4
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_4
+              state:
+                material_name: cell_suspension
+                material_volume: 100
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
+      - target: conical_tube_for_dilution
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: conical_tube_for_dilution
+              state:
+                material_volume: 5.6
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: cell_suspension
+                held_material_volume: 100
+      - target: well_plate_96.col_5
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_5
+              state:
+                material_name: cell_suspension
+                material_volume: 100
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
+      - target: conical_tube_for_dilution
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: conical_tube_for_dilution
+              state:
+                material_volume: 4.8
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: cell_suspension
+                held_material_volume: 100
+      - target: well_plate_96.col_6
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_6
+              state:
+                material_name: cell_suspension
+                material_volume: 100
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
+      - target: conical_tube_for_dilution
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: conical_tube_for_dilution
+              state:
+                material_volume: 4
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: cell_suspension
+                held_material_volume: 100
+      - target: well_plate_96.col_7
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_7
+              state:
+                material_name: cell_suspension
+                material_volume: 100
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
+      - target: conical_tube_for_dilution
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: conical_tube_for_dilution
+              state:
+                material_volume: 3.2
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: cell_suspension
+                held_material_volume: 100
+      - target: well_plate_96.col_8
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_8
+              state:
+                material_name: cell_suspension
+                material_volume: 100
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
+      - target: conical_tube_for_dilution
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: conical_tube_for_dilution
+              state:
+                material_volume: 2.4
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: cell_suspension
+                held_material_volume: 100
+      - target: well_plate_96.col_9
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_9
+              state:
+                material_name: cell_suspension
+                material_volume: 100
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
+      - target: conical_tube_for_dilution
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: conical_tube_for_dilution
+              state:
+                material_volume: 1.6
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: cell_suspension
+                held_material_volume: 100
+      - target: well_plate_96.col_10
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_10
+              state:
+                material_name: cell_suspension
+                material_volume: 100
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
+      - target: conical_tube_for_dilution
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: conical_tube_for_dilution
+              state:
+                material_volume: 0.8
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: cell_suspension
+                held_material_volume: 100
+      - target: well_plate_96.col_11
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_11
+              state:
+                material_name: cell_suspension
+                material_volume: 100
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
+      - target: conical_tube_for_dilution
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: conical_tube_for_dilution
+              state:
+                material_volume: 0
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: cell_suspension
+                held_material_volume: 100
+      - target: well_plate_96.col_12
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_12
+              state:
+                material_name: cell_suspension
+                material_volume: 100
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:

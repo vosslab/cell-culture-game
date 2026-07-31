@@ -96,6 +96,7 @@ BASE_SCENE_ALL_KEYS = BASE_SCENE_REQUIRED_KEYS | BASE_SCENE_OPTIONAL_KEYS
 # Closed enum for scene-wide and per-placement label position.
 # Default is 'top' (resolved in the layout engine, not the validator).
 LABEL_PLACEMENT_VALUES = {'top', 'bottom'}
+ALIGN_STOP_VALUES = {'left', 'center', 'right'}
 
 # Closure handles unknown keys; BASE_SCENE_ALL_KEYS is the canonical whitelist.
 
@@ -144,7 +145,7 @@ STEP_VALIDATOR_PRESETS = {'sequence_complete', 'final_state_matches'}
 # carries an ordered constituent list instead of authored steps, per
 # docs/PRIMARY_SPEC.md "Sequence runners").
 PROTOCOL_REQUIRED_KEYS = {'protocol_type', 'protocol_name', 'entry_step', 'learning'}
-PROTOCOL_OPTIONAL_KEYS = {'parts', 'days', 'steps', 'mini_protocols'}
+PROTOCOL_OPTIONAL_KEYS = {'parts', 'days', 'steps', 'mini_protocols', 'initial_state'}
 PROTOCOL_ALL_KEYS = PROTOCOL_REQUIRED_KEYS | PROTOCOL_OPTIONAL_KEYS
 
 # spec: docs/PRIMARY_SPEC.md "Learning block"

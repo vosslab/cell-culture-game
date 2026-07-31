@@ -43,6 +43,7 @@
 import { createStore, produce } from "solid-js/store";
 
 import {
+  OBJECT_LIBRARY,
   OBJECT_STATE_SCHEMAS,
   OBJECT_SUBPART_STATE_SCHEMAS,
 } from "../../../generated/object_library.js";
@@ -113,6 +114,15 @@ export interface TargetSeed {
   object_name: string;
 }
 
+// A resolved declared-state mutation, exposed read-only for the walker/debug
+// surface. `before` and `after` contain exactly the fields written, after any
+// declared subpart-group expansion has selected a concrete target.
+export interface StateDelta {
+  readonly target: string;
+  readonly before: StatePartial;
+  readonly after: StatePartial;
+}
+
 //============================================
 // Public store API
 //============================================
@@ -123,10 +133,28 @@ export interface SceneStore {
   // Initialize targets for a scene, seeding declared fields to schema
   // defaults and runtime flags to off. Replaces any prior contents.
   seed_from_scene(seeds: ReadonlyArray<TargetSeed>): void;
+  // Begin a fresh protocol session. Clears the durable archive, validates and
+  // applies initial_state, then projects the supplied scene targets reactively.
+  start_session(
+    seeds: ReadonlyArray<TargetSeed>,
+    initial_state: ReadonlyArray<{ readonly target: string; readonly state: StatePartial }>,
+  ): void;
   // Transition to another scene without discarding the scientific state of
   // exact target identities that remain present. New targets start at schema
   // defaults, absent targets are dropped, and runtime-only flags reset.
   reconcile_scene(seeds: ReadonlyArray<TargetSeed>): void;
+  // Immutable snapshot of all declared state retained for this protocol
+  // session, including targets absent from the currently mounted scene.
+  snapshot_declared_state(): Readonly<Record<string, StatePartial>>;
+  // Monotonic diagnostic revision. Declared writes and scene reconciliation
+  // advance it; cursor/selection/timed-wait flags do not.
+  readonly state_revision: number;
+  // Most recent concrete declared-state write, or null before one occurs.
+  readonly last_state_delta: StateDelta | null;
+  // Every concrete declared-state write in this protocol session, in runtime
+  // application order. Reconciliation preserves it; a fresh session/reset
+  // clears it. Getter values are detached snapshots.
+  readonly state_delta_log: ReadonlyArray<StateDelta>;
   // Ensure a single target is seeded WITHOUT disturbing other targets. Scene
   // mounting seeds declared subparts, while this remains a no-op safety net for
   // a valid target reached by a first write outside a normal mounted scene.
@@ -216,6 +244,56 @@ function resolve_schema(object_name: string, subpart: string | null): ObjectStat
   return schema;
 }
 
+// Validate one concrete object/subpart target against the generated object
+// vocabulary. Object-level schema presence alone is insufficient for dotted
+// targets: a structured object has one shared subpart schema, but only its
+// declared subpart instances are addressable.
+function validate_concrete_target(
+  target: string,
+  object_name: string,
+  subpart: string | null,
+  require_declared_subpart = false,
+): void {
+  const object_def = OBJECT_LIBRARY[object_name];
+  if (object_def === undefined) {
+    throw new Error(`scene_store: unknown object "${object_name}" in target "${target}"`);
+  }
+  if (require_declared_subpart && subpart !== null && !object_def.subparts?.includes(subpart)) {
+    throw new Error(
+      `scene_store: unknown subpart "${subpart}" for object "${object_name}" in target "${target}"`,
+    );
+  }
+}
+
+// Resolve an initial-state target. Unlike ordinary state writes, initial state
+// may deliberately name a declared group; return only concrete store targets
+// so collision detection and state application are exact.
+function resolve_initial_targets(target: string): string[] {
+  const { object_name, subpart } = split_target(target);
+  const object_def = OBJECT_LIBRARY[object_name];
+  if (object_def === undefined) {
+    throw new Error(
+      `scene_store: initial_state target "${target}" names unknown object "${object_name}"`,
+    );
+  }
+  if (subpart === null) {
+    return [target];
+  }
+  if (object_def.subparts?.includes(subpart)) {
+    return [target];
+  }
+  const group_members = object_def.subpart_groups?.[subpart];
+  if (group_members !== undefined) {
+    if (group_members.length === 0) {
+      throw new Error(`scene_store: initial_state group "${target}" has no declared members`);
+    }
+    return group_members.map((member) => `${object_name}.${member}`);
+  }
+  throw new Error(
+    `scene_store: initial_state target "${target}" names no declared subpart or subpart group`,
+  );
+}
+
 //============================================
 // Default-state seeding
 //============================================
@@ -285,6 +363,28 @@ function validate_partial(
     }
     const value = partial[key];
     validate_value_type(target, field_def.field_name, field_def.type, value);
+    if (typeof value === "number") {
+      if (!Number.isFinite(value)) {
+        throw new Error(
+          `scene_store: field "${field_def.field_name}" on target "${target}" must be finite`,
+        );
+      }
+      if (field_def.type === "int" && !Number.isInteger(value)) {
+        throw new Error(
+          `scene_store: int field "${field_def.field_name}" on target "${target}" must be an integer`,
+        );
+      }
+      if (field_def.min !== undefined && value < field_def.min) {
+        throw new Error(
+          `scene_store: field "${field_def.field_name}" on target "${target}" is below minimum ${field_def.min}`,
+        );
+      }
+      if (field_def.max !== undefined && value > field_def.max) {
+        throw new Error(
+          `scene_store: field "${field_def.field_name}" on target "${target}" exceeds maximum ${field_def.max}`,
+        );
+      }
+    }
     // SUBPART material-identity fields (material_name / held_material_name) accept
     // by the registry-backed D1 predicate (sentinel-or-built-in OR a name
     // registered in the active protocol), NOT against the object's declared enum
@@ -390,50 +490,89 @@ function validate_value_type(
 // sentinels (empty, mixed) working unchanged.
 export function create_scene_store(material_registry: MaterialRegistry | null = null): SceneStore {
   const [state, set_state] = createStore<SceneStoreState>({});
+  // Durable protocol-session archive. It intentionally is not a Solid store:
+  // only the active scene projection drives rendering. Copies are taken at the
+  // boundary so no Solid proxy leaks into retained scientific state.
+  let archive: Record<string, TargetState> = {};
+  let state_revision = 0;
+  let last_state_delta: StateDelta | null = null;
+  let state_delta_log: StateDelta[] = [];
+
+  function make_fresh_target(seed: TargetSeed): TargetState {
+    const { object_name, subpart } = split_target(seed.target);
+    if (object_name !== seed.object_name) {
+      throw new Error(
+        `scene_store: seed target "${seed.target}" object segment "${object_name}"` +
+          ` does not match declared object_name "${seed.object_name}"`,
+      );
+    }
+    validate_concrete_target(seed.target, object_name, subpart);
+    const schema = resolve_schema(object_name, subpart);
+    return {
+      object_name,
+      subpart,
+      state: build_default_state(schema),
+      flags: build_default_flags(),
+    };
+  }
+
+  function validate_seed(seed: TargetSeed): void {
+    const { object_name, subpart } = split_target(seed.target);
+    if (object_name !== seed.object_name) {
+      throw new Error(
+        `scene_store: seed target "${seed.target}" object segment "${object_name}"` +
+          ` does not match declared object_name "${seed.object_name}"`,
+      );
+    }
+    validate_concrete_target(seed.target, object_name, subpart);
+    resolve_schema(object_name, subpart);
+  }
+
+  function clone_archive_state(entry: TargetState): Record<string, StateValue> {
+    return { ...entry.state };
+  }
+
+  function ensure_archive_target(seed: TargetSeed): TargetState {
+    const existing = archive[seed.target];
+    if (existing !== undefined) {
+      return existing;
+    }
+    const fresh = make_fresh_target(seed);
+    archive[seed.target] = { ...fresh, state: { ...fresh.state } };
+    return archive[seed.target] as TargetState;
+  }
 
   //----------------------------------------
   function build_scene_state(
     seeds: ReadonlyArray<TargetSeed>,
-    preserve_existing: boolean,
+    _preserve_existing: boolean,
   ): SceneStoreState {
     // Build the full next map before any mutation so a malformed seed makes
     // both replacement and reconciliation all-or-nothing.
     const next: SceneStoreState = {};
     for (const seed of seeds) {
-      const { object_name, subpart } = split_target(seed.target);
-      // The seed's declared object_name must agree with the target's object
-      // segment; a mismatch means the caller mislabeled the seed.
-      if (object_name !== seed.object_name) {
-        throw new Error(
-          `scene_store: seed target "${seed.target}" object segment "${object_name}"` +
-            ` does not match declared object_name "${seed.object_name}"`,
-        );
-      }
-      const schema = resolve_schema(object_name, subpart);
-      const fresh: TargetState = {
-        object_name,
-        subpart,
-        state: build_default_state(schema),
+      validate_seed(seed);
+      const archive_entry = ensure_archive_target(seed);
+      // A scene projection always gets fresh runtime flags, while all declared
+      // fields hydrate from the protocol archive whether or not the target was
+      // present in the immediately preceding scene.
+      next[seed.target] = {
+        object_name: archive_entry.object_name,
+        subpart: archive_entry.subpart,
+        state: clone_archive_state(archive_entry),
         flags: build_default_flags(),
       };
-      const existing = preserve_existing ? state[seed.target] : undefined;
-      if (
-        existing !== undefined &&
-        existing.object_name === object_name &&
-        existing.subpart === subpart
-      ) {
-        // Declared state belongs to the identity-bearing object/subpart and
-        // survives a workspace change. Copy primitives out of the Solid proxy;
-        // runtime flags deliberately remain at fresh defaults.
-        fresh.state = { ...existing.state };
-      }
-      next[seed.target] = fresh;
     }
     return next;
   }
 
   //----------------------------------------
   function seed_from_scene(seeds: ReadonlyArray<TargetSeed>): void {
+    // Compatibility entry point for stand-alone renderer/tests: this is a
+    // fresh, no-initial-state session rather than an accidental carry-over.
+    archive = {};
+    last_state_delta = null;
+    state_delta_log = [];
     const next = build_scene_state(seeds, false);
     // Replace the target set for a (re)entered scene. Clear stale keys first:
     // Solid's createStore merges a plain-object write and never deletes keys
@@ -442,9 +581,79 @@ export function create_scene_store(material_registry: MaterialRegistry | null = 
   }
 
   //----------------------------------------
+  function start_session(
+    seeds: ReadonlyArray<TargetSeed>,
+    initial_state: ReadonlyArray<{ readonly target: string; readonly state: StatePartial }>,
+  ): void {
+    // Validate/build in local structures first. A malformed initial-state
+    // declaration cannot partially reset a live session.
+    const next_archive: Record<string, TargetState> = {};
+    const ensure_local = (target: string, require_declared_subpart: boolean): TargetState => {
+      const existing = next_archive[target];
+      if (existing !== undefined) {
+        return existing;
+      }
+      const { object_name, subpart } = split_target(target);
+      validate_concrete_target(target, object_name, subpart, require_declared_subpart);
+      const schema = resolve_schema(object_name, subpart);
+      const fresh: TargetState = {
+        object_name,
+        subpart,
+        state: build_default_state(schema),
+        flags: build_default_flags(),
+      };
+      next_archive[target] = fresh;
+      return fresh;
+    };
+    for (const seed of seeds) {
+      const { object_name } = split_target(seed.target);
+      if (object_name !== seed.object_name) {
+        throw new Error(
+          `scene_store: seed target "${seed.target}" does not match object_name "${seed.object_name}"`,
+        );
+      }
+      ensure_local(seed.target, false);
+    }
+    const resolved = new Set<string>();
+    for (const entry of initial_state) {
+      const concrete_targets = resolve_initial_targets(entry.target);
+      for (const target of concrete_targets) {
+        if (resolved.has(target)) {
+          throw new Error(
+            `scene_store: initial_state target "${entry.target}" overlaps resolved target "${target}"`,
+          );
+        }
+        resolved.add(target);
+        const archive_entry = ensure_local(target, true);
+        const schema = resolve_schema(archive_entry.object_name, archive_entry.subpart);
+        validate_partial(
+          target,
+          schema,
+          entry.state,
+          archive_entry.subpart !== null,
+          material_registry,
+        );
+        for (const key of Object.keys(entry.state)) {
+          const value = entry.state[key];
+          if (value !== undefined) {
+            archive_entry.state[key] = value;
+          }
+        }
+      }
+    }
+    archive = next_archive;
+    last_state_delta = null;
+    state_delta_log = [];
+    const next = build_scene_state(seeds, false);
+    replace_all(next);
+    state_revision += 1;
+  }
+
+  //----------------------------------------
   function reconcile_scene(seeds: ReadonlyArray<TargetSeed>): void {
     const next = build_scene_state(seeds, true);
     replace_all(next);
+    state_revision += 1;
   }
 
   //----------------------------------------
@@ -472,18 +681,11 @@ export function create_scene_store(material_registry: MaterialRegistry | null = 
       // Already seeded; never reset an existing target.
       return;
     }
-    const { object_name, subpart } = split_target(seed.target);
-    if (object_name !== seed.object_name) {
-      throw new Error(
-        `scene_store: seed target "${seed.target}" object segment "${object_name}"` +
-          ` does not match declared object_name "${seed.object_name}"`,
-      );
-    }
-    const schema = resolve_schema(object_name, subpart);
+    const retained = ensure_archive_target(seed);
     const fresh: TargetState = {
-      object_name,
-      subpart,
-      state: build_default_state(schema),
+      object_name: retained.object_name,
+      subpart: retained.subpart,
+      state: clone_archive_state(retained),
       flags: build_default_flags(),
     };
     set_state(
@@ -511,6 +713,15 @@ export function create_scene_store(material_registry: MaterialRegistry | null = 
     // registry (D1); object-level and non-material fields keep the declared-schema
     // checks. entry.subpart is non-null exactly for a subpart target.
     validate_partial(target, schema, partial, entry.subpart !== null, material_registry);
+    const before: Record<string, StateValue> = {};
+    const after: Record<string, StateValue> = {};
+    for (const key of Object.keys(partial)) {
+      const value = partial[key];
+      if (value !== undefined) {
+        before[key] = entry.state[key] as StateValue;
+        after[key] = value;
+      }
+    }
     // Partial-merge: only the named fields change; the rest stay as-is.
     set_state(
       produce((store: SceneStoreState) => {
@@ -529,6 +740,24 @@ export function create_scene_store(material_registry: MaterialRegistry | null = 
         }
       }),
     );
+    const archived = archive[target];
+    if (archived === undefined) {
+      throw new Error(`scene_store: target "${target}" is active but absent from protocol archive`);
+    }
+    for (const key of Object.keys(after)) {
+      const value = after[key];
+      if (value !== undefined) {
+        archived.state[key] = value;
+      }
+    }
+    const delta: StateDelta = {
+      target,
+      before: Object.freeze({ ...before }),
+      after: Object.freeze({ ...after }),
+    };
+    last_state_delta = delta;
+    state_delta_log.push(delta);
+    state_revision += 1;
   }
 
   //----------------------------------------
@@ -609,12 +838,49 @@ export function create_scene_store(material_registry: MaterialRegistry | null = 
     // Full reset: the store returns to its empty initial condition. Use the
     // explicit delete pass so no stale keys survive (see replace_all).
     replace_all({});
+    archive = {};
+    last_state_delta = null;
+    state_delta_log = [];
+    state_revision += 1;
+  }
+
+  //----------------------------------------
+  function snapshot_declared_state(): Readonly<Record<string, StatePartial>> {
+    const snapshot: Record<string, StatePartial> = {};
+    for (const target of Object.keys(archive)) {
+      const entry = archive[target];
+      if (entry !== undefined) {
+        snapshot[target] = { ...entry.state };
+      }
+    }
+    return snapshot;
   }
 
   const store: SceneStore = {
     state,
     seed_from_scene,
+    start_session,
     reconcile_scene,
+    snapshot_declared_state,
+    get state_revision(): number {
+      return state_revision;
+    },
+    get last_state_delta(): StateDelta | null {
+      return last_state_delta === null
+        ? null
+        : {
+            target: last_state_delta.target,
+            before: { ...last_state_delta.before },
+            after: { ...last_state_delta.after },
+          };
+    },
+    get state_delta_log(): ReadonlyArray<StateDelta> {
+      return state_delta_log.map((delta) => ({
+        target: delta.target,
+        before: { ...delta.before },
+        after: { ...delta.after },
+      }));
+    },
     seed_target,
     set_object_state,
     set_cursor,

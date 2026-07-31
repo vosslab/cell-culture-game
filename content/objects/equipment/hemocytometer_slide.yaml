@@ -2,48 +2,67 @@ object_name: hemocytometer_slide
 kind: equipment
 label: Hemocytometer slide
 
+# The slide has two independently addressable liquid regions.  Keeping their
+# state separate makes the instructional transfer from mixed sample to loading
+# chamber conserved, visible, and impossible to complete by clicking a vague
+# whole-slide target.
+structure:
+  # The closed structured-surface vocabulary calls liquid-holding regions
+  # wells; the learner-facing names remain the scientific chamber names below.
+  subpart_kind: well
+  layout: grid
+  rows: 1
+  cols: 2
+  # Required for the grid schema; the explicit names below are the scientific
+  # chamber vocabulary and are paired with measured SVG geometry in the object
+  # generator's hemocytometer record.
+  name_pattern: "chamber_{col}"
+  subpart_names: [diamond, semicircle]
+
 state_fields:
+  - field_name: slide_status
+    type: enum
+    allowed: [ready]
+    default: ready
+    description: Static slide frame used to select the hemocytometer artwork.
   - field_name: material_name
     type: enum
     allowed: [empty, trypan_blue, cell_suspension, trypan_blue_mixture]
     default: empty
-    description: Liquid currently loaded on the slide.
+    applies_to: subpart
+    description: Liquid currently in this named hemocytometer chamber.
   - field_name: material_volume
     type: float
     unit: ml
     min: 0
     max: 0.1
     default: 0
-    description: Volume loaded on the slide, in milliliters.
+    applies_to: subpart
+    description: Volume loaded in this named chamber.
   - field_name: excess_wiped
     type: bool
     default: false
     description: Whether excess liquid has been wiped from slide edges.
 
 visual_states:
-  material_name:
+  slide_status:
     kind: svg
     cases:
-      - when: empty
-        output:
-          asset_name: hemocytometer_slide
-      - when: trypan_blue
-        output:
-          asset_name: hemocytometer_slide
-      - when: cell_suspension
-        output:
-          asset_name: hemocytometer_slide
-      - when: trypan_blue_mixture
-        output:
-          asset_name: hemocytometer_slide
+      - when: ready
+        output: {asset_name: hemocytometer_slide}
+  material_name:
+    applies_to: subpart
+    render_effect: material_tint
+    target: subpart_geometry
   material_volume:
     kind: composite
+    applies_to: subpart
     composite: []
   excess_wiped:
     kind: overlay
     formula: 'conditional(state(excess_wiped), "Wiped clean", "Excess present")'
 
-capabilities: [clickable, material_container]
+capabilities: [clickable, structured_surface, material_container]
 
 layout:
   default_width: 8

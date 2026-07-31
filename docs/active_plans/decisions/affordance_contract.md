@@ -114,8 +114,10 @@ entries below.
   `typeCommitAndWaitProgress(page, typedText, report)` -- verify the input and
   Commit button exist and are visible, real `fill()` then real `click()` on
   Commit, then wait for a forward progress signal
-  (`walker_helpers.mjs:222-271`). The expected text is read read-only from
-  `gameState.activeTypeValue`.
+  (`walker_helpers.mjs`). The canonical curriculum walker never reads expected
+  text from debug state. If a curriculum `type` interaction has no
+  learner-visible answer source, it fails with `type_answer_not_visible`.
+  No curriculum protocol in this release authors `type`.
 
 ### adjust
 
@@ -142,11 +144,11 @@ entries below.
 - Walker driver: `adjustCommitAndWaitProgress(page, numericValue, report)` (new,
   M12) -- verify `[data-adjust-input]` and `[data-adjust-commit]` exist and are
   visible, real `fill()` of the numeric input then real `click()` on Commit,
-  then wait for a forward progress signal. The expected set-point is read
-  read-only from a debug projection derived from the interaction's
-  `target_with_value.value` mapping (the same source `activeTypeValue` reads);
-  M12 exposes it on `gameState` as a read-only field, which is a debug surface,
-  not an authored YAML field.
+  then wait for a forward progress signal. The walker reads the expected
+  set-point only from the learner-visible current-action rail
+  (`[data-current-action][data-action-value]`) and verifies that the displayed
+  cue states the same numeric value. It does not read a validator-answer
+  projection from `gameState`.
 
 ### drag
 
@@ -185,22 +187,22 @@ One dispatch entry per gesture. M11's registry maps each `Gesture` union member
 to exactly one row; there is no scattered if-chain and no promotion ternary
 outside the registry.
 
-| Gesture | Affordance module | Dispatch entry (step-machine public method) | Validator preset it feeds |
-| --- | --- | --- | --- |
-| `click` | rendered scene object | `handle_click(target, "click")` | `correct_target` |
-| `select` | rendered scene object (equal candidate rings) | `handle_click(target, "select")` | `correct_choice` |
-| `type` | `TypeInput` control | `handle_type_commit(target, committed_text)` | `target_with_value` |
-| `adjust` | `SetPointEditor` control (M12) | `handle_adjust_commit(target, committed_number)` | `target_with_value` |
-| `drag` | host drag surface (M12) | `handle_drag_commit(target, destination_placement)` | interaction `validator` / `step_validator` |
+| Gesture  | Affordance module                             | Dispatch entry (step-machine public method)         | Validator preset it feeds                  |
+| -------- | --------------------------------------------- | --------------------------------------------------- | ------------------------------------------ |
+| `click`  | rendered scene object                         | `handle_click(target, "click")`                     | `correct_target`                           |
+| `select` | rendered scene object (equal candidate rings) | `handle_click(target, "select")`                    | `correct_choice`                           |
+| `type`   | `TypeInput` control                           | `handle_type_commit(target, committed_text)`        | `target_with_value`                        |
+| `adjust` | `SetPointEditor` control (M12)                | `handle_adjust_commit(target, committed_number)`    | `target_with_value`                        |
+| `drag`   | host drag surface (M12)                       | `handle_drag_commit(target, destination_placement)` | interaction `validator` / `step_validator` |
 
 ## Selector families (frozen)
 
-| Gesture | Selectors the walker drives |
-| --- | --- |
-| `click` / `select` | `#scene-root [data-item-id="<placement_name>"]` |
-| `type` | `[data-type-input-panel]`, `[data-type-input]`, `[data-type-target]`, `[data-type-commit]`, `[data-type-reject-message]` |
-| `adjust` | `[data-adjust-panel]`, `[data-adjust-input]`, `[data-adjust-target]`, `[data-adjust-decrement]`, `[data-adjust-increment]`, `[data-adjust-commit]`, `[data-adjust-reject-message]` |
-| `drag` | `[data-drag-surface]`, source and destination `#scene-root [data-item-id="<placement_name>"]` |
+| Gesture            | Selectors the walker drives                                                                                                                                                        |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `click` / `select` | `#scene-root [data-item-id="<placement_name>"]`                                                                                                                                    |
+| `type`             | `[data-type-input-panel]`, `[data-type-input]`, `[data-type-target]`, `[data-type-commit]`, `[data-type-reject-message]`                                                           |
+| `adjust`           | `[data-adjust-panel]`, `[data-adjust-input]`, `[data-adjust-target]`, `[data-adjust-decrement]`, `[data-adjust-increment]`, `[data-adjust-commit]`, `[data-adjust-reject-message]` |
+| `drag`             | `[data-drag-surface]`, source and destination `#scene-root [data-item-id="<placement_name>"]`                                                                                      |
 
 The `adjust` selector family is a deliberate one-for-one mirror of the `type`
 family, so a reviewer verifies the parallel by name.
@@ -267,11 +269,12 @@ walker; none depends on judgment.
   no existing slot can name a destination cleanly, that is a vocabulary finding
   to escalate under the cost guardrail, not a new authored field to add
   silently.
-- Read-only expected-value projection. Both `adjust` and `drag` walker drivers
-  read the expected value from a read-only `gameState` projection (mirroring
-  `activeTypeValue`). M12 must add these as debug-only projections in
-  `walker_debug.ts`; they must never become authored YAML and never become a
-  write path.
+- Visible answer provenance. The final `adjust` driver reads the exact set
+  point from the visible current-action rail, not `gameState`. The `type`
+  driver refuses to proceed without a learner-visible answer source. Drag
+  destination routing remains read-only, but no curriculum protocol authors
+  `drag` in this release. This closes the hidden-answer risk without adding an
+  authored field or a write path.
 - Overlay independence. `TypeInput` mounts to `document.body` so it works with
   `?shell=off`. The `SetPointEditor` overlay must do the same; a set-point
   editor mounted inside the optional shell would vanish under `?shell=off` and

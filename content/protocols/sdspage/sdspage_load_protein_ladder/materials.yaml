@@ -2,3 +2,6 @@ materials:
   protein_ladder:
     label: Molecular weight ladder
     display_color: "#06b6d4"
+  protein_ladder_denatured:
+    label: Heat-denatured molecular weight ladder
+    display_color: "#0891b2"

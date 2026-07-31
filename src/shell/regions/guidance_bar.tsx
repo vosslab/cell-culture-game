@@ -8,10 +8,17 @@ import { AuthoredTip } from "./authored_tip.js";
 // the action rail to the highlighted scene object without decoding a placement
 // identifier. Select deliberately omits the correct target label: every blue
 // candidate must remain an equal visual choice.
-export function gesture_instruction(gesture: Gesture | null, target_label: string | null): string {
+export function gesture_instruction(
+  gesture: Gesture | null,
+  target_label: string | null,
+  requested_value: string | number | boolean | null = null,
+): string {
   const label = target_label ?? "the highlighted lab item";
   switch (gesture) {
     case "adjust":
+      if (requested_value !== null) {
+        return `Set ${label} to ${String(requested_value)} using the control below.`;
+      }
       return `Set the requested value for ${label} using the control below.`;
     case "type":
       return `Enter the requested value for ${label} in the field below.`;
@@ -24,6 +31,20 @@ export function gesture_instruction(gesture: Gesture | null, target_label: strin
     default:
       return "Follow the highlighted next action in the scene.";
   }
+}
+
+// Keep action-level progress separate from the guided-step counter: an ordered
+// sequence can have several concrete learner actions while still representing
+// one pedagogical step. Null prevents a stale ordinal from rendering during
+// protocol startup, completion, and a step transition.
+export function action_progress_copy(
+  interaction_index: number,
+  interaction_count: number,
+): string | null {
+  if (interaction_count <= 0 || interaction_index < 0 || interaction_index >= interaction_count) {
+    return null;
+  }
+  return `Action ${String(interaction_index + 1)} of ${String(interaction_count)}`;
 }
 
 export function recovery_copy(rejection: LastRejection): string {
@@ -78,8 +99,21 @@ export function GuidanceBar(props: GuidanceBarProps): JSXElement {
               data-action-target={props.snapshot().active_interaction_target ?? undefined}
               data-action-label={props.snapshot().active_interaction_label ?? undefined}
               data-action-gesture={props.snapshot().active_interaction_gesture ?? undefined}
+              data-action-value={props.snapshot().active_interaction_value ?? undefined}
             >
               <p class="protocol-kicker">Do this next</p>
+              <Show
+                when={action_progress_copy(
+                  props.snapshot().current_interaction_index,
+                  props.snapshot().current_interaction_count,
+                )}
+              >
+                {(progress_copy) => (
+                  <p class="action-rail-progress" data-current-action-progress="">
+                    {progress_copy()}
+                  </p>
+                )}
+              </Show>
               <strong id="guidance-text" class="action-rail-prompt">
                 {props.snapshot().current_prompt ?? "Preparing your lab scene..."}
               </strong>
@@ -87,6 +121,7 @@ export function GuidanceBar(props: GuidanceBarProps): JSXElement {
                 {gesture_instruction(
                   props.snapshot().active_interaction_gesture,
                   props.snapshot().active_interaction_label,
+                  props.snapshot().active_interaction_value,
                 )}
               </p>
               <Show when={props.snapshot().last_outcome?.resolution === "complete"}>

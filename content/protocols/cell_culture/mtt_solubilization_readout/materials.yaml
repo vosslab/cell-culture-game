@@ -7,6 +7,10 @@ materials:
     label: "Formazan in DMSO"
     display_color: "#c80085"
 
+  formazan_crystals:
+    label: "Formazan crystal precipitate"
+    display_color: "#a719db"
+
   optical_reading:
     label: "Optical absorbance at 560 nm"
     display_color: "#ffffff"

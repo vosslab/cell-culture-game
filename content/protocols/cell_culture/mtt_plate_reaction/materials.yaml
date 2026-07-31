@@ -1,9 +1,17 @@
 materials:
-  mtt:
+  mtt_solution_12mm:
     label: "12 mM MTT solution"
     display_color: "#6c6c00"
 
-  formazan:
+  treated_cell_culture:
+    label: "Treated cell culture"
+    display_color: "#a98944"
+
+  mtt_reaction_mixture:
+    label: "MTT-treated cell culture"
+    display_color: "#7f7810"
+
+  formazan_crystals:
     label: "Formazan crystal precipitate"
     display_color: "#a719db"
 

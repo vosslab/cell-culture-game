@@ -196,7 +196,9 @@ multi-gesture case:
 
 Setting a pipette volume is a real lab skill. Encode it with `gesture:
 adjust` and the `target_with_value` validator preset, never as a plain
-`click` with a volume field:
+`click` with a volume field. The authored value must fit the target object's
+declared `min`, `max`, and `step`; use the instrument whose physical range
+contains the requested set point:
 
 ```yaml
 - step_name: set_pipette_volume
@@ -298,8 +300,56 @@ Worked example for two wells in row B:
   next_step: add_media_row_c
 ```
 
-When real authoring pain from per-subpart enumeration appears, named
-groups may be revisited as a separate vocabulary addition.
+Declared `subpart_groups` are available only to a root `initial_state` seed,
+where one shared starting state must initialize many declared members. They are
+not interactive targets: a learner action still names exactly one object or
+one subpart, so a graded click never silently fans out.
+
+### Establishing prerequisite state
+
+Use optional root `initial_state` when a mini-protocol is independently
+launchable but begins after an earlier teaching block has produced scientific
+state. Keep the declaration small, explicit, and limited to state the entry
+step truly requires:
+
+```yaml
+initial_state:
+  - target: well_plate_96.all_wells
+    state:
+      material_name: formazan_crystals
+      material_volume: 0
+  - target: dmso_tube
+    state:
+      material_name: dmso
+      material_volume: 50.0
+```
+
+The target may be one object, one subpart, or one declared `subpart_group`.
+Each entry has exactly `target` and a non-empty, flat `state` mapping. State
+keys, primitive types, numeric ranges, units, and enum values are checked
+against the same declared schemas used by `ObjectStateChange`. Object-level
+material enums use their declared `allowed` list. Subpart `material_name` and
+`held_material_name` use the active protocol material registry plus `empty` and
+`mixed`; other subpart enums keep their declared `allowed` list. Authors cannot
+add arbitrary fields or units. Do not seed the same concrete target identity
+twice, including through a group and one of its members. An object and one of
+its subparts are distinct targets and may both be seeded.
+
+For a mini-protocol opened directly, this root state is applied once at the
+start of its session and again only after Restart. For a sequence runner, place
+shared prerequisites on the runner root: the runner applies that list once and
+does not apply a constituent mini-protocol's root seed midway through the run.
+This preserves material and equipment state across scene changes without
+turning a later mini-protocol into an implicit reset.
+
+### Writing a sequence runner
+
+A sequence runner is a flat ordered package list, not a macro language. Its
+`mini_protocols` list must be non-empty, have no repeated name, and contain
+only direct `mini_protocol` leaves. It cannot list a sequence runner. Match
+the runner `entry_step` to the first listed mini-protocol's entry step. The
+builder, Python stepper, and browser runtime all enforce the same shape, so an
+invalid package never becomes a partial playthrough.
 
 ## Domain verbs: authoring shorthand only
 
@@ -396,7 +446,10 @@ Run through this checklist for every step you write.
   `step_name`.
 - **Referenced materials exist.** Every material name written by an
   `ObjectStateChange` into a flat material `state_field` (`material_name`,
-  `held_material_name`) exists in `materials.yaml`.
+  `held_material_name`) exists in `materials.yaml`, except `empty` and `mixed`.
+  Object-level fields must also be in their declared enum; subpart material
+  fields use the protocol material registry rather than the shared object's
+  sentinel-only enum.
 
 ## Build and walk loop
 

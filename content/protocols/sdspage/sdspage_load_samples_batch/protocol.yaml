@@ -1,0 +1,141 @@
+protocol_type: mini_protocol
+protocol_name: sdspage_load_samples_batch
+entry_step: load_sample_one
+initial_state:
+  - target: microtube_rack_8.slot_B1
+    state: { material_name: protein_sample_denatured, material_volume: 30 }
+  - target: microtube_rack_8.slot_B2
+    state: { material_name: protein_sample_denatured, material_volume: 30 }
+  - target: microtube_rack_8.slot_B3
+    state: { material_name: protein_sample_denatured, material_volume: 30 }
+
+learning:
+  objectives: "Students completing this mini-protocol will have achieved proficiency with repetitive gel-loading workflows, maintaining precise pipetting accuracy across three sample-loading cycles, and safely handling gel-loading tips under time and attention demands of batch work."
+  outcomes: "Students completing this mini-protocol will be able to load three independent protein samples into lanes 1, 2, and 3 through a complete tip-swap, volume-set, aspiration, and slow-dispense sequence."
+  goals: "Overall, this mini-protocol aims to accomplish the complete batch loading of three student samples into an SDS-PAGE gel cassette, establishing precise multi-lane pipette-and-dispense discipline."
+
+steps:
+  - step_name: load_sample_one
+    prompt: Open the gel-loading workspace, set the P200 to 30 &micro;L, aspirate sample from slot B1, and slowly dispense it into lane 1.
+    sequence:
+      - target: p200_micropipette
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: SceneChange
+              to_scene: sdspage_load_samples_batch_workspace
+            - type: ObjectStateChange
+              target: gel_cassette.lane_1
+              state: { material_name: empty, material_volume: 0 }
+            - type: ObjectStateChange
+              target: gel_cassette.lane_2
+              state: { material_name: empty, material_volume: 0 }
+            - type: ObjectStateChange
+              target: gel_cassette.lane_3
+              state: { material_name: empty, material_volume: 0 }
+      - target: gel_loading_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [] }
+      - target: p200_micropipette
+        gesture: adjust
+        validator: { preset: target_with_value, value: { set_volume: 30 } }
+        response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { set_volume: 30 } }] }
+      - target: microtube_rack_8.slot_B1
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: p200_micropipette
+              state: { held_material_name: protein_sample_denatured, held_material_volume: 30 }
+            - type: ObjectStateChange
+              target: microtube_rack_8.slot_B1
+              state: { material_name: empty, material_volume: 0 }
+      - target: gel_cassette.lane_1
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: gel_cassette.lane_1
+              state: { material_name: protein_sample_denatured, material_volume: 30 }
+            - type: ObjectStateChange
+              target: p200_micropipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
+    next_step: load_sample_two
+  - step_name: load_sample_two
+    prompt: Mount a fresh gel-loading tip, aspirate 30 &micro;L from slot B2, and slowly dispense it into lane 2.
+    sequence:
+      - target: gel_loading_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [] }
+      - target: p200_micropipette
+        gesture: adjust
+        validator: { preset: target_with_value, value: { set_volume: 30 } }
+        response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { set_volume: 30 } }] }
+      - target: microtube_rack_8.slot_B2
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: p200_micropipette
+              state: { held_material_name: protein_sample_denatured, held_material_volume: 30 }
+            - type: ObjectStateChange
+              target: microtube_rack_8.slot_B2
+              state: { material_name: empty, material_volume: 0 }
+      - target: gel_cassette.lane_2
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: gel_cassette.lane_2
+              state: { material_name: protein_sample_denatured, material_volume: 30 }
+            - type: ObjectStateChange
+              target: p200_micropipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
+    next_step: load_sample_three
+  - step_name: load_sample_three
+    prompt: Mount a fresh gel-loading tip, aspirate 30 &micro;L from slot B3, and slowly dispense it into lane 3.
+    sequence:
+      - target: gel_loading_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [] }
+      - target: p200_micropipette
+        gesture: adjust
+        validator: { preset: target_with_value, value: { set_volume: 30 } }
+        response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { set_volume: 30 } }] }
+      - target: microtube_rack_8.slot_B3
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: p200_micropipette
+              state: { held_material_name: protein_sample_denatured, held_material_volume: 30 }
+            - type: ObjectStateChange
+              target: microtube_rack_8.slot_B3
+              state: { material_name: empty, material_volume: 0 }
+      - target: gel_cassette.lane_3
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: gel_cassette.lane_3
+              state: { material_name: protein_sample_denatured, material_volume: 30 }
+            - type: ObjectStateChange
+              target: p200_micropipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
+    next_step: null

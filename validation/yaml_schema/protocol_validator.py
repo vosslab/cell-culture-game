@@ -1,5 +1,7 @@
 """ProtocolValidator: validates protocol YAML per PRIMARY_SPEC.md with Tier 1 cross-file checks."""
 
+import math
+
 from validation.yaml_schema.constants import (
 	PROTOCOL_TYPES,
 	PROTOCOL_REQUIRED_KEYS,
@@ -124,6 +126,7 @@ class ProtocolValidator:
 				findings.extend(self._validate_sequence_runner(protocol, path))
 			else:
 				findings.extend(self._validate_steps(protocol, path))
+			findings.extend(self._validate_initial_state(protocol, path))
 
 		return findings
 
@@ -146,6 +149,7 @@ class ProtocolValidator:
 			return findings
 
 		known = set(self.db.protocols.keys()) if self.db else set()
+		seen_names = set()
 		for idx, name in enumerate(mp_list):
 			if not isinstance(name, str):
 				findings.append(Finding(
@@ -156,6 +160,16 @@ class ProtocolValidator:
 					tag="mini_protocol_not_found",
 				))
 				continue
+			if name in seen_names:
+				findings.append(Finding(
+					path=f"{path}.mini_protocols[{idx}]",
+					lineno=None,
+					severity=Severity.ERROR,
+					message=f"duplicate constituent mini-protocol '{name}'",
+					tag="duplicate_mini_protocol",
+				))
+			else:
+				seen_names.add(name)
 			# V1: Each name must resolve to a known protocol (file exists).
 			if self.db and name not in known:
 				findings.append(Finding(
@@ -196,6 +210,204 @@ class ProtocolValidator:
 					))
 
 		return findings
+
+	def _validate_initial_state(self, protocol: dict, path: str) -> list:
+		"""Validate the closed, declared-state initial session seed surface."""
+		findings = []
+		if 'initial_state' not in protocol:
+			return findings
+
+		entries = protocol['initial_state']
+		if not isinstance(entries, list):
+			return [Finding(
+				path=f"{path}.initial_state",
+				lineno=None,
+				severity=Severity.ERROR,
+				message="initial_state must be a list of {target, state} entries",
+				tag="initial_state_shape",
+			)]
+
+		resolved_targets = set()
+		for index, entry in enumerate(entries):
+			entry_path = f"{path}.initial_state[{index}]"
+			if not isinstance(entry, dict):
+				findings.append(Finding(
+					path=entry_path, lineno=None, severity=Severity.ERROR,
+					message="initial_state entry must be a mapping", tag="initial_state_shape",
+				))
+				continue
+			unknown_keys = set(entry) - {'target', 'state'}
+			if unknown_keys:
+				findings.append(Finding(
+					path=entry_path, lineno=None, severity=Severity.ERROR,
+					message=f"initial_state entry has unknown keys {sorted(unknown_keys)}",
+					tag="initial_state_shape",
+				))
+			if set(entry) != {'target', 'state'}:
+				findings.append(Finding(
+					path=entry_path, lineno=None, severity=Severity.ERROR,
+					message="initial_state entry requires exactly target and state",
+					tag="initial_state_shape",
+				))
+				continue
+			target = entry['target']
+			state = entry['state']
+			if not isinstance(target, str) or not target:
+				findings.append(Finding(
+					path=f"{entry_path}.target", lineno=None, severity=Severity.ERROR,
+					message="initial_state target must be a non-empty string", tag="initial_state_target",
+				))
+				continue
+			if not isinstance(state, dict) or not state:
+				findings.append(Finding(
+					path=f"{entry_path}.state", lineno=None, severity=Severity.ERROR,
+					message="initial_state state must be a non-empty flat mapping", tag="initial_state_state",
+				))
+				continue
+			if self.db is None:
+				continue
+
+			expanded = self._expand_initial_state_target(target)
+			if expanded is None:
+				findings.append(Finding(
+					path=f"{entry_path}.target", lineno=None, severity=Severity.ERROR,
+					message=f"initial_state target '{target}' does not resolve to an object, subpart, or declared subpart_group",
+					tag="initial_state_target",
+				))
+				continue
+			for expanded_target in expanded:
+				if expanded_target in resolved_targets:
+					findings.append(Finding(
+						path=f"{entry_path}.target", lineno=None, severity=Severity.ERROR,
+						message=f"initial_state target '{target}' overlaps resolved target '{expanded_target}'",
+						tag="initial_state_overlap",
+					))
+				else:
+					resolved_targets.add(expanded_target)
+			# Every member of a declared group shares one subpart schema. Validate
+			# the mapping once so a bad group seed yields one actionable error,
+			# rather than the same message once per expanded member.
+			self._validate_initial_state_values(
+				protocol['protocol_name'], expanded[0], state, entry_path, findings
+			)
+
+		return findings
+
+	def _expand_initial_state_target(self, target: str) -> list[str] | None:
+		"""Expand a declared subpart group into its concrete subpart targets."""
+		if self.db is None:
+			return None
+		resolved = self.db.resolve_target(target)
+		if not resolved:
+			return None
+		if '.' not in target:
+			return [target]
+		object_name, suffix = target.split('.', 1)
+		obj = self.db.resolve_target_prefix(object_name)
+		if not obj:
+			return None
+		structure = obj.get('structure', {})
+		groups = structure.get('subpart_groups', {})
+		for group_data in groups.values() if isinstance(groups, dict) else []:
+			if not isinstance(group_data, dict):
+				continue
+			for member in group_data.get('members', []):
+				if isinstance(member, dict) and member.get('name') == suffix:
+					contains = member.get('contains')
+					if not isinstance(contains, list) or not contains:
+						return None
+					return [f"{object_name}.{name}" for name in contains]
+		return [target]
+
+	def _validate_initial_state_values(
+		self, protocol_name: str, target: str, state: dict, entry_path: str,
+		findings: list,
+	) -> None:
+		"""Validate one seed state against its declared object state schema."""
+		is_subpart = '.' in target
+		for field_name, value in state.items():
+			field_path = f"{entry_path}.state.{field_name}"
+			if not isinstance(field_name, str):
+				findings.append(Finding(
+					path=entry_path, lineno=None, severity=Severity.ERROR,
+					message="initial_state state keys must be field_name strings", tag="initial_state_state",
+				))
+				continue
+			object_target = target.split('.', 1)[0]
+			field = self.db.resolve_state_field(
+				object_target, field_name, subpart_targeted=is_subpart
+			)
+			if not field:
+				findings.append(Finding(
+					path=field_path, lineno=None, severity=Severity.ERROR,
+					message=f"state field '{field_name}' is not declared for target '{target}'",
+					tag="T1_STATE_FIELD",
+				))
+				continue
+			field_type = field.get('type')
+			if not self._initial_state_value_matches_type(field_type, value):
+				findings.append(Finding(
+					path=field_path, lineno=None, severity=Severity.ERROR,
+					message=f"state field '{field_name}' requires {field_type}, got {type(value).__name__}",
+					tag="initial_state_type",
+				))
+				continue
+			# Material identity has the D1 registry-backed acceptance predicate:
+			# closed sentinels or a name in this protocol's material registry.
+			# The object-level enum remains the syntactic sentinel floor only.
+			if (
+				field_type == 'enum'
+				and not (
+					is_subpart
+					and field_name in ('material_name', 'held_material_name')
+				)
+				and value not in field.get('allowed', [])
+			):
+				findings.append(Finding(
+					path=field_path, lineno=None, severity=Severity.ERROR,
+					message=f"state field '{field_name}' value '{value}' not in allowed {field.get('allowed', [])}",
+					tag="T1_ENUM",
+				))
+			if field_type in ('int', 'float'):
+				findings.extend(self._validate_numeric_constraints(
+					field, field_name, value, target, entry_path
+				))
+			if (
+				is_subpart
+				and field_name in ('material_name', 'held_material_name')
+				and value not in ('empty', 'mixed')
+			):
+				if not self._initial_state_material_resolves(protocol_name, value):
+					findings.append(Finding(
+						path=field_path, lineno=None, severity=Severity.ERROR,
+						message=f"state field '{field_name}' value '{value}' does not resolve to a known material entry",
+						tag="T1_MATERIAL_REF",
+					))
+
+	@staticmethod
+	def _initial_state_value_matches_type(field_type: str, value: object) -> bool:
+		"""Reject coercions so session seeds use declared primitive values."""
+		if field_type == 'bool':
+			return isinstance(value, bool)
+		if field_type == 'int':
+			return isinstance(value, int) and not isinstance(value, bool)
+		if field_type == 'float':
+			return isinstance(value, (int, float)) and not isinstance(value, bool)
+		if field_type == 'enum':
+			return isinstance(value, str)
+		return False
+
+	def _initial_state_material_resolves(self, protocol_name: str, material_name: str) -> bool:
+		"""Resolve material names for a mini or its direct-leaf sequence runner."""
+		if self.db.resolve_material(protocol_name, material_name):
+			return True
+		protocol = self.db.protocols.get(protocol_name, {})
+		if protocol.get('protocol_type') != 'sequence_runner':
+			return False
+		for mini_name in protocol.get('mini_protocols', []):
+			if self.db.resolve_material(mini_name, material_name):
+				return True
+		return False
 
 	def _validate_protocol_type(self, protocol: dict, path: str) -> list:
 		"""Validate protocol_type per PRIMARY_SPEC.md."""
@@ -453,15 +665,36 @@ class ProtocolValidator:
 				elif preset == 'target_with_value' and self.db and target:
 					value_payload = validator.get('value', {})
 					if isinstance(value_payload, dict):
-						for value_key in value_payload.keys():
-							field = self.db.resolve_state_field(target, value_key)
+						is_subpart_target = '.' in target
+						object_target = target.split('.', 1)[0]
+						for value_key, authored_value in value_payload.items():
+							value_path = f"{interaction_path}.validator.value.{value_key}"
+							field = self.db.resolve_state_field(
+								object_target, value_key,
+								subpart_targeted=is_subpart_target,
+							)
 							if not field:
 								findings.append(Finding(
-									path=f"{interaction_path}.validator.value",
+									path=value_path,
 									lineno=None,
 									severity=Severity.ERROR,
 									message=f"value key '{value_key}' is not a declared state_field on target '{target}'",
 									tag="T1_TARGET_WITH_VALUE",
+								))
+								continue
+							if field.get('type') in ('int', 'float'):
+								numeric_value = self._coerce_finite_numeric(authored_value)
+								if numeric_value is None:
+									findings.append(Finding(
+										path=value_path,
+										lineno=None,
+										severity=Severity.ERROR,
+										message=f"value key '{value_key}' on target '{target}' requires a finite number",
+										tag="T1_TARGET_WITH_VALUE",
+									))
+									continue
+								findings.extend(self._validate_numeric_constraints(
+									field, value_key, numeric_value, target, value_path
 								))
 
 			# scene_operations schema + Tier 1 state mutation checks.
@@ -506,7 +739,12 @@ class ProtocolValidator:
 									state_dict = op.get('state', {})
 									if isinstance(state_dict, dict):
 										for field_name, field_value in state_dict.items():
-											field = self.db.resolve_state_field(op_target, field_name)
+											is_subpart_target = '.' in op_target
+											object_target = op_target.split('.', 1)[0]
+											field = self.db.resolve_state_field(
+												object_target, field_name,
+												subpart_targeted=is_subpart_target,
+											)
 											if not field:
 												findings.append(Finding(
 													path=f"{op_path}.state",
@@ -516,8 +754,15 @@ class ProtocolValidator:
 													tag="T1_STATE_FIELD",
 												))
 												continue
-											# T1_ENUM: enum field value must be in declared allowed list.
-											if field.get('type') == 'enum':
+											# Material identity is registry-backed D1 rather than
+											# limited by the shared object's sentinel enum.
+											if (
+												field.get('type') == 'enum'
+												and not (
+													is_subpart_target
+													and field_name in ('material_name', 'held_material_name')
+												)
+											):
 												allowed = field.get('allowed', [])
 												if field_value not in allowed:
 													findings.append(Finding(
@@ -541,7 +786,11 @@ class ProtocolValidator:
 											# 'empty' and 'mixed' are sentinel values per OBJECT_VOCABULARY.md
 											# (empty container, generic blended material) and do not need
 											# materials.yaml entries.
-											if field_name in ('material_name', 'held_material_name') and field_value not in ('empty', 'mixed'):
+											if (
+												is_subpart_target
+												and field_name in ('material_name', 'held_material_name')
+												and field_value not in ('empty', 'mixed')
+											):
 												protocol_name = self._extract_protocol_name(op_path)
 												if protocol_name and field_value is not None:
 													material = self.db.resolve_material(protocol_name, field_value)
@@ -555,6 +804,21 @@ class ProtocolValidator:
 														))
 
 		return findings
+
+	@staticmethod
+	def _coerce_finite_numeric(value: object) -> int | float | None:
+		"""Match the runtime's finite-number acceptance for authored values."""
+		if isinstance(value, bool):
+			return None
+		if isinstance(value, (int, float)):
+			return value if math.isfinite(value) else None
+		if isinstance(value, str) and value.strip():
+			try:
+				parsed = float(value)
+			except ValueError:
+				return None
+			return parsed if math.isfinite(parsed) else None
+		return None
 
 	def _validate_validator_shape(self, validator: dict, path: str, scope: str) -> list:
 		"""

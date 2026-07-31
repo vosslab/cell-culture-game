@@ -17,6 +17,18 @@ remove_placements:
   - front_left_mini_protean_gel
   - front_center_waste_container
   - front_right_gel_comb
+  - right_tool_area_p10_gel_loading_tip_box
+
+add_placements:
+  - placement_name: front_center_sds_microtube_rack
+    object_name: microtube_rack_8
+    zone: front_center
+    depth_tier: 1
+    align_stop: right
+  - placement_name: right_tool_area_gel_loading_tip_box
+    object_name: gel_loading_tip_box
+    zone: right_tool_area
+    depth_tier: 1
 
 scene_notes: |
   Focused SDS-PAGE ladder-loading workspace. The protein ladder tube, p200

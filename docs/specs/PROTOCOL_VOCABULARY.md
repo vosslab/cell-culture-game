@@ -35,9 +35,10 @@ authored kinds, and the structural terms that surround them, are:
   review-gated, not count-gated.
 - **Sequence runner** (`protocol_type: sequence_runner`) -- an
   ordered pathway that connects mini-protocols into a larger
-  student-facing sequence. Declares its sequence in place of
-  authored steps. May be rendered in student-facing content as
-  "full protocol".
+  student-facing sequence. Declares a non-empty, unique list of direct
+  mini-protocol leaves in place of authored steps. Nested runners and repeated
+  leaves are invalid. May be rendered in student-facing content as "full
+  protocol".
 
 The bare word "protocol" is not a formal kind or enum value.
 Precise terms (`protocol.yaml`, protocol package, protocol-level
@@ -80,6 +81,31 @@ to accomplish. A step is often multi-gesture. "Wash the flask with
 click the pipette, click the PBS source, click the flask. The
 two-level model exists so the step stays the pedagogical unit while
 the individual gestures live inside it in an ordered `sequence`.
+
+### Initial session state
+
+**Initial session state** is an optional root `initial_state` list that
+establishes declared state before the entry interaction. Each entry is exactly
+`{target, state}`. Its target names one object, one declared subpart, or one
+declared `subpart_group`; a group expands to its concrete members before
+validation. It is not an interaction target and never makes one learner action
+apply to several objects.
+
+The `state` mapping is non-empty and flat. Every field and value follows the
+target's declared state schema, including primitive type, numeric range, unit,
+and enum checks. Object-level material identity uses its declared enum. A
+subpart `material_name` or `held_material_name` uses the active protocol
+material registry plus `empty` and `mixed`; other subpart enums remain closed
+by their declared enum. Resolved targets may not duplicate the same concrete
+identity, including a group member; an object and its subpart are distinct. The
+runtime stores the resulting state in one durable target-keyed archive and
+reactively projects the current scene from it. Scene reconciliation preserves
+the archive; Restart clears it and reapplies the root seed.
+
+For a direct mini-protocol launch, the mini-protocol root is the session seed.
+For a sequence runner launch, the runner root is the only seed. A constituent
+mini-protocol's `initial_state` is not applied when that mini runs within the
+runner.
 
 ### Required slots
 
@@ -475,6 +501,12 @@ fields directly (typically `material_name` and `material_volume`
 for vessels and wells; `held_material_name` and `held_material_volume` for tools).
 The `visual_states` resolves the new field values to a fill height, tint, and asset.
 
+Object-level material fields use the object's declared material enum. A
+structured subpart's `material_name` or `held_material_name` uses the active
+protocol material registry plus `empty` and `mixed`, because shared structured
+objects deliberately declare only their sentinel enum floor. Other subpart enum
+fields still use their declared enum.
+
 Each liquid state change maps to a flat-field write:
 
 - `hold` (a tool drawing liquid) -- write the tool's
@@ -633,7 +665,7 @@ presets and two step presets.
 | --------------------- | ---------------------------- | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `correct_target`      | interaction `validator` only | `preset`                                                            | The student performed the interaction's `gesture` on the interaction's `target`.                                                                 |
 | `correct_choice`      | interaction `validator` only | `preset`                                                            | The student selected the correct next-step object: the selected scene object equals the interaction's `target` (target-equality). The selectable set is the clickable scene objects already present; there is no separate answer-choice list. Used by a `select`-gesture interaction. |
-| `target_with_value`   | interaction `validator` only | `preset`, `value` (a mapping of typed value keys)                   | The student performed the `gesture` on the `target` and the target reached the named `value` -- the preset an `adjust`- or `type`-gesture interaction uses. For a `type` interaction the committed text is coerced to the declared value's type and compared. |
+| `target_with_value`   | interaction `validator` only | `preset`, `value` (a mapping of typed value keys)                   | The student performed the `gesture` on the `target` and the target reached the named `value` -- the preset an `adjust`- or `type`-gesture interaction uses. The value must satisfy the target field's declared type and numeric `min`, `max`, and `step`. For a `type` interaction the committed text is coerced to the declared value's type and compared. |
 | `sequence_complete`   | `step_validator` only        | `preset`                                                            | Every interaction in the step's `sequence` validated, in order.                                                                                  |
 | `final_state_matches` | `step_validator` only        | `preset`, `target`, `contains` (a mapping of expected target state) | After the sequence runs, the named `target` is in the state described by `contains`, regardless of the exact path.                               |
 
@@ -993,8 +1025,9 @@ Reading the chain:
 | **Protocol package** | The folder under `content/protocols/<cluster>/<name>/` that holds `protocol.yaml`, `materials.yaml`, and `scenes/`. A structural unit, not a `protocol_type` value.          | `content/protocols/<cluster>/<name>/`                      |
 | **Protocol type**    | The kind of protocol authored. Closed enum: `mini_protocol`, `sequence_runner`.                                                                                              | `protocol.protocol_type` field                             |
 | **Mini-protocol**    | One authored student-facing workflow with normal steps, a `learning` block, scenes, materials, and referenced objects. Step count is determined by pedagogy.                 | `protocol_type: mini_protocol`                             |
-| **Sequence runner**  | An ordered pathway that connects mini-protocols into a larger student-facing sequence. Declares its sequence in place of authored steps. May be rendered as "full protocol". | `protocol_type: sequence_runner`                           |
+| **Sequence runner**  | An ordered non-empty list of unique direct mini-protocol leaves. It declares the pathway in place of authored steps; nested runners and repeats are invalid. May be rendered as "full protocol". | `protocol_type: sequence_runner`                           |
 | **Protocol**         | The top-level YAML block and the three-nested-level model (`protocol -> step -> interaction`). Structural umbrella; not a `protocol_type` value.                             | `protocol` block in `protocol.yaml`                        |
+| **Initial session state** | Optional root seed list. It establishes declared object or subpart state before entry; a declared group expands only for this seed. | `protocol.initial_state[]` |
 | **Step**             | One pedagogical unit -- one thing the student is asked to accomplish. Often multi-gesture.                                                                                   | one entry in `protocol.steps`                              |
 | **Sequence**         | The ordered list of interactions inside a step; order always matters.                                                                                                        | `step.sequence`                                            |
 | **Interaction**      | One `gesture` on one `target`, with its own `validator` and `response`.                                                                                                      | one entry in `step.sequence`                               |

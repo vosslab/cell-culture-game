@@ -85,6 +85,8 @@ export async function readProgressSnapshot(page) {
       heldLiquid: JSON.stringify(s.heldLiquid),
       wrongOrderClicks: s.wrongOrderClicks,
       isComplete: s.isComplete,
+      stateRevision: s.stateRevision,
+      lastStateDelta: s.lastStateDelta === null ? null : JSON.stringify(s.lastStateDelta),
     };
   });
 }
@@ -105,12 +107,60 @@ export async function readGameState(page) {
       isComplete: s.isComplete,
       activeTarget: s.activeTarget,
       activeGesture: s.activeGesture,
-      activeTypeValue: s.activeTypeValue,
-      activeAdjustValue: s.activeAdjustValue,
-      activeDragDestination: s.activeDragDestination,
-      activeMaterialEffect: s.activeMaterialEffect,
+      activeMaterialEffects: s.activeMaterialEffects ?? null,
+      stateRevision: s.stateRevision,
+      lastStateDelta: s.lastStateDelta,
+      stateDeltaLog: s.stateDeltaLog ?? null,
+      declaredState: s.declaredState ?? null,
+      activeStateWrites: s.activeStateWrites ?? null,
     };
   });
+}
+
+function escapedNumberText(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function parseVisibleAdjustCue(cue, target) {
+  if (cue.target !== target || cue.gesture !== "adjust") {
+    throw new Error(`adjust_visible_cue_mismatch: rail does not identify adjust '${target}'`);
+  }
+  if (cue.value === null || cue.value.trim() === "") {
+    throw new Error(`adjust_visible_value_missing: rail has no data-action-value for '${target}'`);
+  }
+  const value = Number(cue.value);
+  if (!Number.isFinite(value)) {
+    throw new Error(`adjust_visible_value_invalid: '${cue.value}' is not a finite number`);
+  }
+  const numericText = String(value);
+  const exactNumber = new RegExp(`(^|[^0-9.])${escapedNumberText(numericText)}($|[^0-9.])`);
+  if (!exactNumber.test(cue.text)) {
+    throw new Error(
+      `adjust_visible_value_unannounced: cue '${cue.text}' does not state exact value '${numericText}'`,
+    );
+  }
+  return numericText;
+}
+
+// The walker may enter a set point only when the learner can read the same
+// numeric value in the active action rail. This deliberately refuses any
+// runtime-only validator projection; an invisible answer is not walkthrough
+// evidence.
+export async function readVisibleAdjustValue(page, target) {
+  const actionRail = page.locator("[data-current-action]").first();
+  if ((await actionRail.count()) === 0 || !(await actionRail.isVisible())) {
+    throw new Error(`adjust_visible_cue_missing: no visible action rail for '${target}'`);
+  }
+  const cue = await actionRail.evaluate((element) => {
+    const cueElement = element.querySelector(".action-rail-cue");
+    return {
+      target: element.getAttribute("data-action-target"),
+      gesture: element.getAttribute("data-action-gesture"),
+      value: element.getAttribute("data-action-value"),
+      text: cueElement?.textContent?.trim() ?? "",
+    };
+  });
+  return parseVisibleAdjustCue(cue, target);
 }
 
 // Wait for the read-only walker surfaces to appear (after load and after reload).
@@ -178,8 +228,41 @@ export async function captureVisibleTargetCheckpoint(
       viewportHeight: window.innerHeight,
     };
   });
-  if (bounds.width <= 0 || bounds.height <= 0) {
+  if (bounds.width < 24 || bounds.height < 24) {
     throw new Error(`checkpoint_target_outside_viewport: ${selector}`);
+  }
+
+  // The DOM identity that Playwright will click must be the authored target,
+  // and it must own an unobscured, learner-sized hit core. This is intentionally
+  // a browser hit-test, not a synthetic event or a hidden geometry shortcut.
+  const effectiveClickTarget = await locator.evaluate((element) => {
+    const rect = element.getBoundingClientRect();
+    const x = Math.max(rect.left, Math.min(rect.right, rect.left + rect.width / 2));
+    const y = Math.max(rect.top, Math.min(rect.bottom, rect.top + rect.height / 2));
+    const hit = document.elementFromPoint(x, y);
+    const hitItem = hit?.closest?.("[data-item-id]") ?? null;
+    const hitRect = hitItem?.getBoundingClientRect();
+    return {
+      authoredDomTarget: element.getAttribute("data-item-id"),
+      hitDomTarget: hitItem?.getAttribute("data-item-id") ?? null,
+      coreWidth: hitRect?.width ?? 0,
+      coreHeight: hitRect?.height ?? 0,
+    };
+  });
+  if (
+    effectiveClickTarget.authoredDomTarget !== target ||
+    effectiveClickTarget.hitDomTarget !== target
+  ) {
+    throw new Error(
+      `checkpoint_click_target_mismatch: authored '${target}', DOM '${String(effectiveClickTarget.authoredDomTarget)}', ` +
+        `hit '${String(effectiveClickTarget.hitDomTarget)}'`,
+    );
+  }
+  if (effectiveClickTarget.coreWidth < 24 || effectiveClickTarget.coreHeight < 24) {
+    throw new Error(
+      `checkpoint_click_core_too_small: ${selector} hit core is ` +
+        `${effectiveClickTarget.coreWidth}x${effectiveClickTarget.coreHeight}px, need at least 24x24px`,
+    );
   }
 
   // An existing, visible target is not enough: the schema-driven walker knows
@@ -193,13 +276,22 @@ export async function captureVisibleTargetCheckpoint(
     const itemKind = element.getAttribute("data-affordance");
     const kind = subpartKind ?? itemKind ?? "none";
     const isSubpart = subpartKind !== null;
+    // Exact-subpart identity lives on the hit-surface group, while the visible
+    // learner indicator is its painted child. Reading the group stroke would
+    // falsely reject a correctly highlighted lane/well because SVG <g> itself
+    // carries no paint.
+    const indicator = isSubpart ? element.querySelector(".subpart-focus-indicator") : element;
+    const indicatorComputed = indicator === null ? null : window.getComputedStyle(indicator);
     const indicatorWidth = isSubpart
-      ? Number.parseFloat(computed.strokeWidth)
+      ? Number.parseFloat(indicatorComputed?.strokeWidth ?? "0")
       : Number.parseFloat(computed.outlineWidth);
-    const indicatorStyle = isSubpart ? computed.stroke : computed.outlineStyle;
+    const indicatorStyle = isSubpart
+      ? (indicatorComputed?.stroke ?? "none")
+      : computed.outlineStyle;
     return {
       kind,
       isSubpart,
+      indicatorFound: indicator !== null,
       indicatorWidth,
       indicatorStyle,
     };
@@ -231,6 +323,7 @@ export async function captureVisibleTargetCheckpoint(
       target: element.getAttribute("data-action-target"),
       label: element.getAttribute("data-action-label"),
       gesture: element.getAttribute("data-action-gesture"),
+      value: element.getAttribute("data-action-value"),
       text: cue?.textContent?.trim() ?? "",
     };
   });
@@ -300,6 +393,7 @@ export async function captureVisibleTargetCheckpoint(
     interactionIndex,
     screenshot,
     visibleTargetBounds: bounds,
+    effectiveClickTarget,
     affordance: {
       expectedKind: expectedAffordance,
       renderedKind: affordance.kind,
@@ -343,18 +437,25 @@ export async function waitForVisibleTimedWait(
     wait_text: waitText,
   });
 
+  const startedAt = Date.now();
   await page.waitForFunction(
     (stepId) => {
       const state = window.gameState;
       return (
-        state.activeStepId !== stepId ||
-        state.activeTarget !== null ||
-        document.querySelector('[data-timed-wait="active"]') === null
+        document.querySelector('[data-timed-wait="active"]') === null &&
+        (state.activeStepId !== stepId || state.activeTarget !== null)
       );
     },
     stepName,
     { timeout: waitBudgetMs },
   );
+  const observedDurationMs = Date.now() - startedAt;
+  report.addEntry("info", `Timed wait completed: ${stepName}`, {
+    step_name: stepName,
+    observed_duration_ms: observedDurationMs,
+    wait_budget_ms: waitBudgetMs,
+  });
+  return { screenshot, observedDurationMs, waitBudgetMs };
 }
 
 //============================================
@@ -417,12 +518,15 @@ export async function clickTargetAndWaitProgress(
     }
     if (
       after.interactionIndex !== before.interactionIndex ||
-      after.activeStepId !== before.activeStepId
+      after.activeStepId !== before.activeStepId ||
+      after.stateRevision !== before.stateRevision ||
+      after.lastStateDelta !== before.lastStateDelta
     ) {
       throw new Error(
         `wrong_order_advanced_step: click on ${itemId} advanced the step ` +
           `(idx ${before.interactionIndex}->${after.interactionIndex}, ` +
-          `step ${before.activeStepId}->${after.activeStepId})`,
+          `step ${before.activeStepId}->${after.activeStepId}, revision ` +
+          `${before.stateRevision}->${after.stateRevision})`,
       );
     }
     report.info(`Wrong-order click on ${itemId} rejected (no advance)`);
@@ -469,6 +573,7 @@ export async function clickTargetAndWaitProgress(
       item_id: itemId,
     });
   }
+  return { before, after: await readProgressSnapshot(page) };
 }
 
 //============================================
@@ -545,8 +650,8 @@ export async function typeCommitAndWaitProgress(
 // observable forward progress signal. No internal state write, no force
 // interaction.
 //
-// numericValue: the set-point the student would set, as a string (the value read
-// read-only from gameState.activeAdjustValue).
+// numericValue: the set-point visibly announced by data-action-value in the
+// learner-facing action rail.
 export async function adjustCommitAndWaitProgress(
   page,
   numericValue,
@@ -692,12 +797,26 @@ export async function dragToAndWaitProgress(
 // nodes have non-zero geometry, but the base SVG correctly receives pointer
 // events instead. Match the candidate against the topmost data-item-id at its
 // center so the picker follows the same hit-testing path as a real click.
+//
+// An exact or declared-group target also leaves its structured object's parent
+// wrapper in the DOM. That wrapper is not a different learner action: member
+// hit surfaces own the actionable area. Exclude it so wrong-order mode chooses
+// a genuinely different object or concrete sibling.
+export function isDistinctWrongOrderCandidate(requiredItemId, candidateItemId) {
+  if (candidateItemId === null || candidateItemId === requiredItemId) return false;
+  const dot = requiredItemId.indexOf(".");
+  if (dot > 0 && candidateItemId === requiredItemId.slice(0, dot)) return false;
+  return true;
+}
+
 export async function pickWrongOrderItem(page, requiredItemId) {
   return await page.evaluate((required) => {
     const items = document.querySelectorAll("#scene-root [data-item-id]");
+    const requiredDot = required.indexOf(".");
+    const requiredParent = requiredDot > 0 ? required.slice(0, requiredDot) : null;
     for (const elem of items) {
       const itemId = elem.getAttribute("data-item-id");
-      if (itemId === required) continue;
+      if (itemId === null || itemId === required || itemId === requiredParent) continue;
       const style = window.getComputedStyle(elem);
       if (style.display === "none" || style.visibility === "hidden") continue;
       const rect = elem.getBoundingClientRect();
@@ -719,6 +838,41 @@ export async function pickWrongOrderItem(page, requiredItemId) {
     }
     return null;
   }, requiredItemId);
+}
+
+// Pick a real visible sibling of an exact dotted target. The sibling must belong
+// to the same structured object and pass the browser's center hit-test, so this
+// proves a learner's plausible wrong well/lane click is rejected by normal UI.
+export async function pickWrongSiblingItem(page, requiredItemId) {
+  const dot = requiredItemId.indexOf(".");
+  if (dot < 1) return null;
+  const objectName = requiredItemId.slice(0, dot);
+  return await page.evaluate(
+    ({ required, object }) => {
+      const prefix = `${object}.`;
+      const items = document.querySelectorAll("#scene-root [data-item-id]");
+      for (const element of items) {
+        const itemId = element.getAttribute("data-item-id");
+        if (itemId === null || itemId === required || !itemId.startsWith(prefix)) continue;
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        if (
+          style.display === "none" ||
+          style.visibility === "hidden" ||
+          rect.width < 24 ||
+          rect.height < 24
+        )
+          continue;
+        const x = rect.left + rect.width / 2;
+        const y = rect.top + rect.height / 2;
+        if (x < 0 || y < 0 || x >= window.innerWidth || y >= window.innerHeight) continue;
+        const hit = document.elementFromPoint(x, y)?.closest?.("[data-item-id]");
+        if (hit?.getAttribute("data-item-id") === itemId) return itemId;
+      }
+      return null;
+    },
+    { required: requiredItemId, object: objectName },
+  );
 }
 
 //============================================
@@ -866,6 +1020,100 @@ export async function verifyMaterialAreaAfterInteraction(page, effect, before, r
   }
   const after = await readSubpartOverlay(page, effect.object_name);
   verifyMaterialAreaEffect(effect, before, after, report);
+}
+
+// Verify every structured material effect authored by one interaction as one
+// atomic visible change. Effects for one object are merged by concrete member
+// in operation order, so a legitimate ladder lane transition cannot be treated
+// as an unexpected change while sample lanes transition to a different material.
+export function verifyMaterialAreaEffects(effects, beforeByObject, afterByObject, report) {
+  const expectedByObject = new Map();
+  for (const effect of effects) {
+    let expectedMembers = expectedByObject.get(effect.object_name);
+    if (expectedMembers === undefined) {
+      expectedMembers = new Map();
+      expectedByObject.set(effect.object_name, expectedMembers);
+    }
+    for (const member of effect.expected_subparts) {
+      expectedMembers.set(member, effect.material_value);
+    }
+  }
+
+  const problems = [];
+  for (const [objectName, expectedMembers] of expectedByObject) {
+    const before = beforeByObject.get(objectName) ?? {};
+    const after = afterByObject.get(objectName) ?? {};
+    if (Object.keys(after).length === 0) {
+      problems.push(`object '${objectName}' has no rendered subpart overlay`);
+      continue;
+    }
+    for (const [member, materialValue] of expectedMembers) {
+      const afterMember = after[member];
+      if (afterMember === undefined) {
+        problems.push(`object '${objectName}' expected member '${member}' is not rendered`);
+        continue;
+      }
+      if (afterMember.material !== materialValue) {
+        problems.push(
+          `object '${objectName}' member '${member}' material '${afterMember.material}' !== '${materialValue}'`,
+        );
+      }
+      const beforeMember = before[member];
+      if (
+        beforeMember !== undefined &&
+        beforeMember.material !== materialValue &&
+        afterMember.fill === beforeMember.fill
+      ) {
+        problems.push(
+          `object '${objectName}' member '${member}' fill did not change for material transition`,
+        );
+      }
+    }
+    for (const [member, afterMember] of Object.entries(after)) {
+      if (expectedMembers.has(member)) continue;
+      const beforeMember = before[member];
+      if (
+        beforeMember !== undefined &&
+        (afterMember.material !== beforeMember.material || afterMember.fill !== beforeMember.fill)
+      ) {
+        problems.push(
+          `object '${objectName}' non-target subpart '${member}' changed: ` +
+            `material '${beforeMember.material}'->'${afterMember.material}', ` +
+            `fill '${beforeMember.fill}'->'${afterMember.fill}'`,
+        );
+      }
+    }
+  }
+  if (problems.length > 0) {
+    throw new Error(`material_area_multi_mismatch: ${problems.join("; ")}`);
+  }
+  for (const [objectName, expectedMembers] of expectedByObject) {
+    report.info(
+      `Material-area verified on '${objectName}': ${expectedMembers.size} authored member transition(s)`,
+    );
+  }
+}
+
+export async function verifyMaterialAreaEffectsAfterInteraction(
+  page,
+  effects,
+  beforeByObject,
+  report,
+) {
+  await Promise.all(
+    effects.map(async (effect) => {
+      const member = effect.expected_subparts[0];
+      if (member !== undefined) {
+        await waitForSubpartMaterial(page, effect.object_name, member, effect.material_value, 1500);
+      }
+    }),
+  );
+  const objectNames = [...new Set(effects.map((effect) => effect.object_name))];
+  const afterByObject = new Map();
+  for (const objectName of objectNames) {
+    afterByObject.set(objectName, await readSubpartOverlay(page, objectName));
+  }
+  verifyMaterialAreaEffects(effects, beforeByObject, afterByObject, report);
 }
 
 //============================================

@@ -16,6 +16,14 @@ add_placements:
     depth_tier: 1
     align_stop: left
 
+  # The undiluted 400 uM parent remains the row-H working stock after the
+  # six lower-concentration tubes have been prepared from it.
+  - placement_name: rear_center_carb_parent_stock
+    object_name: microtube_15ml_intermediate
+    zone: rear_center
+    depth_tier: 2
+    align_stop: center
+
   # Metformin working tube in rear_center (right side)
   - placement_name: rear_center_metformin_stock
     object_name: metformin_working_tube

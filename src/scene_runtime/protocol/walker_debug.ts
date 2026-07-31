@@ -4,8 +4,8 @@
 // window.gameState that the Solid HUD migration dropped, so the canonical
 // walker (tests/playwright/e2e/protocol_walkthrough_yaml.mjs) and ad-hoc
 // debugging can read protocol progress. These are FROZEN contract surfaces per
-// docs/specs/WALKTHROUGH_GUIDE.md "Required future work" and the migration
-// plan's "Browser runtime constraints":
+// docs/specs/WALKTHROUGH_GUIDE.md and the migration plan's
+// "Browser runtime constraints":
 //
 //   - They are READ-ONLY signals. Tests may read them; nothing here mutates
 //     game state, and the runtime never advances by writing them. They are a
@@ -42,7 +42,7 @@ import type {
   ProtocolStep,
 } from "../../shell/adapter/types.js";
 import type { RuntimeEmitterHandle } from "./emitter.js";
-import type { SceneStore } from "../state/scene_store.js";
+import type { SceneStore, StatePartial } from "../state/scene_store.js";
 import { OBJECT_LIBRARY } from "../../../generated/object_library.js";
 import { expand_subpart_group_target } from "../state/subpart_group_expand.js";
 import { find_material_tint_subpart_field } from "../renderer/subpart_dispatch.js";
@@ -93,6 +93,19 @@ export interface MaterialAreaEffect {
   expected_subparts: string[];
 }
 
+// Read-only declared-state projection for exactly the currently mounted scene.
+// The durable protocol archive is deliberately excluded: it may contain a tube
+// or well that is not visible and therefore cannot be verified in this scene.
+export type ActiveDeclaredState = Readonly<Record<string, StatePartial>>;
+
+// One concrete ObjectStateChange write the active interaction will apply.
+// `target` is after data-driven subpart-group expansion, and ordering matches
+// the runtime dispatcher: authored operation order, then group member order.
+export interface ActiveStateWrite {
+  readonly target: string;
+  readonly state: StatePartial;
+}
+
 // Read-only game-state projection consumed by the walker progress predicate.
 export interface WalkerGameState {
   activeStepId: string | null;
@@ -104,6 +117,32 @@ export interface WalkerGameState {
   wrongOrderClicks: number;
   stepsOutOfOrder: number;
   isComplete: boolean;
+  // Monotonic declared-state/reconciliation revision from the session store.
+  // It gives diagnostics a stable proof that a visible state mutation was
+  // actually applied without exposing a writable state surface.
+  stateRevision: number;
+  // Most recent concrete declared-state mutation. Group writes report their
+  // resolved member target, never the authored pseudo-group name.
+  lastStateDelta: {
+    target: string;
+    before: Readonly<Record<string, string | number | boolean>>;
+    after: Readonly<Record<string, string | number | boolean>>;
+  } | null;
+  // Full ordered history of concrete declared writes in this session. Group
+  // writes appear as their expanded members in exact runtime order.
+  stateDeltaLog: ReadonlyArray<{
+    target: string;
+    before: Readonly<Record<string, string | number | boolean>>;
+    after: Readonly<Record<string, string | number | boolean>>;
+  }>;
+  // Current declared state for targets mounted in activeScene only. Runtime
+  // flags and durable-but-absent session targets are intentionally omitted.
+  declaredState: ActiveDeclaredState;
+  // Concrete declared-state writes expected if the active interaction succeeds.
+  // A group fan-out appears as one entry per member in deterministic runtime
+  // order; repeated writes are retained rather than collapsed, because the
+  // runtime applies them sequentially and collapsing would hide a conflict.
+  activeStateWrites: ReadonlyArray<ActiveStateWrite>;
   // The current interaction's target and gesture, projected read-only from the
   // step machine's emitter snapshot (active_interaction_target /
   // active_interaction_gesture). These are the SAME fields the runtime itself
@@ -114,23 +153,6 @@ export interface WalkerGameState {
   // call. Both null when no interaction is active (between steps / complete).
   activeTarget: string | null;
   activeGesture: string | null;
-  // For a `type` interaction only: the expected value the student should type,
-  // rendered as a string. Derived read-only from the active interaction's
-  // target_with_value validator `value` block (its single declared field). The
-  // walker reads this to know what to type into the visible type-input
-  // affordance -- the same read-only basis it uses to know which object to
-  // click. Null when the active interaction is not a `type` gesture or declares
-  // no expected value. This is NOT a state write: it is a projection of the
-  // authored protocol the walker already has read access to via PROTOCOL_STEPS.
-  activeTypeValue: string | null;
-  // For an `adjust` interaction only: the expected numeric set-point the student
-  // should reach in the visible set-point editor, rendered as a string. Derived
-  // read-only from the active interaction's target_with_value validator `value`
-  // block (its single declared field) -- the SAME source activeTypeValue reads,
-  // just gated on the `adjust` gesture. The walker reads this to know what to fill
-  // into [data-adjust-input]. Null when the active interaction is not an `adjust`
-  // gesture or declares no expected value. A projection, never a state write.
-  activeAdjustValue: string | null;
   // For a `drag` interaction only: the accepted destination the student should
   // drop the source object onto, as a placement identity string. Derived
   // read-only from the active interaction's authored response (the `zone` of its
@@ -139,12 +161,11 @@ export interface WalkerGameState {
   // know which destination scene object to drag onto. Null when the active
   // interaction is not a `drag` gesture or authors no LayoutMove destination.
   activeDragDestination: string | null;
-  // For an interaction whose response writes a structured object's declared
-  // material-tint subpart field: the expected material-area effect (object,
-  // field, value, expanded member subparts). Null when the active interaction
-  // writes no such structured material area. See MaterialAreaEffect. A pure
-  // read-only projection of authored config + generated object schema.
-  activeMaterialEffect: MaterialAreaEffect | null;
+  // Every structured material-tint write the active response will apply, in
+  // authored operation order. Distinct effects may target the same rack or gel
+  // with different materials, so this remains a list rather than one lossy
+  // representative effect.
+  activeMaterialEffects: ReadonlyArray<MaterialAreaEffect>;
 }
 
 declare global {
@@ -217,39 +238,6 @@ function active_interaction_at(
   return step.sequence[index] ?? null;
 }
 
-// Resolve the expected value for a `type` or `adjust` interaction, as a string.
-// Both gestures commit a value validated by target_with_value, so both read the
-// single declared field in the interaction's validator `value` block. `gesture`
-// gates which one this projection serves (so activeTypeValue is null on an
-// adjust interaction and vice versa). Returns null when the active interaction's
-// gesture does not match, the index is out of range, or no expected value is
-// declared. Pure read of authored config.
-function resolve_active_value_for_gesture(
-  config: ProtocolConfig,
-  step_name: string | null,
-  index: number,
-  gesture: "type" | "adjust",
-): string | null {
-  const interaction = active_interaction_at(config, step_name, index);
-  if (!interaction || interaction.gesture !== gesture) {
-    return null;
-  }
-  const value = interaction.validator.value;
-  if (value === undefined) {
-    return null;
-  }
-  // A type/adjust interaction declares exactly one expected field; surface it.
-  const keys = Object.keys(value);
-  if (keys.length === 0) {
-    return null;
-  }
-  const first_key = keys[0];
-  if (first_key === undefined) {
-    return null;
-  }
-  return String(value[first_key]);
-}
-
 // Resolve the accepted drop destination for a `drag` interaction, as a string.
 // The destination is the `zone` of the first LayoutMove scene_operation in the
 // interaction's authored response -- the same authored slot the runtime's
@@ -290,15 +278,16 @@ function subpart_suffix(target: string): string {
 // to real declared subparts so a bare-object write resolves to no members and is
 // skipped. Pure read of authored config + generated schema; no object or field
 // name is special-cased.
-function resolve_active_material_effect(
+function resolve_active_material_effects(
   config: ProtocolConfig,
   step_name: string | null,
   index: number,
-): MaterialAreaEffect | null {
+): MaterialAreaEffect[] {
   const interaction = active_interaction_at(config, step_name, index);
   if (!interaction) {
-    return null;
+    return [];
   }
+  const effects: MaterialAreaEffect[] = [];
   for (const op of interaction.response.scene_operations) {
     if (op.type !== "ObjectStateChange") {
       continue;
@@ -334,14 +323,63 @@ function resolve_active_material_effect(
     if (members.length === 0) {
       continue;
     }
-    return {
+    effects.push({
       object_name,
       material_field: field,
       material_value: String(written),
       expected_subparts: members,
-    };
+    });
   }
-  return null;
+  return effects;
+}
+
+// Expand every ObjectStateChange in the active response into the exact concrete
+// write sequence that build_store_scene_op_deps applies. No names or groups are
+// special-cased: the shared group resolver owns expansion, and its declared
+// member order is preserved. Do not merge repeated targets/fields; sequential
+// write order is observable runtime behavior and is the unambiguous proof the
+// walker needs to compare after an interaction.
+export function resolve_active_state_writes(
+  config: ProtocolConfig,
+  step_name: string | null,
+  index: number,
+): ActiveStateWrite[] {
+  const interaction = active_interaction_at(config, step_name, index);
+  if (interaction === null) {
+    return [];
+  }
+  const writes: ActiveStateWrite[] = [];
+  for (const op of interaction.response.scene_operations) {
+    if (op.type !== "ObjectStateChange") {
+      continue;
+    }
+    const state: Record<string, string | number | boolean> = {};
+    for (const key of Object.keys(op.state).sort()) {
+      const value = op.state[key];
+      if (value !== undefined) {
+        state[key] = value;
+      }
+    }
+    for (const target of expand_subpart_group_target(op.target)) {
+      writes.push({ target, state: { ...state } });
+    }
+  }
+  return writes;
+}
+
+// Snapshot only the current reactive scene projection, sorting target names for
+// a stable read-only diagnostic representation. The store archive is excluded
+// by construction; callers can never use this walker surface to inspect or
+// alter absent-scene scientific state.
+export function snapshot_active_declared_state(store: SceneStore): ActiveDeclaredState {
+  const snapshot: Record<string, StatePartial> = {};
+  for (const target of Object.keys(store.state).sort()) {
+    const entry = store.state[target];
+    if (entry !== undefined) {
+      snapshot[target] = { ...entry.state };
+    }
+  }
+  return snapshot;
 }
 
 //============================================
@@ -398,6 +436,15 @@ export function install_walker_debug_surface(
       wrongOrderClicks: wrong_order_clicks,
       stepsOutOfOrder: steps_out_of_order,
       isComplete: snapshot.is_complete,
+      stateRevision: store.state_revision,
+      lastStateDelta: store.last_state_delta,
+      stateDeltaLog: store.state_delta_log,
+      declaredState: snapshot_active_declared_state(store),
+      activeStateWrites: resolve_active_state_writes(
+        config,
+        snapshot.current_step_name,
+        snapshot.current_interaction_index,
+      ),
       // Read-only projection of the snapshot's active-interaction fields. The
       // walker mirrors the runtime's own click resolution by clicking the
       // visible element whose data-item-id equals activeTarget. active_interaction_target
@@ -409,24 +456,12 @@ export function install_walker_debug_surface(
       // a placement (placement_name hood_flask for object_name t75_flask).
       activeTarget: snapshot.active_interaction_target,
       activeGesture: snapshot.active_interaction_gesture,
-      activeTypeValue: resolve_active_value_for_gesture(
-        config,
-        snapshot.current_step_name,
-        snapshot.current_interaction_index,
-        "type",
-      ),
-      activeAdjustValue: resolve_active_value_for_gesture(
-        config,
-        snapshot.current_step_name,
-        snapshot.current_interaction_index,
-        "adjust",
-      ),
       activeDragDestination: resolve_active_drag_destination(
         config,
         snapshot.current_step_name,
         snapshot.current_interaction_index,
       ),
-      activeMaterialEffect: resolve_active_material_effect(
+      activeMaterialEffects: resolve_active_material_effects(
         config,
         snapshot.current_step_name,
         snapshot.current_interaction_index,

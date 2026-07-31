@@ -4,7 +4,11 @@
 import { describe, test } from "node:test";
 import assert from "node:assert/strict";
 
-import { gesture_instruction, recovery_copy } from "../src/shell/regions/guidance_bar.tsx";
+import {
+  action_progress_copy,
+  gesture_instruction,
+  recovery_copy,
+} from "../src/shell/regions/guidance_bar.tsx";
 
 describe("guidance-bar gesture cue", () => {
   const learner_actions = [
@@ -20,14 +24,41 @@ describe("guidance-bar gesture cue", () => {
     });
   }
 
+  test("adjust gives the exact requested numeric value to the learner", () => {
+    assert.strictEqual(
+      gesture_instruction("adjust", "P200 micropipette", 25),
+      "Set P200 micropipette to 25 using the control below.",
+    );
+  });
+
   test("select identifies the candidate set without revealing the correct target", () => {
-    const copy = gesture_instruction("select", "Correct answer");
+    const copy = gesture_instruction("select", "Correct answer", 25);
     assert.match(copy, /blue outlined/);
     assert.doesNotMatch(copy, /Correct answer/);
+    assert.doesNotMatch(copy, /25/);
+  });
+
+  test("type does not reveal its validator answer", () => {
+    const copy = gesture_instruction("type", "cell count", 12345);
+    assert.match(copy, /Enter/);
+    assert.doesNotMatch(copy, /12345/);
   });
 
   test("uses a generic highlighted-action cue while no interaction is active", () => {
     assert.match(gesture_instruction(null, null), /highlighted next action/);
+  });
+});
+
+describe("guidance-bar action progress", () => {
+  test("shows ordinal progress for every active ordered interaction", () => {
+    assert.strictEqual(action_progress_copy(0, 4), "Action 1 of 4");
+    assert.strictEqual(action_progress_copy(1, 4), "Action 2 of 4");
+    assert.strictEqual(action_progress_copy(3, 4), "Action 4 of 4");
+  });
+
+  test("does not show stale progress outside an active interaction", () => {
+    assert.strictEqual(action_progress_copy(0, 0), null);
+    assert.strictEqual(action_progress_copy(4, 4), null);
   });
 });
 

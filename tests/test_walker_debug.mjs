@@ -230,6 +230,28 @@ describe("walker_debug gameState", () => {
     dispose();
   });
 
+  test("projects the latest declared-state delta and revision read-only", () => {
+    const config = make_config();
+    const store = create_scene_store();
+    store.start_session([{ target: "centrifuge", object_name: "centrifuge" }], []);
+    const emitter = make_emitter(config);
+    const dispose = install_walker_debug_surface(config, emitter, store);
+    const before = window.gameState.stateRevision;
+    store.set_object_state("centrifuge", { running: true });
+    emitter.emit({
+      kind: "scene_operation_applied",
+      operation_type: "ObjectStateChange",
+      target_name: "centrifuge",
+    });
+    assert.ok(window.gameState.stateRevision > before);
+    assert.deepStrictEqual(window.gameState.lastStateDelta, {
+      target: "centrifuge",
+      before: { running: false },
+      after: { running: true },
+    });
+    dispose();
+  });
+
   test("dispose removes both window surfaces", () => {
     const config = make_config();
     const store = create_scene_store();

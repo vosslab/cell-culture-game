@@ -1,0 +1,28 @@
+scene_name: sdspage_prepare_sample_mix_batch_workspace
+extends: sample_prep_bench
+
+remove_placements:
+  - mid_microtube_sample
+  - mid_eppendorf_rack
+  - mid_p10_tip_box
+  - right_tool_area_tip_box
+  - center_micropipette
+  - rear_left_protein_ladder
+  - rear_center_ddh2o
+  - rear_right_waste
+
+add_placements:
+  - placement_name: center_p10_reagent_micropipette
+    object_name: p10_micropipette
+    zone: center
+    depth_tier: 2
+    align_stop: center
+  - placement_name: center_p200_sample_micropipette
+    object_name: p200_micropipette
+    zone: center
+    depth_tier: 2
+    align_stop: right
+  - placement_name: center_sds_microtube_rack
+    object_name: microtube_rack_8
+    zone: center
+    depth_tier: 3

@@ -1,6 +1,9 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_load_protein_ladder
 entry_step: open_gel_workspace
+initial_state:
+  - target: microtube_rack_8.slot_B4
+    state: { material_name: protein_ladder_denatured, material_volume: 20 }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
@@ -29,6 +32,9 @@ steps:
           scene_operations:
             - type: SceneChange
               to_scene: sdspage_load_protein_ladder_workspace
+            - type: ObjectStateChange
+              target: gel_cassette.lane_5
+              state: { material_name: empty, material_volume: 0 }
     step_validator:
       preset: sequence_complete
     outcome:
@@ -55,7 +61,7 @@ steps:
       Mount a gel loading tip onto the p200 micropipette from the gel loading
       tip box.
     sequence:
-      - target: p10_gel_loading_tip_box
+      - target: gel_loading_tip_box
         gesture: click
         validator:
           preset: correct_target
@@ -92,9 +98,9 @@ steps:
       on_failure: retry
     next_step: aspirate_protein_ladder
   - step_name: aspirate_protein_ladder
-    prompt: Draw 20 &micro;L of protein ladder from the protein ladder tube.
+    prompt: Draw 20 &micro;L of denatured protein ladder from rack slot B4.
     sequence:
-      - target: protein_ladder_tube
+      - target: microtube_rack_8.slot_B4
         gesture: click
         validator:
           preset: correct_target
@@ -103,12 +109,13 @@ steps:
             - type: ObjectStateChange
               target: p200_micropipette
               state:
-                held_material_name: protein_ladder
+                held_material_name: protein_ladder_denatured
                 held_material_volume: 20
             - type: ObjectStateChange
-              target: protein_ladder_tube
+              target: microtube_rack_8.slot_B4
               state:
-                material_volume: 480
+                material_name: empty
+                material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -117,10 +124,10 @@ steps:
     next_step: dispense_into_lane_5
   - step_name: dispense_into_lane_5
     prompt:
-      Slowly dispense the 20 &micro;L of protein ladder into lane 5 of the gel
+      Slowly dispense the 20 &micro;L of denatured protein ladder into lane 5 of the gel
       cassette.
     sequence:
-      - target: gel_cassette
+      - target: gel_cassette.lane_5
         gesture: click
         validator:
           preset: correct_target
@@ -129,7 +136,7 @@ steps:
             - type: ObjectStateChange
               target: gel_cassette.lane_5
               state:
-                material_name: protein_ladder
+                material_name: protein_ladder_denatured
                 material_volume: 20
             - type: ObjectStateChange
               target: p200_micropipette

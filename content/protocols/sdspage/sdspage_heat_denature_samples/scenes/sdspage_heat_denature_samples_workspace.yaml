@@ -18,3 +18,10 @@ remove_placements:
   - mid_microtube_sample
   - front_micropipette
   - right_tool_area_tip_box
+
+add_placements:
+  - placement_name: front_sds_microtube_rack
+    object_name: microtube_rack_8
+    zone: front
+    depth_tier: 1
+    align_stop: left

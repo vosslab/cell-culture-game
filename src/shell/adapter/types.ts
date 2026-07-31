@@ -117,6 +117,10 @@ export interface ShellViewSnapshot {
   // Professor-tip for the current step. Null when the step has no tip or no step is active.
   readonly current_tip: string | null;
   readonly current_interaction_index: number;
+  // Total ordered interactions in the active pedagogical step. This lets the
+  // learner-facing action rail distinguish action-level progress from the
+  // guided-step completion count.
+  readonly current_interaction_count: number;
   readonly progress: ProgressTuple;
   readonly last_outcome: LastOutcome | null;
   readonly last_rejection: LastRejection | null;
@@ -129,6 +133,10 @@ export interface ShellViewSnapshot {
   readonly active_interaction_target: string | null;
   readonly active_interaction_label: string | null;
   readonly active_interaction_gesture: Gesture | null;
+  // The one authored target_with_value value for an active adjust gesture.
+  // This is a learner-facing projection, never a validation backchannel:
+  // click, drag, select, and type interactions always expose null.
+  readonly active_interaction_value: string | number | boolean | null;
   readonly pending_timed_wait: PendingTimedWait | null;
 }
 
@@ -430,6 +438,18 @@ export interface ProtocolStep {
   readonly next_step: string | null;
 }
 
+// Declared state established when a protocol session starts. The target may
+// name an object, one declared subpart, or one declared subpart group; the
+// runtime expands groups before validating and applying the flat state map.
+// This is deliberately the same primitive value domain as ObjectStateChange:
+// state schema validation, material-registry checks, ranges, and enum closure
+// remain runtime responsibilities rather than becoming an authoring escape
+// hatch here.
+export interface InitialStateEntry {
+  readonly target: string;
+  readonly state: Readonly<Record<string, string | number | boolean>>;
+}
+
 // Protocol configuration (mini_protocol or sequence_runner).
 export interface ProtocolConfig {
   readonly protocol_name: string;
@@ -438,6 +458,7 @@ export interface ProtocolConfig {
   readonly learning?: LearningBlock;
   readonly steps?: ReadonlyArray<ProtocolStep>;
   readonly mini_protocols?: ReadonlyArray<string>;
+  readonly initial_state?: ReadonlyArray<InitialStateEntry>;
 }
 
 // Index entry for student-visible protocols.

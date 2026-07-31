@@ -28,6 +28,8 @@ class StateMap:
 		emitter: FindingEmitter,
 		declared_materials_union: set | None = None,
 		produced_materials_set: set | None = None,
+		scene_protocol_names: list[str] | None = None,
+		material_protocol_names: list[str] | None = None,
 	):
 		"""
 		Initialize the StateMap for a protocol.
@@ -51,6 +53,10 @@ class StateMap:
 		self._cursor_object_name = None  # For channel_addressing checks
 		self.declared_materials_union = declared_materials_union or set()
 		self.produced_materials_set = produced_materials_set or set()
+		self.scene_protocol_names = scene_protocol_names or [protocol_name]
+		self.material_protocol_names = material_protocol_names or [protocol_name]
+		self._execution_protocol_name = protocol_name
+		self._object_state_keys: dict[str, str] = {}
 
 		# Build per-protocol scenes registry (maps object_name -> [(placement_name, scene_name), ...])
 		self._scenes_registry: dict = {}
@@ -66,33 +72,38 @@ class StateMap:
 		Load placements from base scenes and protocol-local scenes.
 		Detect placement-name collisions.
 		"""
-		placement_registry = {}
+		placement_registry: dict[tuple[str, str], str] = {}
 
 		# Load from base scenes
 		for scene_name, scene_data in self.tree.base_scenes.items():
 			self._register_placements(scene_data, placement_registry, f"content/base_scenes/{scene_name}.yaml")
 
 		# Load from protocol-local scenes
-		protocol_local_scenes = self.tree.protocol_local_scenes.get(self.protocol_name, {})
-		for scene_name, scene_data in protocol_local_scenes.items():
-			try:
-				rel_path = construct_protocol_scene_path(self.tree.root_path / "content" / "protocols", self.protocol_name, scene_name)
-				self._register_placements(scene_data, placement_registry, rel_path)
-			except RuntimeError as e:
-				self.emitter.emit_finding(Finding(
-					level=Level.ERROR,
-					protocol_name=self.protocol_name,
-					step_name=None,
-					interaction_index=None,
-					target=scene_name,
-					file_path="unknown",
-					code="scene_path_resolution_failed",
-					message=str(e),
-					spec_cite="docs/specs/SCENE_YAML_FORMAT.md scene_name",
-				))
+		for scene_protocol_name in self.scene_protocol_names:
+			protocol_local_scenes = self.tree.protocol_local_scenes.get(scene_protocol_name, {})
+			for scene_name, scene_data in protocol_local_scenes.items():
+				try:
+					rel_path = construct_protocol_scene_path(
+						self.tree.root_path / "content" / "protocols", scene_protocol_name, scene_name
+					)
+					self._register_placements(scene_data, placement_registry, rel_path)
+				except RuntimeError as e:
+					self.emitter.emit_finding(Finding(
+						level=Level.ERROR,
+						protocol_name=self.protocol_name,
+						step_name=None,
+						interaction_index=None,
+						target=scene_name,
+						file_path="unknown",
+						code="scene_path_resolution_failed",
+						message=str(e),
+						spec_cite="docs/specs/SCENE_YAML_FORMAT.md scene_name",
+					))
 
 		# Initialize state for each placement
-		for placement_name, (object_name, file_path) in placement_registry.items():
+		for (placement_name, object_name), file_path in placement_registry.items():
+			if object_name in self._object_state_keys:
+				continue
 			obj = self.tree.get_object(object_name)
 			if not obj:
 				self.emitter.emit_finding(Finding(
@@ -108,7 +119,11 @@ class StateMap:
 				))
 				continue
 
-			self._state[placement_name] = {
+			state_key = placement_name
+			if state_key in self._state:
+				state_key = f"{placement_name}::{object_name}"
+			self._object_state_keys[object_name] = state_key
+			self._state[state_key] = {
 				"object_name": object_name,
 				"state": {},
 				"file_path": file_path,
@@ -126,7 +141,7 @@ class StateMap:
 					continue
 				field_name = field_decl["field_name"]
 				default = field_decl.get("default")
-				self._state[placement_name]["state"][field_name] = default
+				self._state[state_key]["state"][field_name] = default
 
 	def _register_placements(
 		self,
@@ -185,24 +200,9 @@ class StateMap:
 			if not placement_name or not object_name:
 				continue
 
-			# Check for collision
-			if placement_name in placement_registry:
-				old_object_name, old_file_path = placement_registry[placement_name]
-				if old_object_name != object_name:
-					self.emitter.emit_finding(Finding(
-						level=Level.ERROR,
-						protocol_name=self.protocol_name,
-						step_name=None,
-						interaction_index=None,
-						target=placement_name,
-						file_path=file_path,
-						code="placement_name_collision",
-						message=f"placement_name '{placement_name}' declared with different object_name: '{old_object_name}' in {old_file_path} vs '{object_name}' in {file_path}",
-						spec_cite="docs/specs/SCENE_YAML_FORMAT.md placement",
-					))
-					continue
-
-			placement_registry[placement_name] = (object_name, file_path)
+			# placement_name is a scene-local DOM identity.  A later scene may
+			# reuse it for another object without colliding with semantic state.
+			placement_registry[(placement_name, object_name)] = file_path
 
 	def _reachable_base_scenes(self) -> set:
 		"""
@@ -217,18 +217,21 @@ class StateMap:
 		reachable: set = set()
 
 		# Base scenes extended by any protocol-local scene
-		protocol_local_scenes = self.tree.protocol_local_scenes.get(self.protocol_name, {})
-		for scene_data in protocol_local_scenes.values():
-			extends = scene_data.get("extends") if isinstance(scene_data, dict) else None
-			if extends and extends in self.tree.base_scenes:
-				reachable.add(extends)
+		for scene_protocol_name in self.scene_protocol_names:
+			protocol_local_scenes = self.tree.protocol_local_scenes.get(scene_protocol_name, {})
+			for scene_data in protocol_local_scenes.values():
+				extends = scene_data.get("extends") if isinstance(scene_data, dict) else None
+				if extends and extends in self.tree.base_scenes:
+					reachable.add(extends)
 
 		# Base scenes named by SceneChange ops in this protocol's steps
-		try:
-			protocol = self.tree.get_protocol(self.protocol_name)
-		except ProtocolNotFoundError:
-			protocol = None
-		if isinstance(protocol, dict):
+		for scene_protocol_name in self.scene_protocol_names:
+			try:
+				protocol = self.tree.get_protocol(scene_protocol_name)
+			except ProtocolNotFoundError:
+				protocol = None
+			if not isinstance(protocol, dict):
+				continue
 			for step in protocol.get("steps", []) or []:
 				if not isinstance(step, dict):
 					continue
@@ -270,7 +273,9 @@ class StateMap:
 
 		# Add only base scenes actually referenced by this protocol
 		reachable_base = self._reachable_base_scenes()
-		protocol_local_scenes = self.tree.protocol_local_scenes.get(self.protocol_name, {})
+		protocol_local_scenes = {}
+		for scene_protocol_name in self.scene_protocol_names:
+			protocol_local_scenes.update(self.tree.protocol_local_scenes.get(scene_protocol_name, {}))
 		if not reachable_base and not protocol_local_scenes:
 			# No protocol-local scenes and no SceneChange ops to constrain the set; fall back to
 			# every base scene so target resolution still works for trivial single-base-scene protocols.
@@ -353,6 +358,22 @@ class StateMap:
 			object_name_part = target_str
 			subpart_name = None
 
+		if subpart_name is not None:
+			object_data = self.tree.get_object(object_name_part)
+			if not object_data or not self.tree.database.subpart_matches(object_data, subpart_name):
+				self.emitter.emit_finding(Finding(
+					level=Level.ERROR,
+					protocol_name=self.protocol_name,
+					step_name=step_name,
+					interaction_index=interaction_index,
+					target=target_str,
+					file_path="unknown",
+					code="unknown_authored_subpart",
+					message=f"target '{target_str}' names no declared subpart",
+					spec_cite="docs/PRIMARY_SPEC.md Targets and the scene boundary",
+				))
+				return None, subpart_name
+
 		# If no active scene, emit error
 		if not self._active_scene:
 			self.emitter.emit_finding(Finding(
@@ -387,43 +408,18 @@ class StateMap:
 		# Get effective placements (base + inherited + add_placements - remove_placements)
 		effective_placements = self._get_effective_placements(active_scene_data)
 
-		# Find placements with matching object_name in active scene
+		# Find placements by semantic object name or explicit placement identity.
 		matching_placements = []
 		for placement in effective_placements:
 			if isinstance(placement, dict):
-				if placement.get("object_name") == object_name_part:
+				if placement.get("object_name") == object_name_part or placement.get("placement_name") == object_name_part:
 					placement_name = placement.get("placement_name")
 					if placement_name:
 						matching_placements.append((placement_name, placement))
 
-		# If no match in active scene, consult per-protocol registry
+		# Scene adapters resolve semantic objects only in the active scene.  A
+		# cross-scene match is state identity, not a clickable target here.
 		if len(matching_placements) == 0:
-			registry_hits = self._scenes_registry.get(object_name_part, [])
-
-			if len(registry_hits) == 0:
-				# No match in active scene or registry: unresolved target is an ERROR.
-				# Every unresolved target is treated identically; there are no
-				# object-name special-cases in this resolution path.
-				unresolved_level = Level.ERROR
-				self.emitter.emit_finding(Finding(
-					level=unresolved_level,
-					protocol_name=self.protocol_name,
-					step_name=step_name,
-					interaction_index=interaction_index,
-					target=target_str,
-					file_path="unknown",
-					code="unknown_target_active_scene",
-					message=f"target '{target_str}' (object_name '{object_name_part}') not found in active scene '{self._active_scene}' or per-protocol registry",
-					spec_cite="docs/specs/SCENE_VOCABULARY.md Scene-adapter resolution",
-				))
-				return None, subpart_name
-
-			if len(registry_hits) == 1:
-				# Exactly one match in registry (different scene)
-				placement_name, hit_scene_name = registry_hits[0]
-				return placement_name, subpart_name
-
-			# Multiple matches in registry (ambiguous across sibling scenes)
 			self.emitter.emit_finding(Finding(
 				level=Level.ERROR,
 				protocol_name=self.protocol_name,
@@ -431,12 +427,11 @@ class StateMap:
 				interaction_index=interaction_index,
 				target=target_str,
 				file_path="unknown",
-				code="ambiguous_target_in_scene",
-				message=f"target '{target_str}' (object_name '{object_name_part}') matches multiple placements across protocol scenes: {', '.join(p[0] for p in registry_hits)}",
+				code="unknown_target_active_scene",
+				message=f"target '{target_str}' (object_name '{object_name_part}') is not present in active scene '{self._active_scene}'",
 				spec_cite="docs/specs/SCENE_VOCABULARY.md Scene-adapter resolution",
 			))
-			# Continue gracefully with first match
-			return registry_hits[0][0], subpart_name
+			return None, subpart_name
 
 		if len(matching_placements) > 1:
 			self.emitter.emit_finding(Finding(
@@ -455,8 +450,26 @@ class StateMap:
 
 		# Exactly one match in active scene
 		placement_name = matching_placements[0][0]
+		if subpart_name is not None:
+			placement_data = self._state.get(placement_name)
+			object_name = placement_data["object_name"] if placement_data else object_name_part
+			object_data = self.tree.get_object(object_name)
+			if not object_data or not self.tree.database.subpart_matches(object_data, subpart_name):
+				self.emitter.emit_finding(Finding(
+					level=Level.ERROR,
+					protocol_name=self.protocol_name,
+					step_name=step_name,
+					interaction_index=interaction_index,
+					target=target_str,
+					file_path="unknown",
+					code="unknown_authored_subpart",
+					message=f"target '{target_str}' names no declared subpart on '{object_name}'",
+					spec_cite="docs/PRIMARY_SPEC.md Targets and the scene boundary",
+				))
+				return None, subpart_name
 
-		return placement_name, subpart_name
+		object_name = matching_placements[0][1]["object_name"]
+		return self._object_state_keys[object_name], subpart_name
 
 	def _get_active_scene_data(self) -> dict | None:
 		"""
@@ -473,9 +486,10 @@ class StateMap:
 			return self.tree.base_scenes[self._active_scene]
 
 		# Check protocol-local scenes
-		protocol_local_scenes = self.tree.protocol_local_scenes.get(self.protocol_name, {})
-		if self._active_scene in protocol_local_scenes:
-			return protocol_local_scenes[self._active_scene]
+		for scene_protocol_name in self.scene_protocol_names:
+			protocol_local_scenes = self.tree.protocol_local_scenes.get(scene_protocol_name, {})
+			if self._active_scene in protocol_local_scenes:
+				return protocol_local_scenes[self._active_scene]
 
 		return None
 
@@ -536,6 +550,16 @@ class StateMap:
 			self._cursor_object_name = self._state[placement_name].get("object_name")
 		else:
 			self._cursor_object_name = None
+
+	def set_execution_protocol(self, protocol_name: str) -> None:
+		"""Set the leaf whose YAML is currently being executed by a shared runner state."""
+		if protocol_name not in self.scene_protocol_names:
+			raise ValueError(f"protocol '{protocol_name}' is not a member of this state map")
+		self._execution_protocol_name = protocol_name
+
+	def get_execution_protocol(self) -> str:
+		"""Return the leaf protocol currently supplying operations and scenes."""
+		return self._execution_protocol_name
 
 	def get_cursor(self) -> str | None:
 		"""Retrieve the current cursor placement."""
@@ -803,6 +827,28 @@ class StateMap:
 				))
 				return False
 
+		if field_type in ("float", "int") and isinstance(new_value, (int, float)):
+			minimum = field_decl.get("min")
+			maximum = field_decl.get("max")
+			if minimum is not None and new_value < minimum:
+				self.emitter.emit_finding(Finding(
+					level=Level.ERROR, protocol_name=self.protocol_name, step_name=step_name,
+					interaction_index=interaction_index, target=error_target, file_path=file_path,
+					code="state_value_below_minimum",
+					message=f"field '{field_name}' value {new_value} is below declared minimum {minimum}",
+					spec_cite="docs/specs/OBJECT_YAML_FORMAT.md state_fields",
+				))
+				return False
+			if maximum is not None and new_value > maximum:
+				self.emitter.emit_finding(Finding(
+					level=Level.ERROR, protocol_name=self.protocol_name, step_name=step_name,
+					interaction_index=interaction_index, target=error_target, file_path=file_path,
+					code="state_value_above_maximum",
+					message=f"field '{field_name}' value {new_value} is above declared maximum {maximum}",
+					spec_cite="docs/specs/OBJECT_YAML_FORMAT.md state_fields",
+				))
+				return False
+
 		# Special validation for material fields
 		if field_name in ("material_name", "held_material_name"):
 			# Check capability gate (applies to both object and subpart writes;
@@ -838,7 +884,11 @@ class StateMap:
 				or new_value in BUILTIN_VISIBLE_MATERIALS
 			)
 			if not is_builtin:
-				material = self.tree.get_material(self.protocol_name, new_value)
+				material = None
+				for material_protocol_name in self.material_protocol_names:
+					material = self.tree.get_material(material_protocol_name, new_value)
+					if material:
+						break
 				in_upstream = (
 					new_value in self.declared_materials_union
 					or new_value in self.produced_materials_set
@@ -887,3 +937,163 @@ class StateMap:
 				"state": dict(placement_data["state"]),
 			}
 		return snapshot
+
+	#============================================
+
+	def get_state_field_unit(self, placement_key: str, field_name: str) -> str | None:
+		"""Return the declared unit for a state field on an object or subpart record."""
+		is_subpart = "." in placement_key
+		parent_key = placement_key.split(".", 1)[0]
+		placement = self._state.get(parent_key)
+		if not placement:
+			return None
+		field_decl = self.tree.get_state_field(
+			placement["object_name"], field_name, subpart_targeted=is_subpart
+		)
+		return field_decl.get("unit") if field_decl else None
+
+	def get_state_field_default(self, placement_key: str, field_name: str):
+		"""Return the declared default for an object/subpart state field."""
+		is_subpart = "." in placement_key
+		parent_key = placement_key.split(".", 1)[0]
+		placement = self._state.get(parent_key)
+		if not placement:
+			return None
+		field_decl = self.tree.get_state_field(
+			placement["object_name"], field_name, subpart_targeted=is_subpart
+		)
+		return field_decl.get("default") if field_decl else None
+
+	def is_subpart_group_record(self, placement_key: str) -> bool:
+		"""Return whether a dotted state record is a cascade summary rather than material volume."""
+		if "." not in placement_key:
+			return False
+		parent_key, subpart_name = placement_key.split(".", 1)
+		placement = self._state.get(parent_key)
+		if not placement:
+			return False
+		object_data = self.tree.get_object(placement["object_name"])
+		structure = object_data.get("structure", {}) if object_data else {}
+		for group_data in structure.get("subpart_groups", {}).values():
+			for member in group_data.get("members", []) if isinstance(group_data, dict) else []:
+				if isinstance(member, dict) and member.get("name") == subpart_name:
+					return True
+		return False
+
+	def _expanded_subpart_targets(self, placement_name: str, subpart_name: str) -> list[str]:
+		"""Expand a declared group target to concrete subparts, retaining a single subpart."""
+		placement = self._state[placement_name]
+		object_data = self.tree.get_object(placement["object_name"])
+		structure = object_data.get("structure", {}) if object_data else {}
+		for group_data in structure.get("subpart_groups", {}).values():
+			for member in group_data.get("members", []) if isinstance(group_data, dict) else []:
+				if isinstance(member, dict) and member.get("name") == subpart_name:
+					return list(member.get("contains", []))
+		return [subpart_name]
+
+	def group_member_count(self, target: str) -> int:
+		"""Return concrete member count for a declared group target, otherwise one."""
+		object_name, separator, subpart_name = target.partition(".")
+		if not separator:
+			return 1
+		object_data = self.tree.get_object(object_name)
+		if not object_data:
+			return 1
+		structure = object_data.get("structure", {})
+		for group_data in structure.get("subpart_groups", {}).values():
+			for member in group_data.get("members", []) if isinstance(group_data, dict) else []:
+				if isinstance(member, dict) and member.get("name") == subpart_name:
+					return len(member.get("contains", []))
+		return 1
+
+	def explicit_state_keys_for_target(self, target: str) -> set[str]:
+		"""Return canonical state keys mutated by one authored ObjectStateChange."""
+		object_name, separator, subpart_name = target.partition(".")
+		state_key = self._object_state_keys.get(object_name)
+		if not state_key:
+			return set()
+		if not separator:
+			return {state_key}
+		keys = {self._subpart_key(state_key, subpart_name)}
+		for member in self._expanded_subpart_targets(state_key, subpart_name):
+			keys.add(self._subpart_key(state_key, member))
+		return keys
+
+	def apply_initial_state(self, entries: object, step_name: str = "initial_state") -> bool:
+		"""Apply root initial state once, rejecting malformed, unknown, and overlapping writes."""
+		if entries is None:
+			return True
+		if not isinstance(entries, list):
+			self.emitter.emit_finding(Finding(
+				level=Level.ERROR, protocol_name=self.protocol_name, step_name=step_name,
+				interaction_index=None, target=None, file_path="unknown", code="initial_state_invalid",
+				message="initial_state must be a list of target/state entries",
+				spec_cite="docs/PRIMARY_SPEC.md Protocol YAML top-level fields",
+			))
+			return False
+		seen_addresses: set[tuple[str, str | None]] = set()
+		resolved_entries: list[tuple[str, str | None, dict]] = []
+		for entry_index, entry in enumerate(entries):
+			if not isinstance(entry, dict) or set(entry) != {"target", "state"}:
+				self.emitter.emit_finding(Finding(
+					level=Level.ERROR, protocol_name=self.protocol_name, step_name=step_name,
+					interaction_index=entry_index, target=None, file_path="unknown", code="initial_state_invalid",
+					message="each initial_state entry must contain exactly target and state",
+					spec_cite="docs/PRIMARY_SPEC.md Protocol YAML top-level fields",
+				))
+				return False
+			target = entry["target"]
+			state = entry["state"]
+			if not isinstance(target, str) or not isinstance(state, dict) or not state:
+				self.emitter.emit_finding(Finding(
+					level=Level.ERROR, protocol_name=self.protocol_name, step_name=step_name,
+					interaction_index=entry_index, target=target if isinstance(target, str) else None,
+					file_path="unknown", code="initial_state_invalid",
+					message="initial_state target must be a string and state must be a non-empty mapping",
+					spec_cite="docs/PRIMARY_SPEC.md Protocol YAML top-level fields",
+				))
+				return False
+			placement_name, subpart_name = self._resolve_seed_target(target, step_name, entry_index)
+			if not placement_name:
+				return False
+			addresses = [subpart_name] if subpart_name is None else self._expanded_subpart_targets(placement_name, subpart_name)
+			for address in addresses:
+				key = (placement_name, address)
+				if key in seen_addresses:
+					self.emitter.emit_finding(Finding(
+						level=Level.ERROR, protocol_name=self.protocol_name, step_name=step_name,
+						interaction_index=entry_index, target=target, file_path="unknown",
+						code="initial_state_overlap",
+						message=f"initial_state overlaps prior write at '{placement_name}.{address}'",
+						spec_cite="docs/PRIMARY_SPEC.md Protocol YAML top-level fields",
+					))
+					return False
+				seen_addresses.add(key)
+			for address in addresses:
+				resolved_entries.append((placement_name, address, state))
+		for placement_name, subpart_name, state in resolved_entries:
+			for field_name, value in state.items():
+				if not self.mutate_state_field(
+					placement_name, field_name, value, subpart_name=subpart_name,
+					step_name=step_name, file_path="unknown",
+				):
+					return False
+		return True
+
+	def _resolve_seed_target(
+		self, target: str, step_name: str, interaction_index: int
+	) -> tuple[str | None, str | None]:
+		"""Resolve initial state by stable object identity, independent of active scene placement."""
+		object_name, separator, subpart_name = target.partition(".")
+		object_data = self.tree.get_object(object_name)
+		if object_data and object_name in self._object_state_keys:
+			if separator and not self.tree.database.subpart_matches(object_data, subpart_name):
+				self.emitter.emit_finding(Finding(
+					level=Level.ERROR, protocol_name=self.protocol_name, step_name=step_name,
+					interaction_index=interaction_index, target=target, file_path="unknown",
+					code="unknown_authored_subpart", message=f"target '{target}' names no declared subpart",
+					spec_cite="docs/PRIMARY_SPEC.md Targets and the scene boundary",
+				))
+				return None, subpart_name
+			return self._object_state_keys[object_name], subpart_name if separator else None
+		return self.resolve_target(target, step_name, interaction_index)

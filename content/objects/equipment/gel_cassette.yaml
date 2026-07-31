@@ -5,9 +5,9 @@ label: Gel cassette
 structure:
   subpart_kind: lane
   layout: grid
-  rows: 10
-  cols: 1
-  name_pattern: "lane_{row}"
+  rows: 1
+  cols: 10
+  name_pattern: "lane_{col}"
   subpart_groups:
     all_lanes:
       group_kind: region
@@ -30,7 +30,7 @@ structure:
 state_fields:
   - field_name: material_name
     type: enum
-    allowed: [empty, protein_ladder, protein_sample_denatured]
+    allowed: [empty, protein_ladder, protein_ladder_denatured, protein_sample_denatured]
     default: empty
     applies_to: subpart
     description: Contents currently in this lane.
@@ -62,6 +62,11 @@ state_fields:
     type: bool
     default: false
     description: Whether the wing clamps are locked.
+  - field_name: gel_state
+    type: enum
+    allowed: [empty, separated_unstained, stained, destaining, destained]
+    default: empty
+    description: Visible lifecycle state of the gel matrix.
 
 visual_states:
   material_name:
@@ -72,12 +77,14 @@ visual_states:
         output: { asset_name: gel_cassette }
       - when: protein_ladder
         output: { asset_name: gel_cassette }
+      - when: protein_ladder_denatured
+        output: { asset_name: gel_cassette }
       - when: protein_sample_denatured
         output: { asset_name: gel_cassette }
   material_volume:
     kind: composite
     applies_to: subpart
-    composite: []
+    formula: fill_height(state(material_volume), capacity_ul=30)
   tape_present:
     kind: composite
     composite: []
@@ -93,6 +100,19 @@ visual_states:
   wing_clamps_locked:
     kind: composite
     composite: []
+  gel_state:
+    kind: svg
+    cases:
+      - when: empty
+        output: { asset_name: gel_cassette }
+      - when: separated_unstained
+        output: { asset_name: gel_cassette }
+      - when: stained
+        output: { asset_name: gel_cassette }
+      - when: destaining
+        output: { asset_name: gel_cassette }
+      - when: destained
+        output: { asset_name: gel_cassette }
 
 capabilities: [clickable, structured_surface, material_container]
 

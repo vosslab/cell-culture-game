@@ -49,7 +49,7 @@ materials:
 
   protein_sample_denatured:
     label: "Heat-denatured mixed sample"
-    display_color: "#3730a3"
+    display_color: "#7c3aed"
 
   protein_ladder:
     label: "Molecular weight ladder"

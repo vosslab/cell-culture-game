@@ -23,6 +23,7 @@ import type {
   Gesture,
   InteractionRejectReason,
   InteractionValidatorPreset,
+  Interaction,
   ProtocolConfig,
   ProtocolShellEvent,
   ProtocolStep,
@@ -136,6 +137,7 @@ export function initial_snapshot(protocol_name: string): ShellViewSnapshot {
     // No step is active yet; tip is null until step_started fires.
     current_tip: null,
     current_interaction_index: 0,
+    current_interaction_count: 0,
     progress: { completed_step_count: 0, total_step_count: 0 },
     last_outcome: null,
     last_rejection: null,
@@ -154,6 +156,7 @@ export function initial_snapshot(protocol_name: string): ShellViewSnapshot {
     active_interaction_target: null,
     active_interaction_label: null,
     active_interaction_gesture: null,
+    active_interaction_value: null,
     pending_timed_wait: null,
   };
   return snapshot;
@@ -161,30 +164,53 @@ export function initial_snapshot(protocol_name: string): ShellViewSnapshot {
 
 // Helper to look up the current interaction's target and gesture
 // from the config, given the step name and interaction index.
+type ActiveInteraction = {
+  target: string | null;
+  gesture: Gesture | null;
+  value: string | number | boolean | null;
+};
+
+// Only numeric adjustment controls get the requested authored value. Type
+// answers and select choices deliberately remain undisclosed, and the shell
+// receives a presentation value rather than any validator API.
+function get_requested_adjustment_value(
+  interaction: Interaction,
+): string | number | boolean | null {
+  if (interaction.gesture !== "adjust" || interaction.validator.preset !== "target_with_value") {
+    return null;
+  }
+  const values = Object.values(interaction.validator.value ?? {});
+  if (values.length !== 1) {
+    return null;
+  }
+  return values[0] ?? null;
+}
+
 function get_active_interaction(
   config: ProtocolConfig,
   step_name: string | null,
   index: number,
-): { target: string | null; gesture: Gesture | null } {
+): ActiveInteraction {
   if (!step_name) {
-    return { target: null, gesture: null };
+    return { target: null, gesture: null, value: null };
   }
   // sequence_runner protocols have no steps list; this helper is mini_protocol only.
   const steps = config.steps ?? [];
   const step = steps.find((s) => s.step_name === step_name);
   if (!step) {
-    return { target: null, gesture: null };
+    return { target: null, gesture: null, value: null };
   }
   if (index < 0 || index >= step.sequence.length) {
-    return { target: null, gesture: null };
+    return { target: null, gesture: null, value: null };
   }
   const interaction = step.sequence[index];
   if (!interaction) {
-    return { target: null, gesture: null };
+    return { target: null, gesture: null, value: null };
   }
   return {
     target: interaction.target,
     gesture: interaction.gesture,
+    value: get_requested_adjustment_value(interaction),
   };
 }
 
@@ -232,10 +258,12 @@ function create_snapshot_reducer(
             total_step_count: event.total_step_count,
           },
           is_complete: false,
+          current_interaction_count: 0,
           last_rejection: null,
           active_interaction_target: null,
           active_interaction_label: null,
           active_interaction_gesture: null,
+          active_interaction_value: null,
           pending_timed_wait: null,
         };
         return next;
@@ -253,6 +281,7 @@ function create_snapshot_reducer(
           current_prompt: event.prompt,
           current_tip: step_tip,
           current_interaction_index: 0,
+          current_interaction_count: event.interaction_count,
           // A completed-step acknowledgement is useful only during the
           // transition itself. Once the next step becomes actionable, leave
           // the student with one unambiguous next action rather than a stale
@@ -262,6 +291,7 @@ function create_snapshot_reducer(
           active_interaction_target: to_active_placement(active.target),
           active_interaction_label: to_active_label(active.target),
           active_interaction_gesture: active.gesture,
+          active_interaction_value: active.value,
           pending_timed_wait: null,
         };
         return next;
@@ -277,6 +307,7 @@ function create_snapshot_reducer(
           active_interaction_target: to_active_placement(active.target),
           active_interaction_label: to_active_label(active.target),
           active_interaction_gesture: active.gesture,
+          active_interaction_value: active.value,
         };
         return next;
       }
@@ -306,9 +337,11 @@ function create_snapshot_reducer(
             retry_count: 0,
           },
           current_interaction_index: 0,
+          current_interaction_count: 0,
           active_interaction_target: null,
           active_interaction_label: null,
           active_interaction_gesture: null,
+          active_interaction_value: null,
           pending_timed_wait: null,
         };
         return next;
@@ -319,11 +352,13 @@ function create_snapshot_reducer(
           current_step_name: null,
           current_prompt: null,
           current_tip: null,
+          current_interaction_count: 0,
           last_rejection: null,
           is_complete: true,
           active_interaction_target: null,
           active_interaction_label: null,
           active_interaction_gesture: null,
+          active_interaction_value: null,
           pending_timed_wait: null,
         };
         return next;
@@ -356,6 +391,7 @@ function create_snapshot_reducer(
           active_interaction_target: to_active_placement(active.target),
           active_interaction_label: to_active_label(active.target),
           active_interaction_gesture: active.gesture,
+          active_interaction_value: active.value,
         };
         return next;
       }
@@ -368,6 +404,7 @@ function create_snapshot_reducer(
           active_interaction_target: null,
           active_interaction_label: null,
           active_interaction_gesture: null,
+          active_interaction_value: null,
           pending_timed_wait: {
             target_name: event.target_name,
             display: event.display,
@@ -387,6 +424,7 @@ function create_snapshot_reducer(
           active_interaction_target: to_active_placement(active.target),
           active_interaction_label: to_active_label(active.target),
           active_interaction_gesture: active.gesture,
+          active_interaction_value: active.value,
           pending_timed_wait: null,
         };
         return next;

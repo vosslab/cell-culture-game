@@ -42,6 +42,11 @@ steps:
               state:
                 material_name: ddh2o
                 material_volume: 200
+            - type: ObjectStateChange
+              target: ddh2o_bottle
+              state:
+                material_name: ddh2o
+                material_volume: 500
       - target: waste_container
         gesture: click
         validator:
@@ -53,6 +58,11 @@ steps:
               state:
                 material_name: empty
                 material_volume: 0
+            - type: ObjectStateChange
+              target: waste_container
+              state:
+                material_name: mixed
+                material_volume: 200
     step_validator:
       preset: sequence_complete
     outcome:
@@ -73,6 +83,7 @@ steps:
               state:
                 material_name: coomassie_stain
                 material_volume: 250
+                gel_state: stained
             - type: ObjectStateChange
               target: coomassie_stain_bottle
               state:

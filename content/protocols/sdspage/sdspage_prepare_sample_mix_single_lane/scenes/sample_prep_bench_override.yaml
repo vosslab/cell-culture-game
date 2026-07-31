@@ -15,7 +15,7 @@ remove_placements:
   - right_tool_area_tip_box
 
 add_placements:
-  - placement_name: eppendorf_tube
-    object_name: microtube
+  - placement_name: center_sds_microtube_rack
+    object_name: microtube_rack_8
     zone: center
     depth_tier: 3

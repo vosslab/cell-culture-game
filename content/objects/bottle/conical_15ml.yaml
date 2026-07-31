@@ -11,6 +11,7 @@ state_fields:
       - trypsin
       - cell_suspension
       - cell_pellet
+      - cell_supernatant
     default: empty
     description: Contents currently in the tube.
   - field_name: material_volume
@@ -34,6 +35,15 @@ visual_states:
         output:
           asset_name: falcon_15ml
       - when: trypsin
+        output:
+          asset_name: falcon_15ml
+      - when: cell_suspension
+        output:
+          asset_name: falcon_15ml
+      - when: cell_pellet
+        output:
+          asset_name: falcon_15ml
+      - when: cell_supernatant
         output:
           asset_name: falcon_15ml
   material_volume:

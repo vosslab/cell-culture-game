@@ -1,6 +1,25 @@
 protocol_type: mini_protocol
 protocol_name: drug_dilution_setup
 entry_step: prepare_carb_parent_stock
+initial_state:
+  # These are the sole material sources for this mini-protocol. Volumes are
+  # intentionally declared at the runner boundary so every later transfer has
+  # a durable, auditable source rather than relying on object-library defaults.
+  - target: carboplatin_stock_tube
+    state:
+      material_name: carboplatin
+      material_volume: 50
+  - target: media_bottle
+    state:
+      material_name: media
+      # The full Cell Culture runner has already used 24.1 mL for resuspension
+      # and seeding before this mini begins; direct play starts from that same
+      # handoff state rather than refilling the shared bottle.
+      material_volume: 475.9
+  - target: metformin_stock_tube
+    state:
+      material_name: metformin
+      material_volume: 50
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
@@ -61,7 +80,16 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: carboplatin_stock_tube
+              state:
+                material_volume: 49.96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 40
       - target: microtube_15ml_intermediate
         gesture: click
         validator:
@@ -73,6 +101,11 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 0.04
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
       - target: micropipette
         gesture: adjust
         validator:
@@ -90,7 +123,16 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: media_bottle
+              state:
+                material_volume: 474.94
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: media
+                held_material_volume: 960
       - target: microtube_15ml_intermediate
         gesture: click
         validator:
@@ -101,6 +143,11 @@ steps:
               target: microtube_15ml_intermediate
               state:
                 material_volume: 1.0
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
       - target: vortex
         gesture: click
         validator:
@@ -154,7 +201,16 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: microtube_15ml_intermediate
+              state:
+                material_volume: 0.5
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 500
       - target: dilution_tube_rack_8
         gesture: click
         validator:
@@ -166,6 +222,11 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 500
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
       - target: micropipette
         gesture: adjust
         validator:
@@ -183,7 +244,16 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: media_bottle
+              state:
+                material_volume: 474.44
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: media
+                held_material_volume: 500
       - target: dilution_tube_rack_8
         gesture: click
         validator:
@@ -194,6 +264,11 @@ steps:
               target: dilution_tube_rack_8.tube_G
               state:
                 material_volume: 1000
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -231,7 +306,16 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: microtube_15ml_intermediate
+              state:
+                material_volume: 0.3
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 200
       - target: dilution_tube_rack_8
         gesture: click
         validator:
@@ -243,6 +327,11 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
       - target: micropipette
         gesture: adjust
         validator:
@@ -260,7 +349,16 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: media_bottle
+              state:
+                material_volume: 473.64
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: media
+                held_material_volume: 800
       - target: dilution_tube_rack_8
         gesture: click
         validator:
@@ -271,6 +369,11 @@ steps:
               target: dilution_tube_rack_8.tube_F
               state:
                 material_volume: 1000
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -308,7 +411,16 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: microtube_15ml_intermediate
+              state:
+                material_volume: 0.2
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 100
       - target: dilution_tube_rack_8
         gesture: click
         validator:
@@ -320,6 +432,11 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 100
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
       - target: micropipette
         gesture: adjust
         validator:
@@ -337,7 +454,16 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: media_bottle
+              state:
+                material_volume: 472.74
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: media
+                held_material_volume: 900
       - target: dilution_tube_rack_8
         gesture: click
         validator:
@@ -348,6 +474,11 @@ steps:
               target: dilution_tube_rack_8.tube_E
               state:
                 material_volume: 1000
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -385,7 +516,16 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: microtube_15ml_intermediate
+              state:
+                material_volume: 0.15
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 50
       - target: dilution_tube_rack_8
         gesture: click
         validator:
@@ -397,6 +537,11 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 50
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
       - target: micropipette
         gesture: adjust
         validator:
@@ -414,7 +559,16 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: media_bottle
+              state:
+                material_volume: 471.79
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: media
+                held_material_volume: 950
       - target: dilution_tube_rack_8
         gesture: click
         validator:
@@ -425,6 +579,11 @@ steps:
               target: dilution_tube_rack_8.tube_D
               state:
                 material_volume: 1000
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -462,7 +621,16 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: microtube_15ml_intermediate
+              state:
+                material_volume: 0.13
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 20
       - target: dilution_tube_rack_8
         gesture: click
         validator:
@@ -474,6 +642,11 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 20
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
       - target: micropipette
         gesture: adjust
         validator:
@@ -491,7 +664,16 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: media_bottle
+              state:
+                material_volume: 470.81
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: media
+                held_material_volume: 980
       - target: dilution_tube_rack_8
         gesture: click
         validator:
@@ -502,6 +684,11 @@ steps:
               target: dilution_tube_rack_8.tube_C
               state:
                 material_volume: 1000
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -539,7 +726,16 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: microtube_15ml_intermediate
+              state:
+                material_volume: 0.12
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 10
       - target: dilution_tube_rack_8
         gesture: click
         validator:
@@ -551,6 +747,11 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 10
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
       - target: micropipette
         gesture: adjust
         validator:
@@ -568,7 +769,16 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: media_bottle
+              state:
+                material_volume: 469.82
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: media
+                held_material_volume: 990
       - target: dilution_tube_rack_8
         gesture: click
         validator:
@@ -579,6 +789,11 @@ steps:
               target: dilution_tube_rack_8.tube_B
               state:
                 material_volume: 1000
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -618,7 +833,16 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: metformin_stock_tube
+              state:
+                material_volume: 49.94
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 60
       - target: metformin_working_tube
         gesture: click
         validator:
@@ -630,6 +854,11 @@ steps:
               state:
                 material_name: metformin
                 material_volume: 60
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
       - target: micropipette
         gesture: adjust
         validator:
@@ -647,7 +876,16 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: media_bottle
+              state:
+                material_volume: 469.58
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: media
+                held_material_volume: 240
       - target: metformin_working_tube
         gesture: click
         validator:
@@ -658,6 +896,11 @@ steps:
               target: metformin_working_tube
               state:
                 material_volume: 300
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
       - target: vortex
         gesture: click
         validator:

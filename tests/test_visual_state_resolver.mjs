@@ -404,11 +404,17 @@ describe("authored equipment composite states", () => {
   test("lightbox tray and capture states add ordered visual evidence", () => {
     const out = resolve_visual_state(
       OBJECT_LIBRARY.lightbox.visual_states,
-      { powered_on: true, tray_present: true, image_captured: true },
+      {
+        powered_on: true,
+        tray_present: true,
+        image_captured: true,
+        gel_state: "destained",
+      },
       null,
     );
     assert.equal(out.asset_name, "lightbox_on");
     assert.deepEqual(out.asset_layers, ["lightbox_capture_complete", "lightbox_gel_tray"]);
+    assert.equal(out.label_text, "Gel: destained");
   });
 });
 

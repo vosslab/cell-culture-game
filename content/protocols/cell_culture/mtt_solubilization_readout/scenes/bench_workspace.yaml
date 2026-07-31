@@ -23,8 +23,8 @@ add_placements:
     depth_tier: 1
     align_stop: center
 
-  - placement_name: right_micropipette
-    object_name: micropipette
+  - placement_name: right_multichannel_pipette
+    object_name: multichannel_pipette
     zone: right_tool_area
     depth_tier: 1
     align_stop: center

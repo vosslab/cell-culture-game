@@ -1,6 +1,9 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_destain_gel_rock
 entry_step: rock_run
+initial_state:
+  - target: staining_tray
+    state: { material_name: destain, material_volume: 250, gel_present: true, gel_state: destaining }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved proficiency
@@ -117,12 +120,13 @@ steps:
               target: destain_waste_bottle
               state:
                 material_name: destain_used
-                material_volume: 500
+                material_volume: 250
             - type: ObjectStateChange
               target: staining_tray
               state:
                 material_name: empty
                 material_volume: 0
+                gel_state: destained
     step_validator:
       preset: sequence_complete
     outcome:

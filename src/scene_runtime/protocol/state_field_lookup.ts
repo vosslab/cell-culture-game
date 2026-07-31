@@ -35,7 +35,8 @@
 // union so the protocol-layer validation pass can branch on `kind` and own
 // the error behavior for each miss class.
 //
-// - typed:          a plain int/float/bool field (value-type checkable).
+// - typed:          a plain int/float/bool field. Numeric declarations also
+//                   carry their authored min/max/step constraints.
 // - enum:           a closed-vocabulary string field; `allowed` is the declared
 //                   member set, or null when the field declares no closed set.
 // - material:       a registry-backed material-identity field (subpart
@@ -46,7 +47,14 @@
 // - unknown_subpart: the object exists but declares no subpart state schema.
 // - unknown_field:  the object/subpart schema exists but has no such field.
 export type StateFieldLookupResult =
-  | { kind: "typed"; field_type: "int" | "float" | "bool" }
+  | {
+      kind: "typed";
+      field_type: "int" | "float" | "bool";
+      min?: number;
+      max?: number;
+      step?: number;
+      unit?: string;
+    }
   | { kind: "enum"; allowed: readonly string[] | null }
   | { kind: "material" }
   | { kind: "unknown_object" }

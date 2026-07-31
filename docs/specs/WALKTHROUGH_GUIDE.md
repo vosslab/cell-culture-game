@@ -91,16 +91,23 @@ Specifically, it proves:
   interaction's `activeTarget` / `activeGesture`.
 - Required scene objects exist as DOM elements with `data-item-id`.
 - Required targets are visible and intersect the viewport when the walker acts.
+- A directed exact subpart target has an actionable core at least 24 by 24 CSS
+  pixels; the walker will not accept a visually tiny or parent-object fallback.
+- A directed declared group paints and hit-tests every concrete member. Any
+  nonmember sibling remains an exact wrong-click target; a group containing
+  every rendered member proves that coverage instead of inventing a sibling.
 - The target carries the expected painted `active` or `candidate` affordance.
 - The visible current-action rail advertises the same target and gesture.
 - Directed instructions name the generated learner-facing object label.
 - Choice-style `select` instructions do not reveal the answer and expose at
   least two visible candidates.
 - Intentional timed waits show both a scene timer and an explanatory waiting
-  rail before the walker waits for the next action.
+  rail for a 0.3-0.6 second browser acknowledgement before the next action.
 - Clicks go through browser event handlers, not direct protocol APIs.
 - Each click that uses `clickTargetAndWaitProgress()` produces observable state
   progress.
+- Checkpoints record the visible interaction ordinal, `stateRevision`, and
+  `lastStateDelta` before and after the action.
 - Each step's `step_validator` passes and emits a `<step_name>_complete` event.
 - The runtime advances to the step's `next_step`, or to a terminal state when `next_step` is `null`.
 - The protocol reaches the terminal state: `isComplete` is `true`, `activeStepId`
@@ -255,7 +262,8 @@ Current outputs include:
   reload, and welcome dismissal.
 - `checkpoint_<step>_i<n>_<target>.png`: actionable-state evidence saved before
   every interaction. Each corresponding manifest entry records viewport
-  geometry, painted-affordance evidence, and the visible action cue.
+  geometry, painted-affordance evidence, visible action cue, interaction
+  ordinal, `stateRevision`, and `lastStateDelta`.
 - `waiting_<step>.png`: evidence that an intentional timed phase is explained
   in both the scene and current-action rail.
 - `step_<n>_<step_name>.png`: screenshot after each passed step.
@@ -321,13 +329,13 @@ validated interaction and changes `activeStepId` when the step completes, so the
 walker simply loops: read the active interaction, click its target, wait for
 progress, repeat until the step id changes.
 
-Reading the answer from `gameState` is routing data, not proof that a learner
-could find it. Before every interaction,
-`captureVisibleTargetCheckpoint()` independently requires the visible product
-UI to advertise the same target and gesture. Directed interactions need a
-painted active affordance plus a cue containing the generated object label.
-`select` needs painted candidate affordances and an answer-neutral cue. The
-walker fails instead of clicking when this learner-facing evidence is absent.
+The target and gesture from `gameState` are routing data, not answer data.
+Before every interaction, `captureVisibleTargetCheckpoint()` independently
+requires the visible product UI to advertise the same target and gesture.
+Directed interactions need a painted active affordance plus a cue containing
+the generated object label. `select` needs painted candidate affordances and an
+answer-neutral cue. The walker fails instead of acting when this
+learner-facing evidence is absent.
 
 The walker acts only on the closed gesture set (`click`, `drag`, `adjust`,
 `select`, `type`). `click`, `select`, `type`, and `adjust` all have a visible
@@ -337,12 +345,14 @@ object among the present objects -- reuses the click path; `type` fills + commit
 the visible type-input affordance; `adjust` sets + commits a value in the shared
 numeric set-point editor. `drag` is wired but no content protocol authors one
 yet, so a `drag` interaction still FAILS with an `unsupported_gesture`
-classification rather than silently skipping or branching per protocol. For a
-`type` interaction the walker reads the expected value read-only from
-`gameState.activeTypeValue` (projected from the authored validator `value`) and
-types it into `[data-type-input]`, then clicks `[data-type-commit]`; for an
-`adjust` interaction it reads `gameState.activeAdjustValue` and commits it on
-`[data-adjust-input]` / `[data-adjust-commit]`.
+classification rather than silently skipping or branching per protocol. No
+curriculum protocol in this release authors `type` or `drag`. If a `type`
+interaction appears without a learner-visible answer source, the walker fails
+with `type_answer_not_visible`; it never copies the validator answer from
+debug state. For an `adjust` interaction, the walker reads the exact numeric
+set point from the visible current-action rail, verifies that the displayed cue
+states the same number, fills `[data-adjust-input]`, and clicks
+`[data-adjust-commit]`.
 
 See `docs/specs/GESTURE_MODEL.md` for the distinction between this
 browser-driving mechanism and the authored gesture semantics, including the
@@ -351,7 +361,7 @@ reopened status of the unused `select` value.
 The central click helper is `clickTargetAndWaitProgress()`. After the separate
 checkpoint has proved the learner-facing cue and affordance, it resolves a
 scene-scoped `data-item-id` selector, verifies that the element exists, verifies
-that it is visible, clicks it via Playwright's actionability-checked
+that it is visible and has the required target bounds, clicks it via Playwright's actionability-checked
 `locator.click()`, increments `report.summary.totalClicks`, and waits for
 observable state progress.
 
@@ -410,14 +420,20 @@ Current new-host affordance coverage:
 - `type` is supported through the visible type-input affordance
   (`[data-type-input]` + `[data-type-commit]`, from `src/shell/hud/type_input.tsx`).
   It appears only while the active interaction's gesture is `type`; the walker
-  fills it and clicks Commit, routing the typed text to
-  `step_machine.handle_type_commit` (validated by `target_with_value`).
+  can fill it and click Commit, routing the typed text to
+  `step_machine.handle_type_commit` (validated by `target_with_value`). The
+  canonical curriculum walker does not obtain that text from hidden state. It
+  fails with `type_answer_not_visible` until an authored `type` interaction
+  provides a learner-visible answer source. No curriculum protocol in this
+  release authors `type`.
 - `adjust` is supported through the shared numeric set-point editor
   (`[data-adjust-input]` + `[data-adjust-commit]`, from
   `src/shell/hud/set_point_editor.tsx`). It appears only while the active
-  interaction's gesture is `adjust`; the walker sets the value and clicks Commit,
-  routing the committed number to `step_machine.handle_adjust_commit` (coerced to
-  the field's declared type and validated by `target_with_value`).
+  interaction's gesture is `adjust`; the visible current-action rail states
+  the required numeric set point. The walker verifies that visible text, sets
+  the same value, and clicks Commit, routing the committed number to
+  `step_machine.handle_adjust_commit` (coerced to the field's declared type and
+  validated by `target_with_value`).
 - `drag` is wired in the runtime (`step_machine.handle_drag_commit` plus the host
   drag surface) and proven by the step-machine unit test and the
   `dragToAndWaitProgress` walker driver, but no content protocol authors a drag
@@ -437,9 +453,9 @@ These details are easy to miss when extending the walker.
 `clickTargetAndWaitProgress()` is deliberately state-based, not time-based. It
 does not sleep after a click and hope the UI changed. It snapshots selected
 tool, held liquid, interaction index, active step, active scene, completed step
-count, and `isComplete` before the click. After the click, it waits until one of
-those values changes. The wait predicate only READS `window.gameState`; it never
-writes it.
+count, `isComplete`, `stateRevision`, and `lastStateDelta` before the click.
+After the click, it waits until observable state changes. The wait predicate
+only READS `window.gameState`; it never writes it.
 
 That design catches silent click-handler failures, but it also means a valid
 click that only changes CSS and not game state will fail. If a new interaction
@@ -615,6 +631,9 @@ The wrong-order click must:
   declined to advance on a non-required target).
 - Leave the step's `interactionIndex` unchanged.
 - Leave `activeStepId` unchanged.
+- Be a visible actionable sibling of the directed target. For an active exact
+  subpart, the walker uses a declared sibling subpart rather than clicking the
+  parent object or a hidden DOM node.
 
 The new host has no `wrong_order_message` toast affordance, so the walker
 asserts rejection through the `wrongOrderClicks` counter rather than a toast.
@@ -624,9 +643,10 @@ click. In wrong-order mode the end-state check tolerates
 
 ## Screenshot evidence status
 
-The walkthrough uses headless Playwright. It captures screenshots at step
-boundaries by default: initial state, after each passed step, failure state,
-final screen, and crash state.
+The walkthrough uses headless Playwright. It captures an actionable checkpoint
+before every interaction and screenshots at step boundaries by default:
+initial state, after each passed step, failure state, final screen, and crash
+state.
 
 Finer-grained screenshot modes are available via the `--screenshots` flag:
 
@@ -649,17 +669,19 @@ report is self-documenting at the interaction level.
 The `playthrough_report.json` top-level field `screenshotMode` records which
 mode was used, making the report self-describing.
 
-## Required future work
+## Deliberate proof boundary
 
-Documented future work, not yet implemented:
+The following capabilities are out of scope for this release:
 
-- Author a content protocol that uses the `drag` gesture, then add `drag` to
-  the walker's supported set. The drag affordance and `handle_drag_commit` are
-  already wired; the sweep leaves `drag` classified `unsupported_gesture` only
-  because no content protocol authors one yet. This is a content + one-line
-  walker change, never a per-protocol walker branch.
-- Compare screenshots against golden baselines.
-- Prove that every intermediate teaching visual is correct.
+- Drag curriculum certification. No released curriculum protocol authors
+  `drag`, and no repaired Cell or SDS-PAGE path needs it. The version succeeds
+  without claiming that unused gesture as curriculum-tested.
+- Golden-image comparison. Actionable checkpoint manifests prove visible,
+  hit-testable, correctly cued targets and state transitions; this version does
+  not claim pixel-identical rendering.
+- Automated judgment of every teaching visual. Cell MTT and SDS-PAGE receive
+  explicit scientific ledger and browser checks; the generic walker proves
+  reachability and authored state, not an unrestricted biology oracle.
 
 ## Mini-protocol completion contract
 
@@ -699,8 +721,8 @@ interactions.
 ## When to update this guide
 
 Update this guide whenever the walker gains support for a new gesture, a new
-screenshot evidence mode, a new read-only `gameState` field it depends on, or a
-new failure mode that future coders are likely to hit.
+screenshot evidence mode, a new read-only `gameState` routing field it depends
+on, or a new failure mode that maintainers are likely to hit.
 
 ## Related docs
 

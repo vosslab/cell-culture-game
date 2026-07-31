@@ -48,6 +48,15 @@ add_placements:
     depth_tier: 1
     align_stop: left
 
+  - placement_name: right_multichannel_pipette
+    object_name: multichannel_pipette
+    # The 8-channel tool shares the broad rear-right preparation station with
+    # the incubator, leaving the narrow tool rack for the tall serological
+    # pipette and preserving the foreground plate's teaching scale.
+    zone: rear_right
+    depth_tier: 1
+    align_stop: left
+
   - placement_name: right_serological_pipette
     object_name: serological_pipette
     zone: right_tool_area

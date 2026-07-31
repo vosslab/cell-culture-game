@@ -6,6 +6,7 @@ from validation.yaml_schema.constants import (
 	BASE_SCENE_REQUIRED_KEYS,
 	BASE_SCENE_ALL_KEYS,
 	LABEL_PLACEMENT_VALUES,
+	ALIGN_STOP_VALUES,
 )
 from validation.yaml_schema.findings import Finding, Severity
 import pipeline.scene_inheritance as scene_inheritance
@@ -22,7 +23,6 @@ LAYOUT_RULE_NUMERIC_KEYS = {
 	'label_font_size', 'label_line_height', 'label_offset_y', 'zone_gap',
 }
 LAYOUT_RULE_POSITIVE_NUMERIC_KEYS = {'label_font_size', 'label_line_height'}
-ALIGN_STOP_VALUES = {'left', 'center', 'right'}
 
 
 class BaseSceneValidator:
@@ -178,6 +178,17 @@ class BaseSceneValidator:
 			if not isinstance(placement, dict):
 				continue
 			placement_path = f"{path}.placements[{idx}]"
+			align_stop = placement.get('align_stop')
+			if align_stop is not None and align_stop not in ALIGN_STOP_VALUES:
+				findings.append(Finding(
+					path=placement_path,
+					lineno=None,
+					severity=Severity.ERROR,
+					message=(
+						f"placement.align_stop '{align_stop}' is not valid "
+						f"(allowed: {sorted(ALIGN_STOP_VALUES)})"
+					),
+				))
 			for key in placement:
 				if key not in scene_inheritance.SOURCE_PLACEMENT_ALLOWED_KEYS:
 					if key in scene_inheritance.SOURCE_FORBIDDEN_GEOMETRY_KEYS:

@@ -1,6 +1,15 @@
 protocol_type: mini_protocol
 protocol_name: mtt_reagent_prep
 entry_step: pick_up_mtt_powder
+initial_state:
+  - target: mtt_powder_container
+    state:
+      material_name: mtt_powder
+      material_volume: 20
+  - target: pbs_bottle
+    state:
+      material_name: pbs
+      material_volume: 496
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
@@ -8,13 +17,13 @@ learning:
     verification of final reagent concentration.
   outcomes:
     Students completing this mini-protocol will be able to combine a pre-weighed
-    5 mg MTT powder vial with 1 mL PBS, dissolve it to reach 12 mM MTT, and verify
+    20 mg MTT powder vial with 4 mL PBS, dissolve it to reach 12 mM MTT, and verify
     solution readiness for use in the MTT assay.
   goals:
     Overall, this mini-protocol aims to accomplish the MTT reagent preparation
     step (Part 3, Day 4, action A39 of the OVCAR8 assay). A 12 mM MTT solution is
     the critical reagent for the colorimetric viability assay; preparation requires
-    adding PBS, transferring the pre-weighed powder, and mixing to ensure complete
+    adding PBS, transferring the pre-weighed 20 mg powder, and mixing to ensure complete
     solubilization before use in downstream assay steps.
 steps:
   - step_name: pick_up_mtt_powder
@@ -39,26 +48,27 @@ steps:
     next_step: prepare_solution_tube
   - step_name: prepare_solution_tube
     prompt:
-      Transfer 1 mL of PBS into the empty MTT solution tube.
+      Transfer 4 mL of PBS into the empty MTT solution tube with a serological
+      pipette.
     sequence:
-      - target: micropipette
+      - target: serological_pipette
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations: []
-      - target: micropipette
+      - target: serological_pipette
         gesture: adjust
         validator:
           preset: target_with_value
           value:
-            set_volume: 1000
+            set_volume: 4.0
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
+              target: serological_pipette
               state:
-                set_volume: 1000
+                set_volume: 4.0
       # This scene removes the inherited bench_basic rear_center_pbs placement
       # (see scenes/bench_workspace.yaml remove_placements), so pbs_bottle is
       # placed only once here (rear_center_pbs_bottle). The target names the
@@ -68,7 +78,17 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: pbs_bottle
+              state:
+                material_name: pbs
+                material_volume: 492
+            - type: ObjectStateChange
+              target: serological_pipette
+              state:
+                held_material_name: pbs
+                held_material_volume: 4.0
       - target: mtt_solution_tube
         gesture: click
         validator:
@@ -79,7 +99,12 @@ steps:
               target: mtt_solution_tube
               state:
                 material_name: pbs
-                material_volume: 1.0
+                material_volume: 4.0
+            - type: ObjectStateChange
+              target: serological_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -88,7 +113,7 @@ steps:
     next_step: dissolve_and_mix
   - step_name: dissolve_and_mix
     prompt:
-      Transfer the 5 mg MTT powder into the solution tube by tapping the powder
+      Transfer the 20 mg MTT powder into the solution tube by tapping the powder
       vial over the tube. Then vortex the tube for 30 seconds to fully dissolve the
       powder.
     sequence:
@@ -112,7 +137,7 @@ steps:
             - type: ObjectStateChange
               target: mtt_solution_tube
               state:
-                material_volume: 1.0
+                material_volume: 4.0
       - target: vortex
         gesture: click
         validator:
@@ -133,7 +158,7 @@ steps:
               target: mtt_solution_tube
               state:
                 material_name: mtt_solution_12mm
-                material_volume: 1.0
+                material_volume: 4.0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -142,7 +167,7 @@ steps:
     next_step: verify_final_volume
   - step_name: verify_final_volume
     prompt:
-      Verify that the MTT solution tube contains approximately 1 mL of yellow
+      Verify that the MTT solution tube contains 4 mL of yellow
       solution. The solution is now 12 mM MTT in PBS and is ready for use.
     sequence:
       - target: mtt_solution_tube
@@ -156,7 +181,7 @@ steps:
       target: mtt_solution_tube
       contains:
         material_name: mtt_solution_12mm
-        material_volume: 1.0
+        material_volume: 4.0
     outcome:
       on_success: complete
       on_failure: retry

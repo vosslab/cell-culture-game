@@ -54,6 +54,7 @@ class FindingEmitter:
 		self.findings: list[Finding] = []
 		self.referenced_materials: set[str] = set()  # Track materials referenced in execution
 		self._unregistered_dedup: set[str] = set()  # Track (protocol, material_name) pairs already reported for S-UNREGISTERED
+		self.final_state: dict | None = None
 
 	def emit_finding(self, finding: Finding) -> None:
 		"""Record a finding for later output."""

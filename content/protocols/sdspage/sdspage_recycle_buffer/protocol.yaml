@@ -1,6 +1,11 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_recycle_buffer
 entry_step: inspect_buffer
+initial_state:
+  - target: electrophoresis_inner_chamber
+    state: { material_name: running_buffer_1x_used, material_volume: 600 }
+  - target: electrophoresis_outer_chamber
+    state: { material_name: running_buffer_1x_used, material_volume: 400 }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with

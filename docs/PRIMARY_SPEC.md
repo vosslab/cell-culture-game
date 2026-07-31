@@ -36,7 +36,16 @@ steps:
     next_step: null
 ```
 
-A `protocol` carries `protocol_name`, `entry_step`, and `steps`. Each `step` carries `step_name`, `prompt`, `sequence`, `step_validator`, `outcome`, and `next_step`. Each `interaction` in a `sequence` carries `target`, `gesture`, `validator`, and `response`. Flow is `entry_step` plus `next_step`; YAML `steps` list order is reading convenience only and never controls flow. Sequence runners list constituent mini-protocols rather than authored steps; see Sequence runners below. Step count is determined by pedagogy. Each step is one pedagogical unit per learning block. Over-atomization (UI-shortcut steps) and under-atomization (multi-skill steps) are review-gated, not count-gated.
+A `protocol` carries `protocol_name`, `entry_step`, and either `steps` or
+`mini_protocols`; it may also carry a root `initial_state` session seed. Each
+`step` carries `step_name`, `prompt`, `sequence`, `step_validator`, `outcome`,
+and `next_step`. Each `interaction` in a `sequence` carries `target`,
+`gesture`, `validator`, and `response`. Flow is `entry_step` plus `next_step`;
+YAML `steps` list order is reading convenience only and never controls flow.
+Sequence runners list constituent mini-protocols rather than authored steps;
+see Sequence runners below. Step count is determined by pedagogy. Each step is
+one pedagogical unit per learning block. Over-atomization (UI-shortcut steps)
+and under-atomization (multi-skill steps) are review-gated, not count-gated.
 
 ## Entry step
 
@@ -109,15 +118,63 @@ At protocol load the runtime validates every authored value used in a
 target object's declared state-field schema. A type-wrong or unknown reference
 throws a named, author-facing error: `UnknownAuthoredObjectError`,
 `UnknownAuthoredSubpartError`, `UnknownAuthoredFieldError`, or
-`BadAuthoredValueError`. This is a startup guard, not a new authored YAML
-field. Authors add nothing; bad values simply fail loudly when the protocol
-first loads rather than silently at runtime during a student session.
+`BadAuthoredValueError`. Numeric values must also satisfy the field's declared
+`min`, `max`, and `step`; a protocol cannot, for example, set a P200 below its
+20 uL minimum. The YAML content validator enforces the same numeric constraint
+before generation. This is a startup guard, not a new authored YAML field.
+Authors add nothing; bad values simply fail loudly before or when the protocol
+first loads rather than silently during a student session.
 
 ## Targets and the scene boundary
 
-A `target` is the addressable, semantic scene object or control a student acts on. It is named, not positional. Protocol YAML is geometry-free: it names no plate, well, tube, gel, column, lane, rack, or coordinate. A scene adapter holds a registry that maps each semantic `target` name to a concrete scene object. Targets that fan out to several scene objects are listed explicitly by subpart (for example `treatment_plate.A1`, `treatment_plate.A2`); the vocabulary has no named-group construct. See [specs/SCENE_VOCABULARY.md](specs/SCENE_VOCABULARY.md) for the scene side of this boundary.
+A `target` is the addressable, semantic scene object or control a student acts
+on. It is named, not positional. Protocol YAML is geometry-free: it names no
+coordinate. A scene adapter holds a registry that maps each semantic `target`
+name to a concrete scene object. Interactive targets are one object or one
+declared subpart (for example `treatment_plate.A1`); an interaction never fans
+out to a group. See [specs/SCENE_VOCABULARY.md](specs/SCENE_VOCABULARY.md) for
+the scene side of this boundary.
 
 - Scientific SVG assets must never be cropped or aspect-distorted in display. See [PRIMARY_DESIGN.md](PRIMARY_DESIGN.md) and [specs/SVG_PIPELINE.md](specs/SVG_PIPELINE.md).
+
+## Initial session state
+
+`initial_state` is an optional root protocol field that declares state needed
+before the entry interaction. It is a list of entries with exactly `target` and
+`state`:
+
+```yaml
+initial_state:
+  - target: microtube_rack_8.slot_A1
+    state:
+      material_name: protein_sample_raw
+      material_volume: 21
+```
+
+The target may name one object, one declared subpart, or one declared
+`subpart_group`. A group expands to its declared concrete subparts before the
+seed is checked and applied. Two entries that resolve to the same concrete
+target identity are an error, including repeated entries or group/member
+duplication. An object target and one of its subpart targets are distinct
+identities and may both be seeded.
+
+`state` is a non-empty flat mapping. Every key must be a declared state field
+for the resolved object or subpart; values must have the declared primitive
+type, satisfy numeric range and unit constraints, and satisfy enum closure.
+For object-level writes, enum fields, including material identity when declared
+at object level, use the object's closed `allowed` list. For subpart
+`material_name` or `held_material_name`, the material identity is instead
+registry-backed: it must be `empty`, `mixed`, or a material registered by the
+active protocol. All other subpart enum fields retain their declared enum
+check. This does not create an untyped state escape hatch.
+
+The runtime begins one fresh session by validating and applying the root seed
+to its durable target-keyed declared-state archive, then projects the
+active scene reactively from that archive. Scene changes reconcile the active
+projection without deleting archived state for objects not currently visible;
+later writes update both. Restart clears the archive and begins again from the
+same root seed. `initial_state` is optional and does not replace object defaults
+for targets it does not name.
 
 ## Events
 
@@ -125,7 +182,18 @@ Events are emitted by the runtime on a state transition, not hand-authored per s
 
 ## Sequence runners
 
-A sequence runner is a protocol with `protocol_type: sequence_runner`. It declares the ordered list of constituent mini-protocols in place of authored steps. A sequence runner has its own `entry_step` (matching the first mini-protocol's `entry_step`) and a `learning` block scoped to the overall pathway.
+A sequence runner is a protocol with `protocol_type: sequence_runner`. It
+declares a non-empty ordered list of unique direct `mini_protocol` leaves in
+place of authored steps. Every name must resolve; nested runners and repeated
+constituents are errors. A runner has its own `entry_step` (matching the first
+mini-protocol's `entry_step`) and a `learning` block scoped to the overall
+pathway.
+
+The runner root is the one session boundary. If the runner declares
+`initial_state`, it is the only seed applied to its flattened run. A constituent
+mini-protocol's `initial_state` is ignored while it is executed by a runner;
+that mini seed applies only when the mini-protocol is launched directly. This
+prevents a later constituent from silently resetting previously produced state.
 
 ## Walker requirement
 
@@ -138,6 +206,19 @@ The walker:
 - clicks visible objects, buttons, modal controls, and answer choices;
 - saves screenshots before and after each meaningful interaction;
 - may read game state for verification.
+
+Before a directed action, the walker proves that the exact target is visible,
+in the viewport, and has a painted active affordance with a matching visible
+action cue. An exact subpart target must expose a target core at least 24 by 24
+CSS pixels. A declared subpart-group target exposes every concrete member as a
+painted, learner-sized surface with the group identity; nonmembers retain their
+exact identities for rejection, while an all-member group is recorded as having
+no false sibling to probe. The walker records the visible interaction ordinal plus
+`stateRevision` and `lastStateDelta` before and after each checkpoint. During a
+wrong-order pass it clicks one visible actionable sibling rather than the
+required target and proves that the runtime rejects it without advancing.
+Timed waits show an explanatory rail and scene timer for a 0.3-0.6 second
+browser acknowledgement before the next interaction becomes active.
 
 The walker must not:
 

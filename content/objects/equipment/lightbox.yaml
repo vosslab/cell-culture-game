@@ -15,6 +15,11 @@ state_fields:
     type: bool
     default: false
     description: Whether an image has been captured.
+  - field_name: gel_state
+    type: enum
+    allowed: [empty, separated_unstained, stained, destaining, destained]
+    default: empty
+    description: Lifecycle state of the gel presented on the lightbox.
 
 visual_states:
   powered_on:
@@ -42,6 +47,9 @@ visual_states:
         output:
           composite:
             - { asset_name: lightbox_capture_complete }
+  gel_state:
+    kind: overlay
+    formula: 'label(state(gel_state), format="Gel: {value}")'
 
 capabilities: [clickable]
 

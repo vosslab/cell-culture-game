@@ -132,18 +132,29 @@ steps:
   - step_name: transfer_gel_to_staining_tray
     prompt: Transfer the gel to the staining tray.
     sequence:
+      - target: gel_cassette
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: gel_cassette
+              state:
+                gel_state: separated_unstained
       - target: staining_tray
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
-            - type: SceneChange
-              to_scene: staining_bench
             - type: ObjectStateChange
               target: staining_tray
               state:
                 gel_present: true
+                gel_state: separated_unstained
+            - type: SceneChange
+              to_scene: staining_bench
     step_validator:
       preset: sequence_complete
     outcome:

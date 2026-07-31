@@ -1,6 +1,33 @@
 protocol_type: mini_protocol
 protocol_name: plate_drug_treatment_drug_addition
 entry_step: add_carb_row_b
+initial_state:
+  # Direct launch begins at the same quantitative handoff created by the
+  # preceding media-adjustment and drug-dilution mini-protocols.
+  - target: dilution_tube_rack_8.tube_B
+    state: { material_name: carboplatin, material_volume: 1000 }
+  - target: dilution_tube_rack_8.tube_C
+    state: { material_name: carboplatin, material_volume: 1000 }
+  - target: dilution_tube_rack_8.tube_D
+    state: { material_name: carboplatin, material_volume: 1000 }
+  - target: dilution_tube_rack_8.tube_E
+    state: { material_name: carboplatin, material_volume: 1000 }
+  - target: dilution_tube_rack_8.tube_F
+    state: { material_name: carboplatin, material_volume: 1000 }
+  - target: dilution_tube_rack_8.tube_G
+    state: { material_name: carboplatin, material_volume: 1000 }
+  - target: microtube_15ml_intermediate
+    state: { material_name: carboplatin, material_volume: 0.12 }
+  - target: metformin_working_tube
+    state: { material_name: metformin, material_volume: 300 }
+  - target: well_plate_96.block_A_1_6
+    state: { material_name: cells, material_volume: 200 }
+  - target: well_plate_96.block_B_H_1_6
+    state: { material_name: cells, material_volume: 195 }
+  - target: well_plate_96.block_A_7_12
+    state: { material_name: cells, material_volume: 195 }
+  - target: well_plate_96.block_B_H_7_12
+    state: { material_name: cells, material_volume: 190 }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
@@ -22,8 +49,7 @@ learning:
 steps:
   - step_name: add_carb_row_b
     prompt:
-      "Aspirate 5 &micro;L of 4 &micro;M carboplatin working stock into the micropipette
-      and dispense across row B, cols 1-12. Final well concentration: 0.1 &micro;M carboplatin
+      "Aspirate 60 &micro;L of 4 &micro;M carboplatin working stock into the micropipette. Then dispense 5 &micro;L into each well across row B, cols 1-12. Final well concentration: 0.1 &micro;M carboplatin
       in 200 &micro;L total volume."
     sequence:
       - target: micropipette
@@ -39,23 +65,32 @@ steps:
         validator:
           preset: target_with_value
           value:
-            set_volume: 5
+            set_volume: 60
         response:
           scene_operations:
             - type: ObjectStateChange
               target: micropipette
               state:
-                set_volume: 5
-      - target: dilution_tube_rack_8.tube_A
+                set_volume: 60
+      - target: dilution_tube_rack_8.tube_B
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
+            - type: ObjectStateChange
+              target: dilution_tube_rack_8.tube_B
+              state:
+                material_volume: 940
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 60
             - type: CursorAttach
               target: micropipette
               operation: attach
-      - target: well_plate_96
+      - target: well_plate_96.B1
         gesture: click
         validator:
           preset: correct_target
@@ -66,10 +101,15 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 55
             - type: CursorAttach
               target: micropipette
               operation: detach
-      - target: well_plate_96
+      - target: well_plate_96.B2
         gesture: click
         validator:
           preset: correct_target
@@ -80,7 +120,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 50
+      - target: well_plate_96.B3
         gesture: click
         validator:
           preset: correct_target
@@ -91,7 +136,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 45
+      - target: well_plate_96.B4
         gesture: click
         validator:
           preset: correct_target
@@ -102,7 +152,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 40
+      - target: well_plate_96.B5
         gesture: click
         validator:
           preset: correct_target
@@ -113,7 +168,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 35
+      - target: well_plate_96.B6
         gesture: click
         validator:
           preset: correct_target
@@ -124,7 +184,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 30
+      - target: well_plate_96.B7
         gesture: click
         validator:
           preset: correct_target
@@ -135,7 +200,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 25
+      - target: well_plate_96.B8
         gesture: click
         validator:
           preset: correct_target
@@ -146,7 +216,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 20
+      - target: well_plate_96.B9
         gesture: click
         validator:
           preset: correct_target
@@ -157,7 +232,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 15
+      - target: well_plate_96.B10
         gesture: click
         validator:
           preset: correct_target
@@ -168,7 +248,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 10
+      - target: well_plate_96.B11
         gesture: click
         validator:
           preset: correct_target
@@ -179,7 +264,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 5
+      - target: well_plate_96.B12
         gesture: click
         validator:
           preset: correct_target
@@ -190,6 +280,11 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -198,8 +293,7 @@ steps:
     next_step: add_carb_row_c
   - step_name: add_carb_row_c
     prompt:
-      "Aspirate 5 &micro;L of 8 &micro;M carboplatin working stock into the micropipette
-      and dispense across row C, cols 1-12. Final well concentration: 0.2 &micro;M carboplatin
+      "Aspirate 60 &micro;L of 8 &micro;M carboplatin working stock into the micropipette. Then dispense 5 &micro;L into each well across row C, cols 1-12. Final well concentration: 0.2 &micro;M carboplatin
       in 200 &micro;L total volume."
     sequence:
       - target: micropipette
@@ -213,23 +307,32 @@ steps:
         validator:
           preset: target_with_value
           value:
-            set_volume: 5
+            set_volume: 60
         response:
           scene_operations:
             - type: ObjectStateChange
               target: micropipette
               state:
-                set_volume: 5
-      - target: dilution_tube_rack_8.tube_B
+                set_volume: 60
+      - target: dilution_tube_rack_8.tube_C
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
+            - type: ObjectStateChange
+              target: dilution_tube_rack_8.tube_C
+              state:
+                material_volume: 940
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 60
             - type: CursorAttach
               target: micropipette
               operation: attach
-      - target: well_plate_96
+      - target: well_plate_96.C1
         gesture: click
         validator:
           preset: correct_target
@@ -240,10 +343,15 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 55
             - type: CursorAttach
               target: micropipette
               operation: detach
-      - target: well_plate_96
+      - target: well_plate_96.C2
         gesture: click
         validator:
           preset: correct_target
@@ -254,7 +362,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 50
+      - target: well_plate_96.C3
         gesture: click
         validator:
           preset: correct_target
@@ -265,7 +378,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 45
+      - target: well_plate_96.C4
         gesture: click
         validator:
           preset: correct_target
@@ -276,7 +394,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 40
+      - target: well_plate_96.C5
         gesture: click
         validator:
           preset: correct_target
@@ -287,7 +410,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 35
+      - target: well_plate_96.C6
         gesture: click
         validator:
           preset: correct_target
@@ -298,7 +426,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 30
+      - target: well_plate_96.C7
         gesture: click
         validator:
           preset: correct_target
@@ -309,7 +442,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 25
+      - target: well_plate_96.C8
         gesture: click
         validator:
           preset: correct_target
@@ -320,7 +458,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 20
+      - target: well_plate_96.C9
         gesture: click
         validator:
           preset: correct_target
@@ -331,7 +474,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 15
+      - target: well_plate_96.C10
         gesture: click
         validator:
           preset: correct_target
@@ -342,7 +490,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 10
+      - target: well_plate_96.C11
         gesture: click
         validator:
           preset: correct_target
@@ -353,7 +506,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 5
+      - target: well_plate_96.C12
         gesture: click
         validator:
           preset: correct_target
@@ -364,6 +522,11 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -372,8 +535,7 @@ steps:
     next_step: add_carb_row_d
   - step_name: add_carb_row_d
     prompt:
-      "Aspirate 5 &micro;L of 20 &micro;M carboplatin working stock into the micropipette
-      and dispense across row D, cols 1-12. Final well concentration: 0.5 &micro;M carboplatin
+      "Aspirate 60 &micro;L of 20 &micro;M carboplatin working stock into the micropipette. Then dispense 5 &micro;L into each well across row D, cols 1-12. Final well concentration: 0.5 &micro;M carboplatin
       in 200 &micro;L total volume."
     sequence:
       - target: micropipette
@@ -387,23 +549,32 @@ steps:
         validator:
           preset: target_with_value
           value:
-            set_volume: 5
+            set_volume: 60
         response:
           scene_operations:
             - type: ObjectStateChange
               target: micropipette
               state:
-                set_volume: 5
-      - target: dilution_tube_rack_8.tube_C
+                set_volume: 60
+      - target: dilution_tube_rack_8.tube_D
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
+            - type: ObjectStateChange
+              target: dilution_tube_rack_8.tube_D
+              state:
+                material_volume: 940
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 60
             - type: CursorAttach
               target: micropipette
               operation: attach
-      - target: well_plate_96
+      - target: well_plate_96.D1
         gesture: click
         validator:
           preset: correct_target
@@ -414,10 +585,15 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 55
             - type: CursorAttach
               target: micropipette
               operation: detach
-      - target: well_plate_96
+      - target: well_plate_96.D2
         gesture: click
         validator:
           preset: correct_target
@@ -428,7 +604,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 50
+      - target: well_plate_96.D3
         gesture: click
         validator:
           preset: correct_target
@@ -439,7 +620,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 45
+      - target: well_plate_96.D4
         gesture: click
         validator:
           preset: correct_target
@@ -450,7 +636,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 40
+      - target: well_plate_96.D5
         gesture: click
         validator:
           preset: correct_target
@@ -461,7 +652,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 35
+      - target: well_plate_96.D6
         gesture: click
         validator:
           preset: correct_target
@@ -472,7 +668,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 30
+      - target: well_plate_96.D7
         gesture: click
         validator:
           preset: correct_target
@@ -483,7 +684,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 25
+      - target: well_plate_96.D8
         gesture: click
         validator:
           preset: correct_target
@@ -494,7 +700,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 20
+      - target: well_plate_96.D9
         gesture: click
         validator:
           preset: correct_target
@@ -505,7 +716,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 15
+      - target: well_plate_96.D10
         gesture: click
         validator:
           preset: correct_target
@@ -516,7 +732,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 10
+      - target: well_plate_96.D11
         gesture: click
         validator:
           preset: correct_target
@@ -527,7 +748,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 5
+      - target: well_plate_96.D12
         gesture: click
         validator:
           preset: correct_target
@@ -538,6 +764,11 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -546,8 +777,7 @@ steps:
     next_step: add_carb_row_e
   - step_name: add_carb_row_e
     prompt:
-      "Aspirate 5 &micro;L of 40 &micro;M carboplatin working stock into the micropipette
-      and dispense across row E, cols 1-12. Final well concentration: 1 &micro;M carboplatin
+      "Aspirate 60 &micro;L of 40 &micro;M carboplatin working stock into the micropipette. Then dispense 5 &micro;L into each well across row E, cols 1-12. Final well concentration: 1 &micro;M carboplatin
       in 200 &micro;L total volume."
     sequence:
       - target: micropipette
@@ -561,23 +791,32 @@ steps:
         validator:
           preset: target_with_value
           value:
-            set_volume: 5
+            set_volume: 60
         response:
           scene_operations:
             - type: ObjectStateChange
               target: micropipette
               state:
-                set_volume: 5
-      - target: dilution_tube_rack_8.tube_D
+                set_volume: 60
+      - target: dilution_tube_rack_8.tube_E
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
+            - type: ObjectStateChange
+              target: dilution_tube_rack_8.tube_E
+              state:
+                material_volume: 940
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 60
             - type: CursorAttach
               target: micropipette
               operation: attach
-      - target: well_plate_96
+      - target: well_plate_96.E1
         gesture: click
         validator:
           preset: correct_target
@@ -588,10 +827,15 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 55
             - type: CursorAttach
               target: micropipette
               operation: detach
-      - target: well_plate_96
+      - target: well_plate_96.E2
         gesture: click
         validator:
           preset: correct_target
@@ -602,7 +846,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 50
+      - target: well_plate_96.E3
         gesture: click
         validator:
           preset: correct_target
@@ -613,7 +862,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 45
+      - target: well_plate_96.E4
         gesture: click
         validator:
           preset: correct_target
@@ -624,7 +878,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 40
+      - target: well_plate_96.E5
         gesture: click
         validator:
           preset: correct_target
@@ -635,7 +894,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 35
+      - target: well_plate_96.E6
         gesture: click
         validator:
           preset: correct_target
@@ -646,7 +910,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 30
+      - target: well_plate_96.E7
         gesture: click
         validator:
           preset: correct_target
@@ -657,7 +926,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 25
+      - target: well_plate_96.E8
         gesture: click
         validator:
           preset: correct_target
@@ -668,7 +942,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 20
+      - target: well_plate_96.E9
         gesture: click
         validator:
           preset: correct_target
@@ -679,7 +958,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 15
+      - target: well_plate_96.E10
         gesture: click
         validator:
           preset: correct_target
@@ -690,7 +974,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 10
+      - target: well_plate_96.E11
         gesture: click
         validator:
           preset: correct_target
@@ -701,7 +990,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 5
+      - target: well_plate_96.E12
         gesture: click
         validator:
           preset: correct_target
@@ -712,6 +1006,11 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -720,8 +1019,7 @@ steps:
     next_step: add_carb_row_f
   - step_name: add_carb_row_f
     prompt:
-      "Aspirate 5 &micro;L of 80 &micro;M carboplatin working stock into the micropipette
-      and dispense across row F, cols 1-12. Final well concentration: 2 &micro;M carboplatin
+      "Aspirate 60 &micro;L of 80 &micro;M carboplatin working stock into the micropipette. Then dispense 5 &micro;L into each well across row F, cols 1-12. Final well concentration: 2 &micro;M carboplatin
       in 200 &micro;L total volume."
     sequence:
       - target: micropipette
@@ -735,23 +1033,32 @@ steps:
         validator:
           preset: target_with_value
           value:
-            set_volume: 5
+            set_volume: 60
         response:
           scene_operations:
             - type: ObjectStateChange
               target: micropipette
               state:
-                set_volume: 5
-      - target: dilution_tube_rack_8.tube_E
+                set_volume: 60
+      - target: dilution_tube_rack_8.tube_F
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
+            - type: ObjectStateChange
+              target: dilution_tube_rack_8.tube_F
+              state:
+                material_volume: 940
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 60
             - type: CursorAttach
               target: micropipette
               operation: attach
-      - target: well_plate_96
+      - target: well_plate_96.F1
         gesture: click
         validator:
           preset: correct_target
@@ -762,10 +1069,15 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 55
             - type: CursorAttach
               target: micropipette
               operation: detach
-      - target: well_plate_96
+      - target: well_plate_96.F2
         gesture: click
         validator:
           preset: correct_target
@@ -776,7 +1088,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 50
+      - target: well_plate_96.F3
         gesture: click
         validator:
           preset: correct_target
@@ -787,7 +1104,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 45
+      - target: well_plate_96.F4
         gesture: click
         validator:
           preset: correct_target
@@ -798,7 +1120,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 40
+      - target: well_plate_96.F5
         gesture: click
         validator:
           preset: correct_target
@@ -809,7 +1136,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 35
+      - target: well_plate_96.F6
         gesture: click
         validator:
           preset: correct_target
@@ -820,7 +1152,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 30
+      - target: well_plate_96.F7
         gesture: click
         validator:
           preset: correct_target
@@ -831,7 +1168,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 25
+      - target: well_plate_96.F8
         gesture: click
         validator:
           preset: correct_target
@@ -842,7 +1184,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 20
+      - target: well_plate_96.F9
         gesture: click
         validator:
           preset: correct_target
@@ -853,7 +1200,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 15
+      - target: well_plate_96.F10
         gesture: click
         validator:
           preset: correct_target
@@ -864,7 +1216,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 10
+      - target: well_plate_96.F11
         gesture: click
         validator:
           preset: correct_target
@@ -875,7 +1232,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 5
+      - target: well_plate_96.F12
         gesture: click
         validator:
           preset: correct_target
@@ -886,6 +1248,11 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -894,7 +1261,7 @@ steps:
     next_step: add_carb_row_g
   - step_name: add_carb_row_g
     prompt:
-      "Aspirate 5 &micro;L of 200 &micro;M carboplatin working stock into the
+      "Aspirate 60 &micro;L of 200 &micro;M carboplatin working stock into the
       micropipette and dispense across row G, cols 1-12. Final well concentration: 5
       &micro;M carboplatin in 200 &micro;L total volume."
     sequence:
@@ -909,23 +1276,32 @@ steps:
         validator:
           preset: target_with_value
           value:
-            set_volume: 5
+            set_volume: 60
         response:
           scene_operations:
             - type: ObjectStateChange
               target: micropipette
               state:
-                set_volume: 5
-      - target: dilution_tube_rack_8.tube_F
+                set_volume: 60
+      - target: dilution_tube_rack_8.tube_G
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
+            - type: ObjectStateChange
+              target: dilution_tube_rack_8.tube_G
+              state:
+                material_volume: 940
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 60
             - type: CursorAttach
               target: micropipette
               operation: attach
-      - target: well_plate_96
+      - target: well_plate_96.G1
         gesture: click
         validator:
           preset: correct_target
@@ -936,10 +1312,15 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 55
             - type: CursorAttach
               target: micropipette
               operation: detach
-      - target: well_plate_96
+      - target: well_plate_96.G2
         gesture: click
         validator:
           preset: correct_target
@@ -950,7 +1331,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 50
+      - target: well_plate_96.G3
         gesture: click
         validator:
           preset: correct_target
@@ -961,7 +1347,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 45
+      - target: well_plate_96.G4
         gesture: click
         validator:
           preset: correct_target
@@ -972,7 +1363,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 40
+      - target: well_plate_96.G5
         gesture: click
         validator:
           preset: correct_target
@@ -983,7 +1379,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 35
+      - target: well_plate_96.G6
         gesture: click
         validator:
           preset: correct_target
@@ -994,7 +1395,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 30
+      - target: well_plate_96.G7
         gesture: click
         validator:
           preset: correct_target
@@ -1005,7 +1411,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 25
+      - target: well_plate_96.G8
         gesture: click
         validator:
           preset: correct_target
@@ -1016,7 +1427,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 20
+      - target: well_plate_96.G9
         gesture: click
         validator:
           preset: correct_target
@@ -1027,7 +1443,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 15
+      - target: well_plate_96.G10
         gesture: click
         validator:
           preset: correct_target
@@ -1038,7 +1459,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 10
+      - target: well_plate_96.G11
         gesture: click
         validator:
           preset: correct_target
@@ -1049,7 +1475,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 5
+      - target: well_plate_96.G12
         gesture: click
         validator:
           preset: correct_target
@@ -1060,6 +1491,11 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -1068,7 +1504,7 @@ steps:
     next_step: add_carb_row_h
   - step_name: add_carb_row_h
     prompt:
-      "Aspirate 5 &micro;L of 400 &micro;M carboplatin working stock into the
+      "Aspirate 60 &micro;L of 400 &micro;M carboplatin working stock into the
       micropipette and dispense across row H, cols 1-12. Final well concentration: 10
       &micro;M carboplatin in 200 &micro;L total volume."
     sequence:
@@ -1083,23 +1519,32 @@ steps:
         validator:
           preset: target_with_value
           value:
-            set_volume: 5
+            set_volume: 60
         response:
           scene_operations:
             - type: ObjectStateChange
               target: micropipette
               state:
-                set_volume: 5
-      - target: dilution_tube_rack_8.tube_G
+                set_volume: 60
+      - target: microtube_15ml_intermediate
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
+            - type: ObjectStateChange
+              target: microtube_15ml_intermediate
+              state:
+                material_volume: 0.06
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 60
             - type: CursorAttach
               target: micropipette
               operation: attach
-      - target: well_plate_96
+      - target: well_plate_96.H1
         gesture: click
         validator:
           preset: correct_target
@@ -1110,10 +1555,15 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 55
             - type: CursorAttach
               target: micropipette
               operation: detach
-      - target: well_plate_96
+      - target: well_plate_96.H2
         gesture: click
         validator:
           preset: correct_target
@@ -1124,7 +1574,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 50
+      - target: well_plate_96.H3
         gesture: click
         validator:
           preset: correct_target
@@ -1135,7 +1590,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 45
+      - target: well_plate_96.H4
         gesture: click
         validator:
           preset: correct_target
@@ -1146,7 +1606,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 40
+      - target: well_plate_96.H5
         gesture: click
         validator:
           preset: correct_target
@@ -1157,7 +1622,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 35
+      - target: well_plate_96.H6
         gesture: click
         validator:
           preset: correct_target
@@ -1168,7 +1638,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 30
+      - target: well_plate_96.H7
         gesture: click
         validator:
           preset: correct_target
@@ -1179,7 +1654,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 25
+      - target: well_plate_96.H8
         gesture: click
         validator:
           preset: correct_target
@@ -1190,7 +1670,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 20
+      - target: well_plate_96.H9
         gesture: click
         validator:
           preset: correct_target
@@ -1201,7 +1686,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 15
+      - target: well_plate_96.H10
         gesture: click
         validator:
           preset: correct_target
@@ -1212,7 +1702,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 10
+      - target: well_plate_96.H11
         gesture: click
         validator:
           preset: correct_target
@@ -1223,7 +1718,12 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: carboplatin
+                held_material_volume: 5
+      - target: well_plate_96.H12
         gesture: click
         validator:
           preset: correct_target
@@ -1234,6 +1734,11 @@ steps:
               state:
                 material_name: carboplatin
                 material_volume: 195
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -1242,8 +1747,7 @@ steps:
     next_step: add_metformin_cols_7_12
   - step_name: add_metformin_cols_7_12
     prompt:
-      "Aspirate 5 &micro;L of 200 mM metformin working stock into the micropipette
-      and dispense across cols 7-12, rows A-H. Row A is the metformin-only control;
+      "Aspirate 120 &micro;L of 200 mM metformin working stock into the micropipette twice, dispensing 5 &micro;L into each well between loads across cols 7-12, rows A-H. Row A is the metformin-only control;
       rows B-H receive metformin with carboplatin. Final well concentration: 5 mM metformin
       in 200 &micro;L total volume."
     sequence:
@@ -1258,23 +1762,32 @@ steps:
         validator:
           preset: target_with_value
           value:
-            set_volume: 5
+            set_volume: 120
         response:
           scene_operations:
             - type: ObjectStateChange
               target: micropipette
               state:
-                set_volume: 5
+                set_volume: 120
       - target: metformin_working_tube
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
+            - type: ObjectStateChange
+              target: metformin_working_tube
+              state:
+                material_volume: 180
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 120
             - type: CursorAttach
               target: micropipette
               operation: attach
-      - target: well_plate_96
+      - target: well_plate_96.A7
         gesture: click
         validator:
           preset: correct_target
@@ -1285,10 +1798,15 @@ steps:
               state:
                 material_name: metformin
                 material_volume: 200
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 115
             - type: CursorAttach
               target: micropipette
               operation: detach
-      - target: well_plate_96
+      - target: well_plate_96.A8
         gesture: click
         validator:
           preset: correct_target
@@ -1299,7 +1817,12 @@ steps:
               state:
                 material_name: metformin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 110
+      - target: well_plate_96.A9
         gesture: click
         validator:
           preset: correct_target
@@ -1310,7 +1833,12 @@ steps:
               state:
                 material_name: metformin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 105
+      - target: well_plate_96.A10
         gesture: click
         validator:
           preset: correct_target
@@ -1321,7 +1849,12 @@ steps:
               state:
                 material_name: metformin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 100
+      - target: well_plate_96.A11
         gesture: click
         validator:
           preset: correct_target
@@ -1332,7 +1865,12 @@ steps:
               state:
                 material_name: metformin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 95
+      - target: well_plate_96.A12
         gesture: click
         validator:
           preset: correct_target
@@ -1343,7 +1881,12 @@ steps:
               state:
                 material_name: metformin
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 90
+      - target: well_plate_96.B7
         gesture: click
         validator:
           preset: correct_target
@@ -1354,7 +1897,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 85
+      - target: well_plate_96.B8
         gesture: click
         validator:
           preset: correct_target
@@ -1365,7 +1913,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 80
+      - target: well_plate_96.B9
         gesture: click
         validator:
           preset: correct_target
@@ -1376,7 +1929,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 75
+      - target: well_plate_96.B10
         gesture: click
         validator:
           preset: correct_target
@@ -1387,7 +1945,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 70
+      - target: well_plate_96.B11
         gesture: click
         validator:
           preset: correct_target
@@ -1398,7 +1961,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 65
+      - target: well_plate_96.B12
         gesture: click
         validator:
           preset: correct_target
@@ -1409,7 +1977,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 60
+      - target: well_plate_96.C7
         gesture: click
         validator:
           preset: correct_target
@@ -1420,7 +1993,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 55
+      - target: well_plate_96.C8
         gesture: click
         validator:
           preset: correct_target
@@ -1431,7 +2009,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 50
+      - target: well_plate_96.C9
         gesture: click
         validator:
           preset: correct_target
@@ -1442,7 +2025,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 45
+      - target: well_plate_96.C10
         gesture: click
         validator:
           preset: correct_target
@@ -1453,7 +2041,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 40
+      - target: well_plate_96.C11
         gesture: click
         validator:
           preset: correct_target
@@ -1464,7 +2057,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 35
+      - target: well_plate_96.C12
         gesture: click
         validator:
           preset: correct_target
@@ -1475,7 +2073,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 30
+      - target: well_plate_96.D7
         gesture: click
         validator:
           preset: correct_target
@@ -1486,7 +2089,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 25
+      - target: well_plate_96.D8
         gesture: click
         validator:
           preset: correct_target
@@ -1497,7 +2105,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 20
+      - target: well_plate_96.D9
         gesture: click
         validator:
           preset: correct_target
@@ -1508,7 +2121,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 15
+      - target: well_plate_96.D10
         gesture: click
         validator:
           preset: correct_target
@@ -1519,7 +2137,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 10
+      - target: well_plate_96.D11
         gesture: click
         validator:
           preset: correct_target
@@ -1530,7 +2153,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 5
+      - target: well_plate_96.D12
         gesture: click
         validator:
           preset: correct_target
@@ -1541,7 +2169,27 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
+      - target: metformin_working_tube
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: metformin_working_tube
+              state:
+                material_volume: 60
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 120
+      - target: well_plate_96.E7
         gesture: click
         validator:
           preset: correct_target
@@ -1552,7 +2200,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 115
+      - target: well_plate_96.E8
         gesture: click
         validator:
           preset: correct_target
@@ -1563,7 +2216,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 110
+      - target: well_plate_96.E9
         gesture: click
         validator:
           preset: correct_target
@@ -1574,7 +2232,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 105
+      - target: well_plate_96.E10
         gesture: click
         validator:
           preset: correct_target
@@ -1585,7 +2248,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 100
+      - target: well_plate_96.E11
         gesture: click
         validator:
           preset: correct_target
@@ -1596,7 +2264,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 95
+      - target: well_plate_96.E12
         gesture: click
         validator:
           preset: correct_target
@@ -1607,7 +2280,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 90
+      - target: well_plate_96.F7
         gesture: click
         validator:
           preset: correct_target
@@ -1618,7 +2296,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 85
+      - target: well_plate_96.F8
         gesture: click
         validator:
           preset: correct_target
@@ -1629,7 +2312,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 80
+      - target: well_plate_96.F9
         gesture: click
         validator:
           preset: correct_target
@@ -1640,7 +2328,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 75
+      - target: well_plate_96.F10
         gesture: click
         validator:
           preset: correct_target
@@ -1651,7 +2344,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 70
+      - target: well_plate_96.F11
         gesture: click
         validator:
           preset: correct_target
@@ -1662,7 +2360,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 65
+      - target: well_plate_96.F12
         gesture: click
         validator:
           preset: correct_target
@@ -1673,7 +2376,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 60
+      - target: well_plate_96.G7
         gesture: click
         validator:
           preset: correct_target
@@ -1684,7 +2392,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 55
+      - target: well_plate_96.G8
         gesture: click
         validator:
           preset: correct_target
@@ -1695,7 +2408,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 50
+      - target: well_plate_96.G9
         gesture: click
         validator:
           preset: correct_target
@@ -1706,7 +2424,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 45
+      - target: well_plate_96.G10
         gesture: click
         validator:
           preset: correct_target
@@ -1717,7 +2440,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 40
+      - target: well_plate_96.G11
         gesture: click
         validator:
           preset: correct_target
@@ -1728,7 +2456,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 35
+      - target: well_plate_96.G12
         gesture: click
         validator:
           preset: correct_target
@@ -1739,7 +2472,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 30
+      - target: well_plate_96.H7
         gesture: click
         validator:
           preset: correct_target
@@ -1750,7 +2488,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 25
+      - target: well_plate_96.H8
         gesture: click
         validator:
           preset: correct_target
@@ -1761,7 +2504,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 20
+      - target: well_plate_96.H9
         gesture: click
         validator:
           preset: correct_target
@@ -1772,7 +2520,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 15
+      - target: well_plate_96.H10
         gesture: click
         validator:
           preset: correct_target
@@ -1783,7 +2536,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 10
+      - target: well_plate_96.H11
         gesture: click
         validator:
           preset: correct_target
@@ -1794,7 +2552,12 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
-      - target: well_plate_96
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: metformin
+                held_material_volume: 5
+      - target: well_plate_96.H12
         gesture: click
         validator:
           preset: correct_target
@@ -1805,6 +2568,11 @@ steps:
               state:
                 material_name: carboplatin_metformin_combo
                 material_volume: 200
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:

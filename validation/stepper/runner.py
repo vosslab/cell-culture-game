@@ -148,6 +148,7 @@ def walk_protocol(
 
 	# Seed the initial active scene
 	_seed_initial_active_scene(tree, protocol_name, state_map, emitter)
+	state_map.apply_initial_state(protocol.get("initial_state"))
 
 	emitter.emit_protocol_start(protocol_name, protocol_path)
 
@@ -202,8 +203,15 @@ def walk_protocol(
 			interaction_index,
 			emitter,
 		)
+		validation.stepper.scene_ops.validate_material_ledger(
+			state_before, state_after, state_map, protocol_name, step_name, interaction_index, emitter, scene_ops
+		)
+		validation.stepper.scene_ops.detect_material_volume_creation(
+			state_before, state_after, scene_ops, state_map, protocol_name, step_name, interaction_index, emitter
+		)
 
 	# Count errors and warnings from emitter
+	emitter.final_state = state_map.snapshot_state()
 	error_findings = [f for f in emitter.findings if f.level == validation.stepper.findings.Level.ERROR]
 	warning_findings = [f for f in emitter.findings if f.level == validation.stepper.findings.Level.WARNING]
 	error_count = len(error_findings)
@@ -433,19 +441,46 @@ def walk_sequence_runner(
 		))
 		return 0, 0, emitter
 
-	# Get the ordered list of constituent minis
-	mini_protocols = protocol.get("mini_protocols", [])
-	if not isinstance(mini_protocols, list):
-		mini_protocols = []
+	# A runner is an ordered, non-empty list of unique direct mini leaves.  The
+	# runtime has the same requirement; retain it here so validation remains
+	# trustworthy when invoked without the schema gate.
+	mini_protocols = protocol.get("mini_protocols")
+	if not isinstance(mini_protocols, list) or not mini_protocols:
+		emitter.emit_finding(validation.stepper.findings.Finding(
+			level=validation.stepper.findings.Level.ERROR,
+			protocol_name=protocol_name, step_name=None, interaction_index=None,
+			target=None, file_path=protocol_path, code="invalid_sequence_runner_members",
+			message="sequence_runner mini_protocols must be a non-empty ordered list",
+			spec_cite="docs/PRIMARY_SPEC.md Sequence runners",
+		))
+		return 0, 0, emitter
+	if any(not isinstance(mini_name, str) or not mini_name for mini_name in mini_protocols):
+		emitter.emit_finding(validation.stepper.findings.Finding(
+			level=validation.stepper.findings.Level.ERROR,
+			protocol_name=protocol_name, step_name=None, interaction_index=None,
+			target=None, file_path=protocol_path, code="invalid_sequence_runner_members",
+			message="sequence_runner mini_protocols must contain only non-empty protocol names",
+			spec_cite="docs/PRIMARY_SPEC.md Sequence runners",
+		))
+		return 0, 0, emitter
+	duplicates = sorted({name for name in mini_protocols if mini_protocols.count(name) > 1})
+	if duplicates:
+		emitter.emit_finding(validation.stepper.findings.Finding(
+			level=validation.stepper.findings.Level.ERROR,
+			protocol_name=protocol_name, step_name=None, interaction_index=None,
+			target=duplicates[0], file_path=protocol_path, code="duplicate_runner_constituent",
+			message=f"sequence_runner repeats constituent mini-protocol(s): {', '.join(duplicates)}",
+			spec_cite="docs/PRIMARY_SPEC.md Sequence runners",
+		))
+		return 0, 0, emitter
 
-	# Check flow integrity for sequence runner (S-UNREACHABLE on constituent list)
-	mini_protocols_set = set(mini_protocols)
-	declared_minis = mini_protocols_set.copy()
-
-	# Validate: no sequence runner should reference another sequence runner
+	# Reject unknown and nested constituents before walking.  Continuing would
+	# manufacture a partial runner result that looks like a successful check.
+	invalid_members = False
 	for mini_name in mini_protocols:
-		mini_proto = tree.get_protocol(mini_name)
-		if not mini_proto:
+		try:
+			mini_proto = tree.get_protocol(mini_name)
+		except validation.stepper.loader.ProtocolNotFoundError:
 			emitter.emit_finding(validation.stepper.findings.Finding(
 				level=validation.stepper.findings.Level.ERROR,
 				protocol_name=protocol_name,
@@ -457,8 +492,7 @@ def walk_sequence_runner(
 				message=f"mini_protocols list references unknown protocol '{mini_name}'",
 				spec_cite="docs/PRIMARY_SPEC.md Sequence runners",
 			))
-			# Remove from declared set so we don't emit S-UNREACHABLE for missing protos
-			declared_minis.discard(mini_name)
+			invalid_members = True
 			continue
 
 		mini_type = mini_proto.get("protocol_type")
@@ -474,26 +508,18 @@ def walk_sequence_runner(
 				message=f"sequence runner '{protocol_name}' references another sequence_runner '{mini_name}' in mini_protocols list",
 				spec_cite="docs/PRIMARY_SPEC.md Sequence runners",
 			))
-
-	# For sequence runners, each constituent mini in the list is "visited" by definition
-	# (they are all executed in order). S-UNREACHABLE would apply to declared minis
-	# that don't exist or are unreachable due to a cycle in the list traversal.
-	# Since sequence runners have a flat list (no next_* chain), cycles don't apply.
-	# S-UNREACHABLE only applies if a mini is declared but doesn't exist.
-	unreachable_minis = set(mini_protocols) - declared_minis
-	for unreachable_mini in sorted(unreachable_minis):
-		finding = validation.stepper.findings.Finding(
-			level=validation.stepper.findings.Level.ERROR,
-			protocol_name=protocol_name,
-			step_name=None,
-			interaction_index=None,
-			target=unreachable_mini,
-			file_path=protocol_path,
-			code="s-unreachable",
-			message=f"constituent mini-protocol '{unreachable_mini}' in mini_protocols list is unreachable or unknown",
-			spec_cite="docs/PRIMARY_SPEC.md Sequence runners"
-		)
-		emitter.emit_finding(finding)
+			invalid_members = True
+		elif mini_type != "mini_protocol":
+			emitter.emit_finding(validation.stepper.findings.Finding(
+				level=validation.stepper.findings.Level.ERROR,
+				protocol_name=protocol_name, step_name=None, interaction_index=None,
+				target=mini_name, file_path=protocol_path, code="invalid_runner_constituent",
+				message=f"runner constituent '{mini_name}' has protocol_type '{mini_type}', not 'mini_protocol'",
+				spec_cite="docs/PRIMARY_SPEC.md Sequence runners",
+			))
+			invalid_members = True
+	if invalid_members:
+		return 0, 0, emitter
 
 	emitter.emit_protocol_start(protocol_name, protocol_path, is_sequence_runner=True, leaf_count=len(mini_protocols))
 
@@ -508,6 +534,14 @@ def walk_sequence_runner(
 	total_interaction_count = 0
 	total_step_count = 0
 	accumulated_produced_materials = set()
+	declared_union = set().union(*declared_materials_by_mini.values())
+	state_map = validation.stepper.state.StateMap(
+		tree, protocol_name, emitter, declared_materials_union=declared_union,
+		scene_protocol_names=mini_protocols, material_protocol_names=mini_protocols,
+	)
+	state_map.set_execution_protocol(mini_protocols[0])
+	_seed_initial_active_scene(tree, mini_protocols[0], state_map, emitter)
+	state_map.apply_initial_state(protocol.get("initial_state"))
 
 	# Walk each mini in order, threading state and materials
 	for mini_index, mini_name in enumerate(mini_protocols):
@@ -516,20 +550,10 @@ def walk_sequence_runner(
 		except validation.stepper.loader.ProtocolNotFoundError:
 			continue
 
-		# Create a StateMap for this mini with upstream materials threaded
-		declared_union = set()
-		for idx in range(mini_index):
-			declared_union.update(declared_materials_by_mini.get(idx, set()))
-
-		state_map = validation.stepper.state.StateMap(
-			tree,
-			mini_name,
-			emitter,
-			declared_materials_union=declared_union,
-			produced_materials_set=accumulated_produced_materials,
-		)
-
-		# Seed initial scene
+		state_map.set_execution_protocol(mini_name)
+		state_map.produced_materials_set = accumulated_produced_materials
+		# Constituent initial_state is deliberately ignored: runner root state is
+		# the only seed for a multi-mini session.
 		_seed_initial_active_scene(tree, mini_name, state_map, emitter)
 
 		step_count = 0
@@ -551,6 +575,7 @@ def walk_sequence_runner(
 			response = interaction.get("response", {})
 			scene_ops = response.get("scene_operations", [])
 
+			state_before = state_map.snapshot_state()
 			for scene_op in scene_ops:
 				op_type = scene_op.get("type")
 				emitter.emit_scene_operation(op_type)
@@ -573,6 +598,18 @@ def walk_sequence_runner(
 							value = state_block.get(field_name)
 							if value and isinstance(value, str) and value not in ("empty", "mixed"):
 								accumulated_produced_materials.add(value)
+
+			state_after = state_map.snapshot_state()
+			validation.stepper.scene_ops.detect_state_jumps(
+				state_before, state_after, scene_ops, state_map, mini_name, step_name,
+				interaction_index, emitter,
+			)
+			validation.stepper.scene_ops.validate_material_ledger(
+				state_before, state_after, state_map, mini_name, step_name, interaction_index, emitter, scene_ops
+			)
+			validation.stepper.scene_ops.detect_material_volume_creation(
+				state_before, state_after, scene_ops, state_map, mini_name, step_name, interaction_index, emitter
+			)
 
 		# Check cross-mini material references for this mini
 		validation.stepper.cross_mini.check_cross_mini_material_references(
@@ -598,6 +635,7 @@ def walk_sequence_runner(
 			emitter.emit_leaf_summary(mini_name, step_count, interaction_count, error_count, warning_count)
 
 	# Final summary for the sequence runner
+	emitter.final_state = state_map.snapshot_state()
 	error_findings = [f for f in emitter.findings if f.level == validation.stepper.findings.Level.ERROR]
 	warning_findings = [f for f in emitter.findings if f.level == validation.stepper.findings.Level.WARNING]
 	error_count = len(error_findings)

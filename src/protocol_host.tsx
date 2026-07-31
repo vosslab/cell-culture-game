@@ -43,7 +43,7 @@ import { OBJECT_LIBRARY } from "../generated/object_library.js";
 
 import type { PipelineResult } from "./scene_runtime/layout/types.js";
 import { resolvePrecomputedResult } from "./scene_runtime/layout/precomputed_result.js";
-import { mountScene, type SceneDispose } from "./scene_runtime/renderer/index.js";
+import { build_seed_list, mountScene, type SceneDispose } from "./scene_runtime/renderer/index.js";
 import type { MaterialRegistry } from "./scene_runtime/renderer/visual_state_resolver.js";
 import { create_scene_store } from "./scene_runtime/state/scene_store.js";
 import { create_state_field_lookup } from "./scene_runtime/state/state_field_lookup_impl.js";
@@ -164,6 +164,7 @@ function build_initial_snapshot(config: ProtocolConfig): ShellViewSnapshot {
     // No step active yet; tip resolves to null until step_started fires.
     current_tip: null,
     current_interaction_index: 0,
+    current_interaction_count: 0,
     progress: { completed_step_count: 0, total_step_count },
     last_outcome: null,
     last_rejection: null,
@@ -182,6 +183,7 @@ function build_initial_snapshot(config: ProtocolConfig): ShellViewSnapshot {
     active_interaction_target: null,
     active_interaction_label: null,
     active_interaction_gesture: null,
+    active_interaction_value: null,
     pending_timed_wait: null,
   };
   return initial;
@@ -293,6 +295,10 @@ function mount(): void {
   // SceneChange reset path) can release it. mountScene returns the handle and
   // disposes any prior root for the same element internally.
   let active_dispose: SceneDispose | null = null;
+  // Exactly one protocol session owns the durable declared-state archive. The
+  // first scene projects its validated root initial_state; later SceneChange
+  // calls reconcile that same archive rather than replacing it.
+  let session_started = false;
 
   // Scene-scoped target-identity adapter. Rebuilt from each mounted scene's
   // placements inside render_protocol_scene so an authored protocol target
@@ -354,10 +360,25 @@ function mount(): void {
     // derives highlight rings from the live interaction snapshot; mountScene
     // re-enumerates candidate_targets from this scene's PipelineResult, so a
     // SceneChange always rings the correct scene's objects (no stale set).
+    // The renderer's third mode intentionally mounts an already-projected
+    // session without re-seeding it. Annotate the local union explicitly:
+    // `seed_mode` itself is only a caller-facing replace/reconcile choice.
+    let effective_seed_mode: "replace" | "reconcile" | "none" = seed_mode;
+    if (!session_started) {
+      scene_store.start_session(
+        build_seed_list(pipeline_result),
+        active_config.initial_state ?? [],
+      );
+      session_started = true;
+      // start_session has already populated the active projection. Avoid the
+      // mount facade's compatibility replace path, which intentionally starts
+      // a blank session for stand-alone renderer callers.
+      effective_seed_mode = "none";
+    }
     active_dispose = mountScene(active_scene_root, pipeline_result, {
       store: scene_store,
       materialRegistry: material_registry,
-      seedMode: seed_mode,
+      seedMode: effective_seed_mode,
       viewport: scene_viewport,
       activeAffordance: active_affordance,
     });

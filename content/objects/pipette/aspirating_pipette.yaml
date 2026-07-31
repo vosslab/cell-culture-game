@@ -5,7 +5,7 @@ label: Aspirating pipette
 state_fields:
   - field_name: held_material_name
     type: enum
-    allowed: [empty, media, pbs, mtt]
+    allowed: [empty, media, pbs, mtt, cell_supernatant]
     default: empty
     description: Contents currently aspirated (waste stream).
   - field_name: held_material_volume
@@ -27,6 +27,8 @@ visual_states:
       - when: pbs
         output: { asset_name: aspirating_pipette }
       - when: mtt
+        output: { asset_name: aspirating_pipette }
+      - when: cell_supernatant
         output: { asset_name: aspirating_pipette }
   held_material_volume:
     applies_to: object

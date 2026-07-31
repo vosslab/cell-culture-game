@@ -635,9 +635,53 @@ describe("step machine - adjust commit (target_with_value)", () => {
     };
   }
 
+  function make_adjust_then_type_step() {
+    return {
+      step_name: "a",
+      prompt: "set a value, then record it",
+      sequence: [
+        {
+          target: "micropipette",
+          gesture: "adjust",
+          validator: { preset: "target_with_value", value: { set_volume: 1000 } },
+          response: { scene_operations: [] },
+        },
+        {
+          target: "cell_counter",
+          gesture: "type",
+          validator: { preset: "target_with_value", value: { reported_count: 12345 } },
+          response: { scene_operations: [] },
+        },
+      ],
+      step_validator: { preset: "sequence_complete" },
+      outcome: { on_success: "complete", on_failure: "retry" },
+      next_step: null,
+    };
+  }
+
+  test("active adjust projects its one requested value for the visible control", () => {
+    const cfg = make_config([make_adjust_step("set_volume", 1000)], "a");
+    const { machine, emitter } = build_harness(cfg);
+    machine.start();
+    const snapshot = emitter.get_snapshot();
+    assert.strictEqual(snapshot.active_interaction_gesture, "adjust");
+    assert.strictEqual(snapshot.active_interaction_value, 1000);
+  });
+
+  test("transitioning from adjust to type clears the requested adjustment value", () => {
+    const cfg = make_config([make_adjust_then_type_step()], "a");
+    const { machine, emitter } = build_harness(cfg);
+    machine.start();
+    assert.strictEqual(emitter.get_snapshot().active_interaction_value, 1000);
+    machine.handle_adjust_commit("micropipette", 1000);
+    const snapshot = emitter.get_snapshot();
+    assert.strictEqual(snapshot.active_interaction_gesture, "type");
+    assert.strictEqual(snapshot.active_interaction_value, null);
+  });
+
   test("committing the correct set-point validates and completes", () => {
     const cfg = make_config([make_adjust_step("set_volume", 1000)], "a");
-    const { machine, events } = build_harness(cfg);
+    const { machine, events, emitter } = build_harness(cfg);
     machine.start();
     const ok = machine.handle_adjust_commit("micropipette", 1000);
     assert.strictEqual(ok, true);
@@ -646,6 +690,7 @@ describe("step machine - adjust commit (target_with_value)", () => {
     assert.strictEqual(validated.gesture, "adjust");
     const done = events.find((e) => e.kind === "protocol_completed");
     assert.ok(done);
+    assert.strictEqual(emitter.get_snapshot().active_interaction_value, null);
   });
 
   test("committing a wrong set-point rejects and does not advance", () => {
@@ -859,6 +904,8 @@ describe("step machine - active_interaction_target and active_interaction_gestur
     const snap = emitter.get_snapshot();
     assert.strictEqual(snap.active_interaction_target, "t1");
     assert.strictEqual(snap.active_interaction_gesture, "click");
+    assert.strictEqual(snap.current_interaction_index, 0);
+    assert.strictEqual(snap.current_interaction_count, 2);
   });
 
   test("interaction_validated advances target and gesture to the next interaction", () => {
@@ -869,6 +916,9 @@ describe("step machine - active_interaction_target and active_interaction_gestur
     const snap = emitter.get_snapshot();
     assert.strictEqual(snap.active_interaction_target, "t2");
     assert.strictEqual(snap.active_interaction_gesture, "click");
+    assert.strictEqual(snap.current_interaction_index, 1);
+    assert.strictEqual(snap.current_interaction_count, 2);
+    assert.strictEqual(snap.progress.completed_step_count, 0);
   });
 
   test("last interaction validates -> target and gesture become null", () => {

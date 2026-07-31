@@ -98,6 +98,8 @@ Commercial use permitted.
 | `microwave_heating.svg` | Closed microwave with visible heating waves and active indicator              |
 | `rocking_shaker_idle.svg` | Idle benchtop rocking shaker                                                  |
 | `rocking_shaker_running.svg` | Tilted platform, active indicators, and motion cues                         |
+| `gel_loading_tip_box.svg` | Hand-authored narrow-tip box for P20/P200 gel loading                       |
+| `microtube_rack_8.svg` | Hand-authored 2 x 4 rack with calibrated tube interiors for SDS-PAGE state  |
 
 ## Placeholder SVGs
 

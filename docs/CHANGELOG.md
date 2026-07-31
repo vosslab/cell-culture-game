@@ -4,6 +4,29 @@
 
 ### Behavior or Interface Changes
 
+- Added optional root `initial_state` for a direct mini-protocol or sequence
+  runner. Each entry is a validated object, subpart, or declared-group target
+  plus flat declared state. The browser now owns a durable target-keyed
+  session archive, projects the active scene from that archive, preserves state
+  across scene changes, and restarts from the same root seed. A runner seed
+  applies once; constituent mini-protocol seeds do not reset a running runner.
+- Restricted sequence runners to non-empty, unique lists of direct
+  `mini_protocol` leaves. The generator, YAML validator, TypeScript flattener,
+  and Python stepper reject unknown, nested, or duplicate constituents instead
+  of expanding an ambiguous or partial package.
+- Directed well, lane, and rack-slot interactions now use their exact declared
+  subpart geometry. The active target has a minimum 24 px clickable core,
+  visible siblings remain available for ordinary wrong-target rejection, and a
+  missing exact geometry fails instead of falling back to the parent object.
+- Repaired the MTT material chain: 20 mg powder plus 4 mL PBS produces the
+  12 mM solution; 25 uL MTT raises 200 uL wells to 225 uL; 90-minute reaction,
+  decanting, 200 uL DMSO solubilization, source accounting, and 560 nm readout
+  now agree. Drug dosing addresses the intended individual wells.
+- Rebuilt the SDS-PAGE full run as 16 unique direct mini-protocol leaves with
+  loading before lid connection. The normalized eight-slot rack, exact gel
+  lanes, compatible gel-loading tip box, 150 V 30-minute run, and visible
+  separated/stained/destaining/destained gel states now preserve the sample and
+  ladder chain through imaging.
 - The current-action rail now names the generated learner-facing label for
   every directed click, drag, type, and adjust interaction while retaining the
   matching scene highlight. Choice-style `select` interactions continue to
@@ -18,6 +41,11 @@
 
 ### Developer Tests and Notes
 
+- Added focused seed, session-archive, runner-integrity, MTT-content,
+  SDS-subpart-geometry, asset-audit, affordance, and walker-debug coverage.
+  Targeted checks are the first acceptance evidence for these changes; the full
+  fast-check, build, and complete Playwright gates remain pending and are not
+  claimed green by this entry.
 - Strengthened the schema-driven browser walker without adding protocol-specific
   branches. Before acting, it now proves that the authored target is visible
   and in the viewport, carries the expected painted active or candidate
@@ -26,7 +54,8 @@
   reveal the correct label and must present at least two visible candidates.
 - Added timed-wait browser evidence. The walker requires both the scene timer
   and the explanatory action-rail state, captures a `waiting_<step>.png`
-  screenshot, and resumes only after the visible runtime state changes.
+  screenshot, records visible interaction ordinal plus `stateRevision` and
+  `lastStateDelta`, and resumes only after the visible runtime state changes.
 - Made the walker's owned static-server startup independent of reverse DNS and
   Python's human-readable `http.server` banner. A loopback-only helper now
   publishes a machine-readable ready port before the browser navigates.

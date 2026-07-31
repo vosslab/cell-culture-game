@@ -1,6 +1,13 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_prepare_sample_mix_single_lane
 entry_step: add_protein_sample
+initial_state:
+  - target: protein_sample_tube
+    state: { material_name: protein_sample_raw, material_volume: 21 }
+  - target: laemmli_4x_tube
+    state: { material_name: laemmli_4x, material_volume: 0.0075 }
+  - target: bme_tube
+    state: { material_name: bme, material_volume: 0.0015 }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
@@ -51,18 +58,33 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
-      - target: microtube
+          scene_operations:
+            - type: ObjectStateChange
+              target: protein_sample_tube
+              state:
+                material_name: empty
+                material_volume: 0
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: protein_sample_raw
+                held_material_volume: 21
+      - target: microtube_rack_8.slot_B1
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: microtube
+              target: microtube_rack_8.slot_B1
               state:
                 material_name: protein_sample_raw
                 material_volume: 21
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -92,17 +114,33 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
-      - target: microtube
+          scene_operations:
+            - type: ObjectStateChange
+              target: laemmli_4x_tube
+              state:
+                material_name: empty
+                material_volume: 0
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: laemmli_4x
+                held_material_volume: 7.5
+      - target: microtube_rack_8.slot_B1
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: microtube
+              target: microtube_rack_8.slot_B1
               state:
+                material_name: protein_sample_mixed
                 material_volume: 28.5
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -133,18 +171,33 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
-      - target: microtube
+          scene_operations:
+            - type: ObjectStateChange
+              target: bme_tube
+              state:
+                material_name: empty
+                material_volume: 0
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: bme
+                held_material_volume: 1.5
+      - target: microtube_rack_8.slot_B1
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: microtube
+              target: microtube_rack_8.slot_B1
               state:
                 material_name: protein_sample_mixed
                 material_volume: 30
+            - type: ObjectStateChange
+              target: micropipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -156,13 +209,13 @@ steps:
       Cap the microtube and place it in the microtube rack for the next heating
       step.
     sequence:
-      - target: microtube
+      - target: microtube_rack_8.slot_B1
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations: []
-      - target: center_microtube_rack
+      - target: microtube_rack_8
         gesture: click
         validator:
           preset: correct_target

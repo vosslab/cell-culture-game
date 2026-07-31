@@ -21,7 +21,7 @@
   <rect x="133" y="66" width="134" height="88" rx="7" fill="url(#cover)" stroke="#dff8ff" stroke-width="3"/>
   <rect x="139" y="69" width="122" height="82" rx="7" fill="#d9f2f7" opacity="0.42"/>
   <g fill="none" stroke="#245d70" stroke-width="1.8" opacity="0.86">
-    <rect x="153" y="77" width="94" height="66"/>
+    <rect data-subpart-id="diamond" x="153" y="77" width="94" height="66"/>
     <path d="M184.3 77V143M215.7 77V143M153 99H247M153 121H247"/>
     <path d="M190.6 99V121M203.4 99V121M184.3 106.3H215.7M184.3 113.7H215.7" stroke-width="1.1"/>
   </g>
@@ -29,9 +29,11 @@
     <circle cx="159" cy="84" r="2.2"/><circle cx="176" cy="91" r="1.8"/><circle cx="233" cy="86" r="2"/>
     <circle cx="171" cy="132" r="2"/><circle cx="226" cy="135" r="2.2"/>
   </g>
+  <text x="200" y="173" text-anchor="middle" font-family="sans-serif" font-size="10" fill="#245d70">Diamond mix chamber</text>
   <path d="M128 164h144" stroke="#3a7180" stroke-width="5" stroke-linecap="round"/>
-  <path d="M282 82h55v54H282" fill="#f5fdff" stroke="#6b9cab" stroke-width="2"/>
+  <path data-subpart-id="semicircle" d="M282 82h55v54H282" fill="#f5fdff" stroke="#6b9cab" stroke-width="2"/>
   <path d="M288 91h43M288 101h43M288 111h43M288 121h43" stroke="#95bdc9" stroke-width="2"/>
+  <text x="309.5" y="151" text-anchor="middle" font-family="sans-serif" font-size="8" fill="#245d70">Semicircle load</text>
   <g id="overlay_root"/>
   <rect id="anchor_liquid_bounds" x="139" y="69" width="122" height="82" fill="none" stroke="none" display="none"/>
   <rect id="anchor_label" x="126" y="180" width="148" height="28" fill="none" stroke="none" display="none"/>

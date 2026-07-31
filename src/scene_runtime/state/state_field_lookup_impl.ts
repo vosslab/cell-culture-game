@@ -20,7 +20,7 @@
 //      - subpart material_name / held_material_name -> { kind: "material" }
 //        (registry-backed; NOT a synthetic enum).
 //      - enum field -> { kind: "enum"; allowed: field.allowed ?? null }.
-//      - else int/float/bool -> { kind: "typed"; field_type }.
+//      - else int/float/bool -> { kind: "typed"; field_type, constraints }.
 //   5. A malformed target (empty object or empty subpart segment) reports the
 //      matching unknown_* result rather than throwing.
 //
@@ -99,8 +99,26 @@ function classify_field(
     const allowed = field_def.allowed ?? null;
     return { kind: "enum", allowed };
   }
-  // int / float / bool are plain typed fields.
-  return { kind: "typed", field_type: field_def.type };
+  // int / float / bool are typed fields. Preserve numeric constraints so the
+  // protocol load gate can reject an authored setpoint outside the real
+  // instrument range before a learner reaches it.
+  const result: StateFieldLookupResult = {
+    kind: "typed",
+    field_type: field_def.type,
+  };
+  if (field_def.min !== undefined) {
+    result.min = field_def.min;
+  }
+  if (field_def.max !== undefined) {
+    result.max = field_def.max;
+  }
+  if (field_def.step !== undefined) {
+    result.step = field_def.step;
+  }
+  if (field_def.unit !== undefined) {
+    result.unit = field_def.unit;
+  }
+  return result;
 }
 
 //============================================

@@ -1,6 +1,15 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_heat_denature_samples
 entry_step: open_heat_block_lid
+initial_state:
+  - target: microtube_rack_8.slot_B1
+    state: { material_name: protein_sample_mixed, material_volume: 30 }
+  - target: microtube_rack_8.slot_B2
+    state: { material_name: protein_sample_mixed, material_volume: 30 }
+  - target: microtube_rack_8.slot_B3
+    state: { material_name: protein_sample_mixed, material_volume: 30 }
+  - target: microtube_rack_8.slot_B4
+    state: { material_name: protein_ladder, material_volume: 20 }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
@@ -41,7 +50,7 @@ steps:
       Place the microtube rack containing the prepared protein samples (3 student
       samples plus 1 MW ladder tube) into the heat block.
     sequence:
-      - target: front_microtube_rack
+      - target: microtube_rack_8
         gesture: click
         validator:
           preset: correct_target
@@ -78,6 +87,18 @@ steps:
               target: heat_block
               duration_min: 5
               display: Denaturing samples at 95 C
+            - type: ObjectStateChange
+              target: microtube_rack_8.slot_B1
+              state: { material_name: protein_sample_denatured, material_volume: 30 }
+            - type: ObjectStateChange
+              target: microtube_rack_8.slot_B2
+              state: { material_name: protein_sample_denatured, material_volume: 30 }
+            - type: ObjectStateChange
+              target: microtube_rack_8.slot_B3
+              state: { material_name: protein_sample_denatured, material_volume: 30 }
+            - type: ObjectStateChange
+              target: microtube_rack_8.slot_B4
+              state: { material_name: protein_ladder_denatured, material_volume: 20 }
     step_validator:
       preset: sequence_complete
     outcome:
@@ -99,7 +120,7 @@ steps:
               target: heat_block
               state:
                 lid_open: true
-      - target: front_microtube_rack
+      - target: microtube_rack_8
         gesture: click
         validator:
           preset: correct_target

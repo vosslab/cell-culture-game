@@ -1,4 +1,7 @@
 materials:
+  destain:
+    label: "Destain solution (20% MeOH / 10% AcOH)"
+    display_color: "#dbeafe"
   ddh2o:
     label: Deionized water
     display_color: "#f0f9ff"

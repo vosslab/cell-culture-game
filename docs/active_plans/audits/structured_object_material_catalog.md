@@ -68,15 +68,16 @@ Write-shape summary:
 
 ### What is asserted per-area today
 
-- `tests/playwright/test_all_wells_group_write_walkthrough.mjs` -- drives
-  `mtt_solubilization_readout` through the visible UI and reads 5 sampled wells
-  (`A1, A12, D6, H1, H12`) by `data-subpart-name` on the `well_plate_96` overlay,
-  asserting each sampled well's `data-material-name` becomes `formazan_dmso_solution`
-  and its `fill` visibly changes. This is the only walker-level per-area material
-  assertion of an `all_wells` group write.
-- `tests/playwright/test_per_well_drug_walkthrough.mjs` -- drives
-  `plate_drug_treatment_drug_addition` and asserts row B (`B1`..`B12`) plus `D11`
-  reach `data-material-name` = `carboplatin` (a sample of the 126 single-well writes).
+- `tests/playwright/e2e/protocol_walkthrough.spec.ts` uses the canonical visible
+  walker to verify every structured material write. For `all_wells`, it proves
+  all 96 concrete wells are painted, learner-sized, and reach the authored
+  material while no untargeted member changes. It uses ordinary Playwright
+  clicks and the visible action rail; no page-side synthetic click or hidden
+  answer projection remains.
+- `tests/playwright/test_per_well_drug_walkthrough.spec.ts` drives
+  `plate_drug_treatment_drug_addition`, asserts row B (`B1`..`B12`) reaches
+  `data-material-name = carboplatin`, and proves sampled untargeted seeded-cell
+  wells retain their exact pre-treatment state.
 - `tests/test_scene_op_deps.mjs` -- unit test that an `ObjectStateChange` to
   `well_plate_96.all_wells` fans out to each member well in the store and writes NO
   `well_plate_96.all_wells` pseudo-node. Mechanism-level, not rendered/per-protocol.

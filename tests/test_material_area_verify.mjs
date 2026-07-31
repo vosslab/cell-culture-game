@@ -21,7 +21,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 
-import { verifyMaterialAreaEffect } from "./playwright/e2e/walker_helpers.mjs";
+import {
+  verifyMaterialAreaEffect,
+  verifyMaterialAreaEffects,
+} from "./playwright/e2e/walker_helpers.mjs";
 
 // A report stub: verifyMaterialAreaEffect logs one info line on success.
 const noopReport = { info() {} };
@@ -124,4 +127,97 @@ test("bulk write passes when every member transitions and nothing else exists", 
     A3: { material: "cells", fill: "#22aa55" },
   };
   verifyMaterialAreaEffect(effect, before, after, noopReport);
+});
+
+//============================================
+// Multiple authored effects on one structured object
+//============================================
+
+test("mixed sample and ladder writes validate every lane from one scene snapshot", () => {
+  const effects = [
+    {
+      object_name: "gel_cassette",
+      material_field: "material_name",
+      material_value: "protein_sample_denatured",
+      expected_subparts: ["lane_1", "lane_2", "lane_3"],
+    },
+    {
+      object_name: "gel_cassette",
+      material_field: "material_name",
+      material_value: "protein_ladder_denatured",
+      expected_subparts: ["lane_4"],
+    },
+  ];
+  const beforeByObject = new Map([
+    [
+      "gel_cassette",
+      {
+        lane_1: { material: "empty", fill: "#ffffff" },
+        lane_2: { material: "empty", fill: "#ffffff" },
+        lane_3: { material: "empty", fill: "#ffffff" },
+        lane_4: { material: "empty", fill: "#ffffff" },
+        lane_5: { material: "empty", fill: "#ffffff" },
+      },
+    ],
+  ]);
+  const afterByObject = new Map([
+    [
+      "gel_cassette",
+      {
+        lane_1: { material: "protein_sample_denatured", fill: "#cc4455" },
+        lane_2: { material: "protein_sample_denatured", fill: "#cc4455" },
+        lane_3: { material: "protein_sample_denatured", fill: "#cc4455" },
+        lane_4: { material: "protein_ladder_denatured", fill: "#4455cc" },
+        lane_5: { material: "empty", fill: "#ffffff" },
+      },
+    ],
+  ]);
+
+  verifyMaterialAreaEffects(effects, beforeByObject, afterByObject, noopReport);
+});
+
+test("mixed material write rejects a changed lane outside every authored effect", () => {
+  const effects = [
+    {
+      object_name: "gel_cassette",
+      material_field: "material_name",
+      material_value: "protein_sample_denatured",
+      expected_subparts: ["lane_1", "lane_2", "lane_3"],
+    },
+    {
+      object_name: "gel_cassette",
+      material_field: "material_name",
+      material_value: "protein_ladder_denatured",
+      expected_subparts: ["lane_4"],
+    },
+  ];
+  const beforeByObject = new Map([
+    [
+      "gel_cassette",
+      {
+        lane_1: { material: "empty", fill: "#ffffff" },
+        lane_2: { material: "empty", fill: "#ffffff" },
+        lane_3: { material: "empty", fill: "#ffffff" },
+        lane_4: { material: "empty", fill: "#ffffff" },
+        lane_5: { material: "empty", fill: "#ffffff" },
+      },
+    ],
+  ]);
+  const afterByObject = new Map([
+    [
+      "gel_cassette",
+      {
+        lane_1: { material: "protein_sample_denatured", fill: "#cc4455" },
+        lane_2: { material: "protein_sample_denatured", fill: "#cc4455" },
+        lane_3: { material: "protein_sample_denatured", fill: "#cc4455" },
+        lane_4: { material: "protein_ladder_denatured", fill: "#4455cc" },
+        lane_5: { material: "protein_sample_denatured", fill: "#cc4455" },
+      },
+    ],
+  ]);
+
+  assert.throws(
+    () => verifyMaterialAreaEffects(effects, beforeByObject, afterByObject, noopReport),
+    /material_area_multi_mismatch.*non-target subpart 'lane_5' changed/,
+  );
 });

@@ -37,11 +37,10 @@ import { resolve_entry_scene_name } from "./resolve_entry_scene.js";
 // Constituent expansion
 //============================================
 
-// Expand a protocol into the ordered list of step-carrying constituent configs
-// it plays. A mini_protocol is its own single constituent; a
-// sequence_runner expands to its listed mini_protocols in order, recursing so a
-// runner listed inside a runner inlines its constituents too. Every returned
-// config carries a real steps list.
+// Expand a runner into its direct mini-protocol constituents. Nested runners
+// and repeated names are intentionally invalid: a runner is a single ordered
+// package list, not a macro language. Keeping that shape closed makes runner
+// state ownership and walkthrough accounting unambiguous.
 function expand_to_step_configs(
   config: ProtocolConfig,
   protocols: Readonly<Record<string, ProtocolConfig>>,
@@ -56,7 +55,15 @@ function expand_to_step_configs(
     );
   }
   const out: ProtocolConfig[] = [];
+  const seen = new Set<string>();
   for (const mini_name of mini_names) {
+    if (seen.has(mini_name)) {
+      throw new Error(
+        `flatten_sequence_runner: sequence_runner "${config.protocol_name}" repeats constituent ` +
+          `"${mini_name}"; each direct mini_protocol may appear once`,
+      );
+    }
+    seen.add(mini_name);
     const mini_config = protocols[mini_name];
     if (!mini_config) {
       throw new Error(
@@ -64,8 +71,13 @@ function expand_to_step_configs(
           `"${mini_name}" not found in PROTOCOLS`,
       );
     }
-    // Recurse so a nested runner inlines its own constituents in order.
-    out.push(...expand_to_step_configs(mini_config, protocols));
+    if (mini_config.protocol_type !== "mini_protocol") {
+      throw new Error(
+        `flatten_sequence_runner: sequence_runner "${config.protocol_name}" constituent ` +
+          `"${mini_name}" must be a mini_protocol, not ${mini_config.protocol_type}`,
+      );
+    }
+    out.push(mini_config);
   }
   return out;
 }
@@ -197,6 +209,10 @@ export function flatten_sequence_runner(
     entry_step: first_entry,
     steps: flat_steps,
     ...(config.learning !== undefined ? { learning: config.learning } : {}),
+    // Root-only precedence: the runner's declared initial state starts the
+    // single flattened session. Constituent mini initial_state values are not
+    // merged, because they would otherwise re-seed state midway through a run.
+    ...(config.initial_state !== undefined ? { initial_state: config.initial_state } : {}),
   };
   return flattened;
 }

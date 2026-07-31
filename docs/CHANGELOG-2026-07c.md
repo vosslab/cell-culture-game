@@ -731,8 +731,9 @@
   gel/tube objects that carry no material-tint overlay (see the stamping gap
   above). The single-subpart positive + negative comparison logic is pinned
   deterministically by `tests/test_material_area_verify.mjs`. The bespoke
-  `test_all_wells_group_write_walkthrough.mjs` is now subsumed by the generic path
-  and flagged for human `git rm` (agents do not run git).
+  `test_all_wells_group_write_walkthrough.mjs` was subsumed by the generic path
+  and has been removed, eliminating its synthetic-click and hidden-answer
+  shortcuts.
 
 - M19b "Commit the durable layout baseline": added `docs/SCENE_LAYOUT_BASELINE.md`, a
   committed, hand-refreshed snapshot of the settled corpus after the M19 failBuild gate

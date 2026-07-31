@@ -1,6 +1,13 @@
 protocol_type: sequence_runner
 protocol_name: cell_culture_full
 entry_step: inspect_confluence
+initial_state:
+  # Constituent mini-protocol seeds are intentionally ignored by a runner. This
+  # root PBS seed lets the MTT-prep transfer remain balanced in both modes.
+  - target: pbs_bottle
+    state:
+      material_name: pbs
+      material_volume: 500
 
 learning:
   objectives: "Students completing this protocol will have achieved comprehensive mastery of the OVCAR8 carboplatin and metformin dose-response experimental workflow, from cell preparation through MTT viability readout."

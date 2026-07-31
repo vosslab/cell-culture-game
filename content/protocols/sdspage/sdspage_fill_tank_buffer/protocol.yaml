@@ -1,6 +1,9 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_fill_tank_buffer
 entry_step: fill_inner_chamber
+initial_state:
+  - target: running_buffer_preparation_carboy
+    state: { material_name: running_buffer_1x, material_volume: 1000 }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
@@ -44,7 +47,7 @@ steps:
               target: serological_pipette
               state:
                 set_volume: 25
-      - target: running_buffer_1x_carboy
+      - target: running_buffer_preparation_carboy
         gesture: click
         validator:
           preset: correct_target
@@ -62,7 +65,7 @@ steps:
                 material_name: running_buffer_1x
                 material_volume: 600
             - type: ObjectStateChange
-              target: running_buffer_1x_carboy
+              target: running_buffer_preparation_carboy
               state:
                 material_name: running_buffer_1x
                 material_volume: 400
@@ -97,7 +100,7 @@ steps:
               target: serological_pipette
               state:
                 set_volume: 25
-      - target: running_buffer_1x_carboy
+      - target: running_buffer_preparation_carboy
         gesture: click
         validator:
           preset: correct_target
@@ -115,7 +118,7 @@ steps:
                 material_name: running_buffer_1x
                 material_volume: 400
             - type: ObjectStateChange
-              target: running_buffer_1x_carboy
+              target: running_buffer_preparation_carboy
               state:
                 material_name: empty
                 material_volume: 0

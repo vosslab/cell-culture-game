@@ -12,6 +12,7 @@ import { test, describe } from "node:test";
 import assert from "node:assert/strict";
 
 import { flatten_sequence_runner } from "../src/scene_runtime/protocol/flatten_sequence_runner.ts";
+import { create_scene_store } from "../src/scene_runtime/state/scene_store.ts";
 
 //============================================
 // Fixture helpers
@@ -111,38 +112,48 @@ describe("flatten_sequence_runner - chaining", () => {
   });
 });
 
-describe("flatten_sequence_runner - repeated constituent", () => {
-  // The same mini listed twice must produce two distinct namespaced instances.
+describe("flatten_sequence_runner - strict constituent shape", () => {
   const load = make_mini("load", "l0", [make_step("l0", "lane", "scene_load", null)]);
   const runner = make_runner("runner_ll", "l0", ["load", "load"]);
   const protocols = { load, runner_ll: runner };
 
-  test("two instances of one mini yield two distinct chained steps", () => {
-    const flat = flatten_sequence_runner(runner, protocols);
-    const ids = flat.steps.map((s) => s.step_name);
-    assert.deepStrictEqual(ids, ["mp0__l0", "mp1__l0"]);
-    const by_id = new Map(flat.steps.map((s) => [s.step_name, s]));
-    assert.strictEqual(by_id.get("mp0__l0").next_step, "mp1__l0");
-    assert.strictEqual(by_id.get("mp1__l0").next_step, null);
+  test("rejects a repeated direct mini", () => {
+    assert.throws(() => flatten_sequence_runner(runner, protocols), /repeats constituent/);
   });
-});
 
-describe("flatten_sequence_runner - nested runner", () => {
-  // A runner that lists another runner inlines the inner constituents in order.
-  const alpha = make_mini("alpha", "a0", [make_step("a0", "obj_a0", "scene_alpha", null)]);
-  const beta = make_mini("beta", "b0", [make_step("b0", "obj_b0", "scene_beta", null)]);
-  const inner = make_runner("inner", "a0", ["alpha", "beta"]);
-  const outer = make_runner("outer", "a0", ["inner", "alpha"]);
-  const protocols = { alpha, beta, inner, outer };
+  test("rejects a nested runner rather than silently inlining it", () => {
+    const alpha = make_mini("alpha", "a0", [make_step("a0", "obj_a0", "scene_alpha", null)]);
+    const beta = make_mini("beta", "b0", [make_step("b0", "obj_b0", "scene_beta", null)]);
+    const inner = make_runner("inner", "a0", ["alpha", "beta"]);
+    const outer = make_runner("outer", "a0", ["inner"]);
+    const protocols = { alpha, beta, inner, outer };
+    assert.throws(() => flatten_sequence_runner(outer, protocols), /must be a mini_protocol/);
+  });
 
-  test("nested runner inlines constituents in flat order", () => {
-    const flat = flatten_sequence_runner(outer, protocols);
-    const ids = flat.steps.map((s) => s.step_name);
-    assert.deepStrictEqual(ids, ["mp0__a0", "mp1__b0", "mp2__a0"]);
-    const by_id = new Map(flat.steps.map((s) => [s.step_name, s]));
-    assert.strictEqual(by_id.get("mp0__a0").next_step, "mp1__b0");
-    assert.strictEqual(by_id.get("mp1__b0").next_step, "mp2__a0");
-    assert.strictEqual(by_id.get("mp2__a0").next_step, null);
+  test("starts a real session from only the runner root initial_state", () => {
+    const mini = {
+      ...make_mini("with_initial", "m0", [make_step("m0", "obj", "scene_m", null)]),
+      initial_state: [{ target: "centrifuge", state: { running: true } }],
+    };
+    const root = {
+      ...make_runner("root", "m0", ["with_initial"]),
+      initial_state: [{ target: "centrifuge", state: { running: false } }],
+    };
+    const flat = flatten_sequence_runner(root, { with_initial: mini, root });
+    assert.deepStrictEqual(flat.initial_state, root.initial_state);
+    const store = create_scene_store();
+    store.start_session(
+      [{ target: "centrifuge", object_name: "centrifuge" }],
+      flat.initial_state ?? [],
+    );
+    // The constituent requested `running: true`, but it never crosses the
+    // runner flatten/session boundary. The root value is the live projection.
+    assert.strictEqual(store.state.centrifuge.state.running, false);
+    // Snapshot the final archive rather than inspecting only the flatten result:
+    // exact defaults plus root override prove no constituent entry leaked in.
+    assert.deepStrictEqual(store.snapshot_declared_state(), {
+      centrifuge: { running: false, set_rpm: 1200, set_time_min: 5 },
+    });
   });
 });
 

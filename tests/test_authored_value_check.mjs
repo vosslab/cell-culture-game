@@ -275,6 +275,43 @@ test("Case 4d: typed float with real number passes (twv)", () => {
   });
 });
 
+test("numeric field rejects an authored value below its declared minimum", () => {
+  const config = make_config_twv({ authored_value: 7.5 });
+  const lookup = always({
+    kind: "typed",
+    field_type: "float",
+    min: 20,
+    max: 200,
+    step: 1,
+    unit: "ul",
+  });
+  assert.throws(
+    () => {
+      validate_authored_validator_values({ protocol_config: config, lookup_state_field: lookup });
+    },
+    (err) => {
+      assert.ok(err instanceof BadAuthoredValueError);
+      assert.ok(err.message.includes("below declared minimum 20 ul"));
+      return true;
+    },
+  );
+});
+
+test("numeric field accepts an authored value within min max and step", () => {
+  const config = make_config_twv({ authored_value: 7.5 });
+  const lookup = always({
+    kind: "typed",
+    field_type: "float",
+    min: 1,
+    max: 10,
+    step: 0.5,
+    unit: "ul",
+  });
+  assert.doesNotThrow(() => {
+    validate_authored_validator_values({ protocol_config: config, lookup_state_field: lookup });
+  });
+});
+
 test("Case 4e: valid enum member string passes (twv)", () => {
   const config = make_config_twv({ authored_value: "open" });
   const lookup = always({ kind: "enum", allowed: ["open", "closed"] });

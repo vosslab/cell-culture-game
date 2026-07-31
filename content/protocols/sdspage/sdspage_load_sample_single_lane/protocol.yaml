@@ -1,6 +1,9 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_load_sample_single_lane
 entry_step: swap_tip
+initial_state:
+  - target: microtube_rack_8.slot_B1
+    state: { material_name: protein_sample_denatured, material_volume: 30 }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
@@ -35,6 +38,9 @@ steps:
           scene_operations:
             - type: SceneChange
               to_scene: sdspage_load_sample_single_lane_workspace
+            - type: ObjectStateChange
+              target: gel_cassette.lane_1
+              state: { material_name: empty, material_volume: 0 }
       - target: waste_container
         gesture: click
         validator:
@@ -46,7 +52,7 @@ steps:
               state:
                 held_material_name: empty
                 held_material_volume: 0
-      - target: p10_gel_loading_tip_box
+      - target: gel_loading_tip_box
         gesture: click
         validator:
           preset: correct_target
@@ -75,7 +81,7 @@ steps:
               target: p200_micropipette
               state:
                 set_volume: 30
-      - target: microtube
+      - target: microtube_rack_8.slot_B1
         gesture: click
         validator:
           preset: correct_target
@@ -86,6 +92,12 @@ steps:
               state:
                 held_material_name: protein_sample_denatured
                 held_material_volume: 30
+            - type: ObjectStateChange
+              target: microtube_rack_8.slot_B1
+              state: { material_name: empty, material_volume: 0 }
+            - type: ObjectStateChange
+              target: gel_cassette.lane_1
+              state: { material_name: empty, material_volume: 0 }
     step_validator:
       preset: sequence_complete
     outcome:
@@ -97,7 +109,7 @@ steps:
       Carefully dispense the sample into gel cassette lane 1. Dispense slowly
       to avoid bubble formation and sample splashing.
     sequence:
-      - target: gel_cassette
+      - target: gel_cassette.lane_1
         gesture: click
         validator:
           preset: correct_target
@@ -108,17 +120,17 @@ steps:
               state:
                 material_name: protein_sample_denatured
                 material_volume: 30
-      - target: p200_micropipette
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations:
             - type: ObjectStateChange
               target: p200_micropipette
               state:
                 held_material_name: empty
                 held_material_volume: 0
+      - target: p200_micropipette
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations: []
     step_validator:
       preset: sequence_complete
     outcome:

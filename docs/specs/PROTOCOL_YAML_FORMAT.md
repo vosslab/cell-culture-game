@@ -113,6 +113,7 @@ A required top-level `learning` block carries pedagogy metadata for every mini-p
 | `protocol_name` | string | yes                             | Stable snake_case identifier for the protocol.                                                                          |
 | `entry_step`    | string | yes                             | `step_name` of the first step the runtime runs.                                                                         |
 | `steps`         | list   | conditional (mini_protocol only) | List of authored step entries. Absent for `sequence_runner`.                                                            |
+| `initial_state` | list   | no                              | Root session seed. Each entry is exactly `{target, state}`; see Initial session state.                                  |
 
 Example top of a mini-protocol `protocol.yaml`:
 
@@ -174,9 +175,10 @@ rather than authoring steps directly. A sequence runner declares:
 | `protocol_type`  | enum            | yes      | Must be `sequence_runner`.                                                                                     |
 | `protocol_name`  | string          | yes      | Stable snake_case identifier for the sequence.                                                                 |
 | `entry_step`     | string          | yes      | Must match the first mini-protocol's `entry_step`.                                                             |
-| `mini_protocols` | list of strings | yes      | Ordered list of mini-protocol names; each name resolves to `content/protocols/<cluster>/<name>/protocol.yaml`. |
+| `mini_protocols` | list of strings | yes      | Non-empty ordered list of unique direct `mini_protocol` names. Every name resolves to `content/protocols/<cluster>/<name>/protocol.yaml`; nested runners are invalid. |
 | `steps`          | list            | no       | Must be absent. Sequence runners do not author steps; they list constituent mini-protocols.                    |
 | `learning`       | mapping         | yes      | Pedagogy block scoped to the overall pathway. Uses "Students completing this protocol..." phrasing.            |
+| `initial_state`  | list            | no       | Root-only session seed. It applies once before the first leaf; constituent mini seeds do not apply during this run. |
 
 Example:
 
@@ -195,7 +197,48 @@ learning:
   goals: Overall, this protocol aims to accomplish integration across all mini-protocol building blocks into a single cohesive full-protocol experience.
 ```
 
-Validation: The builder validates that `mini_protocols` list non-empty, each name resolves to an existing protocol YAML file, and `entry_step` matches the first mini-protocol's `entry_step`. See `validation/yaml/content_lint.py` orchestrator for the complete validation gate.
+Validation: The builder validates that `mini_protocols` is non-empty, contains
+no duplicate, resolves only direct mini-protocol leaves, and has an
+`entry_step` matching the first mini-protocol's `entry_step`. See
+`validation/yaml_schema/content_lint.py` for the complete validation gate.
+
+### Initial session state
+
+`initial_state` is optional on either protocol kind. It seeds the state that a
+student must encounter before the entry step; it is not a substitute for an
+interaction response. Its closed shape is:
+
+```yaml
+initial_state:
+  - target: microtube_rack_8.slot_A1
+    state:
+      material_name: protein_sample_raw
+      material_volume: 21
+```
+
+Each list item has exactly two keys:
+
+| Key | Type | Requirement |
+| --- | --- | --- |
+| `target` | string | Names one object, one declared subpart, or one declared `subpart_group`. A group expands to its declared concrete subparts. |
+| `state` | mapping | Non-empty flat mapping from declared state-field names to declared primitive values. |
+
+The validator rejects an unknown object, subpart, or group; an empty group; an
+unknown state field; a nested value; a wrong primitive type; an out-of-range
+numeric value; a wrong enum value; or an invalid material identity. Object-level
+enum fields, including an object-level material field, use their declared
+`allowed` list. A subpart `material_name` or `held_material_name` instead uses
+the active protocol material registry plus `empty` and `mixed`; all other
+subpart enum fields use their declared `allowed` list. Units remain those of
+the declared state field; authors do not add a unit key to `initial_state`. No
+two entries may resolve to the same concrete target identity, including repeated
+entries or group/member duplication. An object target and one of its subparts
+are distinct identities and may both be seeded.
+
+For a directly launched mini-protocol, its own root list is applied once at
+session start. For a sequence runner, only the runner's root list is applied;
+the listed mini-protocols do not reseed state when the runner reaches them.
+Restart starts a new session from the same root list and object defaults.
 
 ### Target resolution and the per-protocol registry
 
@@ -337,7 +380,8 @@ target-equality on the selected scene object: the student chose the correct
 next-step object among the present scene objects. It needs no `value` block.
 A `type`-gesture interaction is validated by `target_with_value`: the
 committed text is coerced to the type of the declared `value` field and
-compared. Example shapes:
+compared. For numeric fields, authored `target_with_value` values must also
+satisfy the target object's declared `min`, `max`, and `step`. Example shapes:
 
 ```yaml
 # select: choose the correct next-step object among present objects
@@ -523,8 +567,11 @@ The build process (`pipeline/build_protocol_data.py`) enforces these rules:
   [MATERIAL_YAML_FORMAT.md](MATERIAL_YAML_FORMAT.md#glyph-rendering).
 - Every material entry in materials.yaml must be referenced by at least one
   `scene_operation` (an `ObjectStateChange` writing the material name into
-  an object's flat `material_name` or `held_material_name` `state_field`; the
-  field's declared `enum` `allowed` list is the binding reference). Catches dead materials.
+  an object's flat `material_name` or `held_material_name` `state_field`). For
+  an object-level material field, the declared `enum` `allowed` list is the
+  binding reference. For a subpart material field, the active protocol material
+  registry is the binding reference, with `empty` and `mixed` as sentinels.
+  Catches dead materials.
 
 ## Generated TypeScript surface
 

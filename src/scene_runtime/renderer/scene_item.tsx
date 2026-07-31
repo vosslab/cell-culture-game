@@ -44,9 +44,17 @@
 // this component adds NO per-item click handler.
 
 import type { JSXElement } from "solid-js";
-import { createMemo, createSignal, createEffect, createResource, Show, For } from "solid-js";
+import {
+  createMemo,
+  createSignal,
+  createEffect,
+  createResource,
+  Show,
+  For,
+  onCleanup,
+} from "solid-js";
 
-import type { ComputedItem, ObjectVisualStates } from "../layout/types.js";
+import type { ComputedItem, ObjectVisualStates, SubpartGeometry } from "../layout/types.js";
 import type { SceneStore } from "../state/scene_store.js";
 import { type ActiveAffordanceAccessor, compute_affordance_kind } from "../protocol/affordance.js";
 import {
@@ -59,7 +67,7 @@ import { injectSvgFromManifest } from "./inject_svg.js";
 import { render_anchor_material_effects } from "./anchor_material_renderer.js";
 import { resolveSvgUrl, requiresDomSvg } from "./svg_manifest_loader.js";
 import { SubpartVisualStateOverlay } from "./subpart_visual_state_renderer.js";
-import { SubpartHitSurface } from "./subpart_hit_surface.js";
+import { SubpartHitSurface, resolve_active_subpart_selection } from "./subpart_hit_surface.js";
 import { find_subpart_material_contract } from "./subpart_dispatch.js";
 import { OBJECT_LIBRARY } from "../../../generated/object_library.js";
 
@@ -108,6 +116,31 @@ function position_style(item: ComputedItem): Record<string, string> {
     width: `${item._visualWidth}%`,
     height: `${item._height}%`,
     "z-index": String(z_index_for(item)),
+  };
+}
+
+// Geometry metrics in the declaration's own viewBox. They are used only to
+// focus the original structured object around a directed exact subpart; no
+// second copy or alternate layout is created for the learner.
+function subpart_geometry_metrics(geometry: SubpartGeometry): {
+  center_x: number;
+  center_y: number;
+  width: number;
+  height: number;
+} {
+  if (geometry.shape === "circle") {
+    return {
+      center_x: geometry.cx,
+      center_y: geometry.cy,
+      width: geometry.r * 2,
+      height: geometry.r * 2,
+    };
+  }
+  return {
+    center_x: geometry.x + geometry.w / 2,
+    center_y: geometry.y + geometry.h / 2,
+    width: geometry.w,
+    height: geometry.h,
   };
 }
 
@@ -538,6 +571,192 @@ export function SceneItem(props: {
   const subpart_contract =
     object_def !== undefined ? find_subpart_material_contract(object_def) : null;
 
+  // Validate a directed dotted target before the renderer decides which
+  // optional layers to mount. This is deliberately stricter than a parent
+  // object fallback: an authored `rack.slot_A1` target must have real declared
+  // geometry for slot_A1 at this placement, or the scene fails visibly and the
+  // broken protocol cannot masquerade as a whole-object click.
+  const active_subpart_selection = createMemo(() => {
+    const active_target = props.activeAffordance?.().active_target ?? null;
+    return resolve_active_subpart_selection(object_def, placement_target, active_target);
+  });
+  const active_exact_subpart = createMemo<string | null>(() => {
+    return active_subpart_selection()?.target_name ?? null;
+  });
+
+  // A rack can contain subparts only a few CSS pixels wide at its ordinary
+  // scene scale. When one is the directed target, magnify that SAME object
+  // about the subpart centre until EVERY declared sibling has a usable core.
+  // That is intentional: a wrong click must arrive at the ordinary protocol
+  // rejection path, never disappear through a tiny or inert neighbouring
+  // target.  Geometry is not padded; scaling preserves the authored gaps and
+  // therefore cannot make sibling hit regions overlap. offsetWidth/offsetHeight
+  // intentionally ignore CSS transforms, so this calculation stays stable
+  // after the focus transform is applied.
+  let item_element: HTMLDivElement | undefined;
+  const [item_measurement_revision, set_item_measurement_revision] = createSignal(0);
+  let item_resize_observer: ResizeObserver | undefined;
+  onCleanup(() => item_resize_observer?.disconnect());
+  const exact_subpart_focus_style = createMemo<Record<string, string>>(() => {
+    item_measurement_revision();
+    const selection = active_subpart_selection();
+    if (
+      selection === null ||
+      item_element === undefined ||
+      object_def?.view_box === undefined ||
+      object_def.subpart_geometry === undefined
+    ) {
+      return {};
+    }
+    const selected_metrics = selection.member_names.map((member_name) => {
+      const geometry = object_def.subpart_geometry?.[member_name];
+      if (geometry === undefined) {
+        // active_subpart_selection already provides the public, precise
+        // failure; this narrows a concurrent declaration read.
+        return null;
+      }
+      return subpart_geometry_metrics(geometry);
+    });
+    if (selected_metrics.some((metrics) => metrics === null)) {
+      return {};
+    }
+    const concrete_metrics = selected_metrics.filter(
+      (metrics): metrics is NonNullable<typeof metrics> => metrics !== null,
+    );
+    const selection_left = Math.min(
+      ...concrete_metrics.map((metrics) => metrics.center_x - metrics.width / 2),
+    );
+    const selection_right = Math.max(
+      ...concrete_metrics.map((metrics) => metrics.center_x + metrics.width / 2),
+    );
+    const selection_top = Math.min(
+      ...concrete_metrics.map((metrics) => metrics.center_y - metrics.height / 2),
+    );
+    const selection_bottom = Math.max(
+      ...concrete_metrics.map((metrics) => metrics.center_y + metrics.height / 2),
+    );
+    const selection_center_x = (selection_left + selection_right) / 2;
+    const selection_center_y = (selection_top + selection_bottom) / 2;
+    const computed_style = window.getComputedStyle(item_element);
+    const item_width = Number.parseFloat(computed_style.width);
+    const item_height = Number.parseFloat(computed_style.height);
+    if (item_width <= 0 || item_height <= 0) {
+      return {};
+    }
+    // Leave a small fractional-pixel margin. Browser layout can otherwise
+    // render a mathematically 24px subpart as 23.99px, which is neither easy
+    // to click nor acceptable to the visible-action walkthrough guard.
+    const minimum_core_px = 26;
+    let scale = 1;
+    for (const sibling_geometry of Object.values(object_def.subpart_geometry)) {
+      const sibling_metrics = subpart_geometry_metrics(sibling_geometry);
+      const sibling_width_px = (item_width * sibling_metrics.width) / object_def.view_box.width;
+      const sibling_height_px = (item_height * sibling_metrics.height) / object_def.view_box.height;
+      if (sibling_width_px <= 0 || sibling_height_px <= 0) {
+        return {};
+      }
+      scale = Math.max(
+        scale,
+        minimum_core_px / sibling_width_px,
+        minimum_core_px / sibling_height_px,
+      );
+    }
+    if (!Number.isFinite(scale) || scale <= 1) {
+      return {};
+    }
+    const origin_x =
+      ((selection_center_x - object_def.view_box.min_x) / object_def.view_box.width) * 100;
+    const origin_y =
+      ((selection_center_y - object_def.view_box.min_y) / object_def.view_box.height) * 100;
+    return {
+      transform: `scale(${scale})`,
+      "transform-origin": `${origin_x}% ${origin_y}%`,
+      "z-index": "4",
+    };
+  });
+
+  function bind_item_element(element: HTMLDivElement): void {
+    item_element = element;
+    item_resize_observer?.disconnect();
+    item_resize_observer = new ResizeObserver(() => {
+      set_item_measurement_revision((revision) => revision + 1);
+    });
+    item_resize_observer.observe(element);
+    set_item_measurement_revision((revision) => revision + 1);
+  }
+
+  // Directed whole-object actions get the same learner-first guarantee as
+  // dotted targets: the real rendered object has a 24px visible core and lies
+  // within the browser viewport. This applies to every directed gesture, never
+  // `select`, so a multiple-choice answer is not secretly singled out.
+  const active_directed_top_level = createMemo<boolean>(() => {
+    const affordance = props.activeAffordance?.();
+    return (
+      active_exact_subpart() === null &&
+      affordance?.active_target === placement_target &&
+      affordance.active_gesture !== null &&
+      affordance.active_gesture !== "select"
+    );
+  });
+  const top_level_focus_style = createMemo<Record<string, string>>(() => {
+    // Read the full affordance snapshot as well as the derived boolean. A
+    // click -> adjust transition keeps the boolean true, so depending only on
+    // that memo would suppress the update even though the shell geometry
+    // changed around the scene.
+    props.activeAffordance?.();
+    item_measurement_revision();
+    if (!active_directed_top_level()) {
+      return {};
+    }
+    const minimum_core = {
+      "min-width": "24px",
+      "min-height": "24px",
+      "z-index": "4",
+    };
+    if (item_element === undefined) {
+      return minimum_core;
+    }
+    // offsetWidth/offsetHeight round fractional layout pixels to integers. At
+    // small scales that rounding can turn a mathematically 24px focus into a
+    // real 23.46px hit box. Computed width/height retain the browser's
+    // fractional untransformed box, so the rendered guarantee is truly >=24px.
+    const computed_style = window.getComputedStyle(item_element);
+    const raw_width = Number.parseFloat(computed_style.width);
+    const raw_height = Number.parseFloat(computed_style.height);
+    if (raw_width <= 0 || raw_height <= 0) {
+      return minimum_core;
+    }
+    const scale = Math.max(1, 24 / raw_width, 24 / raw_height);
+    const bounds = item_element.getBoundingClientRect();
+    const focused_width = bounds.width * scale;
+    const focused_height = bounds.height * scale;
+    const original_center_x = bounds.left + bounds.width / 2;
+    const original_center_y = bounds.top + bounds.height / 2;
+    const desired_center_x =
+      focused_width <= window.innerWidth
+        ? Math.min(
+            Math.max(original_center_x, focused_width / 2),
+            window.innerWidth - focused_width / 2,
+          )
+        : window.innerWidth / 2;
+    const desired_center_y =
+      focused_height <= window.innerHeight
+        ? Math.min(
+            Math.max(original_center_y, focused_height / 2),
+            window.innerHeight - focused_height / 2,
+          )
+        : window.innerHeight / 2;
+    const delta_x = desired_center_x - original_center_x;
+    const delta_y = desired_center_y - original_center_y;
+    if (scale <= 1 && delta_x === 0 && delta_y === 0) {
+      return minimum_core;
+    }
+    return {
+      ...minimum_core,
+      transform: `translate(${delta_x}px, ${delta_y}px) scale(${scale})`,
+      "transform-origin": "center",
+    };
+  });
   // Whether this object declares any visual_states. When it does not, there is
   // no reactive artwork to derive: we render the item's bound asset directly
   // (the asset chosen at bind time by the layout pipeline), preserving static
@@ -648,6 +867,19 @@ export function SceneItem(props: {
     return {};
   });
 
+  // Keep the whole style object itself behind one reactive memo. A SceneChange
+  // mounts a fresh item before the new active interaction is published; the
+  // later click -> adjust transition must therefore reapply focus styles, not
+  // leave the first object-literal snapshot frozen at mount time. Declare it
+  // after both dependencies so the Solid compiler cannot evaluate a temporal
+  // dead zone while it establishes the memo graph.
+  const rendered_item_style = createMemo<Record<string, string>>(() => ({
+    ...base_style,
+    ...highlight_style(),
+    ...exact_subpart_focus_style(),
+    ...top_level_focus_style(),
+  }));
+
   // Derived affordance kind for this item (the affordance memo). The accessor is read as a
   // FUNCTION CALL inside this memo so Solid tracks the snapshot signal as a
   // reactive dependency. Reading props.activeAffordance?.() outside the memo
@@ -699,6 +931,7 @@ export function SceneItem(props: {
         data-depth={item.depth ?? undefined}
         data-item-id={is_clickable ? placement_target : undefined}
         data-asset={item.asset}
+        data-exact-subpart-target={active_exact_subpart() ?? undefined}
         data-affordance={affordance_kind()}
         data-missing-svg="true"
         data-placeholder-kind={placeholder_kind}
@@ -720,6 +953,7 @@ export function SceneItem(props: {
 
   return (
     <div
+      ref={bind_item_element}
       data-placement-name={item.placement_name}
       data-object-name={item.object_name}
       data-zone={item.zone}
@@ -727,11 +961,12 @@ export function SceneItem(props: {
       data-depth={item.depth ?? undefined}
       data-item-id={is_clickable ? placement_target : undefined}
       data-asset={asset_name()}
+      data-exact-subpart-target={active_exact_subpart() ?? undefined}
       data-material={resolved()?.data_attrs["data-material"]}
       data-resolver-degraded={degradationMessage().length > 0 ? degradationMessage() : undefined}
       data-affordance={affordance_kind()}
       data-timed-wait={flags().timed_wait_active ? "active" : undefined}
-      style={{ ...base_style, ...highlight_style() }}
+      style={rendered_item_style()}
     >
       {/* SVG host keyed by the resolved asset name. When the asset changes
           (e.g. an SvgSwap-style enum visual_state), the keyed Show remounts

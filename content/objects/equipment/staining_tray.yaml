@@ -23,6 +23,11 @@ state_fields:
     type: bool
     default: false
     description: Whether kimwipes are present in the tray.
+  - field_name: gel_state
+    type: enum
+    allowed: [empty, separated_unstained, stained, destaining, destained]
+    default: empty
+    description: Visible lifecycle state of the gel in the tray.
 
 visual_states:
   material_name:
@@ -50,6 +55,19 @@ visual_states:
   kimwipes_present:
     kind: composite
     composite: []
+  gel_state:
+    kind: svg
+    cases:
+      - when: empty
+        output: { asset_name: staining_tray_empty }
+      - when: separated_unstained
+        output: { asset_name: staining_tray_buffer }
+      - when: stained
+        output: { asset_name: staining_tray_stain }
+      - when: destaining
+        output: { asset_name: staining_tray_destain }
+      - when: destained
+        output: { asset_name: staining_tray_water }
 
 capabilities: [clickable, material_container]
 

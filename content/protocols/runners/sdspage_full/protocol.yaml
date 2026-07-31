@@ -1,26 +1,39 @@
 protocol_type: sequence_runner
 protocol_name: sdspage_full
 entry_step: dilute_10x_concentrate
+initial_state:
+  - target: running_buffer_preparation_carboy
+    state: { material_name: empty, material_volume: 0 }
+  - target: laemmli_4x_tube
+    state: { material_name: laemmli_4x, material_volume: 1.0 }
+  - target: bme_tube
+    state: { material_name: bme, material_volume: 1.0 }
+  - target: ddh2o_bottle
+    state: { material_name: ddh2o, material_volume: 700 }
+  - target: microtube_rack_8.slot_A1
+    state: { material_name: protein_sample_raw, material_volume: 21 }
+  - target: microtube_rack_8.slot_A2
+    state: { material_name: protein_sample_raw, material_volume: 21 }
+  - target: microtube_rack_8.slot_A3
+    state: { material_name: protein_sample_raw, material_volume: 21 }
+  - target: microtube_rack_8.slot_B4
+    state: { material_name: protein_ladder, material_volume: 20 }
 
 learning:
   objectives: "Students completing this protocol will have achieved comprehensive mastery of the complete SDS-PAGE protein separation workflow, from buffer preparation through gel visualization, integrating sample preparation, gel assembly, electrophoretic separation, and post-separation analysis into a unified experimental pathway."
-  outcomes: "Students completing this protocol will be able to execute a complete SDS-PAGE experiment: prepare running buffer, prepare three protein sample mixes with denaturation, heat-denature samples, assemble a gel cassette, prepare the electrode module, fill the electrophoresis tank, attach the lid and connect electrical leads, load a protein ladder standard, load three sample lanes, run electrophoresis at constant voltage, extract the gel from the cassette, recycle the running buffer, stain the gel with Coomassie, perform a two-step destain process, and image the final gel for band visualization."
-  goals: "Overall, this protocol aims to accomplish a complete SDS-PAGE gel electrophoresis workflow on three student protein samples with a molecular weight ladder standard. The sequence integrates 17 focused mini-protocols (including two batch-composition runners) covering buffer and sample preparation, gel and hardware assembly, sample loading, electrophoretic separation, post-run gel handling, staining, destaining, and final imaging into a coherent pedagogical pathway aligned with the canonical SDS-PAGE procedure."
+  outcomes: "Students completing this protocol will be able to execute a complete SDS-PAGE experiment: prepare running buffer, prepare and heat-denature three protein sample mixes, assemble the gel cassette and electrode module, fill the electrophoresis tank, load a protein ladder and three sample lanes, attach the lid and connect electrical leads, run electrophoresis at constant voltage, extract the gel, recycle buffer, stain, destain, and image the final gel for band visualization."
+  goals: "Overall, this protocol aims to accomplish a complete SDS-PAGE gel electrophoresis workflow on three student protein samples with a molecular weight ladder standard. The sequence integrates 16 focused mini-protocols covering buffer and sample preparation, gel and hardware assembly, sample loading before electrical connection, electrophoretic separation, post-run gel handling, staining, destaining, and final imaging."
 
 mini_protocols:
   - sdspage_prepare_running_buffer
-  - sdspage_prepare_sample_mix_single_lane
-  - sdspage_prepare_sample_mix_single_lane
-  - sdspage_prepare_sample_mix_single_lane
+  - sdspage_prepare_sample_mix_batch
   - sdspage_heat_denature_samples
   - sdspage_prepare_gel_cassette
   - sdspage_assemble_electrode_module
   - sdspage_fill_tank_buffer
-  - sdspage_attach_lid_and_leads
   - sdspage_load_protein_ladder
-  - sdspage_load_sample_single_lane
-  - sdspage_load_sample_single_lane
-  - sdspage_load_sample_single_lane
+  - sdspage_load_samples_batch
+  - sdspage_attach_lid_and_leads
   - sdspage_run_electrophoresis
   - sdspage_extract_gel_from_cassette
   - sdspage_recycle_buffer

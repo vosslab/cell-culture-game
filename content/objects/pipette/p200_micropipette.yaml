@@ -16,8 +16,10 @@ state_fields:
     allowed:
       [
         empty,
+        protein_sample_raw,
         protein_sample_denatured,
         protein_ladder,
+        protein_ladder_denatured,
         laemmli_4x,
         bme,
         running_buffer_1x,
@@ -42,9 +44,13 @@ visual_states:
     cases:
       - when: empty
         output: { asset_name: p200_micropipette_empty }
+      - when: protein_sample_raw
+        output: { asset_name: p200_micropipette_empty }
       - when: protein_sample_denatured
         output: { asset_name: p200_micropipette_empty }
       - when: protein_ladder
+        output: { asset_name: p200_micropipette_empty }
+      - when: protein_ladder_denatured
         output: { asset_name: p200_micropipette_empty }
       - when: laemmli_4x
         output: { asset_name: p200_micropipette_empty }

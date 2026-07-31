@@ -5,6 +5,9 @@ materials:
   cell_pellet:
     label: Cell pellet (centrifuged)
     display_color: "#cc0066"
+  cell_supernatant:
+    label: Cell-culture supernatant
+    display_color: "#6c6c00"
   media:
     label: Growth media
     display_color: "#6c6c00"

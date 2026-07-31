@@ -4,6 +4,7 @@ from validation.yaml_schema.constants import (
 	PROTOCOL_SCENE_ALLOWED_KEYS,
 	PLACEMENT_LOCKED_FIELDS,
 	REPOSITION_ALLOWED_FIELDS,
+	ALIGN_STOP_VALUES,
 )
 from validation.yaml_schema.findings import Finding, Severity
 
@@ -147,6 +148,17 @@ class ProtocolSceneValidator:
 					continue
 
 				pname = entry['placement_name']
+				align_stop = entry.get('align_stop')
+				if align_stop is not None and align_stop not in ALIGN_STOP_VALUES:
+					findings.append(Finding(
+						path=entry_path,
+						lineno=None,
+						severity=Severity.ERROR,
+						message=(
+							f"{op} align_stop '{align_stop}' is not valid "
+							f"(allowed: {sorted(ALIGN_STOP_VALUES)})"
+						),
+					))
 
 				if op == 'add_placements':
 					if pname in base_placement_names:

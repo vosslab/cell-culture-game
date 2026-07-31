@@ -99,22 +99,22 @@ steps:
       Wash the cell monolayer with approximately 4 mL of PBS to remove residual
       media.
     sequence:
-      - target: aspirating_pipette
+      - target: serological_pipette
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations: []
-      - target: aspirating_pipette
+      - target: serological_pipette
         gesture: adjust
         validator:
           preset: target_with_value
           value:
-            held_material_volume: 4
+            set_volume: 4
         response:
           scene_operations:
             - type: CursorAttach
-              target: aspirating_pipette
+              target: serological_pipette
               operation: attach
       - target: pbs_bottle
         gesture: click
@@ -126,6 +126,11 @@ steps:
               target: pbs_bottle
               state:
                 material_volume: 496
+            - type: ObjectStateChange
+              target: serological_pipette
+              state:
+                held_material_name: pbs
+                held_material_volume: 4
       - target: t75_flask
         gesture: click
         validator:
@@ -137,6 +142,11 @@ steps:
               state:
                 material_name: pbs
                 material_volume: 4
+            - type: ObjectStateChange
+              target: serological_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -174,22 +184,22 @@ steps:
       Add trypsin to the flask to enzymatically detach cells. For a T75 flask,
       use approximately 3 mL.
     sequence:
-      - target: aspirating_pipette
+      - target: serological_pipette
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations: []
-      - target: aspirating_pipette
+      - target: serological_pipette
         gesture: adjust
         validator:
           preset: target_with_value
           value:
-            held_material_volume: 3
+            set_volume: 3
         response:
           scene_operations:
             - type: CursorAttach
-              target: aspirating_pipette
+              target: serological_pipette
               operation: attach
       - target: trypsin_bottle
         gesture: click
@@ -201,6 +211,11 @@ steps:
               target: trypsin_bottle
               state:
                 material_volume: 497
+            - type: ObjectStateChange
+              target: serological_pipette
+              state:
+                held_material_name: trypsin
+                held_material_volume: 3
       - target: t75_flask
         gesture: click
         validator:
@@ -212,6 +227,11 @@ steps:
               state:
                 material_name: trypsin
                 material_volume: 3
+            - type: ObjectStateChange
+              target: serological_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:
@@ -276,22 +296,22 @@ steps:
       Neutralize the trypsin by adding fresh culture media (approximately 3 times
       the trypsin volume, or 9 mL for a T75 flask).
     sequence:
-      - target: aspirating_pipette
+      - target: serological_pipette
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations: []
-      - target: aspirating_pipette
+      - target: serological_pipette
         gesture: adjust
         validator:
           preset: target_with_value
           value:
-            held_material_volume: 9
+            set_volume: 9
         response:
           scene_operations:
             - type: CursorAttach
-              target: aspirating_pipette
+              target: serological_pipette
               operation: attach
       - target: media_bottle
         gesture: click
@@ -303,6 +323,11 @@ steps:
               target: media_bottle
               state:
                 material_volume: 491
+            - type: ObjectStateChange
+              target: serological_pipette
+              state:
+                held_material_name: media
+                held_material_volume: 9
       - target: t75_flask
         gesture: click
         validator:
@@ -314,6 +339,11 @@ steps:
               state:
                 material_name: cell_suspension
                 material_volume: 12
+            - type: ObjectStateChange
+              target: serological_pipette
+              state:
+                held_material_name: empty
+                held_material_volume: 0
     step_validator:
       preset: sequence_complete
     outcome:

@@ -158,6 +158,135 @@ describe("scene_store reconciliation", () => {
 });
 
 //============================================
+// Protocol-session archive and initial state
+//============================================
+
+describe("scene_store protocol session", () => {
+  test("rehydrates declared state after a target is absent for an intervening scene", () => {
+    const store = create_scene_store(FIXTURE_REGISTRY);
+    store.start_session(
+      [{ target: "bme_tube", object_name: "bme_tube" }],
+      [{ target: "bme_tube", state: { material_name: "bme", material_volume: 2 } }],
+    );
+    store.reconcile_scene([{ target: "centrifuge", object_name: "centrifuge" }]);
+    assert.strictEqual(store.state["bme_tube"], undefined);
+    store.reconcile_scene([{ target: "bme_tube", object_name: "bme_tube" }]);
+    assert.strictEqual(store.state["bme_tube"].state.material_name, "bme");
+    assert.strictEqual(store.state["bme_tube"].state.material_volume, 2);
+  });
+
+  test("a restart clears the previous archive before applying new initial state", () => {
+    const store = create_scene_store(FIXTURE_REGISTRY);
+    const seeds = [{ target: "bme_tube", object_name: "bme_tube" }];
+    store.start_session(seeds, [
+      { target: "bme_tube", state: { material_name: "bme", material_volume: 2 } },
+    ]);
+    store.start_session(seeds, []);
+    assert.strictEqual(
+      store.state["bme_tube"].state.material_volume,
+      OBJECT_LIBRARY["bme_tube"].state_schema.material_volume.default,
+    );
+  });
+
+  test("validates and expands a declared subpart group before the target is visible", () => {
+    const store = create_scene_store({
+      formazan_crystals: { label: "Formazan crystals", display_color: "#6c6c00" },
+    });
+    store.start_session(
+      [{ target: "centrifuge", object_name: "centrifuge" }],
+      [
+        {
+          target: "well_plate_96.all_wells",
+          state: { material_name: "formazan_crystals", material_volume: 25 },
+        },
+      ],
+    );
+    store.reconcile_scene([
+      { target: "well_plate_96", object_name: "well_plate_96" },
+      { target: "well_plate_96.A1", object_name: "well_plate_96" },
+      { target: "well_plate_96.H12", object_name: "well_plate_96" },
+    ]);
+    assert.strictEqual(store.state["well_plate_96.A1"].state.material_name, "formazan_crystals");
+    assert.strictEqual(store.state["well_plate_96.H12"].state.material_volume, 25);
+  });
+
+  test("rejects unknown target/field/type and overlapping group members", () => {
+    const store = create_scene_store(FIXTURE_REGISTRY);
+    const seeds = [{ target: "centrifuge", object_name: "centrifuge" }];
+    assert.throws(
+      () => store.start_session(seeds, [{ target: "not_an_object", state: { running: true } }]),
+      /unknown object/,
+    );
+    assert.throws(
+      () =>
+        store.start_session(seeds, [
+          { target: "well_plate_96.not_a_well", state: { material_name: "cells" } },
+        ]),
+      /no declared subpart or subpart group/,
+    );
+    assert.throws(
+      () => store.start_session(seeds, [{ target: "centrifuge", state: { no_such_field: true } }]),
+      /undeclared state key/,
+    );
+    assert.throws(
+      () => store.start_session(seeds, [{ target: "centrifuge", state: { running: "yes" } }]),
+      /expects boolean/,
+    );
+    assert.throws(
+      () => store.start_session(seeds, [{ target: "centrifuge", state: { set_rpm: 4001 } }]),
+      /exceeds maximum 4000/,
+    );
+    assert.throws(
+      () =>
+        store.start_session(seeds, [
+          { target: "well_plate_96.all_wells", state: { material_name: "cells" } },
+          { target: "well_plate_96.A1", state: { material_name: "cells" } },
+        ]),
+      /overlaps resolved target/,
+    );
+  });
+
+  test("records a monotonic revision and the precise declared-state delta", () => {
+    const store = create_scene_store();
+    store.start_session([{ target: "centrifuge", object_name: "centrifuge" }], []);
+    const started = store.state_revision;
+    store.set_object_state("centrifuge", { running: true });
+    assert.ok(store.state_revision > started);
+    assert.deepStrictEqual(store.last_state_delta, {
+      target: "centrifuge",
+      before: { running: false },
+      after: { running: true },
+    });
+    const declared = store.snapshot_declared_state();
+    assert.strictEqual(declared.centrifuge.running, true);
+  });
+
+  test("retains an ordered detached write log across scenes and clears it on restart/reset", () => {
+    const store = create_scene_store();
+    store.start_session([{ target: "centrifuge", object_name: "centrifuge" }], []);
+    store.set_object_state("centrifuge", { set_rpm: 1500 });
+    store.set_object_state("centrifuge", { running: true });
+    store.reconcile_scene([{ target: "centrifuge", object_name: "centrifuge" }]);
+    const log = store.state_delta_log;
+    assert.deepStrictEqual(
+      log.map((entry) => entry.target),
+      ["centrifuge", "centrifuge"],
+    );
+    assert.deepStrictEqual(
+      log.map((entry) => entry.after),
+      [{ set_rpm: 1500 }, { running: true }],
+    );
+    log[0].after.set_rpm = 1;
+    assert.strictEqual(store.state_delta_log[0].after.set_rpm, 1500);
+    store.start_session([{ target: "centrifuge", object_name: "centrifuge" }], []);
+    assert.deepStrictEqual(store.state_delta_log, []);
+    store.set_object_state("centrifuge", { running: true });
+    store.reset();
+    assert.deepStrictEqual(store.state_delta_log, []);
+  });
+});
+
+//============================================
 // Partial-merge writes (object level)
 //============================================
 

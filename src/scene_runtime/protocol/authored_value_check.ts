@@ -138,23 +138,45 @@ export class BadAuthoredValueError extends Error {
 
 // A number, or a non-empty numeric string that parses to a finite number, is an
 // acceptable authored value for an int/float field. This mirrors the runtime
-// numeric-coercion backstop (validators.ts coerce_observed_to_number):
-// already-number passes through; a trimmed non-empty string is parsed;
-// everything else fails. int-vs-float is not over-constrained here: any finite
-// number is accepted for both.
-function is_finite_numeric(authored_value: string | number | boolean): boolean {
+// numeric-coercion backstop (validators.ts coerce_observed_to_number).
+function coerce_finite_numeric(authored_value: string | number | boolean): number | null {
   if (typeof authored_value === "number") {
-    return Number.isFinite(authored_value);
+    return Number.isFinite(authored_value) ? authored_value : null;
   }
   if (typeof authored_value === "string") {
     const trimmed = authored_value.trim();
     if (trimmed.length === 0) {
-      return false;
+      return null;
     }
-    return Number.isFinite(Number(trimmed));
+    const parsed = Number(trimmed);
+    return Number.isFinite(parsed) ? parsed : null;
   }
-  // A boolean is never a valid numeric authored value.
-  return false;
+  return null;
+}
+
+function numeric_constraint_detail(
+  result: Extract<StateFieldLookupResult, { kind: "typed" }>,
+  authored_value: number,
+): string | null {
+  const unit = result.unit === undefined ? "" : ` ${result.unit}`;
+  if (result.min !== undefined && authored_value < result.min) {
+    return `Value ${authored_value}${unit} is below declared minimum ${result.min}${unit}.`;
+  }
+  if (result.max !== undefined && authored_value > result.max) {
+    return `Value ${authored_value}${unit} exceeds declared maximum ${result.max}${unit}.`;
+  }
+  if (result.step !== undefined && result.min !== undefined) {
+    const remainder = (authored_value - result.min) % result.step;
+    const aligns =
+      Math.abs(remainder) <= 1e-9 || Math.abs(Math.abs(remainder) - result.step) <= 1e-9;
+    if (!aligns) {
+      return (
+        `Value ${authored_value}${unit} does not align to declared step ` +
+        `${result.step}${unit} from minimum ${result.min}${unit}.`
+      );
+    }
+  }
+  return null;
 }
 
 //============================================
@@ -171,9 +193,14 @@ function check_one_value(result: StateFieldLookupResult, location: AuthoredValue
     case "typed": {
       // int/float: a finite number or finite-parseable numeric string.
       if (result.field_type === "int" || result.field_type === "float") {
-        if (!is_finite_numeric(location.authored_value)) {
+        const numeric_value = coerce_finite_numeric(location.authored_value);
+        if (numeric_value === null) {
           const detail = `Expected a number or a finite numeric string.`;
           throw new BadAuthoredValueError(location, result.field_type, detail);
+        }
+        const constraint_detail = numeric_constraint_detail(result, numeric_value);
+        if (constraint_detail !== null) {
+          throw new BadAuthoredValueError(location, result.field_type, constraint_detail);
         }
         return;
       }

@@ -12,8 +12,8 @@ state_fields:
     type: float
     unit: mg
     min: 0
-    max: 10
-    default: 5
+    max: 20
+    default: 20
     description: Mass of MTT powder in milligrams.
 
 visual_states:
