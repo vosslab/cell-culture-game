@@ -370,7 +370,7 @@ All gitignored (see [.gitignore](../.gitignore)):
 | `generated/protocol_materials.ts` | [gen_protocols.py](../pipeline/gen_protocols.py) (per-protocol material registry; keyed by protocol_name) |
 | `generated/flow_views/<protocol_name>.txt` | [gen_flow_view.py](../pipeline/gen_flow_view.py) (per-protocol audit view; not the design source) |
 | `generated/precomputed_layout.ts` | [precompute_layout.mjs](../pipeline/precompute_layout.mjs) (`PRECOMPUTED_LAYOUT`: per-scene `{ final: ComputedItem[] }` at canonical 16:9) |
-| `generated/scene_render_stats/<scene>.stats.json` | renderer-produced scene geometry stats (build evidence consumed by SCENE-LINT/SCENE-DESIGN), written by [build_github_pages.sh](../build_github_pages.sh) via [scene_to_png.mjs](../tools/scene_to_png.mjs) |
+| `generated/scene_render_stats/<scene>.stats.json` | renderer-produced scene geometry stats consumed by SCENE-LINT/SCENE-DESIGN, written by [scene_to_png.mjs](../tools/scene_to_png.mjs) after the Pages bundle is built |
 | `dist/` | [build_github_pages.sh](../build_github_pages.sh) (GitHub Pages bundle) |
 | `dist/assets/svg/<category>/<name>.svg` | SVG assets copied by [build_github_pages.sh](../build_github_pages.sh) |
 | `dist/scene_viewer.html` | Copied from `src/scene_viewer_template.html` during build |

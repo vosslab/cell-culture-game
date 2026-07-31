@@ -1,5 +1,29 @@
 # Changelog
 
+## 2026-07-30
+
+### Fixes and Maintenance
+
+- Repaired the GitHub Pages build environment by installing the declared
+  Python dependencies under Python 3.12 and using deterministic `npm ci`
+  installs.
+- Enabled the setup actions' npm and pip download caches, keyed from
+  `package-lock.json` and `pip_requirements-dev.txt`.
+- Separated browser-derived scene-stat validation from the production Pages
+  build. Pages now builds and uploads `dist/` without installing or launching
+  Playwright; the fast and exhaustive validation front doors still render the
+  required scene statistics explicitly before content validation.
+
+### Developer Tests and Notes
+
+- The failed Pages run stopped in `pipeline/gen_object_library.py` because
+  `lxml` was declared but not installed. The workflow now consumes the
+  repository dependency manifests instead of relying on runner-global tools.
+- The local Pages build reached the browser-only scene-stat stage after
+  generation, type-checking, and bundling, confirming that Python dependency
+  installation was the reported CI blocker. The browser launch then hit the
+  known macOS sandbox Mach-port restriction, which no longer affects Pages.
+
 ## 2026-07-29
 
 ### Behavior or Interface Changes

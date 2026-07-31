@@ -15,7 +15,6 @@
 #   dist/<protocol_name>.html    -- one per entry in generated PROTOCOLS_INDEX,
 #                                   templated from src/protocol_host_template.html
 #   dist/.nojekyll               -- GitHub Pages flag
-#   generated/scene_render_stats/<scene>.stats.json -- renderer-derived scene geometry consumed by SCENE-LINT/SCENE-DESIGN
 #
 # Contract:
 #   - Wipes dist/ from scratch.
@@ -158,14 +157,4 @@ test -f dist/style.css
 test -f dist/bench_basic.html
 test -f dist/scene_viewer.html
 
-# 10. Generate scene render-stats (renderer-derived build evidence).
-#     SCENE-LINT and SCENE-DESIGN consume generated/scene_render_stats/*.stats.json.
-#     Generate them now that dist/ exists -- the renderer loads the built dist.
-#     Stats only (no --png); PNG screenshots are optional human evidence.
-node tools/scene_to_png.mjs --all
-compgen -G "generated/scene_render_stats/*.stats.json" > /dev/null || {
-	echo "ERROR: scene render stats were not generated" >&2
-	exit 1
-}
-
-echo "Built dist/ + scene render stats (GitHub Pages-ready)."
+echo "Built dist/ (GitHub Pages-ready)."

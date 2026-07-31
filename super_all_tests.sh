@@ -163,9 +163,10 @@ main() {
 	echo "Running the full suite. Details in $LOG"
 	echo ""
 
-	# --- 1. Build first. validate, scene metrics, and the browser tests all
-	#        read what this produces (generated/, dist/, render stats). ---
+	# --- 1. Build dist/, then render the scene statistics consumed by
+	#        validation and scene metrics. ---
 	run "build" bash build_github_pages.sh
+	run "render_stats" node tools/scene_to_png.mjs --all
 
 	# --- 2. Code and content gates. ---
 	run "check_codebase" ./check_codebase.sh

@@ -9,17 +9,17 @@
 # Runs (in order):
 #   1. Full build (./build_github_pages.sh). Regenerates generated/
 #      (object_library, svg_manifest, scenes, protocols), precomputes the
-#      static scene layout, type-checks, bundles into dist/, and renders
-#      generated/scene_render_stats/<scene>.stats.json. That render step
-#      (node tools/scene_to_png.mjs --all, run internally by
-#      build_github_pages.sh) is REQUIRED before validate: SCENE-LINT's
-#      geometry checks read the stats files, and without them validate
-#      reports missing_render_evidence instead of a real geometry result.
-#   2. TypeScript gate (./check_codebase.sh: tsc, tsc --lint config,
+#      static scene layout, type-checks, and bundles into dist/.
+#   2. Render scene statistics with Playwright
+#      (node tools/scene_to_png.mjs --all). This is REQUIRED before
+#      validation: SCENE-LINT's geometry checks read the stats files, and
+#      without them validation reports missing_render_evidence instead of a
+#      real geometry result.
+#   3. TypeScript gate (./check_codebase.sh: tsc, tsc --lint config,
 #      eslint, prettier --check, node --test).
-#   3. Python tests (pytest tests/).
-#   4. Content validation (bash run_validate.sh), which reads the renderer
-#      evidence produced in step 1.
+#   4. Python tests (pytest tests/).
+#   5. Content validation (bash run_validate.sh), which reads the renderer
+#      evidence produced in step 2.
 #
 # Exit code is 0 only when every step passes. A step failure prints a
 # summary and exits non-zero immediately; it does not mask or skip later
@@ -132,17 +132,19 @@ trap print_summary EXIT
 SUMMARY_ENABLED=1
 
 # 1. Full build: regenerates generated/, precomputes layout, type-checks,
-#    bundles dist/, and renders generated/scene_render_stats/ (required
-#    render evidence for run_validate.sh's SCENE-LINT stage below).
+#    and bundles dist/.
 step_run build bash build_github_pages.sh
 
-# 2. TypeScript gate (typecheck, typecheck:lint, lint, format:check, test:node).
+# 2. Render evidence for run_validate.sh's SCENE-LINT stage below.
+step_run render_stats node tools/scene_to_png.mjs --all
+
+# 3. TypeScript gate (typecheck, typecheck:lint, lint, format:check, test:node).
 step_run typescript ./check_codebase.sh
 
-# 3. Python tests.
+# 4. Python tests.
 step_run pytest pytest tests/
 
-# 4. Content validation against generated evidence.
+# 5. Content validation against generated evidence.
 step_run validate bash run_validate.sh
 
 # All steps complete; summary prints via EXIT trap. Exit 0 (failure paths
