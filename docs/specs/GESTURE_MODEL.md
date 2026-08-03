@@ -217,7 +217,7 @@ A pointer-only drag path is not sufficient acceptance evidence.
   selector contract.
 - [WALKTHROUGH_GUIDE.md](WALKTHROUGH_GUIDE.md): visible browser interaction
   evidence.
-- [select_type_gestures_ratification.md](../active_plans/decisions/select_type_gestures_ratification.md):
+- [select_type_gestures_ratification.md](../archive/decisions/select_type_gestures_ratification.md):
   reopened June decision record.
-- [wow_gesture_coverage_audit.md](../active_plans/audits/wow_gesture_coverage_audit.md):
+- [wow_gesture_coverage_audit.md](../archive/audits/wow_gesture_coverage_audit.md):
   corpus and proof audit.

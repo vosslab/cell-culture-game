@@ -90,6 +90,12 @@ def test_lint_rejects_rect_overlay_outside_the_renderer_directory(tmp_path: Path
 		lint_material_anti_return(repo, assets_dir=assets, objects_dir=objects, source_dir=runtime.parents[1])
 
 
+def test_lint_rejects_a_whole_object_html_fill_overlay(tmp_path: Path) -> None:
+	"""A div-based bbox fill cannot evade the retired SVG-rectangle check."""
+	with pytest.raises(MaterialAntiReturnLintError, match=r"M7-RETIRED-OVERLAY: src/scene_runtime/renderer/liquid_paint.ts"):
+		_lint_tmp(tmp_path, runtime='export const Fill = () => <div data-overlay="fill"/>;\n')
+
+
 @pytest.mark.parametrize("relative", [
 	"scene_runtime/renderer/subpart_visual_state_renderer.tsx",
 	"scene_runtime/renderer/subpart_hit_surface.tsx",

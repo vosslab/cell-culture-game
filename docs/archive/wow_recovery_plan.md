@@ -5,7 +5,7 @@
 This plan completes the student-path recovery for protocol packages that could
 reach a visual or scientific dead end. It keeps the existing YAML, runtime,
 SVG, layout, visible-UI, and learning-block invariants in
-[PRIMARY_CONTRACT.md](../../PRIMARY_CONTRACT.md). It does not change that
+[PRIMARY_CONTRACT.md](../PRIMARY_CONTRACT.md). It does not change that
 contract.
 
 The delivered behavior is one coherent rule: a protocol declares only valid
@@ -90,8 +90,8 @@ path passes without a protocol-specific walker branch.
 
 ## Durable records
 
-- `docs/active_plans/decisions/session_initial_state_and_runner_integrity.md`
+- `docs/archive/decisions/session_initial_state_and_runner_integrity.md`
   records root-only seed precedence, durable archive behavior, and strict
   runner leaf integrity.
-- [affordance_contract.md](../decisions/affordance_contract.md) remains the
+- [affordance_contract.md](decisions/affordance_contract.md) remains the
   cross-layer ownership record for visible learner actions.

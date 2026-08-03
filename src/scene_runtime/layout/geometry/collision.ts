@@ -1,5 +1,5 @@
 // Pure deterministic collision geometry for the layout engine. Ratified
-// contract: docs/active_plans/decisions/layout_model_layer_synthesis.md
+// contract: docs/archive/decisions/layout_model_layer_synthesis.md
 // ("Geometry and collision response").
 //
 // Geometry computes collision facts and proposes corrections; it never mutates

@@ -14,10 +14,10 @@
 //
 // Assertions:
 //   1. No-remount on ObjectStateChange: after a store write that changes a
-//      fill overlay, the affected item is the SAME connected DOM node, with the
+//      compiled liquid reveal, the affected item is the SAME connected DOM node, with the
 //      SAME data-item-id and bbox within tolerance; the scene root is not
 //      remounted; an unaffected sibling item is also the same node + bbox.
-//   2. The fill overlay actually changed height (the reactive update happened).
+//   2. The compiled reveal actually changed height (the reactive update happened).
 //   3. Lifecycle: a SceneChange (re-mount) disposes the prior root (old item
 //      nodes are detached); dispose() empties the scene root (no orphans).
 //   4. SVG-injection safety: every injected <svg> matches a generated/svg_manifest.ts
@@ -421,13 +421,13 @@ test.describe("scene reactivity + lifecycle", () => {
       "unaffected sibling bbox must be stable",
     ).toBe(true);
 
-    // The fill overlay height must have INCREASED (volume 15 -> 18 of cap 20
+    // The compiled reveal height must have INCREASED (volume 15 -> 18 of cap 20
     // is 75% -> 90%). Requiring an increase, not just a change, proves the
     // reactive fill resolved correctly rather than collapsing to 0 via a
     // degraded path.
     expect(
       after.fillH - before.fillH,
-      `fill overlay height must increase reactively: before=${before.fillH} after=${after.fillH}`,
+      `compiled reveal height must increase reactively: before=${before.fillH} after=${after.fillH}`,
     ).toBeGreaterThan(1);
   });
 

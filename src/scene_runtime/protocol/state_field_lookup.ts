@@ -23,7 +23,7 @@
 // stays a genuine enum and reports { kind: "enum"; allowed }.
 //
 // References:
-//   - docs/active_plans/decisions/m1b2_discovery_seam_proposal.md
+//   - docs/archive/decisions/m1b2_discovery_seam_proposal.md
 //     (Item 2: the finalized result union and mapping rule)
 //   - src/scene_runtime/layout/types.ts (StateFieldType source enum)
 

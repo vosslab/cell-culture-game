@@ -5,14 +5,15 @@
 // into a renderable description. This file has NO DOM and NO Solid; it is a
 // pure function consumed by the Solid scene components.
 //
-// The resolver implements the closed formula mini-language tokens that
-// authored objects actually use (see
-// docs/active_plans/audits/formula_scene_op_inventory.md):
-//   - fill_height(state(<field>), capacity_ml|capacity_ul|capacity_mg=<n>)
+// The resolver implements the runtime formula tokens that authored objects
+// actually use after generation (see
+// docs/archive/audits/formula_scene_op_inventory.md):
 //   - label(state(<field>), format="<string with {value}>")
 //   - conditional(state(<field>), <then-expr>, <else-expr>)
 //   - compose(<token>, <token>, ...)  (zero authored uses today; implemented,
 //     not silently no-opped)
+// Source fill_height formulas are compiler inputs and must arrive here as
+// render_effect declarations; they never become whole-object overlays.
 // Unknown formula tokens fail loud.
 
 import type {
@@ -43,14 +44,6 @@ export interface MaterialEntry {
 // materials.yaml; this registry is passed in per protocol, never global.
 export type MaterialRegistry = Record<string, MaterialEntry>;
 
-// A fill overlay: a bottom-anchored fill expressed as a percentage [0..100].
-export interface FillOverlay {
-  type: "fill";
-  field_name: string;
-  // Fill fraction of capacity, clamped to [0, 100].
-  fill_percent: number;
-}
-
 // A text overlay produced by label(...) or by a conditional resolving to text.
 export interface TextOverlay {
   type: "text";
@@ -58,11 +51,9 @@ export interface TextOverlay {
   text: string;
 }
 
-export type Overlay = FillOverlay | TextOverlay;
-
-// A material effect authored against anchors in the base SVG. Unlike legacy
-// box overlays, this is rendered inside the injected, namespaced SVG so the
-// liquid stays within the instrument's declared vessel geometry.
+// A material effect authored against anchors in the base SVG. It is rendered
+// inside the injected, namespaced SVG so the liquid stays within the
+// instrument's declared vessel geometry.
 export interface AnchorMaterialEffect {
   type: "anchor_material";
   field_name: string;
@@ -74,12 +65,6 @@ export interface AnchorMaterialEffect {
   color: string | null;
 }
 
-// Resolved material color: a single scalar `#rrggbb` hex string, or null when
-// the material has no color (sentinel material such as `empty`, or no material
-// field on the object). There is no theme branch (see
-// docs/specs/MATERIAL_CONVENTION.md).
-export type MaterialColor = string | null;
-
 // Resolved, renderable description of one object instance.
 export interface ResolvedVisualState {
   // Base SVG asset selected by the object's enum/bool svg visual_state, or
@@ -88,14 +73,11 @@ export interface ResolvedVisualState {
   // Transparent full-frame SVG layers selected by composite visual states.
   // They are rendered over asset_name in authored order.
   asset_layers: string[];
-  // Ordered list of overlays (fills and text) to composite over the asset.
-  overlays: Overlay[];
-  // Declarative object-level material effects. These are kept distinct from
-  // legacy bbox overlays so the DOM renderer cannot accidentally paint them
-  // outside their authored SVG anchors.
+  // Ordered text overlays to composite over the asset.
+  overlays: TextOverlay[];
+  // Declarative object-level material effects, kept inside their compiled SVG
+  // regions rather than painted over the owning item's box.
   anchor_material_effects: AnchorMaterialEffect[];
-  // Theme color pair for the object's current material, or null.
-  material_color: MaterialColor;
   // Convenience: the first text overlay's text, when present.
   label_text?: string;
   // True when the object should render as a labeled placeholder (no asset
@@ -121,7 +103,6 @@ const MATERIAL_FIELDS: readonly string[] = ["material_name", "held_material_name
 type FormulaExpr =
   | { token: "state"; field_name: string }
   | { token: "string"; value: string }
-  | { token: "fill_height"; field_name: string; capacity_unit: string; capacity: number }
   | { token: "label"; field_name: string; format: string }
   | { token: "conditional"; cond: FormulaExpr; then_expr: FormulaExpr; else_expr: FormulaExpr }
   | { token: "compose"; parts: FormulaExpr[] };
@@ -200,9 +181,12 @@ function parse_formula_expr(text: string): FormulaExpr {
     }
     return { token: "state", field_name: args[0]!.trim() };
   }
-  // fill_height(state(<field>), capacity_xx=<n>)
+  // fill_height is accepted only at the source/compiler boundary. Seeing it
+  // here means generation failed to lower it to a render_effect declaration.
   if (name === "fill_height") {
-    return parse_fill_height(args, text);
+    throw new Error(
+      `visual_state_resolver: fill_height must be compiler-lowered to render_effect: ${text}`,
+    );
   }
   // label(state(<field>), format="<string>")
   if (name === "label") {
@@ -231,42 +215,13 @@ function parse_formula_expr(text: string): FormulaExpr {
   throw new Error(`visual_state_resolver: unknown formula token '${name}': ${text}`);
 }
 
-// Parse the state(...) operand shared by fill_height and label.
+// Parse the state(...) operand used by label.
 function parse_state_operand(text: string): string {
   const expr = parse_formula_expr(text);
   if (expr.token !== "state") {
     throw new Error(`visual_state_resolver: expected state(<field>), got: ${text}`);
   }
   return expr.field_name;
-}
-
-// Parse fill_height(state(<field>), capacity_xx=<n>).
-function parse_fill_height(args: string[], text: string): FormulaExpr {
-  if (args.length !== 2) {
-    throw new Error(`visual_state_resolver: fill_height(...) needs 2 args: ${text}`);
-  }
-  const field_name = parse_state_operand(args[0]!);
-  // Second arg is a capacity keyword assignment: capacity_ml=10.0
-  const eq = args[1]!.indexOf("=");
-  if (eq === -1) {
-    throw new Error(`visual_state_resolver: fill_height capacity must be keyword=value: ${text}`);
-  }
-  const capacity_unit = args[1]!.slice(0, eq).trim();
-  // The capacity keyword is parameterized; it carries the unit (ml, ul, mg, ...)
-  // and the resolver never assumes a liquid-volume unit.
-  if (!capacity_unit.startsWith("capacity_")) {
-    throw new Error(
-      `visual_state_resolver: fill_height capacity keyword must start with 'capacity_': ${text}`,
-    );
-  }
-  const capacity_raw = args[1]!.slice(eq + 1).trim();
-  const capacity = Number(capacity_raw);
-  if (!Number.isFinite(capacity) || capacity <= 0) {
-    throw new Error(
-      `visual_state_resolver: fill_height capacity must be a positive number: ${text}`,
-    );
-  }
-  return { token: "fill_height", field_name, capacity_unit, capacity };
 }
 
 // Parse label(state(<field>), format="<string>").
@@ -336,22 +291,9 @@ function eval_formula(
   expr: FormulaExpr,
   field_name: string,
   state: ObjectState,
-  overlays: Overlay[],
+  overlays: TextOverlay[],
 ): void {
   switch (expr.token) {
-    case "fill_height": {
-      const raw = read_state_field(state, expr.field_name);
-      if (typeof raw !== "number") {
-        throw new Error(
-          `visual_state_resolver: fill_height field '${expr.field_name}' is not numeric`,
-        );
-      }
-      // Fill fraction relative to declared capacity, clamped to [0, 100].
-      const fraction = (raw / expr.capacity) * 100;
-      const fill_percent = Math.max(0, Math.min(100, fraction));
-      overlays.push({ type: "fill", field_name, fill_percent });
-      return;
-    }
     case "label": {
       const raw = read_state_field(state, expr.field_name);
       const text = format_label(expr.format, raw);
@@ -379,7 +321,7 @@ function eval_formula(
     }
     case "state": {
       // A bare state(...) as a render expression is not meaningful on its own;
-      // it must be wrapped by fill_height/label/conditional. Fail loud.
+      // it must be wrapped by label/conditional. Fail loud.
       throw new Error(
         `visual_state_resolver: bare state(${expr.field_name}) is not a render expression`,
       );
@@ -641,24 +583,24 @@ function resolve_anchor_effect(
   return effect;
 }
 
-// Resolve the object's current material color from the per-protocol registry.
-// Delegates the name -> color mapping to the single color source in
+// Validate the object's current material name against the per-protocol
+// registry. Delegates the name -> color check to the single color source in
 // material_color.ts (see docs/specs/MATERIAL_CONVENTION.md): scalar
 // display_color, built-in `mixed` gray, sentinel/empty null, no theme branch.
 // The render path here is fail-loud: a ColorResult failure (a content defect,
 // e.g. a non-sentinel material missing from a provided registry, or an invalid
 // scalar color) is rethrown so the resolver surfaces it through the same loud
 // channel as every other render defect, rather than being silently dropped.
-function resolve_material_color(
+function resolve_material_name(
   state: ObjectState,
   material_registry: MaterialRegistry | null,
-): { color: MaterialColor; material_name: string | null } {
+): string | null {
   const material_name = read_material_name(state);
   const result = resolve_color_result(material_name, material_registry);
   if (!result.ok) {
     throw new Error(`visual_state_resolver: ${result.reason}`);
   }
-  return { color: result.color, material_name };
+  return material_name;
 }
 
 //============================================
@@ -680,7 +622,7 @@ export function resolve_visual_state(
 ): ResolvedVisualState {
   let asset_name: string | null = null;
   const asset_layers: string[] = [];
-  const overlays: Overlay[] = [];
+  const overlays: TextOverlay[] = [];
   const anchor_material_effects: AnchorMaterialEffect[] = [];
   const data_attrs: Record<string, string> = {};
 
@@ -717,11 +659,11 @@ export function resolve_visual_state(
   }
 
   // Resolve material color from the per-protocol registry.
-  const material = resolve_material_color(state, material_registry);
+  const material_name = resolve_material_name(state, material_registry);
 
   // Expose the resolved material name as a data attribute when present.
-  if (material.material_name !== null) {
-    data_attrs["data-material"] = material.material_name;
+  if (material_name !== null) {
+    data_attrs["data-material"] = material_name;
   } else if (anchor_material_effects.length > 0) {
     // Scoped declarative effects (e.g. inner_chamber_material_name) do not
     // participate in the older object-global material field convention, but
@@ -746,7 +688,6 @@ export function resolve_visual_state(
     asset_layers,
     overlays,
     anchor_material_effects,
-    material_color: material.color,
     data_attrs,
   };
   if (label_text !== undefined) {

@@ -30,6 +30,9 @@ visual_states:
         output: { asset_name: aspirating_pipette }
       - when: cell_supernatant
         output: { asset_name: aspirating_pipette }
+  held_material_volume:
+    kind: composite
+    composite: []
 capabilities: [clickable, material_container, cursor_attachable]
 
 layout:

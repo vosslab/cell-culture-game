@@ -397,8 +397,8 @@ source source_me.sh && python3 tests/e2e/e2e_normalize_svg_wild.py \
 ```
 
 **Parity report** (produces
-[normalize_svg_v3_parity.md](../active_plans/reports/normalize_svg_v3_parity.md) and
-[normalize_svg_v3_parity.json](../active_plans/reports/normalize_svg_v3_parity.json)):
+[normalize_svg_v3_parity.md](reports/normalize_svg_v3_parity.md) and
+[normalize_svg_v3_parity.json](reports/normalize_svg_v3_parity.json)):
 
 ```bash
 source source_me.sh && python3 tests/e2e/e2e_normalize_svg_parity.py \
@@ -430,8 +430,8 @@ regressions before the next full-corpus run.
 
 - [normalize_svg_v3_wild_verdicts.md](../active_plans/reports/normalize_svg_v3_wild_verdicts.md) -- per-reason-code counts over 3125 wild files
 - [normalize_svg_v3_wild_verdicts.json](../active_plans/reports/normalize_svg_v3_wild_verdicts.json) -- per-file JSON verdicts
-- [normalize_svg_v3_parity.md](../active_plans/reports/normalize_svg_v3_parity.md) -- v2 vs v3 comparison on 102 committed assets
-- [normalize_svg_v3_parity.json](../active_plans/reports/normalize_svg_v3_parity.json) -- parity data in JSON
+- [normalize_svg_v3_parity.md](reports/normalize_svg_v3_parity.md) -- v2 vs v3 comparison on 102 committed assets
+- [normalize_svg_v3_parity.json](reports/normalize_svg_v3_parity.json) -- parity data in JSON
 - [svg_visual_regression.md](../active_plans/reports/svg_visual_regression.md) -- imagehash chromium+firefox, 300-file sample
 - [svg_visual_regression.json](../active_plans/reports/svg_visual_regression.json) -- per-file hash distances
 - [normalize_svg_v2_audit.md](normalize_svg_v2_audit.md) -- v2 audit with v3 resolution notes

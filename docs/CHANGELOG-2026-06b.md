@@ -212,7 +212,7 @@
   `--show-payload` prints the request shape (base64 elided). Lives in `devel/` for now
   (relocate to `tools/` once the v3 SVG normalizer work lands). Usage, JSON schema, the
   escalation gate, and the 11-scene calibration set are documented in
-  `docs/active_plans/decisions/ai_polish_review_calibration.md`.
+  `docs/archive/decisions/ai_polish_review_calibration.md`.
 - Added `src/scene_runtime/layout/geometry/types.ts` and
   `src/scene_runtime/layout/geometry/collision.ts` (M1 / WP-GEO1), the pure 2D AABB
   geometry core. `types.ts` declares the immutable `Vector`, `Aabb`, `Collision`, and
@@ -539,7 +539,7 @@
 
 ### Additions and New Features
 
-- Extended `docs/active_plans/decisions/tooling_evaluation.md` with a "Browser UX
+- Extended `docs/archive/decisions/tooling_evaluation.md` with a "Browser UX
   affordance layer" section answering the sharper question of what simplifies the
   incomplete browser UI. Finding: no app framework helps; the browser is already
   fully data-driven, and the gap is three missing gesture controls (`adjust`, `drag`,
@@ -552,7 +552,7 @@
   and SVG.js (rejected for scene objects per contract item 3). Includes a "How to
   obtain the code" subsection with npm install and import examples.
 - Added a "Layout engine helpers (SVG placement)" section to
-  `docs/active_plans/decisions/tooling_evaluation.md`. Finding: do not replace the
+  `docs/archive/decisions/tooling_evaluation.md`. Finding: do not replace the
   deterministic zone-based row engine; most FOSS "SVG placement" tools are graph,
   diagram, drag, or collision tools. Two binding constraints recorded: output must stay
   deterministic (clean scenes are byte-identical; force/stress solvers are
@@ -562,7 +562,7 @@
   (conditional, single-zone solver / seeded relax post-pass only), rectangle-packer
   (conditional, inventory surfaces only), Cytoscape.js / Dagre (skip for scene;
   authoring or debug diagrams only).
-- Precision pass on `docs/active_plans/decisions/tooling_evaluation.md` to avoid
+- Precision pass on `docs/archive/decisions/tooling_evaluation.md` to avoid
   overstating what is missing or forbidden: SVGO retagged "skip unless folded into the
   existing pipeline" (not "already done"); `select` corrected to working via the
   click-to-select promotion in `protocol_host.tsx` (not "ring only, no commit"), so
@@ -573,7 +573,7 @@
   needs a separate restore test because the canonical walkthrough starts from cleared
   storage. Final ranking revised accordingly.
 - Added a "TypeScript tooling gaps (support, not replace)" section to
-  `docs/active_plans/decisions/tooling_evaluation.md` (ts-pattern, fast-check,
+  `docs/archive/decisions/tooling_evaluation.md` (ts-pattern, fast-check,
   Playwright `toHaveScreenshot`, @axe-core/playwright, Knip, TypeDoc, API Extractor,
   ts-morph), with verdicts checked against the code rather than taken from the external
   review. Key correction: ts-pattern was downgraded from adopt-candidate to conditional

@@ -21,7 +21,7 @@ WEIGHTS: dict[str, dict[str, float]] = {
 	},
 	# zone_footprint_balance removed (rewarded spreading objects across zones,
 	# against the grouping design intent); see
-	# docs/active_plans/decisions/scorecard_metric_spec_discrepancy.md. Its
+	# docs/archive/decisions/scorecard_metric_spec_discrepancy.md. Its
 	# 0.15 weight is redistributed proportionally across the remaining
 	# metrics so the class still sums to 1.00.
 	'composition': {

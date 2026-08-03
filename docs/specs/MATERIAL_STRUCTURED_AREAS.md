@@ -17,7 +17,7 @@ It exists because the design lives correctly across several specs
 ([OBJECT_YAML_FORMAT.md](OBJECT_YAML_FORMAT.md),
 [MATERIAL_DESIGN.md](MATERIAL_DESIGN.md),
 [MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md), and the
-[subpart-click decision](../active_plans/decisions/subpart_click_pattern.md)),
+[subpart-click decision](../archive/decisions/subpart_click_pattern.md)),
 and reading only one of them invites a wrong conclusion. The common wrong
 conclusions are listed in [What this is not](#what-this-is-not); read that
 section before proposing any change to a plate, rack, or gel.
@@ -46,7 +46,7 @@ pedagogical requirement, not a cosmetic one; see
 Generated geometry is the canonical and permanent rendering model for wells,
 rack slots, and gel lanes. It is deliberately separate from a material-rendered
 vessel SVG. The 96-well plate evidence is recorded in the
-`docs/active_plans/decisions/structured_subpart_render_model.md` decision:
+`docs/archive/decisions/structured_subpart_render_model.md` decision:
 the source illustration has many anonymous transformed well paths but no
 durable A1-H12 semantic namespace, whereas generated geometry already has
 those named, typed, build-validated regions in the asset's exact viewBox.
@@ -193,6 +193,6 @@ is a wrong conclusion that a partial reading produces.
 | Why are wells material areas, and what is spatial correspondence?  | [MATERIAL_DESIGN.md](MATERIAL_DESIGN.md)                                             |
 | Which render effect and target tint a subpart region?              | [MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md)                                     |
 | What are the closed material terms?                                | [MATERIAL_VOCABULARY.md](MATERIAL_VOCABULARY.md)                                     |
-| Why does clicking hit the base object, not the subpart?            | [subpart-click decision](../active_plans/decisions/subpart_click_pattern.md)         |
+| Why does clicking hit the base object, not the subpart?            | [subpart-click decision](../archive/decisions/subpart_click_pattern.md)              |
 | Where did group addressing and the cascade write originate?        | [subpart-addressing recommendation](../archive/subpart_addressing_recommendation.md) |
 | What are the layer-ownership and target-addressing invariants?     | [PRIMARY_SPEC.md](../PRIMARY_SPEC.md), [PRIMARY_DESIGN.md](../PRIMARY_DESIGN.md)     |

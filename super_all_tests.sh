@@ -15,6 +15,9 @@
 # including the protocol walker sweep at tests/playwright/e2e/protocol_walkthrough.spec.ts.
 #
 # Full output is saved to SUPER_LOG.txt. A short PASS/FAIL line prints per step.
+# The runner is single-writer because build outputs, generated reports,
+# Playwright evidence, and SUPER_LOG.txt are shared within one checkout. A
+# second invocation fails before mutating any of them.
 #
 # E2E files with the supported e2e_*.py, e2e_*.mjs, and e2e_*.sh names run
 # automatically.
@@ -26,6 +29,56 @@ set -u
 
 # Always work from the repo root, wherever the script is called from.
 cd "$(git rev-parse --show-toplevel)" || exit 1
+
+# A checkout-local directory is an atomic, portable lock on macOS and Linux.
+# Keep the owner PID for diagnostics. PID liveness does not prove process
+# identity because operating systems can recycle a PID after a crash.
+RUN_LOCK_DIR=".super_all_tests.lock"
+RUN_LOCK_PID_FILE="${RUN_LOCK_DIR}/pid"
+
+
+# release_run_lock - remove only the lock owned by this process.
+release_run_lock() {
+	owner_pid=""
+	if [ -f "$RUN_LOCK_PID_FILE" ]; then
+		IFS= read -r owner_pid < "$RUN_LOCK_PID_FILE" || true
+	fi
+	if [ "$owner_pid" = "$$" ]; then
+		rm -f "$RUN_LOCK_PID_FILE"
+		rmdir "$RUN_LOCK_DIR" 2>/dev/null || true
+	fi
+}
+
+
+# acquire_run_lock - fail before shared evidence is touched by a second run.
+acquire_run_lock() {
+	if mkdir "$RUN_LOCK_DIR" 2>/dev/null; then
+		printf '%s\n' "$$" > "$RUN_LOCK_PID_FILE"
+		trap release_run_lock EXIT
+		trap 'exit 129' HUP
+		trap 'exit 130' INT
+		trap 'exit 143' TERM
+		return
+	fi
+
+	owner_pid=""
+	if [ -f "$RUN_LOCK_PID_FILE" ]; then
+		IFS= read -r owner_pid < "$RUN_LOCK_PID_FILE" || true
+	fi
+	if [ -z "$owner_pid" ]; then
+		echo "ERROR: $RUN_LOCK_DIR exists but its owner PID is not available." >&2
+		echo "Another suite may still be acquiring the lock, or a prior run ended ungracefully." >&2
+	elif kill -0 "$owner_pid" 2>/dev/null; then
+		echo "ERROR: $RUN_LOCK_DIR is held by live pid $owner_pid; process identity is unverified." >&2
+	else
+		echo "ERROR: stale $RUN_LOCK_DIR blocks the exhaustive suite." >&2
+	fi
+	echo "Confirm no suite is running, then remove that lock directory and retry." >&2
+	exit 2
+}
+
+
+acquire_run_lock
 
 # Set up the Python environment once, so every python3 / pytest call below works.
 source source_me.sh

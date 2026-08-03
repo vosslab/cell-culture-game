@@ -45,6 +45,9 @@ visual_states:
         output: { asset_name: multichannel_pipette }
       - when: metformin
         output: { asset_name: multichannel_pipette }
+  held_material_volume:
+    kind: composite
+    composite: []
 capabilities:
   [clickable, material_container, instrument_with_setpoint, cursor_attachable]
 

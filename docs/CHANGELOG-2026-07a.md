@@ -250,7 +250,7 @@
   tags remain in code.
 - Produced the full per-scene WP-4 evidence table for all 34 non-fixture scenes
   and committed it at
-  [vertical_reflow_wp4_evidence_table.md](active_plans/reports/vertical_reflow_wp4_evidence_table.md).
+  [vertical_reflow_wp4_evidence_table.md](archive/reports/vertical_reflow_wp4_evidence_table.md).
   Both hard contracts hold: zero never-crop hard fails and zero own-art label
   overlaps across all populated scenes (G4 hard gate met). The sweep surfaced
   four label-on-label crowding scenes (`hemocytometer_view`, `microscope_basic`,

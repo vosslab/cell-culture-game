@@ -34,6 +34,9 @@ visual_states:
       - when: protein_sample_denatured
         output:
           asset_name: protein_sample_tube_filled
+  material_volume:
+    kind: composite
+    composite: []
 capabilities:
   - clickable
   - material_container

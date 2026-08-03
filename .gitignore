@@ -8,6 +8,7 @@ test-results/
 rendered-reports/
 deploy-pages.yml
 SUPER_LOG.txt
+/.super_all_tests.lock/
 
 # Dependencies
 node_modules/

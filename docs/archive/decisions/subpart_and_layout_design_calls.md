@@ -18,7 +18,7 @@ default).
 
 Cross-linked source docs (Markdown links, confirmed tracked):
 
-- [walker_click_bug_register.md](../audits/walker_click_bug_register.md) -- the
+- [walker_click_bug_register.md](../../archive/audits/walker_click_bug_register.md) -- the
   owned ledger; see row OP1 and the O-series scene-manager rows.
 - [subpart_click_pattern.md](subpart_click_pattern.md) -- the Direction-A ruling
   that made the interaction-level `- target:` a base placement, with subpart
@@ -49,7 +49,7 @@ to a base-object click erases the taught skill and degenerates the UX.
 ### Evidence already gathered
 
 - Register row OP1 (PEDAGOGY-HELD, class-wide) in
-  [walker_click_bug_register.md](../audits/walker_click_bug_register.md): the
+  [walker_click_bug_register.md](../../archive/audits/walker_click_bug_register.md): the
   discrimination-bearing subpart-click class, owner ARCHITECT via a Direction-B
   RFC. Today's only member is `plate_drug_treatment_drug_addition`.
 - Register full-register row for the live failure:

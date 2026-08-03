@@ -52,7 +52,7 @@ Work package WP-FEAS1. Proves the existing layout engine produces the same `Comp
 | sdspage_destain_gel_rock_workspace | 4 | PASS | yes | 0 | yes | match |
 | sdspage_destain_gel_setup_workspace | 7 | PASS | yes | 0 | yes | match |
 | sdspage_fill_tank_buffer_workspace | 5 | PASS | yes | 0 | yes | match |
-| sdspage_heat_denature_samples_workspace | 3 | PASS | yes | 0 | yes | match |
+| sdspage_heat_denature_samples_workspace | 2 | PASS | yes | 0 | yes | match |
 | sdspage_image_gel_workspace | 4 | PASS | yes | 0 | yes | match |
 | sdspage_load_protein_ladder_workspace | 5 | PASS | yes | 0 | yes | match |
 | sdspage_load_sample_single_lane_workspace | 7 | PASS | yes | 0 | yes | match |

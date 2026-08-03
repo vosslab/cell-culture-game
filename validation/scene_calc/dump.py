@@ -10,7 +10,7 @@ geometry block and returns the dict shape the downstream consumers
 (validation.scene_lint group B rules, validation.scene_design metrics) expect.
 There is no Python geometry model; the validator follows the generator.
 
-See docs/active_plans/decisions/scene_calc_validator_follows_generator.md.
+See docs/archive/decisions/scene_calc_validator_follows_generator.md.
 
 Coordinate space: all boxes are CSS pixels with a top-left origin, from one
 render. Placement-level bboxes (visual_bbox, placement_bbox, footprint_bbox,

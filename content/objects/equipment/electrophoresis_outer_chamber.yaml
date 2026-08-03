@@ -26,6 +26,9 @@ visual_states:
         output: { asset_name: electrophoresis_tank_outer_chamber }
       - when: running_buffer_1x_used
         output: { asset_name: electrophoresis_tank_outer_chamber }
+  material_volume:
+    kind: composite
+    composite: []
 capabilities: [clickable, material_container]
 
 layout:

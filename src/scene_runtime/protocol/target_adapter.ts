@@ -2,7 +2,7 @@
 //
 // The single protocol-target-to-DOM identity adapter (milestone M8).
 //
-// Identity contract (docs/active_plans/decisions/target_identity.md, M7):
+// Identity contract (docs/archive/decisions/target_identity.md, M7):
 //   - placement_name is the DOM and target key. It is unique per placement
 //     within a scene, so it is the only key that stays unambiguous when a scene
 //     places the same object more than once.

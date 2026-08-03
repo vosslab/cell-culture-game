@@ -1,5 +1,5 @@
 // Pure geometry value types for the layout engine. Ratified contract:
-// docs/active_plans/decisions/layout_model_layer_synthesis.md
+// docs/archive/decisions/layout_model_layer_synthesis.md
 // ("Geometry and collision response"). All coordinates are scene-percent
 // (0..100 of the canonical 16:9 frame per axis). These types are immutable and
 // carry no Solid or DOM dependency.

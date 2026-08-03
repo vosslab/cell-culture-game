@@ -37,8 +37,8 @@ class, not only to `plate_drug_treatment_drug_addition`.
   one: `dilution_tube_rack_8.tube_A..G` plus per-well dose mapping). M16 closes
   with the class held as an explicit, owned, documented known-red walker
   exception. Status is tracked as PEDAGOGY-HELD in
-  [../audits/walker_click_bug_register.md](../audits/walker_click_bug_register.md)
-  and [../audits/midwalk_sweep_triage.md](../audits/midwalk_sweep_triage.md).
+  [../../archive/audits/walker_click_bug_register.md](../../archive/audits/walker_click_bug_register.md)
+  and [../../archive/audits/midwalk_sweep_triage.md](../../archive/audits/midwalk_sweep_triage.md).
 - The durable resolution for the whole class is a future Direction-B RFC (stubbed
   below), owned by the ARCHITECT, not walker-plan or content work in this session.
 
@@ -111,7 +111,7 @@ symptom patch, not a design fix. The human may override after; the documented
 default is direction A now so M16 is unblocked.
 
 Affected protocols (from
-[walk_all_fail_triage.md](../audits/walk_all_fail_triage.md), dominant cluster):
+[walk_all_fail_triage.md](../../archive/audits/walk_all_fail_triage.md), dominant cluster):
 
 - `mtt_plate_reaction` (`well_plate_96.all_wells`)
 - `mtt_solubilization_readout` (`well_plate_96.all_wells`, three steps)

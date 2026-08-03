@@ -43,7 +43,7 @@ The diagnostics baseline runner (`tests/e2e/e2e_layout_diagnostics_baseline.mjs`
 the OLD runtime `diagnostics` stream, NOT `severityDiagnostics`, which is why the baseline
 shows `bench_basic` and `passage_hood_detachment_microscope_view` as clean. A baseline
 refresh should add a `severityDiagnostics` column. See
-[layout_diagnostics_baseline.md](layout_diagnostics_baseline.md) for the pre-refresh
+[layout_diagnostics_baseline.md](../../active_plans/reports/layout_diagnostics_baseline.md) for the pre-refresh
 baseline data.
 
 ## Open design question (route to human)

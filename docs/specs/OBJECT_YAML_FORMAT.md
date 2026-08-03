@@ -393,7 +393,7 @@ The closed token set is:
 | `fill_height(state(<volume_field>), capacity_ml=<number>)` | a numeric volume `state_field` (typically a `float` named `material_volume`, `held_material_volume`, etc.) | bind volume to compiled material-SVG gravity parts using the matching capacity, or to generated geometry for an intentional structured-subpart binding, as defined in [MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md) |
 | `label(state(<numeric_field>), format=<string>)`           | a numeric `state_field` (typically a set-point `float`)                                                    | render the value as an overlay text label, using the format string with `{value}` placeholder; the format string supplies the unit text                                          |
 | `conditional(<cond>, <then>, <else>)`                      | `cond` is `state(<field>)` or a string literal; `then` and `else` are each a string literal or a nested `label(...)` token | choose `then` when `cond` is truthy, else `else`; a `bool` field is truthy when `true`, a numeric field when nonzero, an enum/string field when non-empty and not the `empty` sentinel; the chosen branch resolves to its overlay |
-| `compose(<token>, <token>, ...)`                           | any of the above                                                                                           | compose multiple effects (for example a fill plus a label) into one render output; ordered top to bottom                                                                         |
+| `compose(<token>, <token>, ...)`                           | text-producing `label(...)`, `conditional(...)`, or string tokens                                         | compose multiple text effects into one ordered overlay output; material amount remains a separately compiled `fill_height` binding                                               |
 
 A formula is one expression. Multiple expressions are composed through
 `compose(...)`, not by concatenation or by multi-line strings.
@@ -707,7 +707,7 @@ visual_states:
   material_volume:
     kind: composite
     applies_to: subpart
-    formula: fill_height(state(material_volume), capacity_ul=300)
+    composite: []
 
 capabilities: [clickable, structured_surface, material_container]
 
@@ -725,10 +725,10 @@ region (`all_wells`). A protocol that acts on a single row may address
 protocol that reads the entire plate may address `treatment_plate.all_wells`
 in one target. Individual well addressing (`treatment_plate.A1`,
 ..., `treatment_plate.A12`) remains available for fine-grained protocols.
-Each well's `visual_states` resolves the two flat fields independently: the
-existing `material_tint` / `subpart_geometry` binding for identity and a
-`fill_height(...)` formula for volume. No SVG asset name appears in any
-`state_field`.
+Each well's `visual_states` keeps the two flat fields independent: the
+`material_tint` / `subpart_geometry` binding makes identity visible, while the
+amount remains protocol state with an explicit no-op visual declaration. No
+SVG asset name appears in any `state_field`.
 
 ## Worked example: serological pipette
 
@@ -782,8 +782,11 @@ visual_states:
       - when: dmso
         output: { asset_name: serological_pipette }
   held_material_volume:
-    kind: composite
-    formula: fill_height(state(held_material_volume), capacity_ml=25.0)
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ml: 25.0
 
 capabilities:
   [clickable, material_container, instrument_with_setpoint, cursor_attachable]
@@ -857,7 +860,7 @@ visual_states:
         output: { asset_name: pipette_8ch_filled }
   held_material_volume:
     kind: composite
-    formula: fill_height(state(held_material_volume), capacity_ul=200)
+    composite: []
 
 capabilities:
   [clickable, material_container, instrument_with_setpoint, cursor_attachable]
@@ -879,7 +882,9 @@ column groups (8-channel behavior on a 96-well plate). When targeting a
 column group like `plate.col_3`, the stepper validates that the pipette's
 `addressable_subpart_kinds` includes `column`. If a protocol erroneously
 tried to use this pipette on a `row` group, the stepper emits an ERROR
-because `row` is not in the pipette's allowed kinds.
+because `row` is not in the pipette's allowed kinds. Its retained held amount
+has an explicit no-op visual declaration because the complete pipette form is
+static rather than a variable-volume material SVG.
 
 ## Cross-file validation rules
 

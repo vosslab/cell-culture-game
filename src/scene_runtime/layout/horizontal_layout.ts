@@ -9,7 +9,7 @@
 // and overflow without placing anything; engage the packer when the row layout
 // would require unacceptable shrink (requiredScale < config.packer.thresholdScale)
 // OR overflows (negative gap / out of bounds). Otherwise the row strategy runs.
-// See docs/active_plans/decisions/layout_model_layer_synthesis.md
+// See docs/archive/decisions/layout_model_layer_synthesis.md
 // "Packer objective and trigger" for the ratified trigger rule.
 
 import { buildGlobalDefaults } from "./config/index.js";

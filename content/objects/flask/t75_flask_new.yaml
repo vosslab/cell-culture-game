@@ -35,6 +35,9 @@ visual_states:
         output: { asset_name: t75_flask_filled }
       - when: cell_suspension
         output: { asset_name: t75_flask_filled }
+  material_volume:
+    kind: composite
+    composite: []
   incubation_status:
     kind: composite
     composite: []

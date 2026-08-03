@@ -51,10 +51,20 @@ the `e2e_*` prefix as a secondary, human-readable convention.
 
 - Run a single shell runner: `bash tests/e2e/e2e_<name>.sh`.
 - Run a single Python runner: `source source_me.sh && python3 tests/e2e/e2e_<name>.py`.
-- Run all E2E tests: provide a `tests/e2e/run_all.sh` that iterates over the
-  `e2e_*` files and reports pass/fail for each.
+- Run the repository's exhaustive build-and-test gate: `./super_all_tests.sh`.
+  It covers every `tests/e2e/e2e_*` file plus Playwright, pytest, validation,
+  generated render evidence, and the build.
 - For browser-driven Playwright runs, TypeScript repos include `PLAYWRIGHT_USAGE.md` in their propagated `docs/` folder.
 - Do not invoke E2E tests from `pytest tests/`. Keep the two suites separate.
+
+`super_all_tests.sh` is intentionally single-writer within one checkout because
+its build outputs, generated reports, browser evidence, and `SUPER_LOG.txt` are
+shared. A concurrent invocation exits before changing those files and reports
+the saved owner PID when available. PID liveness alone does not prove that the
+process is still the suite because operating systems recycle PIDs. If an
+ungraceful termination leaves `.super_all_tests.lock`, verify the process
+identity and confirm that no exhaustive suite is active before removing the
+stale lock directory. The lock artifact is ignored by Git.
 
 ## Naming conventions test
 

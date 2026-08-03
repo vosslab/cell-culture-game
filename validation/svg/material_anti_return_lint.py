@@ -40,6 +40,9 @@ _RECT_CREATION = re.compile(
 	r"(?:createElement|createElementNS)\s*\([^\n;]*['\"]rect['\"]",
 )
 _JSX_RECT = re.compile(r"<rect\b")
+_HTML_FILL_OVERLAY = re.compile(
+	r"(?:data-overlay\s*=\s*['\"]fill['\"]|overlay\.type\s*===\s*['\"]fill['\"])",
+)
 _STRUCTURED_RECT_ALLOWLIST = frozenset({
 	"scene_runtime/renderer/subpart_hit_surface.tsx",
 	"scene_runtime/renderer/subpart_visual_state_renderer.tsx",
@@ -97,6 +100,10 @@ def _lint_source_tree(repo_root: Path, source_dir: Path) -> list[str]:
 		if "anchor_material_renderer" in text:
 			violations.append(
 				f"M7-RETIRED-OVERLAY: {shown}: retired anchor_material_renderer import or token"
+			)
+		if _HTML_FILL_OVERLAY.search(text) is not None:
+			violations.append(
+				f"M7-RETIRED-OVERLAY: {shown}: source recreates a whole-object HTML fill overlay"
 			)
 		if _DIRECT_SEMANTIC_ACCESS.search(text) is not None:
 			violations.append(

@@ -53,7 +53,7 @@ transition is first use, replay, or reset.
 The implementation is accepted only when the focused tests listed above,
 content lint, a generated build, and direct plus runner browser walkthroughs
 pass. The complete release gates remain recorded in
-[wow_recovery_plan.md](../active/wow_recovery_plan.md).
+[wow_recovery_plan.md](../../archive/wow_recovery_plan.md).
 
 ## Non-decisions
 

@@ -24,7 +24,7 @@
 // true.
 //
 // References:
-//   - docs/active_plans/decisions/affordance_contract.md (frozen contract)
+//   - docs/archive/decisions/affordance_contract.md (frozen contract)
 //   - src/shell/adapter/types.ts (closed Gesture union)
 //   - src/scene_runtime/protocol/step_machine.ts (StepMachineHandle dispatch)
 //   - src/scene_runtime/protocol/scene_operations.ts (the never-dispatch mirror)

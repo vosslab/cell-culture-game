@@ -1,5 +1,5 @@
 // Phase registry for the layout pipeline. Ratified contract:
-// docs/active_plans/decisions/layout_model_layer_synthesis.md "Phase model".
+// docs/archive/decisions/layout_model_layer_synthesis.md "Phase model".
 //
 // The named phases replace the previously inline stage sequence in
 // run_pipeline.ts. Phase order (serial vertical-reflow spine):

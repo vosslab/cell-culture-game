@@ -22,6 +22,9 @@ visual_states:
     cases:
       - when: mtt
         output: { asset_name: mtt_vial }
+  material_volume:
+    kind: composite
+    composite: []
 capabilities: [clickable, material_container, cursor_attachable]
 
 layout:

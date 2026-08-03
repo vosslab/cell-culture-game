@@ -244,7 +244,7 @@ OP1. **Discrimination-bearing subpart-click class (PEDAGOGY-HELD).** Any
      discrimination-bearing subpart overlays (`tube_X`, `well_XX`, `lane_N`)
      independent `[data-item-id]` click targets. It is a separate future plan, not
      walker or content work this session. See
-     [../decisions/subpart_click_pattern.md](../decisions/subpart_click_pattern.md)
+     [subpart_click_pattern.md](../decisions/subpart_click_pattern.md)
      (class ruling + Direction-B RFC stub) and
      [midwalk_sweep_triage.md](midwalk_sweep_triage.md) (mid-walk confirmation).
 

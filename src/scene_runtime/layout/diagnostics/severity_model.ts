@@ -1,5 +1,5 @@
 // Severity-graded diagnostic model. Ratified contract:
-//   docs/active_plans/decisions/layout_model_layer_synthesis.md
+//   docs/archive/decisions/layout_model_layer_synthesis.md
 //   ("Decision metadata") and plan partitioned-shimmying-dragonfly.md
 //   ("Diagnostic severity table"; "Actionable payload").
 //

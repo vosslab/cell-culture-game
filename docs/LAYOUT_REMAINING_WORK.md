@@ -22,7 +22,7 @@ anchored at `top: 78%`. The band is warm wood-tone for bench-type workspaces
 workspaces (`microscope`, `incubator`, `plate_reader`), and absent for the
 hood. Every scene received a grounding-score lift; the final state is
 documented in
-[aesthetic_round1_grounding.md](active_plans/reports/aesthetic_round1_grounding.md).
+[aesthetic_round1_grounding.md](archive/reports/aesthetic_round1_grounding.md).
 `generated/precomputed_layout.ts` stayed byte-identical throughout the
 grounding sub-rounds -- no geometry changed.
 
@@ -34,7 +34,7 @@ budget and the actual rendered text half-width) rather than the raw
 `electrophoresis_bench` and also closes a diagnostic blind spot (the engine
 was reporting 0 label overlap codes while labels were visually colliding).
 The fix is Lever 1 from
-[aesthetic_geometry_levers_evidence.md](active_plans/reports/aesthetic_geometry_levers_evidence.md).
+[aesthetic_geometry_levers_evidence.md](archive/reports/aesthetic_geometry_levers_evidence.md).
 
 **Two-pass vertical reflow (WP-2 / WP-3b / WP-3c) -- SHIPPED.**
 The layout engine now measures each object's combined extent (object art plus label
@@ -53,7 +53,7 @@ WP-6 shipped label center-to-object-center alignment across all 34 curriculum sc
 Alignment pass rate improved from 0/412 (0%) to 299/412 (72.6%). The two standing
 label Errors (`bench_basic`, `passage_hood_detachment_microscope_view`) are resolved.
 Zero never-crop hard fails. Evidence in
-[active_plans/reports/label_alignment_wp6_review.md](active_plans/reports/label_alignment_wp6_review.md).
+[archive/reports/label_alignment_wp6_review.md](archive/reports/label_alignment_wp6_review.md).
 
 ### What this document covers
 
@@ -75,9 +75,9 @@ Everything else. The remaining work divides into five categories:
   the gate untrustworthy.
 
 Prior baseline scores are in
-[aesthetic_baseline_round0.md](active_plans/reports/aesthetic_baseline_round0.md).
+[aesthetic_baseline_round0.md](archive/reports/aesthetic_baseline_round0.md).
 Error-diagnostic details are in
-[layout_error_diagnostics_investigation.md](active_plans/reports/layout_error_diagnostics_investigation.md).
+[layout_error_diagnostics_investigation.md](archive/reports/layout_error_diagnostics_investigation.md).
 
 ---
 
@@ -93,7 +93,7 @@ Error-diagnostic details are in
 
 **Key principle for void-collapse and focal-promotion.** These are NOT bulk engine
 algorithm changes. The evidence in
-[aesthetic_geometry_levers_evidence.md](active_plans/reports/aesthetic_geometry_levers_evidence.md)
+[aesthetic_geometry_levers_evidence.md](archive/reports/aesthetic_geometry_levers_evidence.md)
 confirmed that the placement engine (`horizontal_layout`, `vertical_layout`,
 `row_strategy`) places objects correctly within their zones. Voids arise from
 semantic grouping choices in scene YAML, not from engine bugs. Fix zone order,
@@ -105,12 +105,12 @@ membership, and categorical hints rather than adding source geometry.
 
 One subsection per scene. Data sources: void percentages from the void-collapse
 lever table in
-[aesthetic_geometry_levers_evidence.md](active_plans/reports/aesthetic_geometry_levers_evidence.md);
+[aesthetic_geometry_levers_evidence.md](archive/reports/aesthetic_geometry_levers_evidence.md);
 primary-area percentages from the focal-promotion table in the same file;
 Error diagnostics from
-[layout_error_diagnostics_investigation.md](active_plans/reports/layout_error_diagnostics_investigation.md);
+[layout_error_diagnostics_investigation.md](archive/reports/layout_error_diagnostics_investigation.md);
 round-0 scores from
-[aesthetic_baseline_round0.md](active_plans/reports/aesthetic_baseline_round0.md).
+[aesthetic_baseline_round0.md](archive/reports/aesthetic_baseline_round0.md).
 
 ### Round-0 score summary
 
@@ -170,7 +170,7 @@ self-contained authoring edit.
 
 **Void status.**
 Approximate center-emptiness ~85%, ranked 1st (worst) of 8. The evidence in
-[aesthetic_geometry_levers_evidence.md](active_plans/reports/aesthetic_geometry_levers_evidence.md)
+[aesthetic_geometry_levers_evidence.md](archive/reports/aesthetic_geometry_levers_evidence.md)
 identifies a wide vertical inter-zone gap at approximately y=32-44 scene-percent.
 This is a genuine composition defect: two separately-authored zones with the
 reagent row in the top band and the microwave/tray/waste in the lower band create
@@ -234,7 +234,7 @@ authoring-rename decision (different physical racks need distinct labels so
 students can identify each by name). No standing Error from the engine, but the
 disambiguation requires a human call on whether the duplicates are intentional.
 This was documented in
-[aesthetic_geometry_levers_evidence.md](active_plans/reports/aesthetic_geometry_levers_evidence.md)
+[aesthetic_geometry_levers_evidence.md](archive/reports/aesthetic_geometry_levers_evidence.md)
 as a label-layer target that needs authoring rename, not an engine fix.
 
 **Recommendation.**
@@ -287,7 +287,7 @@ object before any focal-promotion work.
 **Workspace kind.** `hood` (no surface band; classified as hood workspace in
 scene registry). Note: `seeding_workspace` carries `data-scene-workspace="hood"`,
 which excludes it from the warm bench band. This was reviewed and accepted in
-[aesthetic_round1_grounding.md](active_plans/reports/aesthetic_round1_grounding.md).
+[aesthetic_round1_grounding.md](archive/reports/aesthetic_round1_grounding.md).
 
 **Void status.**
 Approximate center-emptiness ~48%, ranked 5th. The mid-band "BSC workspace" zone
@@ -562,7 +562,7 @@ This mismatch is why the M7 evidence table reported zero Errors for
 `bench_basic` and `passage_hood_detachment_microscope_view`: those Errors
 were only visible in `severityDiagnostics`, which the baseline runner never
 queried. The full investigation is in
-[layout_error_diagnostics_investigation.md](active_plans/reports/layout_error_diagnostics_investigation.md)
+[layout_error_diagnostics_investigation.md](archive/reports/layout_error_diagnostics_investigation.md)
 under the "Tooling gap" section.
 
 **Consequence.** The baseline runner is currently not a trustworthy gate for
@@ -588,7 +588,7 @@ authoring fixes in section 5 so the gate is trustworthy when those fixes land.
 ### 4.3 Audit-only / deferred findings (not active work)
 
 These two findings come from the label-offset root-cause audit
-([pipette_label_offset_root_cause.md](active_plans/audits/pipette_label_offset_root_cause.md)).
+([pipette_label_offset_root_cause.md](archive/audits/pipette_label_offset_root_cause.md)).
 They are recorded for context. Neither is active work; both are deferred per
 an explicit user decision. Do NOT schedule, fix, or treat them as gate-blocking
 without that decision being revisited.
@@ -611,7 +611,7 @@ reaches `assets/` is supposed to pass v3 (PRIMARY_CONTRACT item 3: "All asset
 SVG files must be normalized"), each rejected asset is a contract-compliance
 gap. This is DEFERRED per user: the user will normalize these assets later.
 Cross-reference the audit at
-[pipette_label_offset_root_cause.md](active_plans/audits/pipette_label_offset_root_cause.md).
+[pipette_label_offset_root_cause.md](archive/audits/pipette_label_offset_root_cause.md).
 
 **Finding 2: the alignment gate `visual_bbox` is the SVG element rect, not the
 drawn-path bbox (harmless for normalized assets).**
@@ -849,7 +849,7 @@ renderable viewport. A future detector should flag any art bottom past the
 renderable viewport independent of bbox aspect, so a fully off-canvas object is
 counted even when its visible bbox is undistorted. Cross-reference the
 investigation in
-[viewport_overflow_reflow_investigation.md](active_plans/audits/viewport_overflow_reflow_investigation.md).
+[viewport_overflow_reflow_investigation.md](archive/audits/viewport_overflow_reflow_investigation.md).
 
 ### 7.6 Label-on-label crowding from the full WP-4 sweep
 
@@ -860,7 +860,7 @@ The full WP-4 per-scene visual sweep surfaced four scenes with label-vs-label
 fails and not label-over-own-artwork. They are a horizontal label-stagger polish
 follow-up, distinct from the cosmetic clusters in 7.3. The complete merged
 per-scene evidence (quantitative columns plus by-eye verdicts) lives in
-[vertical_reflow_wp4_evidence_table.md](active_plans/reports/vertical_reflow_wp4_evidence_table.md).
+[vertical_reflow_wp4_evidence_table.md](archive/reports/vertical_reflow_wp4_evidence_table.md).
 
 ---
 
@@ -915,7 +915,7 @@ retired and must not be regenerated. Use the rendered-evidence workflow in
 ## Appendix: historical error diagnostics cross-reference
 
 Historical Error table reproduced from
-[layout_error_diagnostics_investigation.md](active_plans/reports/layout_error_diagnostics_investigation.md)
+[layout_error_diagnostics_investigation.md](archive/reports/layout_error_diagnostics_investigation.md)
 for convenience. The measurements record the June 2026 investigation; they do
 not authorize source-coordinate edits. "Owner" reflects authoring vs contract
 responsibility.
@@ -931,7 +931,7 @@ responsibility.
 ## Appendix: void and focal data summary
 
 Data source:
-[aesthetic_geometry_levers_evidence.md](active_plans/reports/aesthetic_geometry_levers_evidence.md).
+[aesthetic_geometry_levers_evidence.md](archive/reports/aesthetic_geometry_levers_evidence.md).
 
 | Scene | Approx. void % | Void assessment | Primary object | Primary area % | Focal assessment |
 | --- | --- | --- | --- | --- | --- |

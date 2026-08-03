@@ -12,7 +12,7 @@ request and returned twice, because the specs describe it as the render model:
 `SVG_PIPELINE.md` 4 times.
 
 Evidence already published in
-[reports/servier_svg_color_variants.md](reports/servier_svg_color_variants.md), confirmed independently
+[servier_svg_color_variants.md](reports/servier_svg_color_variants.md), confirmed independently
 here:
 
 - The neutral glass, cap, and outline palette is shared across variants: `#333`, `#55919f`,
@@ -459,7 +459,7 @@ The semantic contract is processed in one direction:
 
 - Depends on: none.
 - Deliverables: `tools/svg_liquid_census.py`; a census report under
-  `docs/active_plans/audits/liquid_asset_census.md` with one row per anchored asset:
+  `docs/archive/audits/liquid_asset_census.md` with one row per anchored asset:
   distinct fills, candidate liquid family (colors inside `anchor_liquid_clip` bounds and
   outside the shared neutral palette), path count in that family, and a classification of
   `mechanical`, `hand_art`, or `no_liquid_drawn`.
@@ -480,10 +480,10 @@ pilot art and build-loop activation; M4 owns runtime consumption.
 
 - Depends on: M1.
 - Deliverables: a two-axis inventory of all current SVG forms and their object references;
-  `docs/active_plans/audits/svg_asset_taxonomy.md` and
-  `docs/active_plans/decisions/svg_asset_taxonomy.md`; a carrier comparison table in
-  `docs/active_plans/audits/svg_semantic_carrier_matrix.md`; and
-  `docs/active_plans/decisions/svg_material_semantic_contract.md`. WP-R1 has also
+  `docs/archive/audits/svg_asset_taxonomy.md` and
+  `docs/archive/decisions/svg_asset_taxonomy.md`; a carrier comparison table in
+  `docs/archive/audits/svg_semantic_carrier_matrix.md`; and
+  `docs/archive/decisions/svg_material_semantic_contract.md`. WP-R1 has also
   ratified the canonical anti-regression alignment in `SVG_PIPELINE.md`, all six
   `MATERIAL*.md` specifications, both `OBJECT*.md` specifications,
   `SPEC_DESIGN_CHECKLIST.md`, and `docs/FILE_STRUCTURE.md`. WP-R2 has implemented
@@ -629,7 +629,7 @@ this plan; deciding whether they should be converted is in scope and completes h
 - Depends on: M7.
 - Deliverables: a runtime spike that drives 96 independent per-cell material states through
   the production generated-geometry subpart renderer, with measured update timing; a written decision
-  record under `docs/active_plans/decisions/structured_subpart_render_model.md`; a
+  record under `docs/archive/decisions/structured_subpart_render_model.md`; a
   corresponding statement in `MATERIAL_STRUCTURED_AREAS.md`.
 - Workstreams: WS-SUBPART.
 - Entry criteria: M7 landed.
@@ -716,7 +716,7 @@ this plan; deciding whether they should be converted is in scope and completes h
 
 - Owner: WS-CENSUS.
 - Touch points: `tools/svg_liquid_census.py`,
-  `docs/active_plans/audits/liquid_asset_census.md`.
+  `docs/archive/audits/liquid_asset_census.md`.
 - Depends on: none.
 - Acceptance criteria: per asset, the tool reports distinct fills, the fills whose geometry
   falls inside the `anchor_liquid_clip` bounds, the fills shared with the neutral palette
@@ -735,7 +735,7 @@ this plan; deciding whether they should be converted is in scope and completes h
 ### Work package: WP-R0 asset-taxonomy inventory and self-describing pilot
 
 - Owner: WS-RECIPE.
-- Touch points: `docs/active_plans/audits/svg_asset_taxonomy.md`; a copy of
+- Touch points: `docs/archive/audits/svg_asset_taxonomy.md`; a copy of
   `assets/equipment/bottle_medium_pink.svg` and comparison artifacts under `test-results/`;
   no durable asset move or recipe file.
 - Depends on: WP-C1.
@@ -775,10 +775,10 @@ this plan; deciding whether they should be converted is in scope and completes h
 ### Work package: WP-R1 asset organization and semantic-contract ratification (complete)
 
 - Owner: WS-RECIPE.
-- Touch points: `docs/active_plans/audits/svg_asset_taxonomy.md`,
-  `docs/active_plans/audits/svg_semantic_carrier_matrix.md`,
-  `docs/active_plans/decisions/svg_asset_taxonomy.md`, and
-  `docs/active_plans/decisions/svg_material_semantic_contract.md`; `docs/specs/SVG_PIPELINE.md`;
+- Touch points: `docs/archive/audits/svg_asset_taxonomy.md`,
+  `docs/archive/audits/svg_semantic_carrier_matrix.md`,
+  `docs/archive/decisions/svg_asset_taxonomy.md`, and
+  `docs/archive/decisions/svg_material_semantic_contract.md`; `docs/specs/SVG_PIPELINE.md`;
   all six `docs/specs/MATERIAL*.md` files; both `docs/specs/OBJECT*.md` files;
   `docs/specs/SPEC_DESIGN_CHECKLIST.md`; and `docs/FILE_STRUCTURE.md`.
 - Depends on: WP-R0.
@@ -1157,8 +1157,10 @@ field is introduced.
       reintroduction.
 - [x] Structured-subpart decision record written and signed: generated geometry remains
       permanent for structured material areas.
-- [x] Full gates passed: `./check_codebase.sh` (5 passed), `pytest tests/` (5503 passed),
-      build, and `./run_playwright_tests.sh` (101 passed).
+- [x] At the original plan-closure gate, `./check_codebase.sh` passed all 5 checks,
+      `pytest tests/` passed 5503 cases, the build passed, and
+      `./run_playwright_tests.sh` passed 101 cases. Current totals live in the
+      latest changelog entry rather than rewriting this historical evidence.
 - [x] Every protocol walkthrough completes through visible UI in the full Playwright run.
 - [x] Final five-asset contact HTML/PNG artifacts regenerated after the full browser gate.
 - [x] `docs/CHANGELOG.md` entry written for human commit.

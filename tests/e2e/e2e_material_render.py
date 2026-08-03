@@ -4,8 +4,8 @@
 The authoritative material registry belongs to the protocol host. This E2E
 therefore captures each emitted protocol's initial authored scene through its
 own host page, not through ``scene_viewer.html`` (which intentionally has no
-active registry). The companion browser script records generic anchor, legacy
-bbox, and structured-subpart surfaces without naming an object or material.
+active registry). The companion browser script records compiled liquid regions
+and structured-subpart surfaces without naming an object or material.
 
 For each visibly painted surface it stores a before/after screenshot pair with
 only that one surface hidden. Pixel diff measures painted footprint within the
@@ -34,8 +34,8 @@ CAPTURE_OUT_DIR = REPO_ROOT / "test-results" / "material_render"
 REPORTS_DIR = REPO_ROOT / "docs" / "active_plans" / "reports"
 JSON_BASELINE = REPORTS_DIR / "material_render.json"
 MD_REPORT = REPORTS_DIR / "material_render.md"
-CAPTURE_SCHEMA = "protocol-host-material-surfaces-v2"
-BASELINE_SCHEMA = "protocol-host-material-baseline-v2"
+CAPTURE_SCHEMA = "protocol-host-material-surfaces-v3"
+BASELINE_SCHEMA = "protocol-host-material-baseline-v3"
 DIFF_THRESHOLD = 15
 REGRESSION_THRESHOLD_PP = 5.0
 GEOMETRY_TOLERANCE_PP = 1.0
@@ -166,7 +166,7 @@ def build_current_measurements(capture_data: dict, out_dir: Path) -> dict[str, d
 
 #============================================
 def load_baseline() -> dict | None:
-	"""Load a v2 baseline; legacy full-bbox evidence is intentionally ignored."""
+	"""Load a compiled-material baseline; earlier render models are not comparable."""
 	if not JSON_BASELINE.exists():
 		return None
 	with open(JSON_BASELINE, encoding="utf-8") as handle:
@@ -182,6 +182,7 @@ def write_baseline(current: dict[str, dict]) -> dict:
 	payload = {
 		"schema_version": BASELINE_SCHEMA,
 		"scope": "initial authored protocol-host scenes with their active material registries",
+		"surface_model": "compiled liquid regions and generated subparts",
 		"transition_evidence": "Protocol walkers provide post-interaction material evidence.",
 		"meta": {
 			"generated_at": datetime.now(timezone.utc).isoformat(),
@@ -282,7 +283,7 @@ def write_markdown_report(mode: str, current: dict[str, dict], comparison: dict 
 		"",
 		"This report measures the initial authored scene of each emitted protocol host, where the active protocol material registry is present. It does not use `scene_viewer.html` for material-color claims because that viewer deliberately runs without a registry.",
 		"",
-		"The browser capture discovers generic SVG-anchor, temporary legacy-bbox, and structured-subpart material surfaces. For each visible surface it records owner placement, driving field or subpart, material identity, computed fill, geometry, and a visible-versus-hidden pixel diff within that surface's own rendered bounds.",
+		"The browser capture discovers compiled SVG liquid regions and structured-subpart material surfaces. For each visible surface it records owner placement, driving field or subpart, material identity, computed fill, geometry, and a visible-versus-hidden pixel diff within that surface's own rendered bounds.",
 		"",
 		"Post-interaction material transitions are not synthesized here. They remain evidenced by visible protocol walkers, which execute the authored student path.",
 		"",
@@ -349,6 +350,10 @@ def main() -> None:
 	current = build_current_measurements(capture_data, CAPTURE_OUT_DIR)
 	if not current:
 		raise RuntimeError("Material capture found no declarative material surfaces")
+	if not any(record["kind"] == "liquid_region" for record in current.values()):
+		raise RuntimeError("Material capture found no compiled liquid regions")
+	if not any(record["kind"] == "subpart" for record in current.values()):
+		raise RuntimeError("Material capture found no structured-subpart surfaces")
 	baseline = load_baseline()
 	if args.write_baseline:
 		write_baseline(current)
@@ -358,7 +363,7 @@ def main() -> None:
 		write_markdown_report("capture only; baseline refresh required", current, None)
 		raise RuntimeError(
 			"No current protocol-host material baseline exists. Run again with --write-baseline; "
-			"the prior standalone-viewer baseline is intentionally not comparable."
+			"earlier rendering-model baselines are intentionally not comparable."
 		)
 	comparison = compare_against_baseline(current, baseline)
 	write_markdown_report("verify", current, comparison)

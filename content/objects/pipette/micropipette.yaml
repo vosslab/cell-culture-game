@@ -87,6 +87,9 @@ visual_states:
         output: { asset_name: p200_micropipette_empty }
       - when: protein_ladder
         output: { asset_name: p200_micropipette_empty }
+  held_material_volume:
+    kind: composite
+    composite: []
 capabilities:
   [clickable, material_container, instrument_with_setpoint, cursor_attachable]
 

@@ -43,6 +43,9 @@ visual_states:
         output: { asset_name: staining_tray_empty }
       - when: ddh2o
         output: { asset_name: staining_tray_empty }
+  material_volume:
+    kind: composite
+    composite: []
   gel_present:
     kind: composite
     composite: []

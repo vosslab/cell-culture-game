@@ -2,7 +2,7 @@
 
 ### Additions and New Features
 
-- Added `docs/active_plans/decisions/tooling_evaluation.md`, a decision record
+- Added `docs/archive/decisions/tooling_evaluation.md`, a decision record
   evaluating every proposed tool (SolidJS, Solid stores, SVGO, Valibot/Zod, Ladle,
   Vitest, Solid Testing Library, localStorage, Vite, XState, TanStack Router/Query,
   yaml runtime loader, vite-plugin-solid-svg, SolidStart, SvelteKit, UnoCSS/Tailwind,
@@ -753,7 +753,7 @@
 
 ### Decisions and Failures
 
-- Ratified "the generator wins; scene_calc is only a validator": the generator (pipeline + layout engine) is the single source of rendered geometry truth. `scene_calc` predicts geometry but does not override the generator. Decision record: `docs/active_plans/decisions/scene_calc_validator_follows_generator.md`.
+- Ratified "the generator wins; scene_calc is only a validator": the generator (pipeline + layout engine) is the single source of rendered geometry truth. `scene_calc` predicts geometry but does not override the generator. Decision record: `docs/archive/decisions/scene_calc_validator_follows_generator.md`.
 
 - Reverted an earlier scene-lint suppression-gaming attempt where suppressions were added to silence real layout violations rather than fix them. Suppressions are now restricted to known false positives with documented tickets and expiry dates.
 
@@ -837,7 +837,7 @@
 
 - WP4 verbosity: dropped missing `validation/svg/pipeline_check.py` from the `validate.py` svg
   stage map (was printing "Stage script not found" on every run). Decision recorded in
-  `docs/active_plans/decisions/pipeline_check_dispatch.md`.
+  `docs/archive/decisions/pipeline_check_dispatch.md`.
 
 ### Decisions and Failures
 
@@ -864,7 +864,7 @@
   error; resolvable field on smoke protocol is still type-checked). Updated
   `tests/test_step_machine.mjs` and `tests/test_m2_integration.mjs` callers to pass the new
   `{ lookup_state_field }` option. Discovery decision recorded in
-  `docs/active_plans/decisions/m1b2_discovery_seam_proposal.md` (WP-DISC). Gates: 29/29 tests
+  `docs/archive/decisions/m1b2_discovery_seam_proposal.md` (WP-DISC). Gates: 29/29 tests
   pass; `bash check_codebase.sh` 6/6 PASS; build and pilot walker pass.
 
 ## 2026-05-28

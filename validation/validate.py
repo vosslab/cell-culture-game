@@ -134,7 +134,7 @@ def _stage_scripts(stage_name: str) -> list[str]:
 	pipeline_check.py (SVG generation determinism + coverage gate) was
 	previously listed here but the file no longer exists in the repo;
 	it was removed from active dispatch to stop the "Stage script not
-	found" error. See docs/active_plans/decisions/pipeline_check_dispatch.md.
+	found" error. See docs/archive/decisions/pipeline_check_dispatch.md.
 	"""
 	stage_map = {
 		'yaml': ['validation/yaml_schema/content_lint.py'],

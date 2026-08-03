@@ -93,7 +93,7 @@ def _coordinate_subscript_violations(rel: str, tree: ast.Module) -> list:
 	directly from load_yaml(...) in the same file. This guards against
 	scene_design/scene_calc re-deriving layout geometry from raw authored
 	YAML instead of reading it from the rendered dump (see
-	docs/active_plans/decisions/scene_calc_validator_follows_generator.md).
+	docs/archive/decisions/scene_calc_validator_follows_generator.md).
 
 	Args:
 		rel: Repo-relative POSIX path for error messages.

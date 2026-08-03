@@ -177,7 +177,7 @@
   green (441 pass, 2 skipped).
 - M8 "Target adapter": the protocol-target-to-DOM key moved from the non-unique `object_name`
   to the unique-per-placement `placement_name`, resolved through the single new
-  `target_adapter.ts` (per the M7 decision `docs/active_plans/decisions/target_identity.md`). No
+  `target_adapter.ts` (per the M7 decision `docs/archive/decisions/target_identity.md`). No
   existing protocol `target` string changed: the adapter auto-derives `object_name -> its unique
   placement_name` for every singly-placed object. `scene_item.tsx` now sources `data-item-id`
   from `item.placement_name` (both the placeholder and normal render paths), keeping M6's
@@ -552,7 +552,7 @@
   `authored_value_check.ts`.
 
 - M16-C-safe "Subpart-click retarget, 3 auto-safe protocols": applied the ratified
-  `docs/active_plans/decisions/subpart_click_pattern.md` recipe to the three protocols the
+  `docs/archive/decisions/subpart_click_pattern.md` recipe to the three protocols the
   architect pedagogy-cleared as auto-apply-safe (whole-object action; subpart is the recorded
   effect, not the graded skill). In each, changed the failing interaction `target` from
   `<base>.<subpart>` to `<base>` (the clickable scene object); left the response
@@ -715,7 +715,7 @@
   letterboxed (landscape asset in a portrait placement box); art aspect is
   preserved (not a contract violation), but the box shape could be sized to the
   asset to reduce whitespace.
-- Added `docs/active_plans/decisions/subpart_and_layout_design_calls.md`, packaging
+- Added `docs/archive/decisions/subpart_and_layout_design_calls.md`, packaging
   three held architect design calls into one brief: (a) discrimination-bearing
   subpart click Direction-B RFC (pedagogy, needs human sign-off, clears register
   row OP1); (b) D2 unfittable-asset WARNING -> failBuild promotion (engine/layout,
@@ -768,7 +768,7 @@
   extraction_workspace, and six sdspage_* workspaces), so the gate was held rather
   than break the build on known-bad scenes; the blocker was recorded as item 5 of
   the scene-manager handshake in
-  `docs/active_plans/audits/walker_click_bug_register.md`. After the scene-manager
+  `docs/archive/audits/walker_click_bug_register.md`. After the scene-manager
   placement edits landed, a fresh reconciliation confirmed all 8 clean and
   `countBuildFailures` on non-exempt scenes is 0 (the only remaining
   `unresolved_label_overlap` is on the exempt `hemocytometer_view`), so the gate
@@ -848,7 +848,7 @@
   registry keyed by the closed `Gesture` union (`GESTURE_REGISTRY`) that co-locates the five
   frozen affordance-contract slots per gesture (render shape, stable `data-*` selectors, value
   extraction, single step-machine dispatch entry, walker-driver reference), transcribed from
-  `docs/active_plans/decisions/affordance_contract.md`. The module also owns
+  `docs/archive/decisions/affordance_contract.md`. The module also owns
   `scene_click_to_command` (the single home of the click-vs-select promotion that used to be an
   inline ternary in `protocol_host.tsx`) and `dispatch_gesture`, the ONE gesture-routing point,
   whose `switch` mirrors `scene_operations.ts`'s exhaustive `never` default so a new gesture is a
@@ -909,7 +909,7 @@
   not recover subpart specificity (it only chooses among present base placements); genuine
   subpart-picking is a future direction-B RFC under the PRIMARY_DESIGN new-primitive evidence
   bar. Recorded in
-  [subpart_click_pattern.md](active_plans/decisions/subpart_click_pattern.md).
+  [subpart_click_pattern.md](archive/decisions/subpart_click_pattern.md).
 - Release closeout (velvet-napping-tower plan, Release 1 + Release 2 + follow-on fixes):
   `FinalDiffReview` found the full diff merge-ready, and the full walker corpus is
   clean-except-owned (`FullSweep` 26/31 PASS, the 5 remaining reds all triaged and
@@ -959,7 +959,7 @@
   I (label-label overlap), 7/11, surfaced by the content-derived base-scene discovery
   widening (see the "Base-scene test sets" entry above). Routed to the scene-manager
   plan as a new owned row (O6 in
-  [walker_click_bug_register.md](active_plans/audits/walker_click_bug_register.md)),
+  [walker_click_bug_register.md](archive/audits/walker_click_bug_register.md)),
   tagged as possibly the same shared-base-zone / instrument-band overlap family as O4
   (hood pointer-overlap: `right_hemocytometer_slide_clear` over
   `rear_right_hood_return`), pending scene-manager confirmation before opening a
@@ -1022,7 +1022,7 @@
   from its own output and `sweep_summary.json` has zero escape bytes.
 
 - M16 walker-scope closeout: recorded the scene-manager handshake in
-  `docs/active_plans/audits/walker_click_bug_register.md`. Marked the `drug_dilution_setup` /
+  `docs/archive/audits/walker_click_bug_register.md`. Marked the `drug_dilution_setup` /
   `media_bottle` register row RESOLVED/STALE (the scene's `remove_placements` now documents
   keeping the inherited `rear_left_media_bottle`, so the bug no longer reproduces), and added a
   "Scene-manager handshake (out of walker scope)" section listing the remaining
@@ -1038,7 +1038,7 @@
   membership). Added a wrong-order negative pass (`--wrong-order` on 3 sampled PASS
   protocols) and confirmed the runtime rejects every injected out-of-order click while the
   protocol still completes. Promoted the pre-triage into the certified register at
-  `docs/active_plans/audits/walker_click_bug_register.md`, ranked most-severe first and
+  `docs/archive/audits/walker_click_bug_register.md`, ranked most-severe first and
   cross-checked row-by-row against `test-results/walker/sweep_summary.json`, with sampled
   before/after screenshots for the subpart-click, target-missing, and adjust-commit
   clusters. One wording drift noted (not a category change): `trypan_blue_counting` now

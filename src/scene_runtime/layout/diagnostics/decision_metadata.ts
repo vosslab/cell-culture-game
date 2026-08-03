@@ -1,5 +1,5 @@
 // Per-scene decision metadata. Ratified contract:
-//   docs/active_plans/decisions/layout_model_layer_synthesis.md
+//   docs/archive/decisions/layout_model_layer_synthesis.md
 //   ("Decision metadata") and plan partitioned-shimmying-dragonfly.md
 //   ("Decision metadata (elkjs logging discipline)").
 //

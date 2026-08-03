@@ -45,7 +45,7 @@
 //
 // References:
 //   - docs/PRIMARY_SPEC.md (targets and the scene boundary)
-//   - docs/active_plans/decisions/target_identity.md (M7/M8 placement_name /
+//   - docs/archive/decisions/target_identity.md (M7/M8 placement_name /
 //     object_name split this check reads through)
 //   - src/scene_runtime/protocol/target_adapter.ts (TargetAdapter.has_target)
 //   - src/scene_runtime/protocol/step_machine.ts (enter_step /

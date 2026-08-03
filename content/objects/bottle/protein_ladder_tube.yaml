@@ -26,6 +26,9 @@ visual_states:
       - when: protein_ladder
         output:
           asset_name: protein_ladder_tube_filled
+  material_volume:
+    kind: composite
+    composite: []
 capabilities:
   - clickable
   - material_container

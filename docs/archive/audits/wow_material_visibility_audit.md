@@ -16,7 +16,7 @@ protocol host. The current capture covers all 31 emitted protocols and records
 The verified baseline reports 702 unchanged, zero regressed, zero new, and zero
 missing surfaces. Every current surface uses either the normalized SVG-anchor
 contract or structured-subpart geometry; the old full-item HTML bbox overlay is
-not part of this corpus. See [material_render.md](../reports/material_render.md)
+not part of this corpus. See [material_render.md](../../active_plans/reports/material_render.md)
 for the generated evidence and
 `source source_me.sh && python3 tests/e2e/e2e_material_render.py` for the
 verification command.
@@ -28,7 +28,7 @@ remain the evidence for authored state changes during student actions.
 ## Historical scope and result
 
 This audit rechecks the live claims in
-[material_render.md](../reports/material_render.md) without changing source,
+[material_render.md](../../active_plans/reports/material_render.md) without changing source,
 content, generated data, specs, or that report. It separates the diagnostic
 scene viewer's object-level fill behavior from the protocol-host and structured
 subpart paths.

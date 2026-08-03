@@ -367,48 +367,19 @@ function SvgHost(props: {
 }
 
 //============================================
-// Overlay rendering (fills + text), bottom-anchored
+// Text-overlay rendering, bottom-anchored
 //============================================
 
-// Render the resolved overlays for an item. Fill overlays are bottom-anchored
-// percentage bars tinted by the resolved material color; text overlays render
-// as a centered caption. Overlays are advisory render layers over the asset;
-// they do not change item geometry.
+// Render resolved text overlays as centered captions. Multiple overlays stack
+// above the bottom of the item box and do not change item geometry.
 function Overlays(props: { resolved: ResolvedVisualState }): JSXElement {
   return (
     <For each={props.resolved.overlays}>
       {(overlay, index) => {
-        if (overlay.type === "fill") {
-          // Legacy bbox fills remain temporarily for unmigrated objects. Empty
-          // identity or zero volume is no fill, never an invented neutral gray.
-          const color = props.resolved.material_color;
-          if (color === null || overlay.fill_percent <= 0) {
-            return null;
-          }
-          return (
-            <div
-              data-overlay="fill"
-              data-overlay-field={overlay.field_name}
-              style={{
-                position: "absolute",
-                left: "0",
-                bottom: "0",
-                width: "100%",
-                height: `${overlay.fill_percent}%`,
-                "background-color": color,
-                "pointer-events": "none",
-              }}
-            ></div>
-          );
-        }
-        // Text overlay: centered caption near the bottom of the item box.
         // Multiple declared text overlays represent distinct state facts (for
         // example, an instrument's completed analysis plus its numeric
         // results). Stack them rather than placing each in the same pixels.
-        const priorTextOverlays = props.resolved.overlays
-          .slice(0, index())
-          .filter((priorOverlay) => priorOverlay.type === "text").length;
-        const bottom = 2 + priorTextOverlays * 12;
+        const bottom = 2 + index() * 12;
         return (
           <div
             data-overlay="text"

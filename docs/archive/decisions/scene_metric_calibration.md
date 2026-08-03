@@ -16,7 +16,7 @@ citation, and an expected relative ranking.
 ## How judgments are grounded
 
 Every judgment is grounded in the round-0 vision review recorded in
-[../reports/aesthetic_baseline_round0.md](../reports/aesthetic_baseline_round0.md),
+[../../archive/reports/aesthetic_baseline_round0.md](../../archive/reports/aesthetic_baseline_round0.md),
 which scored eight rendered scenes 1 (worst) to 5 (best) and attached failure
 tags, strong points, and blocking findings per scene. Each row below cites that
 scene's round-0 scores and tags; no verdict is invented here.

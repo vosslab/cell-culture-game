@@ -9,9 +9,10 @@ Per docs/E2E_TESTS.md and docs/PYTEST_STYLE.md, artifact round-trip checks belon
 here, not in `pytest tests/`. The fast YAML-walk behavioral tests stay in
 tests/test_object_library_visual_states.py.
 
-This verifies the generator -> generated module round trip: the emitted
-aspirating_pipette must carry the declarative held-material volume contract and
-its paired material identity state.
+This verifies the generator -> generated module round trip across both sides of
+the material cutover. A static pipette keeps its held-volume state but declares
+that amount explicitly nonvisual, while the variable-volume serological pipette
+keeps the compiled fill-height binding.
 
 Usage:
 	python3 tests/e2e/e2e_object_library_generated.py
@@ -34,13 +35,16 @@ import file_utils
 
 #============================================
 
-def load_generated_aspirating_pipette(repo_root: str) -> dict:
-	"""Load the generated module through the same TypeScript loader as runtime checks."""
+def load_generated_objects(repo_root: str) -> dict:
+	"""Load representative generated objects through the runtime TypeScript loader."""
 	generated_path = os.path.join(repo_root, "generated", "object_library.ts")
 	loader_script = (
 		"import { pathToFileURL } from 'node:url'; "
 		"const module = await import(pathToFileURL(process.argv[1]).href); "
-		"console.log(JSON.stringify(module.OBJECT_LIBRARY.aspirating_pipette));"
+		"const objects = module.OBJECT_LIBRARY; "
+		"console.log(JSON.stringify({ "
+		"aspirating_pipette: objects.aspirating_pipette, "
+		"serological_pipette: objects.serological_pipette }));"
 	)
 	result = subprocess.run(
 		["node", "--import", "tsx", "--input-type=module", "-e", loader_script, generated_path],
@@ -54,29 +58,36 @@ def load_generated_aspirating_pipette(repo_root: str) -> dict:
 
 #============================================
 
-def check_generated_visual_states(repo_root: str) -> None:
-	"""Assert the generated pipette preserves the held-material render contract."""
-	pipette = load_generated_aspirating_pipette(repo_root)
+def check_static_amount_state_is_nonvisual(objects: dict) -> None:
+	"""Assert a static form keeps amount state without receiving a liquid renderer."""
+	pipette = objects["aspirating_pipette"]
 	volume_state = pipette["visual_states"]["held_material_volume"]
-	identity_state = pipette["visual_states"]["held_material_name"]
-	expected_volume_state = {
-		"applies_to": "object",
-		"render_effect": "fill_height",
-		"target": "anchor_liquid_bounds",
-		"clip": "anchor_liquid_clip",
-		"capacity_ml": pipette["state_schema"]["held_material_volume"]["max"],
-	}
+	assert "held_material_volume" in pipette["state_schema"]
+	assert volume_state["kind"] == "composite" and "render_effect" not in volume_state
 
-	assert volume_state == expected_volume_state
-	assert identity_state["kind"] == "svg" and identity_state["cases"]
+
+#============================================
+
+def check_variable_amount_state_uses_compiled_fill(objects: dict) -> None:
+	"""Assert a material form retains the generated variable-volume binding."""
+	pipette = objects["serological_pipette"]
+	volume_state = pipette["visual_states"]["held_material_volume"]
+	assert (
+		volume_state["render_effect"],
+		volume_state["target"],
+		volume_state["clip"],
+	) == ("fill_height", "anchor_liquid_bounds", "anchor_liquid_clip")
+	assert volume_state["capacity_ml"] == pipette["state_schema"]["held_material_volume"]["max"]
 
 
 #============================================
 
 def main() -> None:
 	repo_root = file_utils.get_repo_root()
-	check_generated_visual_states(repo_root)
-	print("PASS: generated/object_library.ts carries aspirating_pipette visual_states")
+	objects = load_generated_objects(repo_root)
+	check_static_amount_state_is_nonvisual(objects)
+	check_variable_amount_state_uses_compiled_fill(objects)
+	print("PASS: generated/object_library.ts preserves static and variable material contracts")
 
 
 if __name__ == "__main__":

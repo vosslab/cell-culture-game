@@ -1,6 +1,6 @@
 // Unit tests for src/scene_runtime/layout/geometry. Pure deterministic
 // collision geometry per the ratified contract:
-//   docs/active_plans/decisions/layout_model_layer_synthesis.md
+//   docs/archive/decisions/layout_model_layer_synthesis.md
 // Uses the tsx loader so we import the TS source directly. Run via:
 //   node --import tsx --test tests/test_layout_geometry.mjs
 

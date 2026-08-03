@@ -10,7 +10,7 @@ Method: fresh `./build_github_pages.sh`, then
 `node tests/playwright/e2e/protocol_walkthrough_yaml.mjs --protocol <name>` for
 each of the 4, cross-checked against
 [walker_click_bug_register.md](walker_click_bug_register.md) and
-[../decisions/subpart_click_pattern.md](../decisions/subpart_click_pattern.md).
+[subpart_click_pattern.md](../decisions/subpart_click_pattern.md).
 
 ## Summary table
 
@@ -63,7 +63,7 @@ the pedagogy owner, not walker-plan work.
 ## Files referenced
 
 - [walker_click_bug_register.md](walker_click_bug_register.md)
-- [../decisions/subpart_click_pattern.md](../decisions/subpart_click_pattern.md)
+- [subpart_click_pattern.md](../decisions/subpart_click_pattern.md)
 - [adjust_did_not_advance_rootcause.md](adjust_did_not_advance_rootcause.md)
 - `content/protocols/cell_culture/trypan_blue_counting/protocol.yaml` (lines
   325-370)

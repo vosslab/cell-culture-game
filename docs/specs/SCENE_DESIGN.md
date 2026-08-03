@@ -199,7 +199,7 @@ well-grouped one is acceptable.
 objects across more zones, which fights the grouping intent in
 [LAYOUT_ENGINE.md](LAYOUT_ENGINE.md#zone-population-and-alignment-aesthetics).
 See
-[docs/active_plans/decisions/scorecard_metric_spec_discrepancy.md](../active_plans/decisions/scorecard_metric_spec_discrepancy.md)
+[scorecard_metric_spec_discrepancy.md](../archive/decisions/scorecard_metric_spec_discrepancy.md)
 for the removal record.
 
 ### Proximity (`metrics/proximity.py`)

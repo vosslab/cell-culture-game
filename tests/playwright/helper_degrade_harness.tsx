@@ -22,8 +22,8 @@
 //   - "test_degrade_obj": valid state_schema with a material_volume field,
 //     but a visual_states formula using an UNKNOWN token ("badtoken") that
 //     causes parse_formula_expr to throw.
-//   - "test_happy_obj": valid state_schema AND a well-formed fill_height
-//     formula that resolves cleanly. No degrade expected.
+//   - "test_happy_obj": valid state_schema AND an explicit nonvisual
+//     declaration for its amount field. No degrade expected.
 //
 // The two items are positioned inside scene_bounds with empty label lists so the
 // hand-built scene produces ZERO structural violations. That guarantees a
@@ -61,12 +61,13 @@ const BAD_VISUAL_STATES: ObjectVisualStates = {
   },
 };
 
-// GOOD visual_states: well-formed fill_height referencing the seeded field.
+// GOOD visual_states: the seeded amount field is intentionally nonvisual.
+// Static complete-form objects use this closed declaration when their retained
+// amount state should not drive generated geometry or an authored liquid anchor.
 const GOOD_VISUAL_STATES: ObjectVisualStates = {
   material_volume: {
     kind: "composite",
     applies_to: "object",
-    formula: "fill_height(state(material_volume), capacity_ml=10.0)",
   },
 };
 

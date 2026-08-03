@@ -7,7 +7,7 @@
 // file is the only place that reads the declared schemas to answer a lookup.
 //
 // Contract (finalized; see
-// docs/active_plans/decisions/m1b2_discovery_seam_proposal.md, Item 2):
+// docs/archive/decisions/m1b2_discovery_seam_proposal.md, Item 2):
 //   1. Split target on the FIRST "." into (object_name, subpart|null), mirror
 //      scene_store's split_target.
 //   2. Select registry: subpart === null -> OBJECT_STATE_SCHEMAS; else

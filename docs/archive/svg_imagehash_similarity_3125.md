@@ -17,7 +17,7 @@ Source artifacts:
   [svg_visual_regression.json](../active_plans/reports/svg_visual_regression.json) -- full imagehash run.
 - [svg_feature_census.md](../active_plans/reports/svg_feature_census.md) /
   [svg_feature_census.json](../active_plans/reports/svg_feature_census.json) -- per-file feature census.
-- [svg_gradient_fix_verification.md](../active_plans/reports/svg_gradient_fix_verification.md) -- the two
+- [svg_gradient_fix_verification.md](reports/svg_gradient_fix_verification.md) -- the two
   real regressions the harness caught, and their fixes.
 - [normalize_svg_v3_findings.md](normalize_svg_v3_findings.md) -- ranked next
   feature to graduate.
@@ -77,7 +77,7 @@ object is faithful. The worst offenders confirm this:
 - `cpu.svg` (phash 40): the known reframe; render-verified full-color in both
   engines after the gradient + stroke fixes. dhash dropped 41 -> 33; the
   residual phash is the no-crop viewBox expansion, documented in
-  [svg_gradient_fix_verification.md](../active_plans/reports/svg_gradient_fix_verification.md).
+  [svg_gradient_fix_verification.md](reports/svg_gradient_fix_verification.md).
 
 The trustworthy fidelity signal is cross-engine agreement: 87% identical with 0
 render errors means the normalized SVGs render consistently across the two
@@ -103,7 +103,7 @@ and unit tests missed, both visible only in render:
   thickened about 2.4x and filled its hole cutouts with the mesh color.
 
 Both fixed and render-verified colorful in both engines. Details in
-[svg_gradient_fix_verification.md](../active_plans/reports/svg_gradient_fix_verification.md).
+[svg_gradient_fix_verification.md](reports/svg_gradient_fix_verification.md).
 
 ## Normalization-requirement census (all 3125 files)
 

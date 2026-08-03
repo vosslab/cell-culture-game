@@ -1,5 +1,5 @@
 // resolveConfig + buildGlobalDefaults. Ratified contract:
-// docs/active_plans/decisions/layout_model_layer_synthesis.md "Config hierarchy".
+// docs/archive/decisions/layout_model_layer_synthesis.md "Config hierarchy".
 //
 // Precedence (lowest to highest):
 //   global defaults -> scene layout_rules -> zone overrides ->

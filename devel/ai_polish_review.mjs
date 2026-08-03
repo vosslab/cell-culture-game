@@ -567,7 +567,7 @@ async function main() {
     rubric_items: RUBRIC_ITEMS.map(([key, text]) => ({ key, text })),
     calibration_note:
       "Compare each scene's AI scores against the human calibration label in " +
-      "docs/active_plans/decisions/ai_polish_review_calibration.md. Promotion to a " +
+      "docs/archive/decisions/ai_polish_review_calibration.md. Promotion to a " +
       "gate is deferred until calibration shows stable, useful results.",
     summary: {
       scene_count: scenes.length,

@@ -1,9 +1,8 @@
 // tests/test_visual_state_resolver.mjs
 //
-// Behavioral tests for WS-M2-R (resolve_visual_state). Covers the inventoried
-// formula set: fill_height (ml/ul/mg), label, conditional (flat and nested),
-// compose, svg case selection, material color from the per-protocol registry,
-// and fail-loud paths for unknown tokens.
+// Behavioral tests for resolve_visual_state. Covers the runtime formula set,
+// compiled material effects, SVG case selection, material color from the
+// per-protocol registry, and fail-loud paths for unknown or unlowered tokens.
 //
 // Run with:
 //   node --import tsx --test tests/test_visual_state_resolver.mjs
@@ -30,94 +29,7 @@ const MATERIAL_REGISTRY = {
 };
 
 //============================================
-// fill_height: flask / tube style container (capacity_ml)
-//============================================
-
-describe("fill_height capacity_ml", () => {
-  const visual_states = {
-    material_name: {
-      kind: "svg",
-      applies_to: "object",
-      cases: [
-        { when: "empty", output: { asset_name: "flask_empty" } },
-        { when: "pbs", output: { asset_name: "flask" } },
-      ],
-    },
-    material_volume: {
-      kind: "composite",
-      applies_to: "object",
-      formula: "fill_height(state(material_volume), capacity_ml=10.0)",
-    },
-  };
-
-  test("vol=4, cap=10 -> 40% fill", () => {
-    const state = { material_name: "pbs", material_volume: 4 };
-    const out = resolve_visual_state(visual_states, state, MATERIAL_REGISTRY);
-    assert.equal(out.asset_name, "flask");
-    assert.equal(out.overlays.length, 1);
-    assert.deepEqual(out.overlays[0], {
-      type: "fill",
-      field_name: "material_volume",
-      fill_percent: 40,
-    });
-  });
-
-  test("overfill clamps to 100%", () => {
-    const state = { material_name: "pbs", material_volume: 50 };
-    const out = resolve_visual_state(visual_states, state, MATERIAL_REGISTRY);
-    assert.equal(out.overlays[0].fill_percent, 100);
-  });
-
-  test("material color resolves from registry", () => {
-    const state = { material_name: "pbs", material_volume: 4 };
-    const out = resolve_visual_state(visual_states, state, MATERIAL_REGISTRY);
-    assert.equal(out.material_color, "#076dad");
-    assert.equal(out.data_attrs["data-material"], "pbs");
-  });
-
-  test("empty sentinel material has null color", () => {
-    const state = { material_name: "empty", material_volume: 0 };
-    const out = resolve_visual_state(visual_states, state, MATERIAL_REGISTRY);
-    assert.equal(out.material_color, null);
-    assert.equal(out.asset_name, "flask_empty");
-    assert.equal(out.overlays[0].fill_percent, 0);
-  });
-});
-
-//============================================
-// fill_height: micropipette (capacity_ul) and mtt vial (capacity_mg)
-//============================================
-
-describe("fill_height non-ml capacities", () => {
-  test("capacity_ul: vol=50 ul, cap=200 -> 25%", () => {
-    const visual_states = {
-      held_material_volume: {
-        kind: "composite",
-        applies_to: "object",
-        formula: "fill_height(state(held_material_volume), capacity_ul=200)",
-      },
-    };
-    const state = { held_material_volume: 50 };
-    const out = resolve_visual_state(visual_states, state, {});
-    assert.equal(out.overlays[0].fill_percent, 25);
-  });
-
-  test("capacity_mg: mass=5 mg, cap=10 -> 50% (no liquid-unit assumption)", () => {
-    const visual_states = {
-      material_volume: {
-        kind: "composite",
-        applies_to: "object",
-        formula: "fill_height(state(material_volume), capacity_mg=10)",
-      },
-    };
-    const state = { material_volume: 5 };
-    const out = resolve_visual_state(visual_states, state, {});
-    assert.equal(out.overlays[0].fill_percent, 50);
-  });
-});
-
-//============================================
-// Declarative anchor material effects (new modular object path)
+// Declarative compiled material effects
 //============================================
 
 describe("declarative anchor material effects", () => {
@@ -320,20 +232,18 @@ describe("conditional formula", () => {
 describe("compose formula", () => {
   test("compose contributes each part's overlays in order", () => {
     const visual_states = {
-      material_volume: {
-        kind: "composite",
+      set_volume: {
+        kind: "overlay",
         applies_to: "object",
         formula:
-          'compose(fill_height(state(material_volume), capacity_ml=10), label(state(set_volume), format="{value} ml"))',
+          'compose(label(state(set_volume), format="Volume: {value} ml"), label(state(set_temperature), format="Temperature: {value} C"))',
       },
     };
-    const state = { material_volume: 2, set_volume: 7 };
+    const state = { set_volume: 7, set_temperature: 37 };
     const out = resolve_visual_state(visual_states, state, {});
     assert.equal(out.overlays.length, 2);
-    assert.equal(out.overlays[0].type, "fill");
-    assert.equal(out.overlays[0].fill_percent, 20);
-    assert.equal(out.overlays[1].type, "text");
-    assert.equal(out.overlays[1].text, "7 ml");
+    assert.equal(out.overlays[0].text, "Volume: 7 ml");
+    assert.equal(out.overlays[1].text, "Temperature: 37 C");
   });
 });
 
@@ -371,14 +281,16 @@ describe("svg case selection", () => {
     assert.equal(out.placeholder, true);
   });
 
-  test("empty composite literal is a no-op", () => {
+  test("compiler-lowered empty composite is a no-op", () => {
     const visual_states = {
       material_name: {
         kind: "svg",
         applies_to: "object",
         cases: [{ when: "empty", output: { asset_name: "tube" } }],
       },
-      material_volume: { kind: "composite", applies_to: "object", composite: [] },
+      // Source `composite: []` is validated before the object compiler lowers
+      // it to a kind-only runtime declaration.
+      material_volume: { kind: "composite", applies_to: "object" },
     };
     const out = resolve_visual_state(
       visual_states,
@@ -423,6 +335,20 @@ describe("authored equipment composite states", () => {
 //============================================
 
 describe("fail-loud paths", () => {
+  test("unlowered fill_height cannot recreate a whole-object overlay", () => {
+    const visual_states = {
+      material_volume: {
+        kind: "composite",
+        applies_to: "object",
+        formula: "fill_height(state(material_volume), capacity_ml=10)",
+      },
+    };
+    assert.throws(
+      () => resolve_visual_state(visual_states, { material_volume: 2 }, {}),
+      /must be compiler-lowered to render_effect/,
+    );
+  });
+
   test("unknown formula token throws", () => {
     const visual_states = {
       x: { kind: "overlay", applies_to: "object", formula: "bogus(state(x))" },

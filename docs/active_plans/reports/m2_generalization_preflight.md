@@ -1,6 +1,6 @@
 # M2c generalization preflight report
 
-Run at: 2026-08-03 02:02:17 UTC
+Run at: 2026-08-03 13:53:49 UTC
 
 ## Scope
 
@@ -54,7 +54,7 @@ layout geometry before D4 attempts rendering.
 | sdspage_destain_gel_rock_workspace | 2 | 1 | 4 | PASS | 0 | 2 |
 | sdspage_destain_gel_setup_workspace | 6 | 1 | 7 | PASS | 0 | 6 |
 | sdspage_fill_tank_buffer_workspace | 4 | 1 | 5 | PASS | 0 | 4 |
-| sdspage_heat_denature_samples_workspace | 1 | 1 | 3 | FAIL: Structural guard failure (item overlap): item "front_heat_block" overlaps with "front_sds_microtube_rack" by 4.9%. | 1 | 0 |
+| sdspage_heat_denature_samples_workspace | 0 | 1 | 2 | PASS | 0 | 0 |
 | sdspage_image_gel_workspace | 4 | 1 | 4 | PASS | 0 | 4 |
 | sdspage_load_protein_ladder_workspace | 5 | 1 | 5 | PASS | 0 | 5 |
 | sdspage_load_sample_single_lane_workspace | 3 | 1 | 7 | PASS | 0 | 3 |
@@ -573,15 +573,14 @@ layout geometry before D4 attempts rendering.
 
 ### sdspage_heat_denature_samples_workspace
 
-**Guard verdict:** FAIL
-**Guard failure message:** Structural guard failure (item overlap): item "front_heat_block" overlaps with "front_sds_microtube_rack" by 4.9%.
+**Guard verdict:** PASS
 
-**Diagnostics:** 1 (passes: 1, final items: 3)
-- meta/error/item_overlap [front_heat_block] obj=heat_block
+**Diagnostics:** 0 (passes: 1, final items: 2)
+(none)
 
 **Zones shrunk per pass:** 0
 
-**Overlap count:** 1
+**Overlap count:** 0
 **Zone overflow count:** 0
 
 ### sdspage_image_gel_workspace
@@ -787,7 +786,7 @@ layout geometry before D4 attempts rendering.
 
 ## Summary and next steps
 
-**D4-ready (preflight pass):** 41 / 42
+**D4-ready (preflight pass):** 42 / 42
 
 ### Preflight-passing scenes (ready for D4 render):
 
@@ -820,6 +819,7 @@ layout geometry before D4 attempts rendering.
 - **sdspage_destain_gel_rock_workspace**: 2 diagnostics
 - **sdspage_destain_gel_setup_workspace**: 6 diagnostics
 - **sdspage_fill_tank_buffer_workspace**: 4 diagnostics
+- **sdspage_heat_denature_samples_workspace**: 0 diagnostics
 - **sdspage_image_gel_workspace**: 4 diagnostics
 - **sdspage_load_protein_ladder_workspace**: 5 diagnostics
 - **sdspage_load_sample_single_lane_workspace**: 3 diagnostics
@@ -832,10 +832,6 @@ layout geometry before D4 attempts rendering.
 - **sdspage_stain_gel_workspace**: 6 diagnostics
 - **seeding_workspace**: 6 diagnostics
 - **staining_bench**: 10 diagnostics
-
-### Preflight-failing scenes (needs fix before D4):
-
-- **sdspage_heat_denature_samples_workspace**: Structural guard failure (item overlap): item "front_heat_block" overlaps with "front_sds_microtube_rack" by 4.9%.
 
 Scenes that pass structural guards proceed to D4 rendering.
 Scenes that fail are classified per D5 taxonomy.

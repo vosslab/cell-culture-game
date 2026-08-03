@@ -1,7 +1,7 @@
 // Overflow packer strategy: non-uniform, priority-based shrink plus gap compaction.
 //
 // Ratified contract:
-//   docs/active_plans/decisions/layout_model_layer_synthesis.md
+//   docs/archive/decisions/layout_model_layer_synthesis.md
 //   ("Packer objective and trigger").
 //
 // The packer is engaged by the horizontal dispatcher only for a zone whose row

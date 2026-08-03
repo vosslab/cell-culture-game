@@ -46,6 +46,9 @@ visual_states:
       - when: running_buffer_1x_used
         output:
           asset_name: waste_container
+  material_volume:
+    kind: composite
+    composite: []
 capabilities:
   - clickable
   - material_container

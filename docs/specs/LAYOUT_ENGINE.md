@@ -224,7 +224,7 @@ after label space was already budgeted, reopening exactly the class of
 regression this two-pass split exists to prevent (see the
 `groupVerticalBands` transitive band-merge defect and the
 `unresolved_label_overlap` label-relayout note in
-[wp_f1_bottom_align_scene_churn.md](../active_plans/reports/wp_f1_bottom_align_scene_churn.md)
+[wp_f1_bottom_align_scene_churn.md](../archive/reports/wp_f1_bottom_align_scene_churn.md)
 for two real incidents caused by cross-zone geometry decisions leaking
 into the wrong phase). Keeping shelf alignment strictly placement-layer
 makes that class of regression structurally impossible, not merely rare.
@@ -606,7 +606,7 @@ Known limitations:
   overlap is preserved on purpose as authored z-layering. M7 evidence found no genuine
   same-tier real-asset overlap that harms composition, so this work (M8) stays deferred and
   evidence-gated (see
-  [m8_same_tier_overlap_evidence.md](../active_plans/reports/m8_same_tier_overlap_evidence.md)).
+  [m8_same_tier_overlap_evidence.md](../archive/reports/m8_same_tier_overlap_evidence.md)).
 - Authored per-zone strategy and per-item priority are not exposed in YAML. The strategy
   and shrink priority are derived (kind, footprint, `placement_name` tiebreak); a closed
   authored-enum surface is the deferred M9 RFC.

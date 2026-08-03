@@ -77,5 +77,5 @@ must be rejected whenever a nonmember sibling exists.
   material-effect proof.
 
 Release-gate commands and their final results are recorded in
-[wow_recovery_plan.md](../active/wow_recovery_plan.md), which is the execution
+[wow_recovery_plan.md](../../archive/wow_recovery_plan.md), which is the execution
 record for this audit.

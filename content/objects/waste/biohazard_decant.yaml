@@ -34,6 +34,9 @@ visual_states:
       - when: cell_supernatant
         output:
           asset_name: biohazard_decant
+  material_volume:
+    kind: composite
+    composite: []
 capabilities:
   - clickable
   - material_container

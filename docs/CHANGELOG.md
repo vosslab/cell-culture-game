@@ -1,5 +1,95 @@
 # Changelog
 
+## 2026-08-03
+
+### Fixes and Maintenance
+
+- Archived the completed semantic in-SVG liquid-rendering and protocol
+  walkthrough-recovery plans after confirming that their milestones, release
+  gates, and closure records were complete. Updated all tracked links to their
+  history-preserving archive locations.
+- Archived 63 closed audits and historical reports, reducing
+  `docs/active_plans/` from 109 files to 45. Retained current generated
+  baselines, material-pipeline evidence, and records still under review.
+- Archived the remaining 21 completed decision records, seven completed audits,
+  one obsolete pointer report, and the superseded material-issues prompt,
+  reducing the active set from 45 files to 15. The retained set is limited to
+  two audit outputs that current tools regenerate and 13 fixed-path generated
+  reports or baselines; live source comments and specifications now cite the
+  archived records.
+
+### Decisions and Failures
+
+- Audited the 17 material-amount no-op declarations added during the semantic
+  renderer cutover. The declarations honestly preserve nonvisual numeric state,
+  but they do not approve all affected objects as intentionally static: five
+  have defensible complete-form visuals, while twelve retain visual-design debt.
+- Prioritized learner-visible repairs for the MTT solution tube and both
+  electrophoresis chambers, followed by categorical loaded/empty pipette cues
+  and nonempty waste feedback. Future work must use semantic object geometry or
+  complete forms rather than revive whole-object bounding-box fills.
+
+### Developer Tests and Notes
+
+- Saved the visual-intent findings in the legacy material-binding audit,
+  including behavior-based acceptance guidance and a separation between useful
+  one-time visual evidence and durable automated tests.
+- Checked all 91 moved Markdown documents with the repository's archive-link
+  flattener. A target-scoped apply repaired five basename-resolvable links with
+  no delinked or unresolved targets; the final dry run found no remaining
+  changes. The repository Markdown-link test passed all 561 cases.
+
+## 2026-08-02
+
+### Behavior or Interface Changes
+
+- Replaced the inherited non-target 24-slot microtube rack in the focused
+  SDS-PAGE heat-denaturation scene with the protocol's intended 8-slot rack.
+  The learner now sees only the heat block and the rack used by the authored
+  workflow, with no duplicate lookalike or item overlap.
+
+### Fixes and Maintenance
+
+- Restored explicit nonvisual composite declarations for retained material
+  amount fields on static and complete-form objects. Protocol state remains
+  available for conservation and validation without reviving the retired
+  whole-object overlay renderer.
+- Removed the dormant HTML bounding-box fill renderer that survived the
+  semantic cutover. Unlowered `fill_height` formulas now fail loudly at the
+  runtime boundary, and the anti-return lint rejects both SVG-rectangle and
+  HTML whole-object fill reintroductions.
+- Made `super_all_tests.sh` single-writer per checkout so concurrent exhaustive
+  runs fail before overwriting generated render evidence, Playwright
+  checkpoints, or `SUPER_LOG.txt`.
+- Repaired the material-render audit at the DOM ownership boundary: compiled
+  liquid metadata is read from the injected SVG host while asset and placement
+  identity comes from the enclosing scene item. The capture now waits for DOM
+  SVG injection, reports SVG load failures, and refuses baselines without both
+  compiled-liquid and structured-subpart coverage.
+- Versioned the material evidence as the post-cutover v3 surface model and
+  refreshed it only after reviewing the authoritative protocol-host captures.
+  The baseline now covers 56 compiled liquid regions and 578 generated
+  structured-subpart surfaces instead of accepting retired anchor overlays.
+- Updated the generated object-library E2E boundary to prove that static
+  aspirating-pipette amount state compiles to a no-op while the variable-volume
+  serological pipette retains its compiler-backed `fill_height` contract.
+
+### Developer Tests and Notes
+
+- Kept permanent coverage at behavioral boundaries: existing generated-scene
+  and browser E2Es prove the rack correction, the generated-artifact E2E avoids
+  exact dictionary snapshots, and the render baseline uses documented geometry
+  and footprint tolerances instead of pixel equality. No fixture was added.
+- Ran six independent plan, test, style, documentation, legacy-code, and comment
+  reviews. Their actionable test and documentation findings were applied, and
+  the legacy review exposed the dormant HTML fill path removed above.
+- Aligned the browser degrade harness with the compiler-lowered empty-composite
+  representation, so its valid control object no longer relies on the retired
+  raw `fill_height` formula path.
+- Passed `./super_all_tests.sh` after the cleanup: all 20 categories passed,
+  including 5,819 pytest cases, all 42 scene preflights, the reviewed 634-surface
+  material capture, and 102 visible browser tests.
+
 ## 2026-08-01
 
 ### Behavior or Interface Changes
@@ -270,7 +360,7 @@
   `scene_stats.mjs` stays deterministic. Re-rendered all scenes via
   `node tools/scene_to_png.mjs --all` to regenerate
   `generated/scene_render_stats/*.stats.json` with the new fields.
-- Added `docs/active_plans/decisions/scene_metric_calibration.md` (WP-2A1), a
+- Added `docs/archive/decisions/scene_metric_calibration.md` (WP-2A1), a
   provisional scene-metric calibration set: eight real scenes from the round-0
   vision review (`docs/active_plans/reports/aesthetic_baseline_round0.md`)
   spanning the full verdict range, each with a plain-language judgment that
@@ -278,7 +368,7 @@
   coverage floor (at least four usable calibration points per metric, anchored
   high and low). Status provisional; ratification is non-blocking. Serves as the
   ground-truth reference the bbox scorecard candidates in
-  `docs/active_plans/decisions/aesthetic_review_metrics.md` are calibrated
+  `docs/archive/decisions/aesthetic_review_metrics.md` are calibrated
   against before any metric is promoted to a gate.
 - Added `docs/specs/NO_FIXTURE_POLICY.md`, the repo-specific no-fixture policy
   ("content is the fixture": curriculum content under `content/protocols/**`
@@ -461,7 +551,7 @@
   protocol behavior; `dev_smoke` is removed as a concept rather than
   reformed. `docs/PRIMARY_CONTRACT.md` never named `dev_smoke`, so this is
   not a contract change.
-- Recorded `docs/active_plans/decisions/scorecard_metric_spec_discrepancy.md`
+- Recorded `docs/archive/decisions/scorecard_metric_spec_discrepancy.md`
   (RATIFIED): removed the `zone_footprint_balance` and `row_overcrowding`
   scene-design scorecard metrics. Both rewarded spreading placements across
   more zones, directly conflicting with the grouping design intent in

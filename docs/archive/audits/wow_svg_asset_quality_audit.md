@@ -86,7 +86,7 @@ incorrect identity or non-visible state changes elsewhere in the same scenes.
 - The byte-identical cluster `gel_cassette.svg`, `gel_comb.svg`, and
   `mini_protean_gel.svg` makes distinct electrophoresis objects share one
   visual identity. The current duplicate sweep records that cluster at
-  [svg_identity_sweep.md](svg_identity_sweep.md). In the live scene, the
+  [svg_identity_sweep.md](../../active_plans/audits/svg_identity_sweep.md). In the live scene, the
   cassette/comb pair cannot teach their distinct roles.
 
 ### State transitions with no visual teaching cue
@@ -111,7 +111,7 @@ green bottle. The authored mappings confirm that multiple chemically distinct
 bottles select `bottle_green`, for example
 `content/objects/bottle/coomassie_stain_bottle.yaml:25` and
 `content/objects/bottle/destain_bottle.yaml:25`. The existing
-[material_render.md](../reports/material_render.md) independently records the
+[material_render.md](../../active_plans/reports/material_render.md) independently records the
 runtime's grey fallback and full-bbox fill problem. Asset replacement alone
 cannot fix that renderer-owned material defect.
 

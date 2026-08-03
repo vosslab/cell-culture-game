@@ -21,7 +21,7 @@
 // runtime backstop. This is the load-time front line.
 //
 // References:
-//   - docs/active_plans/decisions/m1b2_discovery_seam_proposal.md
+//   - docs/archive/decisions/m1b2_discovery_seam_proposal.md
 //     (Items 1-4: authored shapes, result kinds, the two state-touching presets)
 //   - src/scene_runtime/protocol/state_field_lookup.ts (StateFieldLookup,
 //     StateFieldLookupResult)

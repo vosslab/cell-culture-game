@@ -30,6 +30,9 @@ visual_states:
       - when: waste_mtt
         output:
           asset_name: biohazard_decant_bin
+  material_volume:
+    kind: composite
+    composite: []
 capabilities:
   - clickable
   - material_container

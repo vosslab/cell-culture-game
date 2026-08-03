@@ -2,7 +2,7 @@
 
 Current-state record of which scenes emit which layout diagnostics when `runPipeline` runs over every generated scene at a canonical 16:9 viewport (1920x1080). This is a read-only evidence snapshot taken before any layout-engine changes, so later improvements are measurable.
 
-- Generated: 2026-08-03 02:02 UTC
+- Generated: 2026-08-03 13:53 UTC
 - Scenes scanned: 42
 - Viewport: 1920x1080 (16:9)
 - Source: `tests/e2e/e2e_layout_diagnostics_baseline.mjs` over `generated/scenes.ts`
@@ -50,56 +50,55 @@ Current-state record of which scenes emit which layout diagnostics when `runPipe
 | 37 | `mtt_solubilization_readout_plate_reader_workspace` | 20 | item_escapes_zone_vertically=2 |
 | 38 | `plate_drug_treatment_media_adjustment_plate_workspace` | 20 | item_escapes_zone_vertically=2 |
 | 39 | `sdspage_destain_gel_rock_workspace` | 20 | item_escapes_zone_vertically=2 |
-| 40 | `sdspage_heat_denature_samples_workspace` | 2 | item_overlap=1 |
 
 Score weights hard structural failures (`max_iterations_reached`=100, overflow/tab-stop/vertical-escape=10, clamp=5, identity=8) above label residuals (`label_collision_residual`=3, `label_row_staggered`=1); any other kind weighs 2.
 
 ## Per-scene diagnostics
 
-| Scene | Passes | Converged | Total | item_escapes_zone_vertically | item_overlap | label_row_staggered |
-| --- | --- | --- | --- | --- | --- | --- |
-| `bench_basic` | 1 | YES | 9 | 9 | . | . |
-| `cell_counter_basic` | 1 | YES | 7 | 7 | . | . |
-| `cell_counter_workspace` | 1 | YES | 8 | 8 | . | . |
-| `centrifuge_workspace` | 1 | YES | 13 | 13 | . | . |
-| `dilution_workspace` | 1 | YES | 8 | 8 | . | . |
-| `drug_dilution_setup_bench_setup` | 1 | YES | 7 | 7 | . | . |
-| `electrophoresis_bench` | 1 | YES | 16 | 16 | . | . |
-| `extraction_workspace` | 1 | YES | 6 | 6 | . | . |
-| `heat_block_bench` | 1 | YES | 12 | 12 | . | . |
-| `hemocytometer_view` | 1 | YES | 7 | 7 | . | . |
-| `hood_basic` | 1 | YES | 5 | 5 | . | . |
-| `hood_workspace` | 1 | YES | 4 | 4 | . | . |
-| `imaging_bench` | 1 | YES | 13 | 12 | . | 1 |
-| `incubator_workspace` | 1 | YES | 5 | 5 | . | . |
-| `microscope_basic` | 1 | YES | 5 | 5 | . | . |
-| `mtt_reagent_prep_bench_workspace` | 1 | YES | 8 | 8 | . | . |
-| `mtt_solubilization_readout_bench_workspace` | 1 | YES | 3 | 3 | . | . |
-| `mtt_solubilization_readout_plate_reader_workspace` | 1 | YES | 2 | 2 | . | . |
-| `passage_hood_detachment_hood_workspace` | 1 | YES | 6 | 6 | . | . |
-| `passage_hood_detachment_microscope_view` | 1 | YES | 3 | 3 | . | . |
-| `plate_drug_treatment_media_adjustment_plate_workspace` | 1 | YES | 2 | 2 | . | . |
-| `plate_focus_bench` | 1 | YES | 0 | . | . | . |
-| `plate_focus_hood` | 1 | YES | 0 | . | . | . |
-| `plate_workspace` | 1 | YES | 5 | 5 | . | . |
-| `sample_prep_bench` | 1 | YES | 11 | 11 | . | . |
-| `sdspage_attach_lid_and_leads_workspace` | 1 | YES | 3 | 3 | . | . |
-| `sdspage_destain_gel_rock_workspace` | 1 | YES | 2 | 2 | . | . |
-| `sdspage_destain_gel_setup_workspace` | 1 | YES | 6 | 6 | . | . |
-| `sdspage_fill_tank_buffer_workspace` | 1 | YES | 4 | 4 | . | . |
-| `sdspage_heat_denature_samples_workspace` | 1 | YES | 1 | . | 1 | . |
-| `sdspage_image_gel_workspace` | 1 | YES | 4 | 4 | . | . |
-| `sdspage_load_protein_ladder_workspace` | 1 | YES | 5 | 5 | . | . |
-| `sdspage_load_sample_single_lane_workspace` | 1 | YES | 3 | 3 | . | . |
-| `sdspage_load_samples_batch_workspace` | 1 | YES | 3 | 3 | . | . |
-| `sdspage_prepare_running_buffer_workspace` | 1 | YES | 16 | 16 | . | . |
-| `sdspage_prepare_sample_mix_batch_workspace` | 1 | YES | 4 | 4 | . | . |
-| `sdspage_prepare_sample_mix_single_lane_workspace` | 1 | YES | 6 | 5 | . | 1 |
-| `sdspage_recycle_buffer_workspace` | 1 | YES | 3 | 3 | . | . |
-| `sdspage_run_electrophoresis_workspace` | 1 | YES | 3 | 3 | . | . |
-| `sdspage_stain_gel_workspace` | 1 | YES | 6 | 6 | . | . |
-| `seeding_workspace` | 1 | YES | 6 | 6 | . | . |
-| `staining_bench` | 1 | YES | 10 | 10 | . | . |
+| Scene | Passes | Converged | Total | item_escapes_zone_vertically | label_row_staggered |
+| --- | --- | --- | --- | --- | --- |
+| `bench_basic` | 1 | YES | 9 | 9 | . |
+| `cell_counter_basic` | 1 | YES | 7 | 7 | . |
+| `cell_counter_workspace` | 1 | YES | 8 | 8 | . |
+| `centrifuge_workspace` | 1 | YES | 13 | 13 | . |
+| `dilution_workspace` | 1 | YES | 8 | 8 | . |
+| `drug_dilution_setup_bench_setup` | 1 | YES | 7 | 7 | . |
+| `electrophoresis_bench` | 1 | YES | 16 | 16 | . |
+| `extraction_workspace` | 1 | YES | 6 | 6 | . |
+| `heat_block_bench` | 1 | YES | 12 | 12 | . |
+| `hemocytometer_view` | 1 | YES | 7 | 7 | . |
+| `hood_basic` | 1 | YES | 5 | 5 | . |
+| `hood_workspace` | 1 | YES | 4 | 4 | . |
+| `imaging_bench` | 1 | YES | 13 | 12 | 1 |
+| `incubator_workspace` | 1 | YES | 5 | 5 | . |
+| `microscope_basic` | 1 | YES | 5 | 5 | . |
+| `mtt_reagent_prep_bench_workspace` | 1 | YES | 8 | 8 | . |
+| `mtt_solubilization_readout_bench_workspace` | 1 | YES | 3 | 3 | . |
+| `mtt_solubilization_readout_plate_reader_workspace` | 1 | YES | 2 | 2 | . |
+| `passage_hood_detachment_hood_workspace` | 1 | YES | 6 | 6 | . |
+| `passage_hood_detachment_microscope_view` | 1 | YES | 3 | 3 | . |
+| `plate_drug_treatment_media_adjustment_plate_workspace` | 1 | YES | 2 | 2 | . |
+| `plate_focus_bench` | 1 | YES | 0 | . | . |
+| `plate_focus_hood` | 1 | YES | 0 | . | . |
+| `plate_workspace` | 1 | YES | 5 | 5 | . |
+| `sample_prep_bench` | 1 | YES | 11 | 11 | . |
+| `sdspage_attach_lid_and_leads_workspace` | 1 | YES | 3 | 3 | . |
+| `sdspage_destain_gel_rock_workspace` | 1 | YES | 2 | 2 | . |
+| `sdspage_destain_gel_setup_workspace` | 1 | YES | 6 | 6 | . |
+| `sdspage_fill_tank_buffer_workspace` | 1 | YES | 4 | 4 | . |
+| `sdspage_heat_denature_samples_workspace` | 1 | YES | 0 | . | . |
+| `sdspage_image_gel_workspace` | 1 | YES | 4 | 4 | . |
+| `sdspage_load_protein_ladder_workspace` | 1 | YES | 5 | 5 | . |
+| `sdspage_load_sample_single_lane_workspace` | 1 | YES | 3 | 3 | . |
+| `sdspage_load_samples_batch_workspace` | 1 | YES | 3 | 3 | . |
+| `sdspage_prepare_running_buffer_workspace` | 1 | YES | 16 | 16 | . |
+| `sdspage_prepare_sample_mix_batch_workspace` | 1 | YES | 4 | 4 | . |
+| `sdspage_prepare_sample_mix_single_lane_workspace` | 1 | YES | 6 | 5 | 1 |
+| `sdspage_recycle_buffer_workspace` | 1 | YES | 3 | 3 | . |
+| `sdspage_run_electrophoresis_workspace` | 1 | YES | 3 | 3 | . |
+| `sdspage_stain_gel_workspace` | 1 | YES | 6 | 6 | . |
+| `seeding_workspace` | 1 | YES | 6 | 6 | . |
+| `staining_bench` | 1 | YES | 10 | 10 | . |
 
 ## Severity-graded de-overlap diagnostics
 

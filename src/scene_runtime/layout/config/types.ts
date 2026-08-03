@@ -1,5 +1,5 @@
 // LayoutConfig type hierarchy. Ratified contract:
-// docs/active_plans/decisions/layout_model_layer_synthesis.md "Config hierarchy".
+// docs/archive/decisions/layout_model_layer_synthesis.md "Config hierarchy".
 //
 // All values are scene-percent unless a comment states otherwise. The config is
 // the single home for every layout tunable that was previously read from a

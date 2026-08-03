@@ -5,10 +5,9 @@
 // deliberately has no active protocol material registry, so it is useful for
 // scene geometry but is not evidence for material identity colors.
 //
-// The capture is declarative: it discovers the three generic renderer surfaces
+// The capture is declarative: it discovers the two generic renderer surfaces
 // rather than naming objects or protocols:
 //   - liquid_region: compiled semantic liquid groups
-//   - formula_bbox: structured formula-generated fill divs
 //   - subpart: generated structured-subpart material shapes
 //
 // Each visible surface gets a before/after pair with only that one surface
@@ -99,9 +98,11 @@ function sanitize_for_filename(value) {
 }
 
 function surface_selector() {
+  // Liquid runtime metadata belongs to the injected DOM-SVG host. Asset and
+  // placement identity belong to its enclosing scene item, so do not require
+  // both contracts to be stamped on one element.
   return [
-    "[data-liquid-material-field][data-asset]",
-    "[data-overlay='fill'][data-overlay-field]",
+    "[data-liquid-material-field]",
     "[data-subpart-name][data-material-field][data-material-name]",
   ].join(", ");
 }
@@ -111,6 +112,16 @@ async function wait_for_protocol_scene(page) {
     state: "attached",
     timeout: READY_TIMEOUT_MS,
   });
+  await page.waitForFunction(
+    () =>
+      Array.from(document.querySelectorAll('[data-svg-render-mode="dom-svg"]')).every(
+        (host) =>
+          host.querySelector("svg") !== null ||
+          (host.getAttribute("data-svg-load-error") ?? "") !== "",
+      ),
+    undefined,
+    { timeout: READY_TIMEOUT_MS },
+  );
   await page.evaluate(async () => {
     await document.fonts.ready;
     await new Promise((resolve) => requestAnimationFrame(resolve));
@@ -127,13 +138,21 @@ async function assert_scene_not_degraded(page, protocol_name, browser_diagnostic
         message: element.getAttribute("data-resolver-degraded") ?? "",
       }),
     );
+    const svg_load_failures = Array.from(
+      document.querySelectorAll('[data-svg-load-error]:not([data-svg-load-error=""])'),
+    ).map((element) => element.getAttribute("data-svg-load-error") ?? "");
     return {
       scene_degraded: root?.getAttribute("data-scene-degraded") ?? "",
       structural_violation_count: root?.getAttribute("data-degraded-violation-count") ?? "",
       items,
+      svg_load_failures,
     };
   });
-  if (degradation.scene_degraded === "true" || degradation.items.length > 0) {
+  if (
+    degradation.scene_degraded === "true" ||
+    degradation.items.length > 0 ||
+    degradation.svg_load_failures.length > 0
+  ) {
     const resolver_details = degradation.items
       .map((item) => `${item.placement_name}: ${item.message}`)
       .join("; ");
@@ -142,6 +161,9 @@ async function assert_scene_not_degraded(page, protocol_name, browser_diagnostic
         ? ""
         : `structural violations=${degradation.structural_violation_count}`,
       resolver_details === "" ? "" : `resolver failures=${resolver_details}`,
+      degradation.svg_load_failures.length === 0
+        ? ""
+        : `SVG load failures=${degradation.svg_load_failures.join(" | ")}`,
       browser_diagnostics.length === 0
         ? ""
         : `browser diagnostics=${browser_diagnostics.join(" | ")}`,
@@ -158,21 +180,20 @@ async function collect_surfaces(page) {
       return { x: rect.x, y: rect.y, w: rect.width, h: rect.height };
     }
     function kind_for(source_element) {
-      if (source_element.matches("[data-liquid-material-field][data-asset]")) {
+      if (source_element.matches("[data-liquid-material-field]")) {
         return "liquid_region";
-      }
-      if (source_element.matches("[data-overlay='fill'][data-overlay-field]")) {
-        return "formula_bbox";
       }
       return "subpart";
     }
-    function fill_for(element, style, kind, owner) {
-      if (kind === "liquid_region") return owner.getAttribute("data-liquid-color") ?? "";
+    function fill_for(element, style, kind, source_element) {
+      if (kind === "liquid_region") {
+        return source_element.getAttribute("data-liquid-color") ?? "";
+      }
       if (element instanceof SVGElement) return style.fill;
       return style.backgroundColor;
     }
-    function has_visible_paint(element, style, geometry, kind, owner) {
-      const fill = fill_for(element, style, kind, owner);
+    function has_visible_paint(element, style, geometry, kind, source_element) {
+      const fill = fill_for(element, style, kind, source_element);
       const rgba_match = /^rgba\(([^)]+)\)$/.exec(fill);
       const rgba_parts = rgba_match === null ? [] : rgba_match[1].split(",");
       const alpha = rgba_parts.length === 4 ? Number(rgba_parts[3]) : 1;
@@ -210,9 +231,15 @@ async function collect_surfaces(page) {
       let element = source_element;
       if (kind === "liquid_region") {
         const asset_name = owner.getAttribute("data-asset") ?? "";
+        if (asset_name === "") {
+          throw new Error("Compiled liquid host has no owning asset identity");
+        }
         const region_handle = liquid_manifest[asset_name]?.region_handle;
+        if (typeof region_handle !== "string" || region_handle === "") {
+          throw new Error(`Compiled liquid manifest entry is missing for ${asset_name}`);
+        }
         element = Array.from(owner.querySelectorAll("g")).find((group) =>
-          group.id.endsWith(`__${String(region_handle)}`),
+          group.id.endsWith(`__${region_handle}`),
         );
         if (!(element instanceof SVGGElement)) {
           throw new Error(`Compiled liquid region is missing for ${asset_name}`);
@@ -227,19 +254,17 @@ async function collect_surfaces(page) {
       const style = window.getComputedStyle(element);
       const driving_field =
         kind === "liquid_region"
-          ? (owner.getAttribute("data-liquid-material-field") ?? "")
-          : kind === "subpart"
-            ? (element.getAttribute("data-material-field") ?? "")
-            : (element.getAttribute("data-overlay-field") ?? "");
+          ? (source_element.getAttribute("data-liquid-material-field") ?? "")
+          : (element.getAttribute("data-material-field") ?? "");
       const subpart_name =
         kind === "subpart" ? (element.getAttribute("data-subpart-name") ?? "") : "";
       const material_name =
         kind === "liquid_region"
-          ? (owner.getAttribute("data-liquid-material-name") ?? "")
+          ? (source_element.getAttribute("data-liquid-material-name") ?? "")
           : (element.getAttribute("data-material-name") ??
             owner.getAttribute("data-material") ??
             "");
-      const visible = has_visible_paint(element, style, geometry, kind, owner);
+      const visible = has_visible_paint(element, style, geometry, kind, source_element);
       if (driving_field === "") {
         throw new Error("Material surface has no declared driving field");
       }
@@ -255,7 +280,7 @@ async function collect_surfaces(page) {
         driving_field,
         subpart_name,
         material_name,
-        computed_fill: fill_for(element, style, kind, owner),
+        computed_fill: fill_for(element, style, kind, source_element),
         visible,
         geometry: rect_to_record(geometry),
         owner_geometry: rect_to_record(owner_geometry),
@@ -361,7 +386,7 @@ async function main() {
       );
     }
     const payload = {
-      schema_version: "protocol-host-material-surfaces-v2",
+      schema_version: "protocol-host-material-surfaces-v3",
       generated_at: new Date().toISOString(),
       viewport: VIEWPORT,
       protocols,
