@@ -109,11 +109,12 @@ percentage it remains full width. The
 material runtime neither creates a rect nor queries/mutates structural anchors
 or authored `data-vlab-*`.
 
-The compiler derives the base surface's depth below the body datum and carries
-that private manifest value to the runtime. The body begins below the *scaled
-visible lower edge* of that base meniscus, rather than at its top. This prevents
-a stretchable rectangle from showing above the curved sides of an oval surface
-without an asset-name rule or an authored offset attribute.
+The compiler derives separate private datums for the base-surface top (the
+volume reading) and the authored body's top (the body join). The runtime aligns
+the scaled body top to that scaled join datum. An oval body join is therefore at
+its tangent line, not at the oval's lower edge: its sides meet the oval without
+gaps or corners extending above the tangent. These are derived geometry, not
+asset-name rules or authored offset attributes.
 
 For the material path, the existing YAML binding and capacity fields remain
 valid compiler inputs. The compiler validates the required structural-anchor

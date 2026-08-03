@@ -134,8 +134,8 @@ test("compiled variable-volume fleet uses gravity parts and stationary clipping"
             reveal_handle: string;
             bounds: { x: number; y: number; width: number; height: number };
             surface_reference_y: number | null;
+            body_join_y: number | null;
             body_anchor_y: number | null;
-            surface_base_depth: number;
             max_fill_percent: number | null;
             min_fill_percent: number | null;
             body_start_fill_percent: number | null;
@@ -175,7 +175,7 @@ test("compiled variable-volume fleet uses gravity parts and stationary clipping"
           ids: string[];
           clip_path: string | null;
           primary_surface_bottom: number | null;
-          body_top_to_surface_base_bottom: number | null;
+          body_to_surface_tangent: { top: number; left: number; right: number } | null;
         }> = [];
         for (const color of materials) {
           for (const volume of volumes) {
@@ -275,7 +275,7 @@ test("compiled variable-volume fleet uses gravity parts and stationary clipping"
                   ].map((point) => point.matrixTransform(localToSvg).y),
                 );
               })(),
-              body_top_to_surface_base_bottom: ((): number | null => {
+              body_to_surface_tangent: ((): { top: number; left: number; right: number } | null => {
                 const baseBodyIndex = entry.paints.findIndex(
                   (paint) => paint.liquid_part === "body" && paint.paint_role === "base",
                 );
@@ -298,8 +298,10 @@ test("compiled variable-volume fleet uses gravity parts and stationary clipping"
                   throw new Error(`${asset} base body or surface geometry missing`);
                 }
                 function rootSvgYExtents(geometry: SVGGraphicsElement): {
-                  min: number;
-                  max: number;
+                  minX: number;
+                  maxX: number;
+                  minY: number;
+                  maxY: number;
                 } {
                   const svg = geometry.ownerSVGElement;
                   const geometryMatrix = geometry.getCTM();
@@ -309,20 +311,29 @@ test("compiled variable-volume fleet uses gravity parts and stationary clipping"
                   }
                   const box = geometry.getBBox();
                   const localToSvg = svgMatrix.inverse().multiply(geometryMatrix);
-                  const ys = [
+                  const points = [
                     new DOMPoint(box.x, box.y),
                     new DOMPoint(box.x + box.width, box.y),
                     new DOMPoint(box.x, box.y + box.height),
                     new DOMPoint(box.x + box.width, box.y + box.height),
-                  ].map((point) => point.matrixTransform(localToSvg).y);
-                  return { min: Math.min(...ys), max: Math.max(...ys) };
+                  ].map((point) => point.matrixTransform(localToSvg));
+                  return {
+                    minX: Math.min(...points.map((point) => point.x)),
+                    maxX: Math.max(...points.map((point) => point.x)),
+                    minY: Math.min(...points.map((point) => point.y)),
+                    maxY: Math.max(...points.map((point) => point.y)),
+                  };
                 }
                 const bodyExtents = rootSvgYExtents(body);
                 const surfaceExtents = rootSvgYExtents(surface);
-                // The body begins exactly beneath the base meniscus.  This is
-                // measured from browser-applied CTMs rather than from the
-                // authored formula so numeric serialization cannot hide a seam.
-                return bodyExtents.min - surfaceExtents.max;
+                // The body's top corners must meet the surface's tangent line.
+                // This uses browser CTMs, so serialized transform rounding
+                // cannot hide an art-level gap or overlap.
+                return {
+                  top: bodyExtents.minY - (surfaceExtents.minY + surfaceExtents.maxY) / 2,
+                  left: bodyExtents.minX - surfaceExtents.minX,
+                  right: bodyExtents.maxX - surfaceExtents.maxX,
+                };
               })(),
             });
           }
@@ -334,8 +345,8 @@ test("compiled variable-volume fleet uses gravity parts and stationary clipping"
           bounds_x: entry.bounds.x,
           bounds_y: entry.bounds.y,
           surface_reference_y: entry.surface_reference_y,
+          body_join_y: entry.body_join_y,
           body_anchor_y: entry.body_anchor_y,
-          surface_base_depth: entry.surface_base_depth,
           max_fill_percent: entry.max_fill_percent,
           min_fill_percent: entry.min_fill_percent,
           body_start_fill_percent: entry.body_start_fill_percent,
@@ -390,9 +401,10 @@ test("compiled variable-volume fleet uses gravity parts and stationary clipping"
           const scale =
             Math.max(
               0,
-              report.body_anchor_y! - (surfaceY + report.surface_base_depth * surfaceScale),
+              report.body_anchor_y! -
+                (surfaceY + (report.body_join_y! - report.surface_reference_y!) * surfaceScale),
             ) /
-            (report.body_anchor_y! - report.surface_reference_y!);
+            (report.body_anchor_y! - report.body_join_y!);
           const translateY = report.body_anchor_y! * (1 - scale);
           expect(part.transform).toBe(
             `matrix(1 0 0 ${formatSvgNumber(scale)} 0 ${formatSvgNumber(translateY)})`,
@@ -407,20 +419,21 @@ test("compiled variable-volume fleet uses gravity parts and stationary clipping"
       const bodyHeight =
         report.body_anchor_y === null
           ? 0
-          : report.body_anchor_y - (surfaceY + report.surface_base_depth * surfaceScale);
+          : report.body_anchor_y -
+            (surfaceY + (report.body_join_y! - report.surface_reference_y!) * surfaceScale);
       if (
         asset === "microtube" &&
         row.volume > 0 &&
         bodyHeight > 0 &&
-        row.body_top_to_surface_base_bottom !== null
+        surfaceScale === 1 &&
+        row.body_to_surface_tangent !== null
       ) {
-        // Chromium's normalized-arc getBBox has a <0.005-unit numerical
-        // residual.  A sub-hundredth-unit bound still rejects the old
-        // three-decimal transform error (0.037--0.117 SVG units).
-        expect(
-          Math.abs(row.body_top_to_surface_base_bottom),
-          `${asset} ${row.volume}% transformed body-to-meniscus seam: ${row.body_top_to_surface_base_bottom}`,
-        ).toBeLessThan(0.01);
+        for (const [edge, delta] of Object.entries(row.body_to_surface_tangent)) {
+          expect(
+            Math.abs(delta),
+            `${asset} ${row.volume}% body-${edge}-to-oval-tangent delta: ${delta}`,
+          ).toBeLessThan(0.01);
+        }
       }
       if (row.volume > 0) {
         const basePaints = row.computed_paints.filter((paint) => paint.role === "base");

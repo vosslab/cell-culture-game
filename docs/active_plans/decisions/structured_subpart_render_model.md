@@ -1,6 +1,6 @@
 # M8 decision: generated geometry remains the structured-subpart render model
 
-**Decision date:** 2026-08-01  
+**Decision date:** 2026-08-01
 **Decision:** Keep generated geometry permanently for structured material areas
 (wells, rack slots, and gel lanes). Do not convert their base artwork to the
 semantic material-SVG vessel mechanism. A future art repair may improve the
@@ -21,30 +21,30 @@ also gives the better spatial contract. This closes the question.
 
 [`96well_pcr_plate.svg`](../../../assets/equipment/static/96well_pcr_plate.svg)
 visually contains 96 filled well interiors, but they are anonymous `<path>`
-elements. The source has no `A1`–`H12` ids or semantic groups, one reusable
+elements. The source has no `A1`-`H12` ids or semantic groups, one reusable
 `source-5` drawing group in `<defs>`, 39 clip paths, 24 `<use>` references, and
 194 geometric transforms. Its 96 identical-color well paths are mixed with
 rims, labels, and plate body. Conversion would need to reverse-engineer and
-preserve an A1–H12 mapping and drawing order through normalizer/export steps.
+preserve an A1-H12 mapping and drawing order through normalizer/export steps.
 
 That is possible, but not durable semantic-SVG addressability. It duplicates
 the stable mapping already declared in
 [`well_plate_96.yaml`](../../../content/objects/plate/well_plate_96.yaml) and
-emitted as 96 typed `circle` entries in
-[`generated/object_library.ts`](../../../generated/object_library.ts). The
-source's `<defs>`, `<use>`, and transforms also lie outside the deliberately
-narrow material-SVG authoring model.
+emitted as 96 typed `circle` entries by
+[`gen_object_library.py`](../../../pipeline/gen_object_library.py). The source's
+`<defs>`, `<use>`, and transforms also lie outside the deliberately narrow
+material-SVG authoring model.
 
 ### State: 96 independent production-path writes
 
 [`test_subpart_well_plate_render.spec.ts`](../../../tests/playwright/test_subpart_well_plate_render.spec.ts)
 mounts the real `plate_focus_bench` scene through
-`runPipeline → mountScene → SceneView → SceneItem → SubpartVisualStateOverlay`.
+`runPipeline -> mountScene -> SceneView -> SceneItem -> SubpartVisualStateOverlay`.
 It seeds and writes every well through normal `SceneStore` methods exposed by
 the existing harness; it neither edits the DOM nor calls a renderer API.
 
 The M8 case applies a position-dependent three-material pattern (`mixed`,
-registered `carboplatin`, and registered `media`) across A1–H12. After browser
+registered `carboplatin`, and registered `media`) across A1-H12. After browser
 DOM completion it verifies every one of 96 generated shapes has its own expected
 `data-material-name`. Repeating a shifted pattern proves independent cell state,
 not a shared plate color or an `all_wells` visual shortcut.

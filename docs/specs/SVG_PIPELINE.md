@@ -159,10 +159,12 @@ and volume/capacity drives the compiler-derived gravity parts. It creates no
 runtime rect and does not query or mutate structural anchors or authored
 `data-vlab-*`.
 
-The compiler also derives a private `surface_base_depth` from the base surface
-artwork. The runtime clears the stretchable body below that scaled visible
-surface depth, keeping a curved meniscus visibly in front of the body at every
-fill level. It is derived geometry, not an authored calibration.
+The compiler derives private base-surface and body-join datums from the
+artwork. The first is the volume-reading coordinate; the second is the
+stretchable body's top. Runtime aligns the scaled body to the scaled join datum,
+so an oval meets the body at its tangent line rather than leaving side gaps or
+placing rectangular corners above the tangencies. These are derived geometry,
+not authored calibrations.
 
 For a material form, `anchor_liquid_bounds`, `anchor_liquid_clip`, and the
 existing capacity fields remain compiler inputs. The compiler validates and

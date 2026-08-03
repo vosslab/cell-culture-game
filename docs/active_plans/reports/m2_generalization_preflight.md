@@ -1,6 +1,6 @@
 # M2c generalization preflight report
 
-Run at: 2026-07-25 00:28:13 UTC
+Run at: 2026-08-03 02:02:17 UTC
 
 ## Scope
 
@@ -28,7 +28,7 @@ layout geometry before D4 attempts rendering.
 | bench_basic | 9 | 1 | 10 | PASS | 0 | 9 |
 | cell_counter_basic | 7 | 1 | 7 | PASS | 0 | 7 |
 | cell_counter_workspace | 8 | 1 | 9 | PASS | 0 | 8 |
-| centrifuge_workspace | 9 | 1 | 11 | PASS | 0 | 9 |
+| centrifuge_workspace | 13 | 1 | 13 | PASS | 0 | 13 |
 | dilution_workspace | 8 | 1 | 11 | PASS | 0 | 8 |
 | drug_dilution_setup_bench_setup | 7 | 1 | 9 | PASS | 0 | 7 |
 | electrophoresis_bench | 16 | 1 | 16 | PASS | 0 | 16 |
@@ -40,30 +40,32 @@ layout geometry before D4 attempts rendering.
 | imaging_bench | 13 | 1 | 12 | PASS | 0 | 12 |
 | incubator_workspace | 5 | 1 | 6 | PASS | 0 | 5 |
 | microscope_basic | 5 | 1 | 7 | PASS | 0 | 5 |
-| mtt_reagent_prep_bench_workspace | 7 | 1 | 7 | PASS | 0 | 7 |
+| mtt_reagent_prep_bench_workspace | 8 | 1 | 8 | PASS | 0 | 8 |
 | mtt_solubilization_readout_bench_workspace | 3 | 1 | 4 | PASS | 0 | 3 |
 | mtt_solubilization_readout_plate_reader_workspace | 2 | 1 | 2 | PASS | 0 | 2 |
-| passage_hood_detachment_hood_workspace | 5 | 1 | 9 | PASS | 0 | 5 |
+| passage_hood_detachment_hood_workspace | 6 | 1 | 10 | PASS | 0 | 6 |
 | passage_hood_detachment_microscope_view | 3 | 1 | 6 | PASS | 0 | 3 |
-| plate_drug_treatment_media_adjustment_plate_workspace | 0 | 1 | 3 | PASS | 0 | 0 |
+| plate_drug_treatment_media_adjustment_plate_workspace | 2 | 1 | 4 | PASS | 0 | 2 |
 | plate_focus_bench | 0 | 1 | 1 | PASS | 0 | 0 |
 | plate_focus_hood | 0 | 1 | 1 | PASS | 0 | 0 |
-| plate_workspace | 4 | 1 | 5 | PASS | 0 | 4 |
+| plate_workspace | 5 | 1 | 6 | PASS | 0 | 5 |
 | sample_prep_bench | 11 | 1 | 12 | PASS | 0 | 11 |
 | sdspage_attach_lid_and_leads_workspace | 3 | 1 | 4 | PASS | 0 | 3 |
 | sdspage_destain_gel_rock_workspace | 2 | 1 | 4 | PASS | 0 | 2 |
 | sdspage_destain_gel_setup_workspace | 6 | 1 | 7 | PASS | 0 | 6 |
 | sdspage_fill_tank_buffer_workspace | 4 | 1 | 5 | PASS | 0 | 4 |
-| sdspage_heat_denature_samples_workspace | 0 | 1 | 2 | PASS | 0 | 0 |
+| sdspage_heat_denature_samples_workspace | 1 | 1 | 3 | FAIL: Structural guard failure (item overlap): item "front_heat_block" overlaps with "front_sds_microtube_rack" by 4.9%. | 1 | 0 |
 | sdspage_image_gel_workspace | 4 | 1 | 4 | PASS | 0 | 4 |
-| sdspage_load_protein_ladder_workspace | 4 | 1 | 4 | PASS | 0 | 4 |
-| sdspage_load_sample_single_lane_workspace | 7 | 1 | 7 | PASS | 0 | 7 |
+| sdspage_load_protein_ladder_workspace | 5 | 1 | 5 | PASS | 0 | 5 |
+| sdspage_load_sample_single_lane_workspace | 3 | 1 | 7 | PASS | 0 | 3 |
+| sdspage_load_samples_batch_workspace | 3 | 1 | 7 | PASS | 0 | 3 |
 | sdspage_prepare_running_buffer_workspace | 16 | 1 | 16 | PASS | 0 | 16 |
-| sdspage_prepare_sample_mix_single_lane_workspace | 5 | 1 | 6 | PASS | 0 | 5 |
+| sdspage_prepare_sample_mix_batch_workspace | 4 | 1 | 7 | PASS | 0 | 4 |
+| sdspage_prepare_sample_mix_single_lane_workspace | 6 | 1 | 6 | PASS | 0 | 5 |
 | sdspage_recycle_buffer_workspace | 3 | 1 | 4 | PASS | 0 | 3 |
 | sdspage_run_electrophoresis_workspace | 3 | 1 | 4 | PASS | 0 | 3 |
 | sdspage_stain_gel_workspace | 6 | 1 | 7 | PASS | 0 | 6 |
-| seeding_workspace | 7 | 1 | 8 | PASS | 0 | 7 |
+| seeding_workspace | 6 | 1 | 9 | PASS | 0 | 6 |
 | staining_bench | 10 | 1 | 10 | PASS | 0 | 10 |
 
 ## Per-scene detail
@@ -129,13 +131,17 @@ layout geometry before D4 attempts rendering.
 
 **Guard verdict:** PASS
 
-**Diagnostics:** 9 (passes: 1, final items: 11)
+**Diagnostics:** 13 (passes: 1, final items: 13)
 - vertical/warn/item_escapes_zone_vertically [rear_left_conical_tube]
 - vertical/warn/item_escapes_zone_vertically [rear_left_media_bottle_reseed]
 - vertical/warn/item_escapes_zone_vertically [rear_left_waste]
 - vertical/warn/item_escapes_zone_vertically [rear_center_conical_rack]
 - vertical/warn/item_escapes_zone_vertically [rear_right_biohazard_decant]
 - vertical/warn/item_escapes_zone_vertically [rear_right_vortex]
+- vertical/warn/item_escapes_zone_vertically [center_t75_flask_reseed]
+- vertical/warn/item_escapes_zone_vertically [base_right_tip_box]
+- vertical/warn/item_escapes_zone_vertically [right_aspirating_pipette]
+- vertical/warn/item_escapes_zone_vertically [right_serological_pipette]
 - vertical/warn/item_escapes_zone_vertically [center_centrifuge_spin]
 - vertical/warn/item_escapes_zone_vertically [base_right_micropipette]
 - vertical/warn/item_escapes_zone_vertically [right_label_pen]
@@ -143,7 +149,7 @@ layout geometry before D4 attempts rendering.
 **Zones shrunk per pass:** 0
 
 **Overlap count:** 0
-**Zone overflow count:** 9
+**Zone overflow count:** 13
 
 ### dilution_workspace
 
@@ -305,8 +311,8 @@ layout geometry before D4 attempts rendering.
 **Diagnostics:** 13 (passes: 1, final items: 12)
 - vertical/warn/item_escapes_zone_vertically [rear_coomassie]
 - vertical/warn/item_escapes_zone_vertically [rear_destain]
+- vertical/warn/item_escapes_zone_vertically [center_ddh2o_bottle]
 - vertical/warn/item_escapes_zone_vertically [rear_center_rocking_shaker]
-- vertical/warn/item_escapes_zone_vertically [rear_ddh2o]
 - vertical/warn/item_escapes_zone_vertically [rear_ethanol_bottle]
 - vertical/warn/item_escapes_zone_vertically [rear_microtube_rack]
 - vertical/warn/item_escapes_zone_vertically [rear_tip_box]
@@ -358,11 +364,12 @@ layout geometry before D4 attempts rendering.
 
 **Guard verdict:** PASS
 
-**Diagnostics:** 7 (passes: 1, final items: 7)
+**Diagnostics:** 8 (passes: 1, final items: 8)
 - vertical/warn/item_escapes_zone_vertically [rear_left_waste]
 - vertical/warn/item_escapes_zone_vertically [rear_right_vortex]
 - vertical/warn/item_escapes_zone_vertically [center_mtt_solution_tube]
 - vertical/warn/item_escapes_zone_vertically [base_right_tip_box]
+- vertical/warn/item_escapes_zone_vertically [right_serological_pipette]
 - vertical/warn/item_escapes_zone_vertically [rear_left_mtt_powder]
 - vertical/warn/item_escapes_zone_vertically [rear_center_pbs_bottle]
 - vertical/warn/item_escapes_zone_vertically [base_right_micropipette]
@@ -370,7 +377,7 @@ layout geometry before D4 attempts rendering.
 **Zones shrunk per pass:** 0
 
 **Overlap count:** 0
-**Zone overflow count:** 7
+**Zone overflow count:** 8
 
 ### mtt_solubilization_readout_bench_workspace
 
@@ -379,7 +386,7 @@ layout geometry before D4 attempts rendering.
 **Diagnostics:** 3 (passes: 1, final items: 4)
 - vertical/warn/item_escapes_zone_vertically [rear_left_dmso]
 - vertical/warn/item_escapes_zone_vertically [rear_right_plate_reader]
-- vertical/warn/item_escapes_zone_vertically [right_micropipette]
+- vertical/warn/item_escapes_zone_vertically [right_multichannel_pipette]
 
 **Zones shrunk per pass:** 0
 
@@ -403,17 +410,18 @@ layout geometry before D4 attempts rendering.
 
 **Guard verdict:** PASS
 
-**Diagnostics:** 5 (passes: 1, final items: 9)
+**Diagnostics:** 6 (passes: 1, final items: 10)
 - vertical/warn/item_escapes_zone_vertically [rear_left_pbs]
 - vertical/warn/item_escapes_zone_vertically [rear_center_trypsin]
 - vertical/warn/item_escapes_zone_vertically [rear_left_ethanol]
 - vertical/warn/item_escapes_zone_vertically [rear_center_media]
+- vertical/warn/item_escapes_zone_vertically [rear_center_serological_pipette]
 - vertical/warn/item_escapes_zone_vertically [rear_right_incubator]
 
 **Zones shrunk per pass:** 0
 
 **Overlap count:** 0
-**Zone overflow count:** 5
+**Zone overflow count:** 6
 
 ### passage_hood_detachment_microscope_view
 
@@ -433,13 +441,14 @@ layout geometry before D4 attempts rendering.
 
 **Guard verdict:** PASS
 
-**Diagnostics:** 0 (passes: 1, final items: 3)
-(none)
+**Diagnostics:** 2 (passes: 1, final items: 4)
+- vertical/warn/item_escapes_zone_vertically [rear_center_media]
+- vertical/warn/item_escapes_zone_vertically [right_tool_micropipette]
 
 **Zones shrunk per pass:** 0
 
 **Overlap count:** 0
-**Zone overflow count:** 0
+**Zone overflow count:** 2
 
 ### plate_focus_bench
 
@@ -469,16 +478,17 @@ layout geometry before D4 attempts rendering.
 
 **Guard verdict:** PASS
 
-**Diagnostics:** 4 (passes: 1, final items: 5)
+**Diagnostics:** 5 (passes: 1, final items: 6)
 - vertical/warn/item_escapes_zone_vertically [rear_center_carb_stocks]
 - vertical/warn/item_escapes_zone_vertically [rear_right_incubator]
+- vertical/warn/item_escapes_zone_vertically [rear_center_carb_parent_stock]
 - vertical/warn/item_escapes_zone_vertically [rear_center_metformin_stock]
 - vertical/warn/item_escapes_zone_vertically [right_micropipette]
 
 **Zones shrunk per pass:** 0
 
 **Overlap count:** 0
-**Zone overflow count:** 4
+**Zone overflow count:** 5
 
 ### sample_prep_bench
 
@@ -563,14 +573,15 @@ layout geometry before D4 attempts rendering.
 
 ### sdspage_heat_denature_samples_workspace
 
-**Guard verdict:** PASS
+**Guard verdict:** FAIL
+**Guard failure message:** Structural guard failure (item overlap): item "front_heat_block" overlaps with "front_sds_microtube_rack" by 4.9%.
 
-**Diagnostics:** 0 (passes: 1, final items: 2)
-(none)
+**Diagnostics:** 1 (passes: 1, final items: 3)
+- meta/error/item_overlap [front_heat_block] obj=heat_block
 
 **Zones shrunk per pass:** 0
 
-**Overlap count:** 0
+**Overlap count:** 1
 **Zone overflow count:** 0
 
 ### sdspage_image_gel_workspace
@@ -578,7 +589,7 @@ layout geometry before D4 attempts rendering.
 **Guard verdict:** PASS
 
 **Diagnostics:** 4 (passes: 1, final items: 4)
-- vertical/warn/item_escapes_zone_vertically [rear_ddh2o]
+- vertical/warn/item_escapes_zone_vertically [center_ddh2o_bottle]
 - vertical/warn/item_escapes_zone_vertically [center_lightbox]
 - vertical/warn/item_escapes_zone_vertically [center_staining_tray]
 - vertical/warn/item_escapes_zone_vertically [right_waste_container]
@@ -592,34 +603,45 @@ layout geometry before D4 attempts rendering.
 
 **Guard verdict:** PASS
 
-**Diagnostics:** 4 (passes: 1, final items: 4)
+**Diagnostics:** 5 (passes: 1, final items: 5)
 - vertical/warn/item_escapes_zone_vertically [rear_left_protein_ladder_tube]
 - vertical/warn/item_escapes_zone_vertically [center_p200_micropipette]
-- vertical/warn/item_escapes_zone_vertically [right_tool_area_p10_gel_loading_tip_box]
+- vertical/warn/item_escapes_zone_vertically [right_tool_area_gel_loading_tip_box]
 - vertical/warn/item_escapes_zone_vertically [front_center_gel_cassette]
+- vertical/warn/item_escapes_zone_vertically [front_center_sds_microtube_rack]
 
 **Zones shrunk per pass:** 0
 
 **Overlap count:** 0
-**Zone overflow count:** 4
+**Zone overflow count:** 5
 
 ### sdspage_load_sample_single_lane_workspace
 
 **Guard verdict:** PASS
 
-**Diagnostics:** 7 (passes: 1, final items: 7)
+**Diagnostics:** 3 (passes: 1, final items: 7)
 - vertical/warn/item_escapes_zone_vertically [rear_center_electrophoresis_tank]
 - vertical/warn/item_escapes_zone_vertically [rear_right_power_supply]
-- vertical/warn/item_escapes_zone_vertically [right_tool_area_p10_gel_loading_tip_box]
-- vertical/warn/item_escapes_zone_vertically [front_center_gel_cassette]
-- vertical/warn/item_escapes_zone_vertically [front_center_microtube]
-- vertical/warn/item_escapes_zone_vertically [center_p200_micropipette]
-- vertical/warn/item_escapes_zone_vertically [front_center_waste_container]
+- vertical/warn/item_escapes_zone_vertically [right_tool_area_gel_loading_tip_box]
 
 **Zones shrunk per pass:** 0
 
 **Overlap count:** 0
-**Zone overflow count:** 7
+**Zone overflow count:** 3
+
+### sdspage_load_samples_batch_workspace
+
+**Guard verdict:** PASS
+
+**Diagnostics:** 3 (passes: 1, final items: 7)
+- vertical/warn/item_escapes_zone_vertically [rear_center_electrophoresis_tank]
+- vertical/warn/item_escapes_zone_vertically [rear_right_power_supply]
+- vertical/warn/item_escapes_zone_vertically [right_tool_area_gel_loading_tip_box]
+
+**Zones shrunk per pass:** 0
+
+**Overlap count:** 0
+**Zone overflow count:** 3
 
 ### sdspage_prepare_running_buffer_workspace
 
@@ -648,16 +670,32 @@ layout geometry before D4 attempts rendering.
 **Overlap count:** 0
 **Zone overflow count:** 16
 
+### sdspage_prepare_sample_mix_batch_workspace
+
+**Guard verdict:** PASS
+
+**Diagnostics:** 4 (passes: 1, final items: 7)
+- vertical/warn/item_escapes_zone_vertically [rear_left_protein_sample]
+- vertical/warn/item_escapes_zone_vertically [rear_center_laemmli]
+- vertical/warn/item_escapes_zone_vertically [rear_right_bme]
+- vertical/warn/item_escapes_zone_vertically [center_microtube_rack]
+
+**Zones shrunk per pass:** 0
+
+**Overlap count:** 0
+**Zone overflow count:** 4
+
 ### sdspage_prepare_sample_mix_single_lane_workspace
 
 **Guard verdict:** PASS
 
-**Diagnostics:** 5 (passes: 1, final items: 6)
+**Diagnostics:** 6 (passes: 1, final items: 6)
 - vertical/warn/item_escapes_zone_vertically [rear_left_protein_sample]
 - vertical/warn/item_escapes_zone_vertically [rear_center_laemmli]
 - vertical/warn/item_escapes_zone_vertically [rear_right_bme]
 - vertical/warn/item_escapes_zone_vertically [center_micropipette]
 - vertical/warn/item_escapes_zone_vertically [center_microtube_rack]
+- labels/info/label_row_staggered [center_micropipette]
 
 **Zones shrunk per pass:** 0
 
@@ -713,19 +751,18 @@ layout geometry before D4 attempts rendering.
 
 **Guard verdict:** PASS
 
-**Diagnostics:** 7 (passes: 1, final items: 8)
+**Diagnostics:** 6 (passes: 1, final items: 9)
 - vertical/warn/item_escapes_zone_vertically [rear_left_cell_suspension_tube]
 - vertical/warn/item_escapes_zone_vertically [rear_center_media_bottle]
 - vertical/warn/item_escapes_zone_vertically [rear_right_incubator]
-- vertical/warn/item_escapes_zone_vertically [right_micropipette]
-- vertical/warn/item_escapes_zone_vertically [right_serological_pipette]
+- vertical/warn/item_escapes_zone_vertically [right_multichannel_pipette]
 - vertical/warn/item_escapes_zone_vertically [rear_left_conical_tube_for_dilution]
 - vertical/warn/item_escapes_zone_vertically [rear_center_vortex]
 
 **Zones shrunk per pass:** 0
 
 **Overlap count:** 0
-**Zone overflow count:** 7
+**Zone overflow count:** 6
 
 ### staining_bench
 
@@ -750,14 +787,14 @@ layout geometry before D4 attempts rendering.
 
 ## Summary and next steps
 
-**D4-ready (preflight pass):** 40 / 40
+**D4-ready (preflight pass):** 41 / 42
 
 ### Preflight-passing scenes (ready for D4 render):
 
 - **bench_basic**: 9 diagnostics
 - **cell_counter_basic**: 7 diagnostics
 - **cell_counter_workspace**: 8 diagnostics
-- **centrifuge_workspace**: 9 diagnostics
+- **centrifuge_workspace**: 13 diagnostics
 - **dilution_workspace**: 8 diagnostics
 - **drug_dilution_setup_bench_setup**: 7 diagnostics
 - **electrophoresis_bench**: 16 diagnostics
@@ -769,31 +806,36 @@ layout geometry before D4 attempts rendering.
 - **imaging_bench**: 13 diagnostics
 - **incubator_workspace**: 5 diagnostics
 - **microscope_basic**: 5 diagnostics
-- **mtt_reagent_prep_bench_workspace**: 7 diagnostics
+- **mtt_reagent_prep_bench_workspace**: 8 diagnostics
 - **mtt_solubilization_readout_bench_workspace**: 3 diagnostics
 - **mtt_solubilization_readout_plate_reader_workspace**: 2 diagnostics
-- **passage_hood_detachment_hood_workspace**: 5 diagnostics
+- **passage_hood_detachment_hood_workspace**: 6 diagnostics
 - **passage_hood_detachment_microscope_view**: 3 diagnostics
-- **plate_drug_treatment_media_adjustment_plate_workspace**: 0 diagnostics
+- **plate_drug_treatment_media_adjustment_plate_workspace**: 2 diagnostics
 - **plate_focus_bench**: 0 diagnostics
 - **plate_focus_hood**: 0 diagnostics
-- **plate_workspace**: 4 diagnostics
+- **plate_workspace**: 5 diagnostics
 - **sample_prep_bench**: 11 diagnostics
 - **sdspage_attach_lid_and_leads_workspace**: 3 diagnostics
 - **sdspage_destain_gel_rock_workspace**: 2 diagnostics
 - **sdspage_destain_gel_setup_workspace**: 6 diagnostics
 - **sdspage_fill_tank_buffer_workspace**: 4 diagnostics
-- **sdspage_heat_denature_samples_workspace**: 0 diagnostics
 - **sdspage_image_gel_workspace**: 4 diagnostics
-- **sdspage_load_protein_ladder_workspace**: 4 diagnostics
-- **sdspage_load_sample_single_lane_workspace**: 7 diagnostics
+- **sdspage_load_protein_ladder_workspace**: 5 diagnostics
+- **sdspage_load_sample_single_lane_workspace**: 3 diagnostics
+- **sdspage_load_samples_batch_workspace**: 3 diagnostics
 - **sdspage_prepare_running_buffer_workspace**: 16 diagnostics
-- **sdspage_prepare_sample_mix_single_lane_workspace**: 5 diagnostics
+- **sdspage_prepare_sample_mix_batch_workspace**: 4 diagnostics
+- **sdspage_prepare_sample_mix_single_lane_workspace**: 6 diagnostics
 - **sdspage_recycle_buffer_workspace**: 3 diagnostics
 - **sdspage_run_electrophoresis_workspace**: 3 diagnostics
 - **sdspage_stain_gel_workspace**: 6 diagnostics
-- **seeding_workspace**: 7 diagnostics
+- **seeding_workspace**: 6 diagnostics
 - **staining_bench**: 10 diagnostics
+
+### Preflight-failing scenes (needs fix before D4):
+
+- **sdspage_heat_denature_samples_workspace**: Structural guard failure (item overlap): item "front_heat_block" overlaps with "front_sds_microtube_rack" by 4.9%.
 
 Scenes that pass structural guards proceed to D4 rendering.
 Scenes that fail are classified per D5 taxonomy.

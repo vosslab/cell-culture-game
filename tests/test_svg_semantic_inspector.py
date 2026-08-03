@@ -53,6 +53,7 @@ def test_inspector_reports_coordinate_model_layers_and_top_gap(tmp_path: Path):
 	assert report["material"]["parts"]["body"]["min_y"] == 5.0
 	assert report["material"]["parts"]["surface"]["min_y"] == 4.0
 	assert report["material"]["surface_reference_y"] == 5.0
+	assert report["material"]["body_join_y"] == 5.0
 	assert report["material"]["body_anchor_y"] == 20.0
 	assert report["warnings"] == [
 		"material geometry begins below the liquid clip top",

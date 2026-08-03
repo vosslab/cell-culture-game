@@ -25,7 +25,7 @@
 
 ### Developer Tests and Notes
 
-- Added `render_liquid_volume_contact_sheet.sh` as the one-step front door for
+- Added `tools/render_liquid_volume_contact_sheet.sh` as the one-step front door for
   rebuilding and rendering all five variable-volume families. Its contact sheet
   records a Chicago creation timestamp and build ID, generates and labels a
   fresh random material color for each vessel family, and reports requested

@@ -1220,8 +1220,8 @@ gitignored visual evidence paths under `rendered-reports/`.
   review; neither output is automatic classification.
   `tools/liquid_volume_contact_page.mjs` uses the real compiled injection and liquid writer to
   serialize one or more assets at a reviewed volume series into self-contained HTML and PNG
-  persistent, gitignored evidence under `rendered-reports/liquid_volume_contacts/`. The root
-  `render_liquid_volume_contact_sheet.sh` front door rebuilds the published assets and renders
+  persistent, gitignored evidence under `rendered-reports/liquid_volume_contacts/`.
+  `tools/render_liquid_volume_contact_sheet.sh` rebuilds the published assets and renders
   all five variable-volume families with one command. Diagnostics distinguish requested fill,
   rendered fill, and whether the compiler-owned ceiling clamped the request. The bottle's
   authored 85% ceiling makes every request from 85% through 100% render identically.

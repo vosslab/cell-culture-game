@@ -119,12 +119,8 @@ export function render_liquid_material_effects(
     // The surface reading and the body join are separate authored geometry
     // datums.  The body ends at its scaled join line, which is the oval's
     // tangent line for a full-width meniscus, rather than at its lower edge.
-    const bodyJoinY =
-      surfaceY + (region.bodyJoinY - region.surfaceReferenceY) * surfaceScale;
-    const requestedHeight = Math.max(
-      0,
-      region.bodyAnchorY - bodyJoinY,
-    );
+    const bodyJoinY = surfaceY + (region.bodyJoinY - region.surfaceReferenceY) * surfaceScale;
+    const requestedHeight = Math.max(0, region.bodyAnchorY - bodyJoinY);
     region.setBodyScale(requestedHeight / referenceHeight);
   }
   region.setSurfaceTransform(

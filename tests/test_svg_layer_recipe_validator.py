@@ -93,20 +93,23 @@ def test_compiler_emits_opaque_handles_and_literal_fallback(tmp_path: Path):
 	assert entry["paints"][0]["adjustment"] is None
 	assert entry["paints"][0]["liquid_part"] == "body"
 	assert entry["surface_reference_y"] == 0.0
+	assert entry["body_join_y"] == 0.0
 	assert entry["body_anchor_y"] == 10.0
-	assert entry["surface_base_depth"] == 0.0
 
 
-def test_compiler_derives_base_meniscus_depth_for_body_clearance(tmp_path: Path):
-	"""The runtime receives the visible base surface depth, not an asset-specific offset."""
+def test_compiler_derives_separate_surface_and_body_join_datums(tmp_path: Path):
+	"""A body joins the base surface at its authored tangent line, not its lower edge."""
 	source = tmp_path / "surface_depth.svg"
 	body = _valid_body().replace(
+		'M0 0H10V10Z', 'M1 2H9V10H1Z',
+	).replace(
 		'<g data-vlab-layer-name="liquid_glint"',
-		'<g data-vlab-layer-name="liquid_surface" data-vlab-layer-kind="material" data-vlab-paint-role="base" data-vlab-liquid-part="surface"><path d="M1 0H9V3H1Z" fill="#00aa00"/></g>\n<g data-vlab-layer-name="liquid_glint"',
+		'<g data-vlab-layer-name="liquid_surface" data-vlab-layer-kind="material" data-vlab-paint-role="base" data-vlab-liquid-part="surface"><path d="M1 0H9V4H1Z" fill="#00aa00"/></g>\n<g data-vlab-layer-name="liquid_glint"',
 	)
 	source.write_text(_svg(body), encoding="utf-8")
 	entry = gen_liquid_regions.compile_material_svg(source, tmp_path / "out.svg", "surface_depth")
-	assert entry["surface_base_depth"] == 3.0
+	assert entry["surface_reference_y"] == 0.0
+	assert entry["body_join_y"] == 2.0
 
 
 def test_compiler_carries_the_optional_root_fill_ceiling(tmp_path: Path):
@@ -220,6 +223,7 @@ def test_compiler_derives_gravity_part_calibration_without_bottom_overscan(tmp_p
 	source.write_text(_svg(body), encoding="utf-8")
 	entry = gen_liquid_regions.compile_material_svg(source, output, "partial")
 	assert entry["surface_reference_y"] == 4.0
+	assert entry["body_join_y"] == 4.0
 	assert entry["body_anchor_y"] == 24.0
 
 	insufficient = tmp_path / "insufficient.svg"

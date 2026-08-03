@@ -18,23 +18,23 @@ Legend: distance 0-2 = identical, 3-6 = minor, >6 = divergent
 | `cpu.svg` | - | 40 (divergent) | no-prior |
 | `cell_membrane_arc.svg` | - | 42 (divergent) | no-prior |
 | `straight-curve.svg` | - | 32 (divergent) | no-prior |
-| `Amphiprion_ocellaris_egg.svg` | - | 28 (divergent) | no-prior |
-| `group-no-creation.svg` | - | 33 (divergent) | no-prior |
-| `round-bottomed-flask-1-500ml.svg` | - | 14 (divergent) | no-prior |
+| `Amphiprion_ocellaris_egg.svg` | 28 | 28 (divergent) | unchanged |
+| `group-no-creation.svg` | 33 | 33 (divergent) | unchanged |
+| `round-bottomed-flask-1-500ml.svg` | 14 | 14 (divergent) | unchanged |
 | `arrow-twosides-horizontal.svg` | - | 34 (divergent) | no-prior |
-| `flask-3-empty.svg` | - | 34 (divergent) | no-prior |
+| `flask-3-empty.svg` | 34 | 34 (divergent) | unchanged |
 | `pipette-tip-box.svg` | - | 34 (divergent) | no-prior |
-| `stanford_b_debakey_IIIa.svg` | - | 34 (divergent) | no-prior |
-| `dont-convert-short-color-names.svg` | - | 33 (divergent) | no-prior |
-| `group-creation.svg` | - | 33 (divergent) | no-prior |
-| `path-quad-optimize.svg` | - | 32 (divergent) | no-prior |
-| `Xenopus_new.svg` | - | 16 (divergent) | no-prior |
+| `stanford_b_debakey_IIIa.svg` | 34 | 34 (divergent) | unchanged |
+| `dont-convert-short-color-names.svg` | 33 | 33 (divergent) | unchanged |
+| `group-creation.svg` | 33 | 33 (divergent) | unchanged |
+| `path-quad-optimize.svg` | 32 | 32 (divergent) | unchanged |
+| `Xenopus_new.svg` | 16 | 16 (divergent) | unchanged |
 | `ribosome.svg` | - | 32 (divergent) | no-prior |
 | `variational-autoencoder.svg` | - | 4 (minor) | no-prior |
 | `nucleotide-a-ul.svg` | - | 10 (divergent) | no-prior |
-| `microtube-closed.svg` | - | 28 (divergent) | no-prior |
+| `microtube-closed.svg` | 28 | 28 (divergent) | unchanged |
 | `stanford_a_debakey_I.svg` | - | 32 (divergent) | no-prior |
-| `stanford_a_debakey_II.svg` | - | 32 (divergent) | no-prior |
+| `stanford_a_debakey_II.svg` | 32 | 32 (divergent) | unchanged |
 
 ### Firefox engine
 
@@ -43,23 +43,23 @@ Legend: distance 0-2 = identical, 3-6 = minor, >6 = divergent
 | `cpu.svg` | - | 40 (divergent) | no-prior |
 | `cell_membrane_arc.svg` | - | 42 (divergent) | no-prior |
 | `straight-curve.svg` | - | 38 (divergent) | no-prior |
-| `Amphiprion_ocellaris_egg.svg` | - | 28 (divergent) | no-prior |
-| `group-no-creation.svg` | - | 34 (divergent) | no-prior |
-| `round-bottomed-flask-1-500ml.svg` | - | 16 (divergent) | no-prior |
+| `Amphiprion_ocellaris_egg.svg` | 28 | 28 (divergent) | unchanged |
+| `group-no-creation.svg` | 34 | 34 (divergent) | unchanged |
+| `round-bottomed-flask-1-500ml.svg` | 16 | 16 (divergent) | unchanged |
 | `arrow-twosides-horizontal.svg` | - | 32 (divergent) | no-prior |
-| `flask-3-empty.svg` | - | 32 (divergent) | no-prior |
+| `flask-3-empty.svg` | 32 | 32 (divergent) | unchanged |
 | `pipette-tip-box.svg` | - | 32 (divergent) | no-prior |
-| `stanford_b_debakey_IIIa.svg` | - | 34 (divergent) | no-prior |
-| `dont-convert-short-color-names.svg` | - | 33 (divergent) | no-prior |
-| `group-creation.svg` | - | 33 (divergent) | no-prior |
-| `path-quad-optimize.svg` | - | 32 (divergent) | no-prior |
-| `Xenopus_new.svg` | - | 18 (divergent) | no-prior |
+| `stanford_b_debakey_IIIa.svg` | 34 | 34 (divergent) | unchanged |
+| `dont-convert-short-color-names.svg` | 33 | 33 (divergent) | unchanged |
+| `group-creation.svg` | 33 | 33 (divergent) | unchanged |
+| `path-quad-optimize.svg` | 32 | 32 (divergent) | unchanged |
+| `Xenopus_new.svg` | 18 | 18 (divergent) | unchanged |
 | `ribosome.svg` | - | 32 (divergent) | no-prior |
 | `variational-autoencoder.svg` | - | 4 (minor) | no-prior |
 | `nucleotide-a-ul.svg` | - | 16 (divergent) | no-prior |
-| `microtube-closed.svg` | - | 30 (divergent) | no-prior |
+| `microtube-closed.svg` | 30 | 30 (divergent) | unchanged |
 | `stanford_a_debakey_I.svg` | - | 32 (divergent) | no-prior |
-| `stanford_a_debakey_II.svg` | - | 32 (divergent) | no-prior |
+| `stanford_a_debakey_II.svg` | 32 | 32 (divergent) | unchanged |
 
 ## Summary
 

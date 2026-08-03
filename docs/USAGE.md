@@ -126,7 +126,7 @@ Rebuild the published assets and render every variable-volume family into one
 self-contained HTML contact sheet plus a PNG:
 
 ```bash
-./render_liquid_volume_contact_sheet.sh
+./tools/render_liquid_volume_contact_sheet.sh
 ```
 
 Each rebuild generates a fresh random liquid color for every vessel family. The

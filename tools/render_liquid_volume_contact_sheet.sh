@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # render_liquid_volume_contact_sheet.sh - rebuild and render every variable-volume form.
 #
-# Front door: run directly as ./render_liquid_volume_contact_sheet.sh.
+# Front door: run directly as ./tools/render_liquid_volume_contact_sheet.sh.
 # The contact sheet is developer evidence, written to
 # rendered-reports/liquid_volume_contacts/all_variable_volume_assets.{html,png}.
 # Each invocation generates fresh random colors and prints a visible build ID,
