@@ -123,20 +123,18 @@ cp src/style.css dist/style.css
 mkdir -p dist/assets/fonts
 cp assets/fonts/*.woff2 dist/assets/fonts/
 
-# 6c. Copy SVG source files so the manifest's relative paths resolve.
+# 6c. Publish SVG files so the manifest's relative paths resolve.
 #     generated/svg_manifest.ts maps each asset to assets/svg/<category>/<name>.svg
 #     relative to the served dist/ root. Both the PNG render server
 #     (tools/scene_to_png.mjs) and GitHub Pages serve dist/, so SVGs must live
-#     under dist/assets/svg/<category>/. Mirror the assets/<category>/ layout.
-mkdir -p dist/assets/svg
-for category_dir in assets/*/; do
-	category=$(basename "$category_dir")
-	# Only categories that actually contain SVG files (skip fonts, etc.).
-	if compgen -G "${category_dir}*.svg" > /dev/null; then
-		mkdir -p "dist/assets/svg/${category}"
-		cp "${category_dir}"*.svg "dist/assets/svg/${category}/"
-	fi
-done
+#     under dist/assets/svg/<category>/. Ordinary art publishes from assets/;
+#     material-declared art can publish only from generated/material_svg/.
+python3 -m pipeline.gen_svg_manifest --publish-to dist/assets/svg
+
+# The injection seam consumes the compiler-owned opaque handle manifest at a
+# stable relative runtime URL. It is generated in the same all-or-nothing pass
+# as the material SVG artifacts above.
+cp generated/liquid_regions.json dist/assets/liquid_regions.json
 
 # 7. Generate dist/<protocol_name>.html for every PROTOCOLS_INDEX entry.
 #    list_protocols.py 'emit' parses PROTOCOLS_INDEX from generated/protocols.ts
@@ -156,5 +154,6 @@ test -f dist/scene_viewer.js
 test -f dist/style.css
 test -f dist/bench_basic.html
 test -f dist/scene_viewer.html
+test -f dist/assets/liquid_regions.json
 
 echo "Built dist/ (GitHub Pages-ready)."

@@ -30,12 +30,6 @@ visual_states:
       - when: waste_mtt
         output:
           asset_name: biohazard_decant_bin
-  material_volume:
-    applies_to: object
-    render_effect: fill_height
-    target: anchor_liquid_bounds
-    clip: anchor_liquid_clip
-    capacity_ml: 100
 capabilities:
   - clickable
   - material_container

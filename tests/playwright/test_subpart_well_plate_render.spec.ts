@@ -97,6 +97,26 @@ const CARBOPLATIN_COLOR = readMaterialDisplayColor(
   "carboplatin",
 );
 
+// A complete, deterministic row-major plate. This is deliberately derived from
+// the same canonical naming scheme as the object, rather than querying or
+// mutating the SVG artwork. The M8 spike exercises the existing store and
+// generated geometry contract, not a second renderer.
+const ALL_WELLS = Array.from({ length: 8 }, (_, rowIndex) =>
+  Array.from(
+    { length: 12 },
+    (_, columnIndex) => `${String.fromCharCode("A".charCodeAt(0) + rowIndex)}${columnIndex + 1}`,
+  ),
+).flat();
+const FULL_PLATE_SAMPLE_COUNT = 25;
+const FRAME_MS_AT_60HZ = 1000 / 60;
+const FULL_PLATE_P95_FRAME_BUDGET_MS = FRAME_MS_AT_60HZ * 2;
+
+type FullPlateTiming = {
+  elapsed_ms: number;
+  all_expected: boolean;
+  rendered_count: number;
+};
+
 //============================================
 // Build the harness bundle in-memory.
 //============================================
@@ -434,6 +454,156 @@ test.describe("subpart well plate render", () => {
     //----------------------------------------
     // 5. No page errors throughout.
     //----------------------------------------
+    expect(pageErrors, `no page errors: ${pageErrors.join("; ")}`).toEqual([]);
+  });
+
+  test("96 independent normal store writes reach the existing generated-geometry overlay within two frames", async ({
+    page,
+  }) => {
+    const pageErrors: string[] = [];
+    page.on("pageerror", (e) => pageErrors.push(e.message));
+
+    await page.setViewportSize({ width: 1200, height: 675 });
+    await page.goto(`${base}/`, { waitUntil: "load" });
+    await page.waitForFunction(
+      () =>
+        typeof (window as unknown as { __subpart_harness?: unknown }).__subpart_harness !==
+        "undefined",
+      { timeout: 5000 },
+    );
+    await page.evaluate(() =>
+      (window as unknown as { __subpart_harness: { mount: () => void } }).__subpart_harness.mount(),
+    );
+    await page.waitForSelector(`#scene-root [data-subpart-overlay='${PLATE}']`, { timeout: 5000 });
+    await waitForPlateBaseSvg(page);
+
+    // Seed all wells once through the same production store method used by scene
+    // operations. Seeding is deliberately outside the timed steady-state write:
+    // it initializes empty state and is not part of a real full-plate material
+    // replacement.
+    await page.evaluate(
+      ({ wells }) => {
+        const h = (
+          window as unknown as {
+            __subpart_harness: { seed_subpart: (name: string) => void };
+          }
+        ).__subpart_harness;
+        for (const well of wells) {
+          h.seed_subpart(well);
+        }
+      },
+      { wells: ALL_WELLS },
+    );
+
+    // Assign a three-material pattern. A per-cell expected value proves this is
+    // not a single shared plate state or an all-wells visual shortcut.
+    const patterns = [
+      ALL_WELLS.map((_, index) =>
+        index % 3 === 0 ? "mixed" : index % 3 === 1 ? "carboplatin" : "media",
+      ),
+      ALL_WELLS.map((_, index) =>
+        index % 3 === 0 ? "media" : index % 3 === 1 ? "mixed" : "carboplatin",
+      ),
+    ];
+    const warmup = patterns[0];
+    if (warmup === undefined) {
+      throw new Error("M8 timing setup requires a warm-up pattern");
+    }
+
+    async function writeAndMeasure(expected: string[]): Promise<FullPlateTiming> {
+      return page.evaluate(
+        async ({ plate, wells, expectedMaterials }) => {
+          const h = (
+            window as unknown as {
+              __subpart_harness: {
+                write_subpart: (name: string, patch: { material_name: string }) => void;
+              };
+            }
+          ).__subpart_harness;
+          const overlay = document.querySelector(`[data-subpart-overlay='${plate}']`);
+          if (overlay === null) {
+            throw new Error("M8 timing: missing plate overlay");
+          }
+          // Begin just after a frame boundary. The following rAF is the next
+          // reactive DOM/render completion opportunity after all 96 store writes.
+          await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+          const start = performance.now();
+          for (let index = 0; index < wells.length; index += 1) {
+            const well = wells[index];
+            const material = expectedMaterials[index];
+            if (well === undefined || material === undefined) {
+              throw new Error("M8 timing: well/material pattern mismatch");
+            }
+            h.write_subpart(well, { material_name: material });
+          }
+          await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+          const elapsed_ms = performance.now() - start;
+          const shapes = Array.from(overlay.querySelectorAll<SVGElement>("[data-subpart-name]"));
+          return {
+            elapsed_ms,
+            rendered_count: shapes.length,
+            all_expected:
+              shapes.length === wells.length &&
+              wells.every(
+                (well, index) =>
+                  overlay
+                    .querySelector(`[data-subpart-name='${well}']`)
+                    ?.getAttribute("data-material-name") === expectedMaterials[index],
+              ),
+          };
+        },
+        { plate: PLATE, wells: ALL_WELLS, expectedMaterials: expected },
+      );
+    }
+
+    // Prime subscriptions and browser caches before timing. This still has to
+    // reach every cell before any sample is accepted.
+    const warmupResult = await writeAndMeasure(warmup);
+    expect(warmupResult.rendered_count).toBe(96);
+    expect(warmupResult.all_expected).toBe(true);
+
+    const samples: FullPlateTiming[] = [];
+    for (let index = 0; index < FULL_PLATE_SAMPLE_COUNT; index += 1) {
+      const pattern = patterns[index % patterns.length];
+      if (pattern === undefined) {
+        throw new Error("M8 timing setup requires a measurement pattern");
+      }
+      const sample = await writeAndMeasure(pattern);
+      expect(sample.rendered_count, `sample ${index} must retain all 96 wells`).toBe(96);
+      expect(sample.all_expected, `sample ${index} must reach all independent target states`).toBe(
+        true,
+      );
+      samples.push(sample);
+    }
+
+    const ordered = samples.map((sample) => sample.elapsed_ms).sort((a, b) => a - b);
+    const p95Index = Math.ceil(ordered.length * 0.95) - 1;
+    const p95 = ordered[p95Index];
+    const median = ordered[Math.floor(ordered.length / 2)];
+    if (p95 === undefined || median === undefined) {
+      throw new Error("M8 timing produced no samples");
+    }
+    // A complete plate is one learner-visible change. Two 60 Hz frames (33.333
+    // ms) is the deliberately conservative browser budget: one frame is the
+    // first available animation-frame opportunity after a just-missed boundary;
+    // a second tolerates
+    // ordinary scheduling variance. The p95, rather than one lucky sample,
+    // makes the gate resistant to timer jitter.
+    expect(
+      p95,
+      `M8 full-plate p95 ${p95.toFixed(3)} ms; samples: ${ordered.map((v) => v.toFixed(3)).join(", ")}`,
+    ).toBeLessThanOrEqual(FULL_PLATE_P95_FRAME_BUDGET_MS);
+    // rAF timestamps are quantized around 16.7 ms, so a 20 ms median permits
+    // normal timer rounding while still requiring the first animation-frame opportunity.
+    expect(
+      median,
+      "M8 full-plate median must fit in the first 60 Hz animation-frame opportunity",
+    ).toBeLessThanOrEqual(20);
+    console.log(
+      `M8 96-well update timing: n=${samples.length}; median=${median.toFixed(3)} ms; ` +
+        `p95=${p95.toFixed(3)} ms; budget=${FULL_PLATE_P95_FRAME_BUDGET_MS.toFixed(3)} ms; ` +
+        `samples=[${ordered.map((value) => value.toFixed(3)).join(", ")}].`,
+    );
     expect(pageErrors, `no page errors: ${pageErrors.join("; ")}`).toEqual([]);
   });
 });

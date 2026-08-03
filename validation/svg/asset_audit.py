@@ -2,7 +2,7 @@
 """SVG asset audit tool.
 
 Walks all object YAML files, identifies asset_name references in visual_states,
-and cross-walks with assets/equipment/*.svg files and source manifests
+and cross-walks with recursively registered equipment SVGs and source manifests
 (SOURCES.md, MISSING_SVG_PLACEHOLDERS.md) to classify each asset and detect
 orphans. Reports enriched per-asset metadata: Servier provenance, modification
 status, attribution, normalization, forbidden constructs, file size, subpart
@@ -18,6 +18,7 @@ import os
 import re
 import sys
 import hashlib
+from functools import lru_cache
 from pathlib import Path
 
 import yaml
@@ -28,6 +29,7 @@ import validation.shared_toolkit.interactive as toolkit_interactive
 import validation.shared_toolkit.reporter as reporter
 import validation.shared_toolkit.cli as toolkit_cli
 import validation.shared_toolkit.verbosity as verbosity
+from validation.svg.asset_registry import build_svg_asset_registry
 
 #============================================
 # setup
@@ -39,6 +41,20 @@ ASSETS_DIR = os.path.join(REPO_ROOT, "assets", "equipment")
 SOURCES_MD = os.path.join(ASSETS_DIR, "SOURCES.md")
 PLACEHOLDERS_MD = os.path.join(ASSETS_DIR, "MISSING_SVG_PLACEHOLDERS.md")
 OTHER_REPOS_ROOT = os.path.join(REPO_ROOT, "..", "OTHER_REPOS")
+
+
+@lru_cache(maxsize=1)
+def _equipment_registry():
+	"""Return the shared recursive equipment registry for path lookups."""
+	return build_svg_asset_registry(Path(ASSETS_DIR))
+
+
+def _asset_path(asset_name: str) -> str:
+	"""Resolve one logical equipment asset name to its current source path."""
+	try:
+		return str(_equipment_registry().asset_path(asset_name))
+	except KeyError:
+		return os.path.join(ASSETS_DIR, f"{asset_name}.svg")
 
 #============================================
 # servier source and category parsing
@@ -186,7 +202,7 @@ def check_modification_status(
 	if not os.path.isfile(source_path_abs):
 		return 'source_missing'
 
-	our_svg = os.path.join(ASSETS_DIR, f"{asset_name}.svg")
+	our_svg = _asset_path(asset_name)
 	our_hash = compute_file_hash(our_svg)
 	source_hash = compute_file_hash(source_path_abs)
 
@@ -204,7 +220,7 @@ def check_attribution(
 	if asset_name not in servier:
 		return 'attributed_both'  # not a Servier asset, no check needed
 
-	svg_path = os.path.join(ASSETS_DIR, f"{asset_name}.svg")
+	svg_path = _asset_path(asset_name)
 	has_inline_attribution = False
 
 	# Check for inline XML comment with Servier + CC BY
@@ -233,7 +249,7 @@ def check_normalization(asset_name: str) -> tuple[str, str | None]:
 
 	Returns: (status, reason) where status is 'normalized' or 'failed'.
 	"""
-	svg_path = os.path.join(ASSETS_DIR, f"{asset_name}.svg")
+	svg_path = _asset_path(asset_name)
 
 	if not os.path.isfile(svg_path):
 		return 'failed', 'file_not_found'
@@ -288,7 +304,7 @@ def check_forbidden_constructs(asset_name: str) -> list[str]:
 	Returns list of findings (empty if none).
 	"""
 	findings = []
-	svg_path = os.path.join(ASSETS_DIR, f"{asset_name}.svg")
+	svg_path = _asset_path(asset_name)
 
 	if not os.path.isfile(svg_path):
 		return findings
@@ -320,7 +336,7 @@ def check_forbidden_constructs(asset_name: str) -> list[str]:
 
 def get_file_size_kb(asset_name: str) -> float | None:
 	"""Get file size in KB."""
-	svg_path = os.path.join(ASSETS_DIR, f"{asset_name}.svg")
+	svg_path = _asset_path(asset_name)
 	if os.path.isfile(svg_path):
 		size_bytes = os.path.getsize(svg_path)
 		return size_bytes / 1024.0
@@ -329,7 +345,7 @@ def get_file_size_kb(asset_name: str) -> float | None:
 def extract_subpart_ids(asset_name: str) -> set[str]:
 	"""Extract all data-subpart-id attribute values from SVG."""
 	subpart_ids = set()
-	svg_path = os.path.join(ASSETS_DIR, f"{asset_name}.svg")
+	svg_path = _asset_path(asset_name)
 
 	if not os.path.isfile(svg_path):
 		return subpart_ids
@@ -448,16 +464,10 @@ def check_enum_coverage(
 #============================================
 
 def list_disk_svgs() -> set[str]:
-	"""List all .svg files in assets/equipment (basenames without extension)."""
-	svgs = set()
+	"""List logical SVG names from the recursive equipment registry."""
 	if not os.path.isdir(ASSETS_DIR):
-		return svgs
-
-	for fname in os.listdir(ASSETS_DIR):
-		if fname.endswith('.svg'):
-			svgs.add(fname[:-4])
-
-	return svgs
+		return set()
+	return set(_equipment_registry().asset_names)
 
 def extract_asset_names_recursive(obj: object) -> set[str]:
 	"""Recursively extract all asset_name values from a YAML object.
@@ -1033,7 +1043,7 @@ def parse_args():
 
 	parser = toolkit_cli.build_parser(
 		prog='audit',
-		description='SVG asset audit: walk objects and cross-walk with assets/equipment/*.svg files.',
+		description='SVG asset audit: walk objects and cross-walk with recursive equipment SVGs.',
 		extras=register_svg_audit_flags
 	)
 

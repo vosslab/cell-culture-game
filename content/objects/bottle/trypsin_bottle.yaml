@@ -23,9 +23,9 @@ visual_states:
     kind: svg
     cases:
       - when: empty
-        output: { asset_name: bottle_pink }
+        output: { asset_name: bottle_medium_pink }
       - when: trypsin
-        output: { asset_name: bottle_pink }
+        output: { asset_name: bottle_medium_pink }
   material_volume:
     applies_to: object
     render_effect: fill_height

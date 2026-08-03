@@ -107,15 +107,31 @@ then normalize it for ingestion:
 
 ```bash
 tools/outline_svg_text.sh raw.svg outlined.svg
-source source_me.sh && python3 tools/normalize_svg_v3.py -i outlined.svg -o assets/equipment/
+source source_me.sh && python3 tools/normalize_svg_v3.py -i outlined.svg -o assets/equipment/static/
 ```
 
 The outline helper does not replace files by default. Use explicit in-place
 mode only when the source file is the intended target:
 
 ```bash
-tools/outline_svg_text.sh --in-place assets/equipment/my_asset.svg
-source source_me.sh && python3 tools/normalize_svg_v3.py --in-place assets/equipment/my_asset.svg
+tools/outline_svg_text.sh --in-place assets/equipment/static/my_asset.svg
+source source_me.sh && python3 tools/normalize_svg_v3.py --in-place assets/equipment/static/my_asset.svg
 ```
 
 `normalize_svg_v3.py -o` takes an output directory, not an output filename.
+
+## Variable-volume contact sheet
+
+Rebuild the published assets and render every variable-volume family into one
+self-contained HTML contact sheet plus a PNG:
+
+```bash
+./render_liquid_volume_contact_sheet.sh
+```
+
+Each rebuild generates a fresh random liquid color for every vessel family. The
+sheet records those exact colors, its creation time, its build ID, and per-card
+rendered-fill diagnostics, so a result is reproducible without replacing the
+random input with a curated palette. Persistent, gitignored outputs are
+`rendered-reports/liquid_volume_contacts/all_variable_volume_assets.html` and
+`rendered-reports/liquid_volume_contacts/all_variable_volume_assets.png`.

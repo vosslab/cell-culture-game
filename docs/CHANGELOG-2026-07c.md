@@ -909,7 +909,7 @@
   not recover subpart specificity (it only chooses among present base placements); genuine
   subpart-picking is a future direction-B RFC under the PRIMARY_DESIGN new-primitive evidence
   bar. Recorded in
-  [docs/active_plans/decisions/subpart_click_pattern.md](active_plans/decisions/subpart_click_pattern.md).
+  [subpart_click_pattern.md](active_plans/decisions/subpart_click_pattern.md).
 - Release closeout (velvet-napping-tower plan, Release 1 + Release 2 + follow-on fixes):
   `FinalDiffReview` found the full diff merge-ready, and the full walker corpus is
   clean-except-owned (`FullSweep` 26/31 PASS, the 5 remaining reds all triaged and
@@ -959,7 +959,7 @@
   I (label-label overlap), 7/11, surfaced by the content-derived base-scene discovery
   widening (see the "Base-scene test sets" entry above). Routed to the scene-manager
   plan as a new owned row (O6 in
-  [docs/active_plans/audits/walker_click_bug_register.md](active_plans/audits/walker_click_bug_register.md)),
+  [walker_click_bug_register.md](active_plans/audits/walker_click_bug_register.md)),
   tagged as possibly the same shared-base-zone / instrument-band overlap family as O4
   (hood pointer-overlap: `right_hemocytometer_slide_clear` over
   `rear_right_hood_return`), pending scene-manager confirmation before opening a

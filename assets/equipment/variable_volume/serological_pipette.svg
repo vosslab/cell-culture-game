@@ -1,21 +1,43 @@
-<svg xmlns="http://www.w3.org/2000/svg" id="sero_pipette" viewBox="0 0 16 142">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 142" data-vlab-rendering="material" data-vlab-body-start-fill-percent="7.3394495">
 	<defs>
 		<!-- Liquid clipping region: follows inner glass tube only (not cotton plug, not tip) -->
 		<clipPath id="anchor_liquid_clip">
-			<rect x="5.5" y="15" width="5" height="101" rx="0.5"/>
+			<!-- Include the complete 0.5-unit-radii meniscus when its calibrated
+			     centre reaches the 100% line at y=15.  The glass bore begins above
+			     this (at y=13), so the extra 0.5 unit remains inside the tube. -->
+			<rect x="5.5" y="14.5" width="5" height="101.5" rx="0.5"/>
+			<path d="M 5.5 116 L 8 140 L 10.5 116 Z"/>
 		</clipPath>
 	</defs>
 
 
-	<!-- BODY: main pipette shape -->
-	<g id="body">
+	<!-- Fixed artwork behind the liquid's inner-tube region. -->
+	<g data-vlab-layer-name="fixed_back" data-vlab-layer-kind="fixed">
 		<!-- cotton plug at top -->
 		<rect x="2" y="4" width="12" height="10" rx="1" fill="#e8d4c0" stroke="#cccccc" stroke-width="0.8"/>
 		<ellipse cx="8" cy="4" rx="5" ry="2" fill="#ddccb0" opacity="0.7"/>
 		<!-- graduated glass tube -->
 		<rect x="4" y="13" width="8" height="105" rx="1" fill="#f0f0f0" stroke="#999999" stroke-width="0.8"/>
+		<!-- neutral pointed tip remains visible when the material is empty -->
+		<path d="M 4 118 L 8 140 L 12 118 Z" fill="#f0f0f0" stroke="#999999" stroke-width="0.4"/>
+	</g>
+
+	<g data-vlab-layer-name="liquid_tip" data-vlab-layer-kind="material" data-vlab-paint-role="base" data-vlab-liquid-part="bottom">
+		<path d="M 5.5 116 L 8 140 L 10.5 116 Z" fill="#f8f8f8" stroke="none"/>
+	</g>
+
+	<!-- The existing inner-tube tint is the stretchable middle body. -->
+	<g data-vlab-layer-name="liquid_body" data-vlab-layer-kind="material" data-vlab-paint-role="base" data-vlab-liquid-part="body">
 		<!-- inner tube glass tint -->
 		<rect x="5.5" y="15" width="5" height="101" rx="0.5" fill="#f8f8f8" stroke="none"/>
+	</g>
+
+	<g data-vlab-layer-name="liquid_surface" data-vlab-layer-kind="material" data-vlab-paint-role="highlight" data-vlab-adjustment="0.18" data-vlab-liquid-part="surface">
+		<ellipse cx="8" cy="15" rx="2.5" ry="0.5" fill="#ffffff" stroke="none"/>
+	</g>
+
+	<!-- Fixed artwork in front of the liquid region. -->
+	<g data-vlab-layer-name="fixed_front" data-vlab-layer-kind="fixed">
 		<!-- glass shine -->
 		<rect x="6" y="18" width="1.5" height="95" fill="#ffffff" opacity="0.5"/>
 		<!-- major graduation marks -->
@@ -30,7 +52,7 @@
 		<line x1="4" y1="78" x2="12" y2="78" stroke="#cccccc" stroke-width="0.3"/>
 		<line x1="4" y1="98" x2="12" y2="98" stroke="#cccccc" stroke-width="0.3"/>
 		<!-- pointed tip at bottom -->
-		<path d="M 4 118 L 8 140 L 12 118 Z" fill="#cccccc" stroke="#999999" stroke-width="0.4"/>
+		<path d="M 4 118 L 8 140 L 12 118 Z" fill="none" stroke="#999999" stroke-width="0.4"/>
 	</g>
 
 	<!-- OVERLAY_ROOT: engine injects dynamic overlays here -->
@@ -38,7 +60,7 @@
 
 	<!-- ANCHORS: invisible positioning elements for the engine -->
 	<!-- Liquid fill region bounds (inner glass tube) -->
-	<rect id="anchor_liquid_bounds" x="5.5" y="15" width="5" height="101" fill="none" stroke="none" display="none"/>
+	<rect id="anchor_liquid_bounds" x="5.5" y="15" width="5" height="125" fill="none" stroke="none" display="none"/>
 	<!-- Highlight border bounds -->
 	<rect id="anchor_highlight" x="1" y="2" width="15" height="144" fill="none" stroke="none" display="none"/>
 	<!-- Error indicator position -->

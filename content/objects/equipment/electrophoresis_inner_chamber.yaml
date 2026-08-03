@@ -26,13 +26,6 @@ visual_states:
         output: { asset_name: electrophoresis_tank_inner_chamber }
       - when: running_buffer_1x_used
         output: { asset_name: electrophoresis_tank_inner_chamber }
-  material_volume:
-    applies_to: object
-    render_effect: fill_height
-    target: anchor_liquid_bounds
-    clip: anchor_liquid_clip
-    capacity_ml: 800
-
 capabilities: [clickable, material_container]
 
 layout:

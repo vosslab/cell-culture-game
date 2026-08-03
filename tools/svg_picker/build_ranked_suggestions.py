@@ -49,7 +49,7 @@ def tokenize_name(name):
 
 def get_parent_folder_tokens(rel_path):
 	"""Extract tokens from parent folder path (not filename)."""
-	# Example: "assets/equipment/xyz.svg" -> ["assets", "equipment"]
+	# Example: "assets/equipment/static/xyz.svg" -> ["assets", "equipment", "static"]
 	# Example: "OTHER_REPOS/bioicons/static/icons/cc-by-4.0/arrow.svg" -> ["other", "repos", "bioicons", "static", "icons", "cc", "by", "arrow"]
 	# Split on / and - and filter out extension
 	path_parts = rel_path.split('/')

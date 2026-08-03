@@ -14,6 +14,7 @@ from validation.yaml_schema.constants import (
 )
 from validation.yaml_schema.findings import Finding, Severity
 import validation.shared_toolkit.repo_root
+from validation.svg.asset_registry import SvgAssetRegistryError, build_svg_asset_registry
 
 
 class ObjectValidator:
@@ -792,12 +793,14 @@ class ObjectValidator:
 		outer_chamber_material_name/volume).
 
 		The empty sentinel may share the base asset with non-empty materials;
-		the runtime skips overlay when material_name == empty or volume == 0.
+		the compiled material region remains hidden when identity is empty or
+		amount is zero.
 
-		Asset-readiness check (soft report initially): for objects passing
-		the vocabulary rule, confirm the base SVG carries both
-		id="anchor_liquid_clip" and id="anchor_liquid_bounds". Soft-report
-		on miss so WS-YAML can land before WS-ANCHORS completes.
+		The recursive asset-taxonomy gate is the hard rendering check: an
+		object-level fill_height binding must select a material-rendered SVG.
+		This validator additionally reports source-form readiness when its
+		liquid calibration anchors are absent. That advisory never authorizes
+		an ordinary SVG to receive a material effect.
 		"""
 		findings = []
 
@@ -805,8 +808,10 @@ class ObjectValidator:
 		if not isinstance(visual_states, dict):
 			return findings
 
-		# Recognize the current declarative shape and the older formula shape
-		# while production content finishes migrating to render_effect.
+		# Recognize the object-level declarative shape. Formula recognition only
+		# preserves diagnostic context for legacy declarations; it does not make
+		# a formula a supported runtime material-rendering contract. Current
+		# object YAML must use the compiled material-form contract instead.
 		volume_renderers: dict[str, tuple[str, bool]] = {}
 		for state_name, state_def in visual_states.items():
 			if not isinstance(state_def, dict):
@@ -904,7 +909,8 @@ class ObjectValidator:
 
 		prefix: '' for material_* / held_material_*, or 'chamber_' for chamber_material_*
 		volume_state_name: the name of the volume composite state (e.g. 'material_volume')
-		requires_anchors: whether the renderer targets base-SVG liquid anchors
+		requires_anchors: whether the compiled material form needs its liquid
+			calibration anchors checked by this advisory
 		path: the object file path for error reporting
 		"""
 		findings = []
@@ -926,7 +932,9 @@ class ObjectValidator:
 		elif held_material_name_field in visual_states:
 			paired_field = held_material_name_field
 		else:
-			# No paired material_name field found; object is exempt (intentional non-liquid)
+			# This legacy cross-field check has no paired identity to inspect.
+			# It does not authorize a fill effect; schema and asset-taxonomy
+			# validation still determine whether the authored binding is valid.
 			return findings
 
 		# Get the material_name visual state
@@ -951,13 +959,10 @@ class ObjectValidator:
 
 		# Check for variant fan-out (multiple distinct asset_name values)
 		if len(asset_names) > 1:
-			# TEMPORARY "for now" deferral: the per-material display_color recolor
-			# pipeline was lost in the Solid.js rewrite, so reagent bottles cannot
-			# tint a single base asset per material and instead point at distinct
-			# color-variant asset SVGs (pink/orange/green). See
-			# assets/SVG_ASSET_GAPS.md. Demote this material color/variant fan-out
-			# to WARNING for now; reversible once the recolor pipeline is restored
-			# and cases collapse to a single base asset.
+		# Preserve a warning for legacy declarations while historical fixtures
+		# remain readable. Current object-level effects are additionally checked
+		# by the asset-taxonomy gate, which requires one compiled material form
+		# instead of a material-specific SVG fan-out.
 			findings.append(Finding(
 				path=path,
 				lineno=None,
@@ -967,12 +972,12 @@ class ObjectValidator:
 					f"[VARIANT-COLLAPSE] {paired_field} cases for volume composite "
 					f"{volume_state_name} resolve to {len(asset_names)} distinct asset_name values: "
 					f"{sorted(asset_names)}. All cases must resolve to a single base asset "
-					f"(the 'empty' sentinel may share the same base asset as non-empty materials; "
-					f"see docs/specs/MATERIAL_CONVENTION.md for the overlay convention)."
+					f"(the 'empty' sentinel may share the same compiled material form as "
+					f"non-empty materials; see docs/specs/MATERIAL_CONVENTION.md)."
 				),
 			))
-		# Report readiness independently for every referenced base. A fan-out
-		# finding must not hide a missing-anchor finding on the same object.
+		# Report source-form readiness independently for every referenced form.
+		# A fan-out finding must not hide a missing-calibration finding.
 		if requires_anchors:
 			for base_asset_name in sorted(asset_names):
 				self._check_asset_anchors(base_asset_name, path, findings)
@@ -981,11 +986,11 @@ class ObjectValidator:
 
 	def _check_asset_anchors(self, asset_name: str, path: str, findings: list) -> None:
 		"""
-		Asset-readiness soft-report: check if the base SVG exists and carries
-		both anchor_liquid_clip and anchor_liquid_bounds.
-
-		Soft-report on miss (add to findings list with WARNING severity).
-		Do NOT raise an error yet (that's a future gate after WS-ANCHORS completes).
+		Source-form readiness advisory: check calibration anchors required by
+		the compiled material form. Missing anchors are a WARNING here because
+		this YAML validator does not own rendering-category validation; the
+		asset-taxonomy gate rejects an ordinary selected SVG for an
+		object-level fill_height binding.
 
 		This method modifies the findings list in-place.
 		"""
@@ -994,18 +999,31 @@ class ObjectValidator:
 		# existing assets as missing.
 		repo_root = validation.shared_toolkit.repo_root.REPO_ROOT
 
-		svg_path = repo_root / 'assets' / 'equipment' / f'{asset_name}.svg'
+		try:
+			asset_registry = build_svg_asset_registry(repo_root / 'assets')
+			svg_path = asset_registry.asset_path(asset_name)
+		except SvgAssetRegistryError as exc:
+			findings.append(Finding(
+				path=path,
+				lineno=None,
+				severity=Severity.ERROR,
+				code='invalid-asset-registry',
+				message=str(exc),
+			))
+			return
+		except KeyError:
+			svg_path = None
 
-		# Literal category: the referenced base SVG is absent on disk.
-		if not svg_path.exists():
+		# Literal category: the referenced material form is absent on disk.
+		if svg_path is None:
 			findings.append(Finding(
 				path=path,
 				lineno=None,
 				severity=Severity.WARNING,
 				code='missing',
 				message=(
-					f"base SVG absent on disk for asset_name '{asset_name}': "
-					f"expected {svg_path.relative_to(repo_root)}."
+					f"material SVG absent on disk for asset_name '{asset_name}': "
+					"expected one uniquely named SVG below assets/."
 				),
 			))
 			return
@@ -1024,16 +1042,16 @@ class ObjectValidator:
 			if not has_bounds:
 				missing.append('anchor_liquid_bounds')
 
-			# Literal category: the SVG is present but not normalized to carry
-			# the required liquid anchors.
+			# The SVG exists but its source form is missing calibration geometry
+			# required by the compiled material contract.
 			findings.append(Finding(
 				path=path,
 				lineno=None,
 				severity=Severity.WARNING,
 				code='non-normalized',
 				message=(
-					f"base SVG for asset_name '{asset_name}' "
-					f"({svg_path.relative_to(repo_root)}) lacks liquid anchors: "
+					f"material SVG for asset_name '{asset_name}' "
+					f"({svg_path.relative_to(repo_root)}) lacks liquid calibration anchors: "
 					f"missing {', '.join(missing)}."
 				),
 			))

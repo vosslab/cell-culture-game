@@ -56,12 +56,14 @@ import sys
 import json
 import argparse
 import subprocess
+from pathlib import Path
 
 # PIP3 modules
 import yaml  # pyyaml
 
 # local repo modules
 from pipeline import scene_inheritance
+from validation.svg.asset_registry import build_svg_asset_registry
 
 
 # Per-placement layout keys that are forbidden override escape hatches.
@@ -186,22 +188,13 @@ def parse_hex_color(hex_str: str) -> bool:
 
 def collect_svg_asset_names(repo_root: str) -> set:
 	"""
-	Collect all SVG asset base names (without .svg extension) from assets/equipment/.
+	Collect logical SVG names from the recursive asset registry.
 	Returns a set of available asset name strings.
 	"""
-	available_svgs = set()
-	equipment_dir = os.path.join(repo_root, "assets", "equipment")
-
-	if not os.path.isdir(equipment_dir):
-		return available_svgs
-
-	for file in os.listdir(equipment_dir):
-		if file.endswith(".svg"):
-			# Strip .svg to get the base asset name used in object YAML asset_name fields
-			base_name = file[:-4]
-			available_svgs.add(base_name)
-
-	return available_svgs
+	assets_dir = Path(repo_root) / "assets"
+	if not assets_dir.is_dir():
+		return set()
+	return set(build_svg_asset_registry(assets_dir).asset_names)
 
 
 #============================================
@@ -818,7 +811,7 @@ def main() -> None:
 		"well_plate_96_zoom": "Quarantined: references quarantined object well_plate_96",
 	}
 
-	# Collect SVG assets available in assets/equipment/
+	# Collect stable logical SVG names from the recursive asset registry.
 	available_svgs = collect_svg_asset_names(repo_root)
 
 	# Read object names from content/objects/

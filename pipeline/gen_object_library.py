@@ -25,6 +25,7 @@ import sys
 import subprocess
 import math
 import re
+from pathlib import Path
 
 # PIP3 modules
 import yaml
@@ -32,6 +33,7 @@ import lxml.etree
 
 # local repo modules
 import pipeline.entity_decode
+from validation.svg.asset_registry import SvgAssetRegistryError, build_svg_asset_registry
 
 
 #============================================
@@ -97,21 +99,15 @@ def read_kinds_enum(repo_root: str) -> list:
 
 def collect_svg_files(repo_root: str) -> dict:
 	"""
-	Collect all SVG files under assets/**/*.svg.
-	Returns {asset_name: absolute_path}.
+	Collect every SVG through the authoritative recursive logical-name registry.
+	Returns {asset_name: absolute_path} and rejects duplicate basenames rather
+	than allowing filesystem walk order to choose one source silently.
 	"""
-	assets_dir = os.path.join(repo_root, "assets")
-	svg_files = {}
-
-	for root, dirs, files in os.walk(assets_dir):
-		for file in files:
-			if file.endswith(".svg"):
-				abs_path = os.path.join(root, file)
-				# Asset name is filename without .svg
-				asset_name = file[:-4]
-				svg_files[asset_name] = abs_path
-
-	return svg_files
+	try:
+		registry = build_svg_asset_registry(Path(repo_root) / "assets")
+	except SvgAssetRegistryError as exc:
+		raise ValueError(str(exc)) from exc
+	return {entry.asset_name: str(entry.source_path) for entry in registry.entries}
 
 
 #============================================

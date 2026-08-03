@@ -41,6 +41,45 @@ region colored for well B7 sits on B7 and nowhere else. That alignment is a
 pedagogical requirement, not a cosmetic one; see
 [MATERIAL_DESIGN.md](MATERIAL_DESIGN.md) spatial correspondence.
 
+## M8 decision: generated geometry is permanent for structured material areas
+
+Generated geometry is the canonical and permanent rendering model for wells,
+rack slots, and gel lanes. It is deliberately separate from a material-rendered
+vessel SVG. The 96-well plate evidence is recorded in the
+`docs/active_plans/decisions/structured_subpart_render_model.md` decision:
+the source illustration has many anonymous transformed well paths but no
+durable A1-H12 semantic namespace, whereas generated geometry already has
+those named, typed, build-validated regions in the asset's exact viewBox.
+
+The production browser spike also verified that 96 independent per-well state
+writes complete within the stated browser-frame budget. Performance is therefore
+not a reason to move the geometry into the SVG, and such a move would duplicate
+the existing spatial mapping while adding donor-path classification and export
+risk. A structured base asset remains opaque; its material areas render through
+`subpart_geometry`. This is an intentional permanent split, not an incomplete
+material-SVG migration. Its material overlay remains `pointer-events: none`.
+The separate existing `subpart_hit_surface.tsx` component owns exact generated
+hit targets for active subpart interactions; M8 does not alter that component
+or its interaction behavior.
+
+## Boundary with material-rendered SVG forms
+
+Structured subparts and material-rendered SVG forms solve different geometry
+problems. A plate's wells, rack slots, and gel lanes use generated per-subpart
+geometry because they are many independently addressed material areas on one
+object. A material-rendered vessel form uses semantic groups inside one SVG
+because its own liquid layers need recoloring and gravity-part amount behavior.
+The latter contract is owned by [SVG_PIPELINE.md](SVG_PIPELINE.md); it neither
+replaces nor generalizes the structured-subpart mechanism.
+
+SVG selection and rendering remain independent. A discrete collection can
+select complete forms, and any selected form can independently be static or
+material-rendered. That does not turn each well, lane, or slot into a semantic
+SVG layer recipe, and it does not create a general animated-SVG feature. The
+M8 structured-subpart decision remains the boundary for any future conversion
+proposal; it requires evidence before changing the current generated-geometry
+mechanism.
+
 ## Subparts are material areas, not new objects
 
 Each subpart carries its own material state and renders its own material
@@ -90,31 +129,30 @@ protocol still names one target. The object schema is what fans the write out.
 See [OBJECT_YAML_FORMAT.md](OBJECT_YAML_FORMAT.md) "Grouped targets are listed
 explicitly" and [PRIMARY_SPEC.md](../PRIMARY_SPEC.md).
 
-## Clicking versus writing state: the distinction that gets missed
+## Clicking versus writing state: distinct generated surfaces
 
-A subpart is a material area, not a click target. Subparts render as
-`pointer-events: none` material overlays with no DOM hit target of their own;
-the base placement (the plate, rack, or gel) is the only click target. The
-subpart or group name lives inside the interaction response's
-`ObjectStateChange`, not on the click. This is an architect-locked render
-contract; see the
-[subpart-click decision](../active_plans/decisions/subpart_click_pattern.md).
+A subpart material overlay is not a click target: it renders with
+`pointer-events: none`. That does not mean a structured subpart can never be
+an active interaction target. When an active dotted target resolves to declared
+generated geometry, the separate
+`src/scene_runtime/renderer/subpart_hit_surface.tsx` renders exact generated
+hit shapes. Those are enabled only for the active subpart interaction and keep
+the base plate, rack, or gel as one scene object. The subpart or group name can
+therefore be addressed either by the interaction or by its response's
+`ObjectStateChange`; the material overlay remains purely visual.
 
 Two cases follow, and keeping them apart is what avoids the recurring
 confusion:
 
 - A group or non-discrimination subpart STATE-WRITE (for example `all_wells`, a
   column, a technique-only single lane) is correct as authored. The student
-  clicks the base object; the response writes the subpart or group state; the
-  material layer colors the member cells. Nothing about this needs a
-  subpart-level click target.
-- A discrimination-bearing subpart CLICK, where the taught skill is picking the
-  correct cell among its peers (which dose in which well, which tube in the
-  rack), cannot be expressed today, because subparts have no click target.
-  These interactions are the held class in the
-  [subpart-click decision](../active_plans/decisions/subpart_click_pattern.md),
-  and giving subparts real click targets is the future architect-owned
-  Direction-B work described there.
+  may click the base object; the response writes the subpart or group state; the
+  material layer colors the member cells. Nothing about this requires activating
+  the separate hit surface.
+- A discrimination-bearing subpart interaction activates exact generated hit
+  shapes through `subpart_hit_surface.tsx`, allowing the learner to select the
+  declared cell, slot, or lane while sibling geometry remains independently
+  addressable for ordinary validation.
 
 The dividing line is the taught skill, not the target shape. A subpart target
 is in the held class only when picking the correct subpart is the discrimination
@@ -137,10 +175,10 @@ is a wrong conclusion that a partial reading produces.
   named-group violation. It is a closed, build-validated object-schema block
   with a closed `group_kind` enum, declared on the object, consumed as one
   target by the protocol.
-- A subpart click target that fails to resolve in the DOM is NOT necessarily a
-  scene-placement gap. Subparts intentionally have no click target; the base
-  placement is the click. A discrimination-bearing subpart click is a known
-  held item, not a scene bug.
+- An active subpart target that fails to resolve to declared generated geometry
+  is a content/runtime error, not permission to fall back to a broad parent
+  target. The material overlay remains non-interactive; the exact hit surface
+  owns active subpart pointer targets.
 - The absence of `subpart_groups` handling under
   `src/scene_runtime/protocol/` does NOT mean the cascade is unimplemented. The
   per-subpart material rendering lives in the renderer and material layer
@@ -149,12 +187,12 @@ is a wrong conclusion that a partial reading produces.
 
 ## Reading map
 
-| Question | Owning doc |
-| --- | --- |
-| How is the subpart namespace and `subpart_groups` schema declared? | [OBJECT_YAML_FORMAT.md](OBJECT_YAML_FORMAT.md) |
-| Why are wells material areas, and what is spatial correspondence? | [MATERIAL_DESIGN.md](MATERIAL_DESIGN.md) |
-| Which render effect and target tint a subpart region? | [MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md) |
-| What are the closed material terms? | [MATERIAL_VOCABULARY.md](MATERIAL_VOCABULARY.md) |
-| Why does clicking hit the base object, not the subpart? | [subpart-click decision](../active_plans/decisions/subpart_click_pattern.md) |
-| Where did group addressing and the cascade write originate? | [subpart-addressing recommendation](../archive/subpart_addressing_recommendation.md) |
-| What are the layer-ownership and target-addressing invariants? | [PRIMARY_SPEC.md](../PRIMARY_SPEC.md), [PRIMARY_DESIGN.md](../PRIMARY_DESIGN.md) |
+| Question                                                           | Owning doc                                                                           |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| How is the subpart namespace and `subpart_groups` schema declared? | [OBJECT_YAML_FORMAT.md](OBJECT_YAML_FORMAT.md)                                       |
+| Why are wells material areas, and what is spatial correspondence?  | [MATERIAL_DESIGN.md](MATERIAL_DESIGN.md)                                             |
+| Which render effect and target tint a subpart region?              | [MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md)                                     |
+| What are the closed material terms?                                | [MATERIAL_VOCABULARY.md](MATERIAL_VOCABULARY.md)                                     |
+| Why does clicking hit the base object, not the subpart?            | [subpart-click decision](../active_plans/decisions/subpart_click_pattern.md)         |
+| Where did group addressing and the cascade write originate?        | [subpart-addressing recommendation](../archive/subpart_addressing_recommendation.md) |
+| What are the layer-ownership and target-addressing invariants?     | [PRIMARY_SPEC.md](../PRIMARY_SPEC.md), [PRIMARY_DESIGN.md](../PRIMARY_DESIGN.md)     |

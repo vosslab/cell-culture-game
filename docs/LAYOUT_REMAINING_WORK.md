@@ -597,14 +597,15 @@ without that decision being revisited.
 `tools/normalize_svg_v3.py` REJECTS the micropipette and related tool assets
 with `CLIPPATH_UNSUPPORTED_COMPLEX`: they carry a `<clipPath>` applied to
 stroke-only (`fill:none`) paths that the v3 normalizer cannot flatten. The
-named assets are `assets/equipment/p200_micropipette_empty.svg`,
-`assets/equipment/p200_micropipette_filled.svg`,
-`assets/equipment/p10_micropipette_empty.svg`,
-`assets/equipment/p10_micropipette_filled.svg`, and
-`assets/equipment/micropipette_rack.svg` (the rack rejects on
+named assets are `assets/equipment/static/p200_micropipette_empty.svg`,
+`assets/equipment/static/p200_micropipette_filled.svg`,
+`assets/equipment/static/p10_micropipette_empty.svg`,
+`assets/equipment/static/p10_micropipette_filled.svg`, and
+`assets/equipment/static/micropipette_rack.svg` (the rack rejects on
 `TEXT_UNSUPPORTED`, a related normalization gap). A repo-wide normalizer run
-over all 86 `assets/equipment/*.svg` rejects 26 of them; the other reject
-reason codes are `TEXT_UNSUPPORTED`, `STYLE_GEOMETRY_UNSUPPORTED`,
+over the flat pre-organization fleet of 86 equipment SVGs rejected 26 of
+them; the current behavior-organized fleet is discovered recursively. The
+other reject reason codes are `TEXT_UNSUPPORTED`, `STYLE_GEOMETRY_UNSUPPORTED`,
 `USE_OR_SYMBOL_UNSUPPORTED`, and `EMPTY_GEOMETRY`. Because every asset that
 reaches `assets/` is supposed to pass v3 (PRIMARY_CONTRACT item 3: "All asset
 SVG files must be normalized"), each rejected asset is a contract-compliance

@@ -26,9 +26,9 @@ the source files are sibling drawings rather than literal palette swaps.
 
 ### Source files
 
-- [bottle-medium-pink.svg](../../../OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Microbiology/Servier/bottle-medium-pink.svg)
-- [bottle-medium-orange.svg](../../../OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Microbiology/Servier/bottle-medium-orange.svg)
-- [bottle-medium-green.svg](../../../OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Microbiology/Servier/bottle-medium-green.svg)
+- `bottle-medium-pink.svg`
+- `bottle-medium-orange.svg`
+- `bottle-medium-green.svg`
 
 ### XML comparison
 
@@ -94,11 +94,11 @@ visually distinct from the existing cyan glass highlights.
 
 ### Source files
 
-- [testtube-glass.svg](../../../OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Chemistry/Servier/testtube-glass.svg)
-- [testtube-green.svg](../../../OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Chemistry/Servier/testtube-green.svg)
-- [testtube-yellow.svg](../../../OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Chemistry/Servier/testtube-yellow.svg)
-- [testtube-pink.svg](../../../OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Chemistry/Servier/testtube-pink.svg)
-- [testtube-purple.svg](../../../OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Chemistry/Servier/testtube-purple.svg)
+- [testtube-glass.svg](../../../servier/testtube-glass.svg)
+- [testtube-green.svg](../../../servier/testtube-green.svg)
+- [testtube-yellow.svg](../../../servier/testtube-yellow.svg)
+- [testtube-pink.svg](../../../servier/testtube-pink.svg)
+- [testtube-purple.svg](../../../servier/testtube-purple.svg)
 
 ### XML comparison
 
@@ -150,12 +150,12 @@ colors rather than one flat fill preserves the rounded tube and liquid depth.
 
 ### Source files
 
-- [microtube-closed- pink.svg](../../../OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Microbiology/Servier/microtube-closed-%20pink.svg)
-- [microtube-closed-blue.svg](../../../OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Microbiology/Servier/microtube-closed-blue.svg)
-- [microtube-closed-translucent.svg](../../../OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Microbiology/Servier/microtube-closed-translucent.svg)
-- [microtube-open-blue.svg](../../../OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Microbiology/Servier/microtube-open-blue.svg)
-- [microtube-open-pink.svg](../../../OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Microbiology/Servier/microtube-open-pink.svg)
-- [microtube-open-translucent.svg](../../../OTHER_REPOS/bioicons/static/icons/cc-by-3.0/Microbiology/Servier/microtube-open-translucent.svg)
+- `microtube-closed-%20pink.svg`
+- [microtube-closed-blue.svg](../../../servier/microtube-closed-blue.svg)
+- [microtube-closed-translucent.svg](../../../servier/microtube-closed-translucent.svg)
+- [microtube-open-blue.svg](../../../servier/microtube-open-blue.svg)
+- [microtube-open-pink.svg](../../../servier/microtube-open-pink.svg)
+- [microtube-open-translucent.svg](../../../servier/microtube-open-translucent.svg)
 
 The space in `microtube-closed- pink.svg` is present in the repository
 filename. It is not a transcription error.

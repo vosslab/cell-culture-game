@@ -26,21 +26,15 @@ visual_states:
     kind: svg
     cases:
       - when: empty
-        output: { asset_name: t75_flask }
+        output: { asset_name: t75_flask_empty }
       - when: media
-        output: { asset_name: t75_flask }
+        output: { asset_name: t75_flask_filled }
       - when: pbs
-        output: { asset_name: t75_flask }
+        output: { asset_name: t75_flask_filled }
       - when: trypsin
-        output: { asset_name: t75_flask }
+        output: { asset_name: t75_flask_filled }
       - when: cell_suspension
-        output: { asset_name: t75_flask }
-  material_volume:
-    applies_to: object
-    render_effect: fill_height
-    target: anchor_liquid_bounds
-    clip: anchor_liquid_clip
-    capacity_ml: 25
+        output: { asset_name: t75_flask_filled }
   inspection_status:
     kind: composite
     composite: []

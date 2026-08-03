@@ -7,8 +7,8 @@
 //
 // The capture is declarative: it discovers the three generic renderer surfaces
 // rather than naming objects or protocols:
-//   - anchor: authored-SVG anchor rects
-//   - legacy_bbox: temporary item-box fill divs
+//   - liquid_region: compiled semantic liquid groups
+//   - formula_bbox: structured formula-generated fill divs
 //   - subpart: generated structured-subpart material shapes
 //
 // Each visible surface gets a before/after pair with only that one surface
@@ -100,7 +100,7 @@ function sanitize_for_filename(value) {
 
 function surface_selector() {
   return [
-    "rect[data-anchor-material-field][data-material-name]",
+    "[data-liquid-material-field][data-asset]",
     "[data-overlay='fill'][data-overlay-field]",
     "[data-subpart-name][data-material-field][data-material-name]",
   ].join(", ");
@@ -153,21 +153,26 @@ async function assert_scene_not_degraded(page, protocol_name, browser_diagnostic
 }
 
 async function collect_surfaces(page) {
-  return page.evaluate((selector) => {
+  return page.evaluate(async (selector) => {
     function rect_to_record(rect) {
       return { x: rect.x, y: rect.y, w: rect.width, h: rect.height };
     }
-    function kind_for(element) {
-      if (element.matches("rect[data-anchor-material-field][data-material-name]")) return "anchor";
-      if (element.matches("[data-overlay='fill'][data-overlay-field]")) return "legacy_bbox";
+    function kind_for(source_element) {
+      if (source_element.matches("[data-liquid-material-field][data-asset]")) {
+        return "liquid_region";
+      }
+      if (source_element.matches("[data-overlay='fill'][data-overlay-field]")) {
+        return "formula_bbox";
+      }
       return "subpart";
     }
-    function fill_for(element, style) {
+    function fill_for(element, style, kind, owner) {
+      if (kind === "liquid_region") return owner.getAttribute("data-liquid-color") ?? "";
       if (element instanceof SVGElement) return style.fill;
       return style.backgroundColor;
     }
-    function has_visible_paint(element, style, geometry) {
-      const fill = fill_for(element, style);
+    function has_visible_paint(element, style, geometry, kind, owner) {
+      const fill = fill_for(element, style, kind, owner);
       const rgba_match = /^rgba\(([^)]+)\)$/.exec(fill);
       const rgba_parts = rgba_match === null ? [] : rgba_match[1].split(",");
       const alpha = rgba_parts.length === 4 ? Number(rgba_parts[3]) : 1;
@@ -190,30 +195,51 @@ async function collect_surfaces(page) {
       throw new Error("Structured material shapes are missing their declared material field");
     }
 
+    const liquid_manifest = await fetch("/assets/liquid_regions.json").then((response) =>
+      response.json(),
+    );
     const surfaces = [];
-    for (const [index, element] of Array.from(document.querySelectorAll(selector)).entries()) {
-      const owner = element.closest("[data-placement-name][data-object-name]");
+    for (const [index, source_element] of Array.from(
+      document.querySelectorAll(selector),
+    ).entries()) {
+      const owner = source_element.closest("[data-placement-name][data-object-name]");
       if (owner === null) {
         throw new Error("Material surface is not owned by a declared scene placement");
       }
+      const kind = kind_for(source_element);
+      let element = source_element;
+      if (kind === "liquid_region") {
+        const asset_name = owner.getAttribute("data-asset") ?? "";
+        const region_handle = liquid_manifest[asset_name]?.region_handle;
+        element = Array.from(owner.querySelectorAll("g")).find((group) =>
+          group.id.endsWith(`__${String(region_handle)}`),
+        );
+        if (!(element instanceof SVGGElement)) {
+          throw new Error(`Compiled liquid region is missing for ${asset_name}`);
+        }
+      }
+      element.setAttribute("data-material-capture-id", `surface_${index}`);
       const geometry = element.getBoundingClientRect();
       const owner_geometry = owner.getBoundingClientRect();
       if (owner_geometry.width <= 0 || owner_geometry.height <= 0) {
         throw new Error("Material surface owner has no rendered geometry");
       }
       const style = window.getComputedStyle(element);
-      const kind = kind_for(element);
       const driving_field =
-        kind === "anchor"
-          ? (element.getAttribute("data-anchor-material-field") ?? "")
+        kind === "liquid_region"
+          ? (owner.getAttribute("data-liquid-material-field") ?? "")
           : kind === "subpart"
             ? (element.getAttribute("data-material-field") ?? "")
             : (element.getAttribute("data-overlay-field") ?? "");
       const subpart_name =
         kind === "subpart" ? (element.getAttribute("data-subpart-name") ?? "") : "";
       const material_name =
-        element.getAttribute("data-material-name") ?? owner.getAttribute("data-material") ?? "";
-      const visible = has_visible_paint(element, style, geometry);
+        kind === "liquid_region"
+          ? (owner.getAttribute("data-liquid-material-name") ?? "")
+          : (element.getAttribute("data-material-name") ??
+            owner.getAttribute("data-material") ??
+            "");
+      const visible = has_visible_paint(element, style, geometry, kind, owner);
       if (driving_field === "") {
         throw new Error("Material surface has no declared driving field");
       }
@@ -229,7 +255,7 @@ async function collect_surfaces(page) {
         driving_field,
         subpart_name,
         material_name,
-        computed_fill: fill_for(element, style),
+        computed_fill: fill_for(element, style, kind, owner),
         visible,
         geometry: rect_to_record(geometry),
         owner_geometry: rect_to_record(owner_geometry),
@@ -241,9 +267,8 @@ async function collect_surfaces(page) {
 
 async function hide_surface(page, capture_id, hidden) {
   await page.evaluate(
-    ({ selector, id, hide }) => {
-      const elements = Array.from(document.querySelectorAll(selector));
-      const element = elements[Number(id.slice("surface_".length))];
+    ({ id, hide }) => {
+      const element = document.querySelector(`[data-material-capture-id="${id}"]`);
       if (!(element instanceof HTMLElement || element instanceof SVGElement)) {
         throw new Error(`Material surface ${id} disappeared before capture`);
       }
@@ -257,7 +282,7 @@ async function hide_surface(page, capture_id, hidden) {
         element.removeAttribute("data-material-capture-original-visibility");
       }
     },
-    { selector: surface_selector(), id: capture_id, hide: hidden },
+    { id: capture_id, hide: hidden },
   );
 }
 

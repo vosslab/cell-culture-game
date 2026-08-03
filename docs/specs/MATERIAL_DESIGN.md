@@ -18,6 +18,8 @@ tokens, or lint rules. Those live in their owning docs:
 - The runtime render convention (the render-effect tokens, the target
   vocabulary, the identity and amount layers as schema) is defined in
   [MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md).
+- The material-SVG processing contract, including its closed semantic
+  vocabulary, is defined in [SVG_PIPELINE.md](SVG_PIPELINE.md).
 - The validator and cross-YAML agreement rules are defined in
   `MATERIAL_LINT.md`.
 
@@ -150,15 +152,19 @@ gray ring around an untreated well would imply the well already holds a material
 which is the opposite of what empty means. Absence of fill is the honest visual
 for absence of material.
 
-This also sets a hard rule for every other value: a non-empty material that
-cannot resolve to a color is an error, never a silent success. If a well claims
-to hold a material but renders invisibly, the student sees an empty-looking well
-that the protocol believes is full -- a spatial-correspondence lie. So the
-resolver surfaces a non-empty-but-uncolored case as an observable failure routed
-through the existing per-item degrade path
-(`MATERIAL_LINT.md`), rather than painting nothing and
-pretending the well succeeded. `empty` is the only no-fill success; every other
-no-fill outcome is a fault to be seen, not hidden.
+This sets a hard rule when a protocol registry is present: a non-empty,
+non-built-in material that is missing there, or whose registry color is invalid,
+is an observable resolver failure routed through the existing per-item degrade
+path (`MATERIAL_LINT.md`). If a well claims to hold a material but renders
+invisibly, the student sees an empty-looking well that the protocol believes is
+full -- a spatial-correspondence lie.
+
+The bounded diagnostic/unseeded case is different: without an active protocol
+registry, the resolver returns `color: null` rather than claiming registry
+acceptance. A null material field and the authored `empty` sentinel are also
+successful no-color cases. With any supplied registry, including `{}`, a
+non-empty non-built-in name must resolve through that registry; it cannot become
+a silent invisible success.
 
 ## Why identity and amount are separate layers (D5)
 
@@ -191,6 +197,85 @@ work. The general two-layer model is defined for the whole convention
 ([MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md)) so that the same declarative
 contract serves wells, pipettes, bottles, and chambers; a vessel that renders the
 amount layer does so through the same model, not through a parallel mechanism.
+
+## Why material SVGs describe themselves
+
+A material-rendered vessel is exceptional because the runtime must recolor and
+transform regions _inside_ its artwork. The semantic rendering recipe therefore
+lives with the geometry in that SVG form, rather than in a parallel YAML sidecar
+or in material/volume fan-out variants. The SVG owns its layer boundaries,
+document order, clip geometry, and fallback paint; `materials.yaml` supplies the
+selected material's base color; object YAML supplies the selected form and the
+material/amount binding. [SVG_PIPELINE.md](SVG_PIPELINE.md) owns the exact
+reserved attributes and validation rules.
+
+This preserves the useful separation between identity and amount inside one
+vessel form. The renderer derives role-specific shades from the registry color,
+then applies the volume/capacity gravity-part model to compiler-derived geometry:
+a stationary lower shape, a middle body scaled only in Y, and a fixed-shape
+surface translated only in Y. Assets omit parts they do not need.
+It does not replace a runtime material-bound vessel with a per-material or
+per-volume SVG, stamp a generic runtime rectangle over the form, or make color a
+property of the artwork recipe. This does not prohibit ordinary complete discrete
+forms that genuinely differ in geometry, form, or depicted contents (for example
+an emptied MTT powder vial or a full sharps container); filename words such as
+`empty` and `full` do not determine rendering intent.
+
+The canonical variable-volume shape is:
+
+```text
+       movable meniscus
+      +--------------+
+      |              |
+      | stretched    |
+      | middle body  |
+      |              |
+      +--------------+
+       fixed bottom
+          \    /
+           \  /
+            \/
+```
+
+The meniscus moves but does not stretch. The middle body stretches only in Y.
+The cone, rounded base, bulb, or tip remains fixed in vessel coordinates and is
+fully hidden only when volume is zero. A stationary reveal boundary prevents
+paint above the requested surface without moving the bottom artwork.
+
+Semantic classification follows physical behavior, not color alone. Donor
+families with differently colored contents provide a first pass: geometry whose
+fill or stroke changes across variants is a strong material candidate. A second
+pass reviews every candidate plus white, translucent, highlight, shadow, bubble,
+and reflection geometry near the donor liquid. Each liquid-dependent feature is
+assigned to `bottom`, `body`, or `surface`; only vessel or glass artwork remains
+fixed. The fixed layers must render a coherent empty vessel by themselves and
+must not retain a seam or path endpoint at the donor meniscus. At every reviewed
+level, no material-dependent feature may remain above the current surface;
+surface features move with it.
+
+The authored liquid bounds define the asset's supported operating range. Their
+top may preserve deliberate headspace or stop below a changing cross-section;
+100% means the declared vessel capacity reaches that supported maximum, not that
+liquid is painted to the geometric brim. For the current bottle pilot, logical
+requests plateau at the independently reviewed straight-body limit at 85%.
+Entering the tapered shoulder above that supported limit would require reviewed
+variable-width geometry and is not simulated by stretching the constant-width
+middle farther.
+
+The pipeline derives opaque runtime paint and element handles from normalized
+semantic groups. Runtime code uses those generated handles; it never depends on
+authored `data-vlab-*` attributes or authored DOM ids. This keeps an artist's
+semantic labels reviewable while allowing independently rendered instances of
+the same SVG to remain isolated.
+
+This is not a general animated-SVG system. Static SVGs remain opaque files, and
+open/closed or on/off objects remain collections of complete forms selected by
+object `visual_states`. A discrete collection may contain a material-rendered
+form, but each form independently declares whether it needs material processing.
+An object that is not meaningfully variable-height, such as a T75 culture flask
+shown empty or with its normal shallow working layer, should select complete
+empty/filled forms instead of declaring a continuous liquid-height animation.
+Numeric displays remain object-level overlays.
 
 ## Single scalar color: light scientific workspaces only
 
@@ -227,3 +312,7 @@ read.
 - Encoding any color rule in TypeScript. The runtime interprets declared tokens;
   it never carries an object-specific or convention-specific color placement
   rule.
+- An SVG layer-recipe sidecar, material/volume fan-out variants for one runtime
+  material binding, or a general
+  mutable/animated-SVG framework. Material semantics are an internal contract
+  of a material-rendered form only.

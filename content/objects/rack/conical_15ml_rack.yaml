@@ -36,9 +36,11 @@ visual_states:
       - when: media
         output: { asset_name: falcon_15ml }
   material_volume:
+    # Slot volume is retained as state.  Rendering individual rack contents
+    # is a structured-subpart question, not a whole-vessel material effect.
     kind: composite
     applies_to: subpart
-    formula: fill_height(state(material_volume), capacity_ml=15)
+    composite: []
 
 capabilities: [clickable, structured_surface, material_container]
 

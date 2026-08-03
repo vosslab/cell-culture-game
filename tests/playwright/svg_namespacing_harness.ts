@@ -18,7 +18,6 @@ import {
   resolveAnchor,
   resolveSvgAnchor,
 } from "../../src/scene_runtime/renderer/inject_svg.js";
-import { render_anchor_material_effects } from "../../src/scene_runtime/renderer/anchor_material_renderer.js";
 import {
   resolveSvgUrl,
   requiresDomSvg,
@@ -32,7 +31,6 @@ type SvgNamespacingHarness = {
   injectSvgFromManifest: typeof injectSvgFromManifest;
   resolveAnchor: typeof resolveAnchor;
   resolveSvgAnchor: typeof resolveSvgAnchor;
-  renderAnchorMaterialEffects: typeof render_anchor_material_effects;
   resolveSvgUrl: typeof resolveSvgUrl;
   requiresDomSvg: typeof requiresDomSvg;
   fetchSvgText: typeof fetchSvgText;
@@ -61,7 +59,6 @@ window.svgHarness = {
   injectSvgFromManifest,
   resolveAnchor,
   resolveSvgAnchor,
-  renderAnchorMaterialEffects: render_anchor_material_effects,
   resolveSvgUrl,
   requiresDomSvg,
   fetchSvgText,

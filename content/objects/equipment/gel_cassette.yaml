@@ -82,9 +82,12 @@ visual_states:
       - when: protein_sample_denatured
         output: { asset_name: gel_cassette }
   material_volume:
+    # Lane volume remains modeled for protocol state, but its per-lane visual
+    # geometry is a structured-subpart concern.  M6 deliberately leaves no
+    # object or subpart fill-height renderer here; M8 owns that decision.
     kind: composite
     applies_to: subpart
-    formula: fill_height(state(material_volume), capacity_ul=30)
+    composite: []
   tape_present:
     kind: composite
     composite: []

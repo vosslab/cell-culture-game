@@ -1,0 +1,521 @@
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  version="1.0"
+  viewBox="0 0 140.877 397.601"
+  data-vlab-rendering="material"
+  data-vlab-body-start-fill-percent="35.98"
+>
+  <defs>
+    <clipPath clipPathUnits="userSpaceOnUse" id="a">
+      <path d="M 2 2 L 138.877 2 L 138.877 395.601 L 2 395.601 Z" />
+    </clipPath>
+    <clipPath id="anchor_liquid_clip">
+      <path
+        d="M 90.786 170.318 C 75.436 170.318 60.904 168.599 52.809 166.021 L 54.429 275.954 C 54.429 275.954 73.817 385.008 75.436 386.727 C 77.874 391.024 84.33 394.442 90.786 394.442 C 98.062 394.442 104.518 391.024 106.956 386.727 C 108.576 385.007 127.964 275.954 127.964 275.954 L 129.563 166.021 C 121.488 168.599 106.956 170.318 90.786 170.318 Z"
+      />
+    </clipPath>
+  </defs>
+  <g data-vlab-layer-name="microtube_fixed_back" data-vlab-layer-kind="fixed">
+    <path
+      d="M 9.316 89.467 C 9.316 61.984 13.653 39.697 18.99 39.697 C 24.337 39.697 28.664 61.984 28.664 89.467 C 28.664 116.96 24.337 139.237 18.99 139.237 C 13.653 139.237 9.316 116.96 9.316 89.467 Z"
+      fill="#c2c2c2"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 12.534 39.697 C 6.877 39.697 2.84 62.014 2.84 89.467 C 2.84 116.93 6.877 139.237 12.534 139.237 L 18.99 139.237 C 14.153 139.237 9.306 116.93 9.306 89.467 C 9.306 62.014 14.153 39.697 18.99 39.697 L 12.534 39.697 Z"
+      fill="#ebebeb"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 57.047 123.167 C 54.628 123.167 52.2 108.545 52.2 89.627 C 52.2 70.698 54.628 55.207 57.047 55.207 L 19.05 55.207 C 16.621 55.207 14.193 70.698 14.193 89.627 C 14.193 108.545 16.621 123.167 19.05 123.167 L 57.047 123.167 Z"
+      fill="#f2f2f2"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 44.174 152.149 C 44.174 146.482 65.102 141.875 90.906 141.875 C 116.721 141.875 137.638 146.482 137.638 152.149 C 137.638 157.826 116.721 162.423 90.906 162.423 C 65.102 162.423 44.174 157.826 44.174 152.149 Z"
+      fill="#fff"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 44.174 159.904 C 44.174 165.041 65.132 170.178 90.906 170.178 C 116.691 170.178 137.638 165.041 137.638 159.904 L 137.638 152.189 C 137.638 158.185 116.691 162.473 90.906 162.473 C 65.132 162.473 44.174 158.185 44.174 152.189 L 44.174 159.904 Z"
+      fill="#ebebeb"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 55.448 152.629 C 55.448 149.521 71.468 146.992 91.226 146.992 C 110.994 146.992 127.004 149.521 127.004 152.629 C 127.004 155.747 110.994 158.265 91.226 158.265 C 71.468 158.265 55.448 155.747 55.448 152.629 Z"
+      fill="#ebebeb"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 19.02 123.167 L 26.255 123.167 C 27.865 114.572 28.664 102.529 28.664 89.627 C 28.664 75.855 27.864 64.672 26.255 55.207 L 19.02 55.207 C 16.611 55.207 14.193 70.698 14.193 89.627 C 14.193 108.545 16.611 123.167 19.02 123.167 Z"
+      fill="#e3e3e3"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 14.193 89.187 C 14.193 70.428 16.361 55.207 19.03 55.207 C 21.708 55.207 23.867 70.428 23.867 89.187 C 23.867 107.956 21.708 123.167 19.03 123.167 C 16.361 123.167 14.193 107.956 14.193 89.187 Z"
+      fill="#e6e6e6"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 52.17 89.187 C 52.17 70.428 54.338 55.207 57.007 55.207 C 59.685 55.207 61.844 70.428 61.844 89.187 C 61.844 107.956 59.685 123.167 57.007 123.167 C 54.338 123.167 52.17 107.956 52.17 89.187 Z"
+      fill="#ebebeb"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 57.047 111.034 C 56.247 105.867 55.447 98.981 55.447 89.507 C 55.447 80.902 56.247 73.157 56.247 67.99 C 57.047 67.12 57.047 67.12 57.847 67.99 C 57.847 73.157 58.646 80.043 58.646 89.507 C 58.646 98.981 57.846 105.867 57.046 111.034 C 57.046 111.894 57.046 111.894 57.046 111.034 Z"
+      fill="#c2c2c2"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 90.786 170.318 C 75.436 170.318 60.904 168.599 52.809 166.021 L 54.429 275.954 C 54.429 275.954 73.817 385.008 75.436 386.727 C 77.874 391.024 84.33 394.442 90.786 394.442 C 98.062 394.442 104.518 391.024 106.956 386.727 C 108.576 385.007 127.964 275.954 127.964 275.954 L 129.563 166.021 C 121.488 168.599 106.956 170.318 90.786 170.318 Z"
+      fill="#fff"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 56.907 200.48 L 56.087 269.958 L 56.907 277.693 L 60.105 294.843 L 72.158 358.304 L 63.323 293.983 L 60.105 276.833 L 59.305 269.958 L 56.907 200.48 Z"
+      fill="#fff"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 94.144 386.687 C 88.488 385.847 84.43 383.269 82.012 378.971 C 80.392 377.253 63.382 274.255 63.382 274.255 L 56.087 169.538 L 57.707 269.978 C 57.707 269.978 58.526 275.114 58.526 276.833 C 61.764 295.722 75.536 378.112 76.335 378.971 C 77.954 382.409 81.192 386.687 88.488 386.687 Z"
+      fill="#c2c2c2"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 81.832 378.932 C 80.232 377.232 63.322 274.215 63.322 274.215 L 57.686 186.648 C 59.306 207.256 64.142 262.202 65.741 272.496 C 66.541 282.79 81.831 378.932 81.831 378.932 Z"
+      fill="#ebebeb"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 44.015 156.456 C 44.015 155.606 44.815 154.757 44.815 154.757 L 23.046 154.757 C 21.437 154.757 19.019 153.058 19.019 147.102 L 19.019 139.447 C 18.209 139.447 17.409 138.597 15.791 136.039 L 15.791 136.899 C 15.791 147.951 15.791 157.306 22.247 157.306 L 44.813 157.306 L 44.013 156.456 Z"
+      fill="#fff"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 20.589 7.846 C 20.589 4.403 18.125 2.68 16.486 2.68 L 11.554 6.122 C 13.198 5.263 16.486 6.122 16.486 10.425 L 16.486 42.255 C 17.306 40.537 18.126 39.677 18.95 39.677 L 20.589 39.677 L 20.589 7.847 Z"
+      fill="#adadad"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 125.405 174.735 C 125.405 178.173 122.187 269.178 122.187 270.038 L 121.367 276.893 C 113.293 327.543 103.618 379.051 102.799 382.489 C 101.999 385.068 98.761 390.205 93.105 390.205 C 100.38 390.205 104.418 387.646 106.037 383.349 C 106.037 382.489 108.456 373.055 124.606 277.753 L 125.406 270.037 L 125.406 174.735 Z M 106.037 383.35 Z M 106.037 384.21 L 106.037 383.35 L 106.037 384.21 Z"
+      fill="#fff"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 123.806 171.038 C 114.952 172.756 103.698 173.616 90.826 173.616 C 84.39 173.616 78.754 173.616 73.116 172.756 C 80.373 175.335 92.426 177.054 98.861 177.054 C 105.297 177.914 114.951 178.773 115.771 194.244 C 116.571 206.276 116.571 246.672 115.771 265.58 L 114.951 274.175 C 114.951 274.175 100.481 380.75 98.861 382.469 C 96.463 386.767 92.425 389.345 86.809 390.205 L 93.245 390.205 C 99.681 390.205 103.698 385.907 104.498 382.469 C 105.298 381.609 120.588 295.662 123.007 276.753 C 123.807 275.034 123.807 269.878 123.807 269.878 C 123.807 269.878 125.405 177.913 125.405 174.475 C 125.405 171.897 125.405 170.178 123.806 171.037 Z"
+      fill="#ebebeb"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 112.673 275.114 C 114.272 262.222 115.092 208.934 115.891 194.324 C 116.691 206.356 116.691 246.752 115.891 265.66 L 115.091 274.255 C 115.091 274.255 100.561 380.81 98.941 382.529 C 98.941 382.529 111.054 288.007 112.673 275.114 Z"
+      fill="#c2c2c2"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 68.32 186.128 C 68.32 184.959 69.18 184.01 70.239 184.01 C 71.308 184.01 72.158 184.96 72.158 186.128 C 72.158 187.308 71.308 188.248 70.238 188.248 C 69.179 188.248 68.32 187.308 68.32 186.128 Z M 81.192 187.128 C 81.192 185.988 82.072 185.049 83.151 185.049 C 84.241 185.049 85.11 185.989 85.11 187.128 C 85.11 188.278 84.24 189.206 83.15 189.206 C 82.072 189.206 81.192 188.277 81.192 187.128 Z M 74.796 187.088 C 74.796 185.388 76.016 184.01 77.514 184.01 C 79.024 184.01 80.233 185.389 80.233 187.088 C 80.233 188.797 79.023 190.166 77.514 190.166 C 76.015 190.166 74.796 188.796 74.796 187.088 Z"
+      fill="#fff"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 103.818 169.538 C 123.956 168.678 137.638 164.342 137.638 160.004 L 137.638 152.189 C 137.638 157.396 123.956 160.864 103.818 162.603 C 104.628 165.201 104.628 167.809 103.818 169.538 Z M 51.21 165.141 C 56.097 166.86 62.603 167.72 69.919 168.579 L 69.919 161.703 C 62.603 160.843 56.097 159.125 51.21 158.265 L 51.21 165.141 Z"
+      fill="#d9d9d9"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 62.483 167.72 C 64.113 168.579 65.741 168.579 67.36 168.579 L 67.36 161.693 C 65.741 160.823 64.112 160.823 62.483 160.823 L 62.483 167.72 Z"
+      fill="#fff"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 135.08 155.707 C 133.46 157.426 131.032 158.285 128.603 159.145 L 128.603 166.021 C 131.032 165.161 133.46 164.301 135.079 163.442 L 135.079 155.707 Z"
+      fill="#b5b5b5"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 6.937 47.452 C 6.133 50.91 5.328 56.097 4.519 61.284 L 11.774 61.284 C 11.774 56.097 13.388 50.91 14.193 47.452 L 6.937 47.452 Z"
+      fill="#e0e0e0"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 5.158 55.208 L 12.428 55.208 C 12.428 53.478 13.233 51.745 13.233 50.011 L 6.777 50.011 C 5.967 51.745 5.967 53.479 5.158 55.208 Z"
+      fill="#fff"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 6.837 130.922 L 14.193 130.922 C 12.563 125.735 11.744 119.679 10.925 111.893 L 3.559 111.893 C 4.379 119.679 6.018 125.735 6.837 130.922 Z"
+      fill="#dedede"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 6.108 126.365 L 13.233 126.365 C 12.443 124.685 11.654 122.167 11.654 119.649 L 4.52 119.649 C 5.319 122.167 5.319 124.686 6.109 126.365 Z M 58.646 154.867 C 64.282 156.567 76.345 158.265 90.826 158.265 C 105.307 158.265 118.18 156.566 123.806 154.867 C 118.18 153.168 105.307 151.469 90.826 151.469 C 76.345 151.469 64.282 153.169 58.646 154.867 Z"
+      fill="#c2c2c2"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 120.548 146.992 C 126.175 148.731 128.593 150.47 128.593 153.068 C 128.593 155.667 120.548 157.406 117.33 158.265 C 126.175 157.405 131.801 155.667 131.801 152.199 C 131.001 148.731 125.375 147.862 120.548 146.992 Z"
+      fill="#fff"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+  </g>
+  <g
+    data-vlab-layer-name="microtube_liquid_bottom_base"
+    data-vlab-layer-kind="material"
+    data-vlab-paint-role="base"
+    data-vlab-liquid-part="bottom"
+  >
+    <path
+      d="M 54.429 275.954 C 54.429 275.954 73.817 385.008 75.436 386.727 C 77.874 391.024 84.33 394.442 90.786 394.442 C 98.062 394.442 104.518 391.024 106.956 386.727 C 108.576 385.007 127.964 275.954 127.964 275.954 Z"
+      fill="#718fb2"
+    />
+  </g>
+  <g
+    data-vlab-layer-name="microtube_liquid_bottom_highlight"
+    data-vlab-layer-kind="material"
+    data-vlab-paint-role="highlight"
+    data-vlab-adjustment="0.2"
+    data-vlab-liquid-part="bottom"
+  >
+    <path
+      d="M 58.526 276.833 C 61.764 295.722 75.536 378.112 76.335 378.971 C 77.954 382.409 81.192 386.687 88.488 386.687 C 83.71 384.607 81.612 380.73 80.392 376.253 L 64.142 276.833 Z"
+      fill="#b8d8ef"
+      opacity="0.7"
+    />
+  </g>
+  <g
+    data-vlab-layer-name="microtube_liquid_bottom_shadow"
+    data-vlab-layer-kind="material"
+    data-vlab-paint-role="shadow"
+    data-vlab-adjustment="-0.2"
+    data-vlab-liquid-part="bottom"
+  >
+    <path
+      d="M 112.673 275.114 C 109.015 301.946 101.42 373.895 98.941 382.529 C 97.442 387.426 94.104 390.205 89.827 391.124 C 96.803 391.124 101.999 387.366 103.618 382.489 C 106.037 373.055 120.588 295.662 123.007 276.753 Z"
+      fill="#3e638d"
+      opacity="0.8"
+    />
+  </g>
+  <g
+    data-vlab-layer-name="microtube_liquid_body_base"
+    data-vlab-layer-kind="material"
+    data-vlab-paint-role="base"
+    data-vlab-liquid-part="body"
+  >
+    <rect x="54.426" y="250" width="73.6" height="25.954" fill="#718fb2" />
+  </g>
+  <g
+    data-vlab-layer-name="microtube_liquid_body_highlight"
+    data-vlab-layer-kind="material"
+    data-vlab-paint-role="highlight"
+    data-vlab-adjustment="0.2"
+    data-vlab-liquid-part="body"
+  >
+    <rect x="59" y="250" width="8" height="25.954" fill="#b8d8ef" opacity="0.7" />
+  </g>
+  <g
+    data-vlab-layer-name="microtube_liquid_body_shadow"
+    data-vlab-layer-kind="material"
+    data-vlab-paint-role="shadow"
+    data-vlab-adjustment="-0.2"
+    data-vlab-liquid-part="body"
+  >
+    <rect x="114" y="250" width="14.026" height="25.954" fill="#3e638d" opacity="0.8" />
+  </g>
+  <g
+    data-vlab-layer-name="microtube_liquid_surface_base"
+    data-vlab-layer-kind="material"
+    data-vlab-paint-role="base"
+    data-vlab-liquid-part="surface"
+  >
+    <!-- The oval begins at the volume-reading datum (y=240).  Its tangent
+         line is y=250, where the authored body begins at matching x edges. -->
+    <ellipse cx="91.226" cy="250" rx="36.8" ry="10" fill="#718fb2" />
+  </g>
+  <g
+    data-vlab-layer-name="microtube_liquid_surface_highlight"
+    data-vlab-layer-kind="material"
+    data-vlab-paint-role="highlight"
+    data-vlab-adjustment="0.3"
+    data-vlab-liquid-part="surface"
+  >
+    <!-- Complete light rim and recessed back reflection.  Both are below the
+         scaling datum, so they remain complete at every nonzero fill. -->
+    <ellipse
+      cx="91.226"
+      cy="251"
+      rx="35.6"
+      ry="8.35"
+      fill="none"
+      stroke="#eaf7ff"
+      stroke-width="1.55"
+      opacity="0.9"
+    />
+    <path
+      d="M 56.8 249.4 C 66.8 241.7 115.7 241.7 125.7 249.4"
+      fill="none"
+      stroke="#eaf7ff"
+      stroke-width="1.55"
+      stroke-linecap="round"
+      opacity="0.82"
+    />
+    <path
+      d="M 67.2 250.7 C 76.4 255.7 106.1 255.7 115.3 250.7"
+      fill="none"
+      stroke="#eaf7ff"
+      stroke-width="1.1"
+      stroke-linecap="round"
+      opacity="0.45"
+    />
+  </g>
+  <g
+    data-vlab-layer-name="microtube_liquid_surface_shadow"
+    data-vlab-layer-kind="material"
+    data-vlab-paint-role="shadow"
+    data-vlab-adjustment="-0.24"
+    data-vlab-liquid-part="surface"
+  >
+    <path
+      d="M 55.4 252.5 C 70.2 263.2 112.2 263.2 127 252.5"
+      fill="none"
+      stroke="#315779"
+      stroke-width="2"
+      stroke-linecap="round"
+      opacity="0.76"
+    />
+  </g>
+  <g data-vlab-layer-name="microtube_fixed_front" data-vlab-layer-kind="fixed">
+    <path
+      d="M 27.864 67.12 C 28.664 74.016 28.664 81.782 28.664 89.537 C 28.664 99.871 27.864 110.214 27.064 117.97"
+      fill="none"
+      stroke="#858585"
+      stroke-width=".47970927px"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-miterlimit="4"
+      stroke-dasharray="none"
+      stroke-opacity="1"
+    />
+    <path
+      d="M 44.174 152.149 C 44.174 146.482 65.102 141.875 90.906 141.875 C 116.721 141.875 137.638 146.482 137.638 152.149 C 137.638 157.826 116.721 162.423 90.906 162.423 C 65.102 162.423 44.174 157.826 44.174 152.149"
+      fill="none"
+      stroke="#333"
+      stroke-width=".79951543px"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-miterlimit="4"
+      stroke-dasharray="none"
+      stroke-opacity="1"
+    />
+    <path
+      d="M 44.174 159.904 C 44.174 165.041 65.132 170.178 90.906 170.178 C 116.691 170.178 137.638 165.041 137.638 159.904 L 137.638 152.189 C 137.638 158.185 116.691 162.473 90.906 162.473 C 65.132 162.473 44.174 158.185 44.174 152.189 L 44.174 159.904 Z"
+      fill="none"
+      stroke="#333"
+      stroke-width=".79951543px"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-miterlimit="4"
+      stroke-dasharray="none"
+      stroke-opacity="1"
+    />
+    <path
+      d="M 55.448 152.629 C 55.448 149.521 71.468 146.992 91.226 146.992 C 110.994 146.992 127.004 149.521 127.004 152.629 C 127.004 155.747 110.994 158.265 91.226 158.265 C 71.468 158.265 55.448 155.747 55.448 152.629 M 26.425 122.937 C 24.796 133.23 22.358 139.237 19.1 139.237 C 14.213 139.237 9.316 116.93 9.316 89.467 C 9.316 62.014 14.213 39.697 19.1 39.697 C 22.358 39.697 24.796 45.713 26.425 55.147"
+      fill="none"
+      stroke="#333"
+      stroke-width=".79951543px"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-miterlimit="4"
+      stroke-dasharray="none"
+      stroke-opacity="1"
+    />
+    <path
+      d="M 12.534 39.697 C 6.877 39.697 2.84 62.014 2.84 89.467 C 2.84 116.93 6.877 139.237 12.534 139.237 L 18.99 139.237 C 14.153 139.237 9.306 116.93 9.306 89.467 C 9.306 62.014 14.153 39.697 18.99 39.697 L 12.534 39.697 Z"
+      fill="none"
+      stroke="#333"
+      stroke-width=".79951543px"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-miterlimit="4"
+      stroke-dasharray="none"
+      stroke-opacity="1"
+    />
+    <path
+      d="M 23.867 75.835 L 23.867 89.587 C 23.867 102.469 23.097 113.642 21.548 119.649"
+      fill="none"
+      stroke="#858585"
+      stroke-width=".47970927px"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-miterlimit="4"
+      stroke-dasharray="none"
+      stroke-opacity="1"
+    />
+    <path
+      d="M 52.17 89.187 C 52.17 70.428 54.338 55.207 57.007 55.207 C 59.685 55.207 61.844 70.428 61.844 89.187 C 61.844 107.956 59.685 123.167 57.007 123.167 C 54.338 123.167 52.17 107.956 52.17 89.187"
+      fill="none"
+      stroke="#333"
+      stroke-width=".79951543px"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-miterlimit="4"
+      stroke-dasharray="none"
+      stroke-opacity="1"
+    />
+    <path
+      d="M 57.047 111.034 C 56.247 105.867 55.447 98.981 55.447 89.507 C 55.447 80.902 56.247 73.157 56.247 67.99 C 57.047 67.12 57.047 67.12 57.847 67.99 C 57.847 73.157 58.646 80.043 58.646 89.507 C 58.646 98.981 57.846 105.867 57.046 111.034 C 57.046 111.894 57.046 111.894 57.046 111.034"
+      fill="none"
+      stroke="#333"
+      stroke-width=".47970927px"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-miterlimit="4"
+      stroke-dasharray="none"
+      stroke-opacity="1"
+    />
+    <path
+      d="M 57.047 123.167 C 54.628 123.167 52.2 108.545 52.2 89.627 C 52.2 70.698 54.628 55.207 57.047 55.207 L 19.05 55.207 C 16.621 55.207 14.193 70.698 14.193 89.627 C 14.193 108.545 16.621 123.167 19.05 123.167 L 57.047 123.167 Z M 90.786 170.318 C 75.436 170.318 60.904 168.599 52.809 166.021 L 54.429 275.954 C 54.429 275.954 73.817 385.008 75.436 386.727 C 77.874 391.024 84.33 394.442 90.786 394.442 C 98.062 394.442 104.518 391.024 106.956 386.727 C 108.576 385.007 127.964 275.954 127.964 275.954 L 129.563 166.021 C 121.488 168.599 106.956 170.318 90.786 170.318 M 44.015 156.456 C 44.015 155.606 44.815 154.757 44.815 154.757 L 23.046 154.757 C 21.437 154.757 19.019 153.058 19.019 147.102 L 19.019 139.447 C 18.209 139.447 17.409 138.597 15.791 136.039 L 15.791 136.899 C 15.791 147.951 15.791 157.306 22.247 157.306 L 44.813 157.306 L 44.013 156.456"
+      fill="none"
+      stroke="#333"
+      stroke-width=".79951543px"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-miterlimit="4"
+      stroke-dasharray="none"
+      stroke-opacity="1"
+    />
+    <path
+      d="M 16.431 10.505 L 16.431 42.255 L 9.316 42.255 L 9.316 10.506 C 9.316 3.64 16.431 3.64 16.431 10.506 Z"
+      fill="#dedede"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 10.915 40.657 L 14.832 40.657 L 14.832 12.354 C 14.832 18.36 11.699 39.802 10.915 40.657 Z"
+      fill="#c2c2c2"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 16.431 10.505 L 16.431 42.255 L 9.316 42.255 L 9.316 10.506 C 9.316 3.64 16.431 3.64 16.431 10.506"
+      fill="none"
+      stroke="#333"
+      stroke-width=".79951543px"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-miterlimit="4"
+      stroke-dasharray="none"
+      stroke-opacity="1"
+    />
+    <path
+      clip-path="url(#a)"
+      d="M 20.589 7.846 C 20.589 4.403 18.125 2.68 16.486 2.68 L 11.554 6.122 C 13.198 5.263 16.486 6.122 16.486 10.425 L 16.486 42.255 C 17.306 40.537 18.126 39.677 18.95 39.677 L 20.589 39.677 L 20.589 7.847"
+      fill="none"
+      stroke="#333"
+      stroke-width=".79951543px"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-miterlimit="4"
+      stroke-dasharray="none"
+      stroke-opacity="1"
+    />
+    <path
+      d="M 44.814 157.476 L 22.218 157.476 C 15.762 157.476 15.762 148.851 15.762 137.638 L 12.534 137.638 C 12.534 146.263 10.914 161.783 22.218 161.783 L 44.814 161.783 L 44.814 157.475 Z"
+      fill="#c2c2c2"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 44.814 157.476 L 22.218 157.476 C 15.762 157.476 15.762 148.851 15.762 137.638 L 12.534 137.638 C 12.534 146.263 10.914 161.783 22.218 161.783 L 44.814 161.783 L 44.814 157.475"
+      fill="none"
+      stroke="#333"
+      stroke-width=".79951543px"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      stroke-miterlimit="4"
+      stroke-dasharray="none"
+      stroke-opacity="1"
+    />
+    <path
+      d="M 16.431 102.539 L 16.431 92.215 C 16.431 73.267 18.88 57.766 21.318 57.766 L 48.972 57.766 C 43.285 58.636 27.015 62.074 24.566 68.1 C 21.318 74.126 18.06 90.486 16.431 102.539 Z"
+      fill="#fff"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+    <path
+      d="M 26.425 120.608 L 52.81 120.608 C 50.412 118.889 49.612 101.62 49.612 86.069 C 46.414 92.115 46.414 108.525 44.016 111.973 C 42.416 115.431 34.421 120.608 26.426 120.608 Z"
+      fill="#dcdcdc"
+      fill-rule="evenodd"
+      fill-opacity="1"
+      stroke="none"
+    />
+  </g>
+  <rect
+    id="anchor_liquid_bounds"
+    x="52.809"
+    y="170.318"
+    width="76.754"
+    height="224.124"
+    fill="none"
+    stroke="none"
+    display="none"
+  />
+</svg>

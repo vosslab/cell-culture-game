@@ -556,8 +556,9 @@ The build process (`pipeline/build_protocol_data.py`) enforces these rules:
 
 ### Asset validation
 
-- Every item with an `asset` field has a corresponding file in
-  `assets/equipment/<asset>.svg`. Items with `role: virtual_target` may omit `asset`.
+- Every item with an `asset` field resolves by globally unique filename stem in
+  the recursive `assets/equipment/<behavior>/<asset>.svg` registry. Items with
+  `role: virtual_target` may omit `asset`.
 
 ### Hygiene rules
 

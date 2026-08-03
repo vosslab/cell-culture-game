@@ -22,16 +22,10 @@ visual_states:
     cases:
       - when: empty
         output:
-          asset_name: protein_ladder_tube
+          asset_name: protein_ladder_tube_empty
       - when: protein_ladder
         output:
-          asset_name: protein_ladder_tube
-  material_volume:
-    applies_to: object
-    render_effect: fill_height
-    target: anchor_liquid_bounds
-    clip: anchor_liquid_clip
-    capacity_ul: 500
+          asset_name: protein_ladder_tube_filled
 capabilities:
   - clickable
   - material_container

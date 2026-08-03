@@ -337,6 +337,40 @@ The `output` mapping takes one of three shapes, matching the
 A composite list is rendered top to bottom; the first entry is the base
 layer and each subsequent entry composites over the previous.
 
+### Complete-form selection and material binding
+
+The `kind: svg` case maps are the sole object-YAML authority for selecting
+complete SVG forms. A one-case map selects a single form; the forms selected
+by a state field's complete case map are a discrete-state collection. No
+collection manifest is authored, and filenames or directories do not define a
+collection.
+
+The selected SVG form alone determines its rendering model: exact root
+`data-vlab-rendering="material"` dispatches to the compiled material path;
+the absence of that declaration identifies a static opaque form. Selection and
+rendering are independent, so one collection can include both static and
+material-rendered forms. Object YAML never declares a rendering model, semantic
+layer, or SVG recipe. See [SVG_PIPELINE.md](SVG_PIPELINE.md) for the per-form
+asset contract.
+
+Paired material identity and amount entries remain the object material binding
+authority. Object-level `fill_height` with `anchor_liquid_bounds`, optional
+`anchor_liquid_clip`, and exactly one matching capacity value drives the
+compiled material SVG's role paint and derived gravity-part transform. These
+values are compiler and manifest inputs; no `liquid_region`, binding token, or
+target token is added to this schema.
+
+Object YAML must not name `layer_name`, `paint_role`, `adjustment`, stacking
+phase, runtime handles, DOM ids, or SVG-recipe sidecars. Runtime material code
+does not query authored `data-vlab-*` through object declarations. Numeric
+`label(...)` remains an object-level overlay and does not make arbitrary SVG
+internals mutable.
+
+An object material binding makes its selected form require inline, injected
+SVG DOM regardless of an empty material value. `requires_dom_svg` is derived
+by the renderer from the selected form and binding; it is not an object-YAML
+field.
+
 ### Formula mini-language
 
 A `formula` value is a string drawn from a closed mini-language. The
@@ -356,7 +390,7 @@ The closed token set is:
 | `+` `-` `*` `/`                                            | numeric operands                                                                                           | basic arithmetic, left-associative                                                                                                                                               |
 | `min(a, b)` `max(a, b)`                                    | numeric operands                                                                                           | bounded arithmetic                                                                                                                                                               |
 | `clamp(value, lo, hi)`                                     | numeric operands                                                                                           | clamp `value` to `[lo, hi]`                                                                                                                                                      |
-| `fill_height(state(<volume_field>), capacity_ml=<number>)` | a numeric volume `state_field` (typically a `float` named `material_volume`, `held_material_volume`, etc.) | resolve the field to a fill height proportional to the volume divided by `capacity_ml` (or `capacity_ul` when units match); the runtime applies it to the rendered SVG container |
+| `fill_height(state(<volume_field>), capacity_ml=<number>)` | a numeric volume `state_field` (typically a `float` named `material_volume`, `held_material_volume`, etc.) | bind volume to compiled material-SVG gravity parts using the matching capacity, or to generated geometry for an intentional structured-subpart binding, as defined in [MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md) |
 | `label(state(<numeric_field>), format=<string>)`           | a numeric `state_field` (typically a set-point `float`)                                                    | render the value as an overlay text label, using the format string with `{value}` placeholder; the format string supplies the unit text                                          |
 | `conditional(<cond>, <then>, <else>)`                      | `cond` is `state(<field>)` or a string literal; `then` and `else` are each a string literal or a nested `label(...)` token | choose `then` when `cond` is truthy, else `else`; a `bool` field is truthy when `true`, a numeric field when nonzero, an enum/string field when non-empty and not the `empty` sentinel; the chosen branch resolves to its overlay |
 | `compose(<token>, <token>, ...)`                           | any of the above                                                                                           | compose multiple effects (for example a fill plus a label) into one render output; ordered top to bottom                                                                         |
@@ -667,23 +701,9 @@ state_fields:
 
 visual_states:
   material_name:
-    kind: svg
     applies_to: subpart
-    cases:
-      - when: empty
-        output: { asset_name: well_empty }
-      - when: pbs
-        output: { asset_name: well_filled }
-      - when: media
-        output: { asset_name: well_filled }
-      - when: trypsin
-        output: { asset_name: well_filled }
-      - when: dmso
-        output: { asset_name: well_filled }
-      - when: drug_a
-        output: { asset_name: well_filled }
-      - when: drug_b
-        output: { asset_name: well_filled }
+    render_effect: material_tint
+    target: subpart_geometry
   material_volume:
     kind: composite
     applies_to: subpart
@@ -705,9 +725,10 @@ region (`all_wells`). A protocol that acts on a single row may address
 protocol that reads the entire plate may address `treatment_plate.all_wells`
 in one target. Individual well addressing (`treatment_plate.A1`,
 ..., `treatment_plate.A12`) remains available for fine-grained protocols.
-Each well's `visual_states` resolves the two flat fields independently: an
-SVG case table for the material and a `fill_height(...)` formula for the
-volume. No SVG asset name appears in any `state_field`.
+Each well's `visual_states` resolves the two flat fields independently: the
+existing `material_tint` / `subpart_geometry` binding for identity and a
+`fill_height(...)` formula for volume. No SVG asset name appears in any
+`state_field`.
 
 ## Worked example: serological pipette
 
@@ -751,15 +772,15 @@ visual_states:
     kind: svg
     cases:
       - when: empty
-        output: { asset_name: pipette_empty }
+        output: { asset_name: serological_pipette }
       - when: pbs
-        output: { asset_name: pipette_filled }
+        output: { asset_name: serological_pipette }
       - when: media
-        output: { asset_name: pipette_filled }
+        output: { asset_name: serological_pipette }
       - when: trypsin
-        output: { asset_name: pipette_filled }
+        output: { asset_name: serological_pipette }
       - when: dmso
-        output: { asset_name: pipette_filled }
+        output: { asset_name: serological_pipette }
   held_material_volume:
     kind: composite
     formula: fill_height(state(held_material_volume), capacity_ml=25.0)
@@ -779,9 +800,9 @@ subparts). It declares three flat `state_fields`: `set_volume` (a
 `float` with `unit`, `min`, `max`, and `step`), `held_material_name` (an
 `enum` of which material is loaded), and `held_material_volume` (a `float`
 for the amount held). The `visual_states` resolves each independently:
-the set-point becomes an overlay label, the material becomes a base SVG,
-and the volume becomes a fill height. No SVG asset name appears in any
-`state_field`. The layout hints (`default_width: 3`, `label_width: 6`,
+the set-point becomes an overlay label, every material case selects the same
+complete pipette form, and the volume becomes a fill height. No SVG asset name
+appears in any `state_field`. The layout hints (`default_width: 3`, `label_width: 6`,
 `anchor_y_offset: 0`, `anchor_y: tip`) are object-owned; the tip anchor
 reflects that a serological pipette is tip-anchored wherever it is
 placed. This pipette has no `channel_addressing` block, so it defaults to
@@ -936,6 +957,14 @@ list.
   against the closed [formula mini-language](#formula-mini-language).
 - A `visual_states` entry for an `applies_to: subpart` `state_field` is
   itself `applies_to: subpart`.
+- Each `kind: svg` `cases` map is the complete-form selection authority.
+  Object YAML does not infer collections from filenames or directories, and
+  does not declare a material rendering model or SVG internals.
+- An object-level material identity/amount binding may use `fill_height` with
+  `anchor_liquid_bounds`, optional `anchor_liquid_clip`, and exactly one
+  matching capacity value. Those compiler inputs drive the selected
+  material SVG's compiled manifest path. Structured-subpart bindings use
+  generated geometry instead.
 
 ### capabilities
 
@@ -963,10 +992,9 @@ list.
 
 ## Generated TypeScript surface
 
-The follow-on code-migration plan adds the build pipeline that compiles
-the object library into a generated TypeScript module. This format doc
-does not specify the runtime shape of that module; the protocol-side
-analogue (the per-protocol generated module described in
+The build pipeline compiles the object library into a generated TypeScript
+module. This format doc does not specify the runtime shape of that module; the
+protocol-side analogue (the per-protocol generated module described in
 [PROTOCOL_YAML_FORMAT.md](PROTOCOL_YAML_FORMAT.md)) is the closest
 reference. The runtime never reads object YAML directly; it reads the
 generated module the build emits.

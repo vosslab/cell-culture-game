@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Apply SVG picker decisions to assets/equipment/ with preflight collision checks.
+Apply SVG picker decisions to behavior-organized equipment sources.
 
 Reads decisions.json (positional CLI arg) and runs 6-class preflight validation
 before any disk mutation. Apply phase copies/moves SVGs and appends attribution rows.
@@ -11,6 +11,26 @@ import json
 import subprocess
 import sys
 from pathlib import Path
+
+from validation.svg.asset_registry import build_svg_asset_registry
+
+
+BEHAVIOR_CATEGORIES = frozenset({
+	"static",
+	"binary_state",
+	"multi_state",
+	"variable_volume",
+})
+
+
+def target_path(repo_root: Path, decision: dict) -> Path:
+	"""Return the behavior-organized target selected by picker metadata."""
+	return (
+		repo_root
+		/ "assets/equipment"
+		/ decision["behavior_category"]
+		/ f"{decision['asset_name']}.svg"
+	)
 
 
 def get_repo_root() -> Path:
@@ -55,11 +75,19 @@ def run_preflight(decisions: list, candidates: dict, options: dict, repo_root: P
 			if state not in ("assigned", "defer", "ignore_intentional"):
 				errors.append(f"Decision {idx}: state '{state}' must be one of (assigned, defer, ignore_intentional)")
 
-			# If assigned, require candidate_id, source_repo, source_path, license_tag
+			# Assigned decisions carry the source and intended behavior directory.
 			if state == "assigned":
-				for required_key in ("candidate_id", "source_repo", "source_path", "license_tag"):
+				for required_key in (
+					"behavior_category", "candidate_id", "source_repo", "source_path", "license_tag",
+				):
 					if required_key not in decision:
 						errors.append(f"Decision {idx}: state='assigned' requires key '{required_key}'")
+				behavior_category = decision.get("behavior_category")
+				if behavior_category is not None and behavior_category not in BEHAVIOR_CATEGORIES:
+					errors.append(
+						f"Decision {idx}: behavior_category '{behavior_category}' must be one of "
+						f"{sorted(BEHAVIOR_CATEGORIES)}"
+					)
 
 			# If ignore_intentional, require non-empty reason
 			if state == "ignore_intentional":
@@ -74,9 +102,15 @@ def run_preflight(decisions: list, candidates: dict, options: dict, repo_root: P
 			errors.append(f"Duplicate asset_name across decisions: '{name}'")
 		seen.add(name)
 
+	registry = build_svg_asset_registry(repo_root / "assets")
+
 	# Check 3, 4, 5, 6: Only for assigned decisions
 	for idx, decision in enumerate(decisions):
 		if decision.get("state") != "assigned":
+			continue
+		if decision.get("behavior_category") not in BEHAVIOR_CATEGORIES:
+			# The schema pass above already records the actionable error. Avoid
+			# dereferencing incomplete records during the remaining checks.
 			continue
 
 		candidate_id = decision.get("candidate_id")
@@ -109,11 +143,19 @@ def run_preflight(decisions: list, candidates: dict, options: dict, repo_root: P
 				)
 
 		# Check 5: No overwrite without --force
-		target_path = repo_root / "assets/equipment" / f"{asset_name}.svg"
-		if target_path.exists() and not options.get("force"):
+		existing_path = None
+		if asset_name in registry.asset_names:
+			existing_path = registry.asset_path(asset_name)
+		if existing_path is not None and not options.get("force"):
+			relative_existing_path = existing_path.relative_to(repo_root)
 			errors.append(
-				f"Decision {idx}: target assets/equipment/{asset_name}.svg already exists. "
+				f"Decision {idx}: target {relative_existing_path} already exists. "
 				"Use --force to overwrite."
+			)
+		elif existing_path is not None and existing_path != target_path(repo_root, decision):
+			errors.append(
+				f"Decision {idx}: existing logical asset '{asset_name}' is in a different "
+				"behavior directory; move it deliberately before replacing it."
 			)
 
 		# Check 6: In-repo source requires --rename-existing
@@ -149,28 +191,31 @@ def apply_decisions(decisions: list, candidates: dict, options: dict, repo_root:
 		license_url = candidate["license_url"]
 
 		source_file = repo_root / source_path
-		target_file = repo_root / "assets/equipment" / f"{asset_name}.svg"
+		target_file = target_path(repo_root, decision)
+		target_relative = target_file.relative_to(repo_root)
 
 		# Perform copy or move based on source_repo
 		if source_repo == "assets/equipment":
 			# In-repo source: use git mv (only reached if --rename-existing is set)
 			if not options.get("dry_run"):
+				target_file.parent.mkdir(parents=True, exist_ok=True)
 				subprocess.run(
 					["git", "mv", str(source_file), str(target_file)],
 					check=True,
 					cwd=repo_root,
 				)
-			action = f"git mv {source_path} -> assets/equipment/{asset_name}.svg"
+			action = f"git mv {source_path} -> {target_relative}"
 		else:
 			# OTHER_REPOS source: copy and git add
 			if not options.get("dry_run"):
+				target_file.parent.mkdir(parents=True, exist_ok=True)
 				subprocess.run(["cp", str(source_file), str(target_file)], check=True)
 				subprocess.run(
 					["git", "add", str(target_file)],
 					check=True,
 					cwd=repo_root,
 				)
-			action = f"cp {source_path} -> assets/equipment/{asset_name}.svg (git add)"
+			action = f"cp {source_path} -> {target_relative} (git add)"
 
 		# Run normalize_svg_v3.py on the target, in place (v3 CLI: -i/--input,
 		# --in-place; a rejection exits non-zero and leaves the file untouched).
@@ -226,7 +271,7 @@ def apply_decisions(decisions: list, candidates: dict, options: dict, repo_root:
 def main() -> None:
 	"""Main entry point."""
 	parser = argparse.ArgumentParser(
-		description="Apply SVG picker decisions to assets/equipment/ with preflight checks."
+		description="Apply SVG picker decisions to behavior-organized equipment sources."
 	)
 	parser.add_argument(
 		"decisions_json",

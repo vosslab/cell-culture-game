@@ -22,4 +22,5 @@ _temp*
 # Test runner output trees.
 playwright-report/
 test-results/
+rendered-reports/
 blob-report/

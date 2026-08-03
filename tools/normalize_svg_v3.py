@@ -24,8 +24,10 @@ This file provides the shared v3 normalization framework. It establishes:
 - The classify() seam, which combines the supported feature detectors without
   redefining the public functions established here.
 
-The normalizer crops to the drawn bbox, shifts it to the origin, rewrites the
-viewBox, convert relative path commands to absolute (M/m L/l H/h V/v C/c S/s
+The ordinary-asset policy crops to the drawn bbox, shifts it to the origin, and
+rewrites the viewBox. The material-asset policy preserves its authored root
+frame and structural-anchor coordinates. Both policies convert relative path
+commands to absolute (M/m L/l H/h V/v C/c S/s
 Q/q T/t A/a Z/z), ASCII-clean id/data-name and rewrite references, preserve
 dc/cc/rdf/xlink/sodipodi/inkscape namespace prefixes, preserve pre-root
 comments, in-root comments, <title>, and <desc>.
@@ -67,6 +69,13 @@ import shapely  # shapely
 import lxml.etree  # lxml
 import tinycss2  # tinycss2
 import shapely.geometry  # shapely
+from validation.svg.layer_recipe_validator import (
+	MaterialSvgValidationError,
+	inject_normalizer_boundary_tokens,
+	material_boundary_signature,
+	remove_normalizer_boundary_tokens,
+	validate_reserved_attributes,
+)
 
 SVG_NS = "http://www.w3.org/2000/svg"
 
@@ -155,6 +164,8 @@ REASON_CODES = frozenset({
 	"UNRESOLVED_REFERENCE",
 	"PATTERN_UNSUPPORTED",
 	"EMPTY_GEOMETRY",
+	"MATERIAL_SEMANTIC_INVALID",
+	"MATERIAL_BOUNDARY_LOST",
 })
 
 
@@ -1349,7 +1360,7 @@ _COPY_THROUGH_ATTRS = frozenset({
 	"stroke-miterlimit", "stroke-dasharray", "stroke-dashoffset", "stroke-opacity",
 	"fill-opacity", "fill-rule", "opacity", "clip-path", "clip-rule", "mask",
 	"filter", "vector-effect", "style", "class", "id", "data-name", "display",
-	"visibility", "color",
+	"visibility", "color", "data-vlab-normalizer-boundary-token",
 })
 
 
@@ -4570,7 +4581,8 @@ def normalize_svg_file(
 	Pipeline: parse once (no recover) -> classify ->
 	ASCII-clean ids -> flatten transforms (A1) -> shape->path (A2) ->
 	B1 editor-cruft removal -> [D1 floor-shadow removal when enabled] ->
-	compute bbox -> shift to origin -> rewrite viewBox -> canonical serialize
+	compute bbox -> ordinary: shift to origin/rewrite viewBox; material: retain
+	authored root frame -> canonical serialize
 	(S4) -> write output.
 
 	D1 (floor-shadow removal) runs BEFORE compute_bbox so the single crop
@@ -4629,6 +4641,24 @@ def normalize_svg_file(
 		)
 
 	root = tree.getroot()
+	# Material-rendered SVGs use the same geometry/security normalizer, but their
+	# authored semantic groups are a closed contract rather than disposable art
+	# grouping. Validate before any destructive transform and retain a signature
+	# that the normalized result must reproduce.
+	try:
+		is_material = validate_reserved_attributes(root)
+		if is_material:
+			inject_normalizer_boundary_tokens(root)
+			material_signature = material_boundary_signature(root, allow_normalizer_tokens=True)
+		else:
+			material_signature = None
+	except MaterialSvgValidationError as exc:
+		return _reject(
+			input_path, output_path,
+			code="MATERIAL_SEMANTIC_INVALID",
+			message=str(exc),
+			fix="Repair the closed data-vlab material layer contract before normalization.",
+		)
 
 	# Feature classification returns one stable rejection reason when needed.
 	# non-None result short-circuits to a rejection before any geometry edit.
@@ -4716,6 +4746,10 @@ def normalize_svg_file(
 	# region and S1 never sees the dropped clip ref). A clip outside the simple
 	# allowlist -> CLIPPATH_UNSUPPORTED_COMPLEX rejection (no output written).
 	try:
+		# The material clip is compiler-owned: authored semantic groups never
+		# carry clip-path, while anchor_liquid_clip remains in defs for the derived
+		# compiled gravity-part region. Generic clips on ordinary nested artwork still use
+		# the shared supported flattening behavior.
 		flatten_clip_paths(root)
 	except ComplexClipError as exc:
 		return _reject(
@@ -4742,7 +4776,7 @@ def normalize_svg_file(
 	# pass over the already-prepared geometry.  Removal does NOT affect the gate
 	# verdict -- if removing a shadow breaks ref integrity or leaves no geometry,
 	# the file is rejected like any other (handled below).
-	if remove_floor_shadow:
+	if remove_floor_shadow and not is_material:
 		try:
 			pre_bbox = compute_bbox(root)
 		except (UnsupportedUnitError, ValueError):
@@ -4781,26 +4815,55 @@ def normalize_svg_file(
 			fix="Ensure the SVG contains at least one visible shape or path.",
 		)
 
-	dx = -bbox.min_x + padding
-	dy = -bbox.min_y + padding
-	new_width = bbox.width + 2 * padding
-	new_height = bbox.height + 2 * padding
-	for elem in root.iter():
-		if isinstance(elem.tag, str):
-			shift_element(elem, dx, dy)
-	# Use fmt_precise for the viewBox and width/height attrs (A4 precision).
-	root.set("viewBox", f"0 0 {fmt_precise(new_width)} {fmt_precise(new_height)}")
-	# Width/height attrs often disagree with viewBox after cropping. Keep them in
-	# sync if present.
-	if root.get("width") is not None:
-		root.set("width", fmt_precise(new_width))
-	if root.get("height") is not None:
-		root.set("height", fmt_precise(new_height))
-	view_box = root.get("viewBox")
+	if is_material:
+		# Material assets have structural anchors and compiled gravity-part
+		# operations expressed in their authored root coordinate system.  Unlike an
+		# ordinary decorative SVG, their canvas is part of the semantic contract:
+		# bbox cropping would translate both painted artwork and the anchors, change
+		# the root viewBox, and make an otherwise identical compiled fallback render
+		# at a different scale.  Keep the complete authored viewport (including
+		# width/height when supplied) while retaining the shared geometry/security
+		# normalization above.  `bbox` remains useful normalization evidence; it is
+		# deliberately not a material-frame rewrite input.
+		view_box = root.get("viewBox")
+	else:
+		dx = -bbox.min_x + padding
+		dy = -bbox.min_y + padding
+		new_width = bbox.width + 2 * padding
+		new_height = bbox.height + 2 * padding
+		for elem in root.iter():
+			if isinstance(elem.tag, str):
+				shift_element(elem, dx, dy)
+		# Use fmt_precise for the viewBox and width/height attrs (A4 precision).
+		root.set("viewBox", f"0 0 {fmt_precise(new_width)} {fmt_precise(new_height)}")
+		# Width/height attrs often disagree with viewBox after cropping. Keep them in
+		# sync if present.
+		if root.get("width") is not None:
+			root.set("width", fmt_precise(new_width))
+		if root.get("height") is not None:
+			root.set("height", fmt_precise(new_height))
+		view_box = root.get("viewBox")
 
 	# Rebuild the root under a canonical nsmap when new prefixes are needed so
 	# attribution prefixes serialize as dc:/cc:/rdf: (S4 no-ns0 guarantee).
 	root = _reroot_with_nsmap(root)
+	if material_signature is not None:
+		try:
+			if material_boundary_signature(root, allow_normalizer_tokens=True) != material_signature:
+				return _reject(
+					input_path, output_path,
+					code="MATERIAL_BOUNDARY_LOST",
+					message="Normalization changed a material semantic boundary.",
+					fix="Keep semantic groups, their order, and liquid anchors intact.",
+				)
+		except MaterialSvgValidationError as exc:
+			return _reject(
+				input_path, output_path,
+				code="MATERIAL_SEMANTIC_INVALID",
+				message=str(exc),
+				fix="Repair the material semantic contract after normalization.",
+			)
+		remove_normalizer_boundary_tokens(root)
 
 	# S1 reference-integrity hard gate: runs AFTER every rewrite (ASCII rename,
 	# F8 style rewrite, transform flatten, shape->path, cruft removal) and BEFORE

@@ -42,6 +42,13 @@ resolves against the active protocol's registry, not a shared table. Two
 protocols that both register `media` each carry their own entry; the entries are
 independent and may differ in `label` or `display_color`.
 
+`materials.yaml` is only the protocol material registry. It cannot describe an
+asset, SVG layer, paint role, adjustment, runtime handle, liquid region, or SVG
+recipe, and it cannot serve as an SVG sidecar. The closed two-key entry schema
+below is the entire material-registry surface. A material-rendered SVG keeps its
+own self-describing semantic recipe under [SVG_PIPELINE.md](SVG_PIPELINE.md),
+so one SVG recipe remains reusable across protocol registries.
+
 ## Top-level shape
 
 The file has exactly one top-level key, `materials`, whose value is a mapping.
@@ -112,10 +119,14 @@ Allowed format:
 display_color: "#a719db"
 ```
 
-A non-`empty` material name that resolves to no color is a resolver failure, not
-a silent invisible success; that invariant is fixed in
-[MATERIAL_VOCABULARY.md](MATERIAL_VOCABULARY.md) and surfaced by the resolver,
-not by this schema. This schema's job is to require the field and fix its format.
+When an active registry is supplied, a non-`empty`, non-built-in material name
+that is missing there or has an invalid color is a resolver failure, not a
+silent invisible success. A null registry is instead the bounded
+diagnostic/unseeded no-protocol-color-context case and returns `color: null`; it
+does not accept the name as registered. Null material fields and the authored
+`empty` sentinel are also successful no-color cases. These resolver invariants
+are fixed in [MATERIAL_VOCABULARY.md](MATERIAL_VOCABULARY.md); this schema's job
+is to require the registry field and fix its format.
 
 ## Glyph rendering
 
@@ -289,5 +300,7 @@ because they are not registered.
   `MATERIAL_LINT.md`.
 - Object-side `state_fields`, `subpart_state_fields`, and `visual_states`:
   [OBJECT_VOCABULARY.md](OBJECT_VOCABULARY.md).
+- Material-rendered SVG semantic layers and generated runtime handles:
+  [SVG_PIPELINE.md](SVG_PIPELINE.md).
 - Protocol-side `ObjectStateChange` that writes a `material_name`:
   [PROTOCOL_VOCABULARY.md](PROTOCOL_VOCABULARY.md).

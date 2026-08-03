@@ -37,9 +37,11 @@ visual_states:
       - when: media
         output: { asset_name: dilution_tube_rack }
   material_volume:
+    # Tube volume is retained as state.  Rendering individual rack contents
+    # is a structured-subpart question, not a whole-vessel material effect.
     kind: composite
     applies_to: subpart
-    formula: fill_height(state(material_volume), capacity_ul=1000)
+    composite: []
 
 capabilities: [clickable, structured_surface, material_container]
 

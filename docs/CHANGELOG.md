@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-08-01
+
+### Behavior or Interface Changes
+
+- Completed the material-SVG cutover: object-level `fill_height` now renders
+  only compiled material SVG gravity parts (fixed bottom, Y-scaled body,
+  translated fixed-shape surface, and stationary reveal). Structured-subpart
+  material rendering remains the separate generated-geometry mechanism.
+- Added a compiler-owned optional maximum fill percentage for vessel forms. The
+  medium bottle now caps at 85%, so requests at 85%, 90%, and 100% render
+  identically without losing the meniscus.
+- Corrected the 50 mL conical's full endpoint so the bottom of its concave
+  meniscus reads at the drawn 50 mL graduation, and made the microtube's moving
+  surface a complete highlighted ellipse with a darker front rim.
+- Conical forms now narrow their authored meniscus uniformly below the declared
+  body-start percentage, using that existing calibration rather than an
+  asset-specific scale rule; a nonzero floor continues to apply before this
+  geometry calculation.
+- Added optional form-owned `data-vlab-fill-height-exponent` calibration:
+  non-conical material SVGs may map normalized effective fill to height using a
+  bounded power curve, while conical body-anchor calibration remains explicitly
+  incompatible. This keeps one generic runtime path with no asset-name rule.
+
+### Developer Tests and Notes
+
+- Added `render_liquid_volume_contact_sheet.sh` as the one-step front door for
+  rebuilding and rendering all five variable-volume families. Its contact sheet
+  records a Chicago creation timestamp and build ID, generates and labels a
+  fresh random material color for each vessel family, and reports requested
+  fill, rendered fill, and clamp state from the compiler-generated manifest.
+
+### Removals and Deprecations
+
+- Retired the ordinary object-level anchor-overlay renderer and its migration
+  contract. Structural liquid anchors remain compiler-only source inputs; the
+  runtime uses generated manifest handles rather than authored anchor lookup.
+
+### Decisions and Failures
+
+- The Falcon pilot showed that translating one whole-liquid group moves the
+  bottom and leaves donor-level artifacts. The gravity-part contract and
+  build-integrated anti-return lint now prevent that model from returning.
+
 ## 2026-07-30
 
 ### Fixes and Maintenance

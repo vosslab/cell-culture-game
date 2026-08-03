@@ -64,12 +64,14 @@ The applier validates every decision before writing to disk:
 - Assigned decisions reference existing candidates from the current `candidates.json`.
 - Source files (from OTHER_REPOS or assets/equipment) still exist on disk.
 - No duplicate asset_names in the decision set.
-- No target asset_name already exists in `assets/equipment/` (unless `--force`).
+- No target logical `asset_name` already exists anywhere below `assets/equipment/`
+  (unless `--force`).
 - In-repo sources (source_repo == "assets/equipment") require `--rename-existing` flag.
 
 On success, the applier:
 
-- Copies or moves SVGs into `assets/equipment/<asset_name>.svg`.
+- Copies or moves SVGs into `assets/equipment/<behavior>/<asset_name>.svg` using
+  the behavior category projected into `missing_targets.json` from object YAML.
 - Runs normalization via `tools/normalize_svg_v3.py -i <target_file> --in-place`.
 - Appends attribution rows to `docs/SVG_ATTRIBUTION.md` for CC BY sources.
 - Prints a summary: "X assigned, Y deferred, Z ignored, N attribution rows appended".
@@ -193,7 +195,9 @@ The two-file split keeps curated narrative separate from machine-appended rows. 
 
 ## Gate test
 
-The gate test `tests/test_object_asset_refs.py` verifies that every `asset_name` referenced in `content/objects/<kind>/*.yaml` has a corresponding `assets/equipment/<asset_name>.svg` on disk.
+The gate test `tests/test_object_asset_refs.py` verifies that every `asset_name`
+referenced in `content/objects/<kind>/*.yaml` resolves uniquely through the
+recursive equipment registry.
 
 On the first picking pass, the test runs in **soft-reporter mode**: it prints the current gap (list of missing asset_names) but exits 0 and does not block CI. The baseline gap is 74 missing slots; the test tracks this via `BASELINE_MISSING_COUNT=74`. If the count grows, the test fails loudly with an error message.
 
@@ -209,7 +213,9 @@ A follow-up patch will harden this to a strict `assert` once the picking pass cl
 
 Each target in the picker can be marked with one of three decision states:
 
-- **assigned** - you found a suitable candidate and assigned it. The applier copies or moves this SVG into `assets/equipment/<asset_name>.svg`.
+- **assigned** - you found a suitable candidate and assigned it. The applier
+  copies or moves this SVG into its projected `assets/equipment/<behavior>/`
+  directory.
 - **defer** - you want to review this target later. The picker saves it in decisions.json for a follow-up pass. The applier skips deferred decisions.
 - **ignore_intentional** - you've reviewed this target and determined no available candidate is suitable (e.g., a custom vector is needed). You must provide a non-empty reason. The applier skips ignored decisions and records the reason for future reference.
 

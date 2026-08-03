@@ -58,9 +58,10 @@ const ALT_SCENE_NAME = "dilution_workspace";
 // Conversion-time fix, not a product defect: split into the two real keys.
 const FILL_TARGET_PLACEMENT = "rear_left_cell_suspension_tube";
 const FILL_TARGET_OBJECT = "cell_suspension_tube";
-// cell_suspension_tube declares an anchor material effect. Its visible fill is
-// an SVG rect owned by anchor_material_renderer, not a legacy CSS box overlay.
-const ANCHOR_MATERIAL_SELECTOR = "[data-anchor-material-field='material_volume']";
+// The selected compiled form owns an opaque reveal handle in the generated
+// liquid-region manifest. The test resolves that handle through the real
+// published manifest instead of depending on authored semantic names.
+const LIQUID_ASSET = "microtube";
 const BBOX_TOL_PX = 1.0;
 
 interface Bbox {
@@ -244,13 +245,22 @@ test.describe("scene reactivity + lifecycle", () => {
     await page
       .locator(`#scene-root [data-item-id="${FILL_TARGET_PLACEMENT}"]`)
       .waitFor({ state: "attached" });
-    // The object uses an injected SVG anchor fill, so wait for the actual
-    // current-contract surface rather than merely its outer item container.
-    const fill = page.locator(
-      `#scene-root [data-item-id="${FILL_TARGET_PLACEMENT}"] ${ANCHOR_MATERIAL_SELECTOR}`,
+    await page.waitForFunction(
+      async ({ target, asset }) => {
+        const manifest = (await fetch("/assets/liquid_regions.json").then((r) =>
+          r.json(),
+        )) as Record<string, { reveal_handle: string }>;
+        const handle = manifest[asset]?.reveal_handle;
+        const item = document.querySelector(`#scene-root [data-item-id="${target}"]`);
+        return (
+          handle !== undefined &&
+          Array.from(item?.querySelectorAll("rect") ?? []).some(
+            (rect) => rect.id.endsWith(`__${handle}`) && Number(rect.getAttribute("height")) > 0,
+          )
+        );
+      },
+      { target: FILL_TARGET_PLACEMENT, asset: LIQUID_ASSET },
     );
-    await fill.waitFor({ state: "attached" });
-    await expect(fill).toHaveAttribute("display", "inline");
   });
 
   test.afterAll(async () => {
@@ -295,17 +305,23 @@ test.describe("scene reactivity + lifecycle", () => {
     // Tag the scene root and the target item so we can prove node identity
     // survives a store write (no remount).
     const before: BeforeState = await page.evaluate(
-      (args: { target: string; fillSelector: string }) => {
+      async (args: { target: string; asset: string }) => {
         const root = document.getElementById("scene-root")!;
         root.setAttribute("data-test-root-token", "root-1");
         const item = root.querySelector(`[data-item-id="${args.target}"]`)!;
         item.setAttribute("data-test-item-token", "item-1");
         const r = item.getBoundingClientRect();
-        const fill = item.querySelector(args.fillSelector);
-        if (!(fill instanceof SVGRectElement)) {
-          throw new Error("expected the declared anchor material fill SVG rect");
+        const manifest = (await fetch("/assets/liquid_regions.json").then((r) =>
+          r.json(),
+        )) as Record<string, { reveal_handle: string }>;
+        const handle = manifest[args.asset]?.reveal_handle;
+        const reveal = Array.from(item.querySelectorAll("rect")).find((rect) =>
+          rect.id.endsWith(`__${String(handle)}`),
+        );
+        if (!(reveal instanceof SVGRectElement)) {
+          throw new Error("expected the compiled liquid reveal rect");
         }
-        const fillH = fill.getBoundingClientRect().height;
+        const fillH = Number(reveal.getAttribute("height"));
         // Pick an unaffected sibling item.
         const others = Array.from(root.querySelectorAll("[data-item-id]")).filter(
           (el) => el.getAttribute("data-item-id") !== args.target,
@@ -320,7 +336,7 @@ test.describe("scene reactivity + lifecycle", () => {
           otherBbox: { x: or.x, y: or.y, w: or.width, h: or.height },
         };
       },
-      { target: FILL_TARGET_PLACEMENT, fillSelector: ANCHOR_MATERIAL_SELECTOR },
+      { target: FILL_TARGET_PLACEMENT, asset: LIQUID_ASSET },
     );
 
     // Write a new material_volume to the target via the store (the reactive
@@ -337,26 +353,41 @@ test.describe("scene reactivity + lifecycle", () => {
         material_volume: 18,
       });
     }, FILL_TARGET_OBJECT);
-    const fill = page.locator(
-      `#scene-root [data-item-id="${FILL_TARGET_PLACEMENT}"] ${ANCHOR_MATERIAL_SELECTOR}`,
-    );
     await expect
       .poll(async () => {
-        const height = await fill.evaluate((element) => element.getBoundingClientRect().height);
-        return height;
+        return page.evaluate(
+          async ({ target, asset }) => {
+            const manifest = (await fetch("/assets/liquid_regions.json").then((r) =>
+              r.json(),
+            )) as Record<string, { reveal_handle: string }>;
+            const handle = manifest[asset]?.reveal_handle;
+            const item = document.querySelector(`#scene-root [data-item-id="${target}"]`);
+            const reveal = Array.from(item?.querySelectorAll("rect") ?? []).find((rect) =>
+              rect.id.endsWith(`__${String(handle)}`),
+            );
+            return Number(reveal?.getAttribute("height") ?? 0);
+          },
+          { target: FILL_TARGET_PLACEMENT, asset: LIQUID_ASSET },
+        );
       })
       .toBeGreaterThan(before.fillH + 1);
 
     const after: AfterState = await page.evaluate(
-      (args: { target: string; fillSelector: string }) => {
+      async (args: { target: string; asset: string }) => {
         const root = document.getElementById("scene-root")!;
         const item = root.querySelector(`[data-item-id="${args.target}"]`)!;
         const r = item.getBoundingClientRect();
-        const fill = item.querySelector(args.fillSelector);
-        if (!(fill instanceof SVGRectElement)) {
-          throw new Error("expected the declared anchor material fill SVG rect");
+        const manifest = (await fetch("/assets/liquid_regions.json").then((r) =>
+          r.json(),
+        )) as Record<string, { reveal_handle: string }>;
+        const handle = manifest[args.asset]?.reveal_handle;
+        const reveal = Array.from(item.querySelectorAll("rect")).find((rect) =>
+          rect.id.endsWith(`__${String(handle)}`),
+        );
+        if (!(reveal instanceof SVGRectElement)) {
+          throw new Error("expected the compiled liquid reveal rect");
         }
-        const fillH = fill.getBoundingClientRect().height;
+        const fillH = Number(reveal.getAttribute("height"));
         const other = root.querySelector("[data-test-other-token='other-1']");
         const or = other ? other.getBoundingClientRect() : null;
         return {
@@ -371,7 +402,7 @@ test.describe("scene reactivity + lifecycle", () => {
           otherBbox: or ? { x: or.x, y: or.y, w: or.width, h: or.height } : null,
         };
       },
-      { target: FILL_TARGET_PLACEMENT, fillSelector: ANCHOR_MATERIAL_SELECTOR },
+      { target: FILL_TARGET_PLACEMENT, asset: LIQUID_ASSET },
     );
 
     expect(after.rootToken, "scene root must NOT remount on ObjectStateChange").toBe("root-1");

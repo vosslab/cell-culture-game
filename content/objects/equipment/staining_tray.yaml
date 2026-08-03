@@ -43,12 +43,6 @@ visual_states:
         output: { asset_name: staining_tray_empty }
       - when: ddh2o
         output: { asset_name: staining_tray_empty }
-  material_volume:
-    applies_to: object
-    render_effect: fill_height
-    target: anchor_liquid_bounds
-    clip: anchor_liquid_clip
-    capacity_ml: 500
   gel_present:
     kind: composite
     composite: []

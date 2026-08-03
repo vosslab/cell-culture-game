@@ -60,13 +60,6 @@ visual_states:
         output: { asset_name: p200_micropipette_empty }
       - when: ddh2o
         output: { asset_name: p200_micropipette_empty }
-  held_material_volume:
-    applies_to: object
-    render_effect: fill_height
-    target: anchor_liquid_bounds
-    clip: anchor_liquid_clip
-    capacity_ul: 200
-
 capabilities:
   [clickable, material_container, instrument_with_setpoint, cursor_attachable]
 

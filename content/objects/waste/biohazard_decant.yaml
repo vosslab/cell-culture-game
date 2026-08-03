@@ -34,12 +34,6 @@ visual_states:
       - when: cell_supernatant
         output:
           asset_name: biohazard_decant
-  material_volume:
-    applies_to: object
-    render_effect: fill_height
-    target: anchor_liquid_bounds
-    clip: anchor_liquid_clip
-    capacity_ml: 50
 capabilities:
   - clickable
   - material_container

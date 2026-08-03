@@ -102,8 +102,9 @@ unregistered visible material.
 
 ### L4: visible-but-uncolored is an error
 
-A non-`empty` material name that resolves to no color is a resolver failure,
-never a silent invisible success. This is the binding invariant (D2) from
+A non-`empty`, non-built-in material name that resolves to no color against a
+provided authoritative registry is a resolver failure, never a silent
+invisible success. This is the binding invariant (D2) from
 [MATERIAL_VOCABULARY.md](MATERIAL_VOCABULARY.md). The resolver surfaces the
 failure; no consumer substitutes a fallback color and no consumer treats the
 failure as an empty well. A registered material whose `display_color` is
@@ -117,14 +118,14 @@ degrade path (see "Resolver error contract" below).
 - Violation outcome: resolver returns `{ ok: false, reason }`; the region
   renders the degrade path, never a painted color and never silent absence.
 
-### L5: scalar display_color required; nested rejected (required after sweep)
+### L5: scalar display_color required; nested rejected
 
 `display_color` is a single scalar hex string matching `^#[0-9a-f]{6}$`. The
 nested `display_color.light` / `display_color.dark` mapping is rejected; the
 six-lowercase-hex scalar is required. Both the scalar requirement and the exact
 pattern are owned by [MATERIAL_YAML_FORMAT.md](MATERIAL_YAML_FORMAT.md).
 
-The hard rule has two halves and a sequencing constraint:
+The hard rule has two halves:
 
 - **Reject nested.** A `display_color` written as a mapping (any
   `light` / `dark` shape) is a schema error.
@@ -132,21 +133,10 @@ The hard rule has two halves and a sequencing constraint:
   `^#[0-9a-f]{6}$` (uppercase hex, three-digit shorthand, eight-digit alpha,
   named color, or `rgb(...)` / `hsl(...)`) is a schema error.
 
-Sequencing constraint (binding): the nested-rejection half of this rule must
-**not** be enabled in the validator until the WP-MAT-SWEEP migration has
-converted every `materials.yaml` entry from nested to scalar. Today the
-validator enforces the inverse (it rejects scalar and requires nested); flipping
-the validator before the content is migrated would reject every existing
-`materials.yaml` mid-migration and block the sweep. The flip is a single change
-to one function (see the L5 hook) and lands together with, or immediately after,
-the sweep that makes the content scalar. Until that sweep passes, this doc
-documents the target rule and leaves the hook as a TODO; the validator stays on
-its current behavior so it never blocks migration midstream.
-
 - Owning decision: scalar `^#[0-9a-f]{6}$`, nested rejected
   ([MATERIAL_YAML_FORMAT.md](MATERIAL_YAML_FORMAT.md)).
-- Violation outcome (after sweep): schema error against the offending entry;
-  the registry file does not validate.
+- Violation outcome: schema error against the offending entry; the registry file
+  does not validate.
 
 ### L6: closed material entry schema
 
@@ -165,10 +155,11 @@ file is rejected, because sentinels are not registry entries.
 
 The two sentinels render by fixed rule, not by registry lookup:
 
-- `empty` is the only non-rendering material name. A container whose
+- `empty` is the only non-rendering authored material name. A container whose
   `material_name` is `empty`, or whose `material_volume` is `0`, renders no
   fill; the base art shows through. The resolver returns `{ ok: true, color:
-  null }` for `empty`; `null` is a success, never a failure.
+  null }` for `empty`; null name and null-registry diagnostic contexts can also
+  return null color, and none is a failure.
 - `mixed` is the only built-in visible material. The resolver returns
   `{ ok: true, color: "#686868" }` for `mixed` from the spec-fixed built-in,
   never from a registry lookup; `mixed` never renders invisible and is never a
@@ -183,68 +174,74 @@ looks `mixed` up in the registry, violates the convention.
 - Violation outcome: a resolver or consumer that breaks these rules is a code
   defect, caught by the resolver-contract tests, not an authoring error.
 
-### L8: no per-material variant asset
+### L8: no material or volume fan-out for a runtime material binding
 
-Every material-name case in an object's `visual_states` resolves to the same
-`asset_name`. A per-material variant SVG (`<object>_empty.svg`,
-`<object>_filled.svg`, `<object>_with_<material>.svg`) is the fan-out smell the
-convention forbids. Material color comes from the runtime overlay, not a second
-base SVG.
+A material-rendered form is one reusable SVG recipe. Its material groups receive
+paint derived from the selected registry material and its level derives from the
+object's volume/capacity state. When paired material identity and amount
+`visual_states` use runtime material rendering, their cases must select the same
+complete SVG form. Different forms solely encoding that pair's material color or
+liquid level are forbidden.
 
-- Owning decision: single base SVG, no per-material variant
-  ([MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md)).
-- Violation outcome: object-schema error; the object does not validate.
+This is not a global ban on names or on complete discrete forms. A collection may
+select `mtt_powder_vial.svg` / `mtt_powder_vial_empty.svg` or
+`sharps_container.svg` / `sharps_container_full.svg` when they depict genuine
+content, geometry, or form states and no paired runtime material binding applies.
+Likewise, an `empty` or `full` filename alone proves nothing. The exact per-form
+classification is owned by [SVG_PIPELINE.md](SVG_PIPELINE.md).
 
-### L9: no runtime DOM-id construction and no arbitrary DOM access
+- Violation outcome: an object/material-form validation error; no material or
+  volume fan-out for that runtime material binding validates.
 
-Runtime material code must not construct a DOM id by concatenating asset, scene,
-placement, target, or anchor names (`<asset_name>__anchor_liquid_clip`,
-`<placement>_<target>`, a string-built `url(#...)` reference, or any equivalent).
-The material layer owns declarative target names only; a bare authored anchor
-target is resolved to a concrete instance element through the SVG-injection
-path's lookup seam, never by an id the material layer builds. This is the
-no-id-concat invariant from
-[MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md) ("No id construction by name
-concatenation"), which exists because the SVG-injection path namespaces internal
-ids per render instance and a per-asset prefix cannot address one instance.
+### L9: generated handles only at runtime
 
-The same rule forbids arbitrary DOM access from material or Solid code. Material
-code reaches the injected SVG only through the lookup seam; it must not issue
-`document.querySelector`, `getElementById`, or any other arbitrary DOM query, and
-must not read a value back out of the DOM as application state. SVG DOM is the
-rendering substrate, never a state store. Solid owns state, reactivity, and
-attribute updates: once the lookup seam returns the declared element, the
-material renderer updates only the declared attributes (`fill`, `x`, `y`,
-`width`, `height`, `clip-path`, `opacity`) on it through Solid reactivity. This
-is the DOM-access-isolation and Solid-ownership invariant from
-[MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md) ("Lookup contract for an
-SVG-anchor target").
+Runtime material code uses opaque handles from the generated liquid-region
+manifest. It must not read authored `data-vlab-*` attributes, construct a DOM id
+from an asset, scene, placement, layer, or anchor name, or query arbitrary DOM.
+SVG DOM remains a rendering substrate rather than application state. The
+injection seam resolves generated handles per instance; it is the only permitted
+path from runtime state to a compiled material form.
 
-- Owning decision: bare authored targets resolved per SVG instance through the
-  lookup seam, DOM access isolated in that seam, Solid owns reactive attribute
-  updates ([MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md)); per-instance id
-  namespacing ([SVG_PIPELINE.md](SVG_PIPELINE.md)).
-- Violation outcome: a renderer or helper that name-concatenates a DOM id, queries
-  arbitrary DOM, or writes a declared attribute outside Solid reactivity is a code
-  defect, caught by the L9 hook below, not an authoring error.
+For a material-declared form, structural anchors are compiler inputs only. The
+runtime does not mutate `anchor_liquid_bounds` or `anchor_liquid_clip`, and it
+does not stamp a runtime `<rect>`. The compiler produces the derived gravity-part
+region and owns its stationary clip and reveal references. After the M6 cutover,
+an object-level `fill_height` binding must select a material-rendered form; no
+ordinary-form anchor-overlay exception remains.
 
-### L10: declared material/anchor target requires injected SVG DOM
+- Violation outcome: a direct authored-attribute read, DOM-id construction,
+  arbitrary query, anchor mutation, or material-form runtime rectangle is a
+  runtime defect.
 
-Render mode is declaration-based, not state-based. An object that declares
-material rendering or anchor targeting (a `visual_states` entry with a
-`render_effect` on a material-name, material-volume, or anchor target) must be
-rendered as injected, per-instance-namespaced SVG DOM, never as an `<img>`
-element, even when its material state is currently empty. An `<img>` exposes no
-internal DOM, cannot be per-instance namespaced, and cannot host the anchor ids
-the lookup seam resolves. This is the declaration-based render-mode invariant
-from [MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md) ("Declaration-based render
-mode").
+### L10: material pipeline anti-regression gates
 
-- Owning decision: declaration-based render mode
-  ([MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md)).
-- Violation outcome: an object that declares a material/anchor render effect but
-  is rendered through `<img>` is a render-mode defect, caught by the L10 hook
-  below.
+The material compiler and normalized-output validator enforce the closed
+semantic contract in [SVG_PIPELINE.md](SVG_PIPELINE.md). An external SVG
+layer-recipe sidecar is neither accepted nor consumed: the implementation has
+no sidecar input, parser, discovery, or recipe authority. `materials.yaml`
+cannot supply SVG recipe fields; the embedded semantic contract is the sole
+recipe authority. The gates fail on all of the following:
+
+- reserved `data-vlab-*` attributes without a valid material root, unknown or
+  misplaced reserved attributes, or direct publication of a material source
+  instead of its compiled artifact;
+- duplicate layer names, a missing `base` role, invalid layer kind/role,
+  invalid or missing closed `bottom`/`body`/`surface` part, invalid adjustment,
+  an authored stacking attribute, or a split material band;
+- a semantic group with `clip-path`, lost structural anchors, or a merge or
+  flattening operation that crosses a semantic boundary; and
+- runtime coupling to authored attributes/DOM ids, material-form rectangle
+  stamping, or mutation of structural anchors on the compiled path.
+
+Layer names are unique within a form. Paint roles may repeat, and at least one
+`base` role is required. SVG document order is the sole stacking authority: the
+validator derives one contiguous material band, with fixed groups before and
+after it. Highlight and shadow adjustments follow the pipeline's closed grammar
+and range. This lint doc deliberately cites that authority rather than copying
+its schema.
+
+- Violation outcome: build/validation failure for SVG and publication errors;
+  runtime-contract failure for generated-handle violations.
 
 ## Resolver error contract (D3)
 
@@ -266,36 +263,32 @@ fallback color and never a silent empty well; a consumer must not catch an
 `{ ok: false }` and substitute a color, and must not treat `{ color: null }` as
 a failure.
 
-The two success rows are listed first for contrast; the rest are the D3 failure
-cases.
+The success rows are listed first for contrast; only the final two rows are D3
+failure cases. Resolver outcomes are intentionally separate from amount and
+cross-field state validation.
 
 | Case | Input condition | Resolver result | Routed to |
 | --- | --- | --- | --- |
-| empty success | material name `empty` (or `material_volume` / `held_material_volume` is `0`) | `{ ok: true, color: null }` | no fill; base art shows through (not a failure) |
+| no material field | `material_name` is `null` because the object declares no material field | `{ ok: true, color: null }` | no material paint (not a failure) |
+| empty success | authored material name `empty` | `{ ok: true, color: null }` | no fill; base art shows through (not a failure) |
 | color success | registry-backed name with a valid scalar `display_color`, or built-in `mixed` | `{ ok: true, color: "#rrggbb" }` | the resolved color is painted |
-| unknown material | non-`empty` name absent from the registry and not a built-in | `{ ok: false, reason }` | observable per-item degrade path |
-| missing display_color | registry-backed name whose entry has no `display_color` | `{ ok: false, reason }` | observable per-item degrade path |
-| invalid hex | registry-backed name whose `display_color` is not `^#[0-9a-f]{6}$` | `{ ok: false, reason }` | observable per-item degrade path |
-| sentinel other than empty | a name treated as a no-render sentinel that is not `empty` (only `empty` renders no fill; `mixed` renders the built-in) | `{ ok: false, reason }` | observable per-item degrade path |
-| material_name null | the driving identity field is `null` rather than a material name (`empty` is the named-absence value, not `null`) | `{ ok: false, reason }` | observable per-item degrade path |
-| zero-volume with non-empty material | `material_volume` is `0` while `material_name` is a non-`empty` material (amount says empty, identity says present) | `{ ok: false, reason }` | observable per-item degrade path |
-| non-empty with missing volume | a non-`empty` material name whose driving `material_volume` field is absent (`null`) where a `fill_height` effect needs an amount | `{ ok: false, reason }` | observable per-item degrade path |
+| no protocol color context | non-built-in name with `material_registry` `null` in diagnostic or unseeded rendering | `{ ok: true, color: null }` | no material paint; not registry acceptance |
+| unknown material | non-sentinel name absent from a provided registry, including `{}`, and not a built-in | `{ ok: false, reason }` | observable per-item degrade path |
+| invalid registry color | name in a provided registry whose `display_color` is missing or not `^#[0-9a-f]{6}$` | `{ ok: false, reason }` | observable per-item degrade path |
 
-Notes on the failure rows:
+Notes on the resolver rows:
 
-- "unknown material", "missing display_color", and "invalid hex" are the three
-  ways a visible material resolves to no color; all three are the L4
-  visible-but-uncolored error seen from the resolver.
-- "sentinel other than empty", "material_name null", "zero-volume with
-  non-empty material", and "non-empty with missing volume" are the four
-  inconsistent-state failures: the identity layer and the amount layer disagree,
-  or a no-render path is taken for a name that is not `empty`. The honest visual
-  for absence is `material_name: empty` (identity) with `material_volume: 0`
-  (amount) agreeing; any disagreement is a fault to be seen, not hidden behind a
-  transparent well.
+- "unknown material" and "invalid registry color" are the L4
+  visible-but-uncolored error seen from the resolver, but only when a registry
+  is provided. The null-registry row is a bounded diagnostic-context success;
+  it never permits a name in an active protocol registry to bypass D1 or D2.
+- Zero volume with a non-empty material is a valid no-visible-amount state under
+  MATERIAL_CONVENTION's skip rule. Missing required volume for a `fill_height`
+  binding is a separate object binding/state validation failure. Neither is a
+  resolver result and neither belongs in D3.
 
-`empty` is the single no-fill success; every other no-fill outcome above is a
-fault routed to the degrade path.
+`empty` is the only authored material name that resolves to null before registry
+lookup. It is not the only runtime input that can produce a successful null.
 
 ## Cross-YAML agreement rule
 
@@ -338,7 +331,7 @@ an entry tagged **TODO** is a change to make when its workstream lands.
 | L5 (cross-protocol color agreement) | `validation/yaml_schema/material_validator.py:MaterialValidator.validate_cross_protocol` | EXISTS | Tracks `(label, display_color)` scalar tuples; divergence in either field emits `PALETTE_DIVERGENT`. Updated by WP-MAT-SWEEP. |
 | L6 (closed entry schema) | `validation/yaml_schema/material_validator.py:MaterialValidator._validate_entry` | EXISTS | Closure on `MATERIAL_ALL_KEYS` (currently `{label, display_color}`) and snake_case key check already reject unknown keys and bad names. Keep. |
 | L6 (sentinel not an entry) | `validation/yaml_schema/material_validator.py:MaterialValidator._validate_entry` | TODO | Add a check that rejects `empty` and `mixed` as registry keys (sentinels never appear in `materials.yaml`, per MATERIAL_YAML_FORMAT.md). Emit a closure-class error naming the offending key. |
-| L8 (no per-material variant asset) | `validation/yaml_schema/object_validator.py:ObjectValidator.validate` (visual-states branch) | EXISTS | The object validator's `visual_states` completeness check enforces one `asset_name` per object; a per-material variant SVG is rejected there. Keep; cite this doc and MATERIAL_CONVENTION.md in the rule. |
+| L8 (no material or volume fan-out) | material-form validator and object `visual_states` validation | TODO | For paired identity/amount entries that use runtime material rendering, require all material cases to select one complete form. Do not infer a violation from filenames; preserve genuine complete-form selection, including `mtt_powder_vial_empty` and `sharps_container_full`. |
 | Constants (allowlist) | `validation/yaml_schema/constants.py` | EXISTS | `MATERIAL_REQUIRED_KEYS = {label, display_color}` and `MATERIAL_ALL_KEYS` are correct for the scalar schema; no nested-color key set is introduced. The `# spec:` comment now cites `MATERIAL_YAML_FORMAT.md "Material entry schema"` (updated by WP-MAT-CROSSREF). |
 
 ### Stepper (walk-time) validators
@@ -356,26 +349,32 @@ an entry tagged **TODO** is a change to make when its workstream lands.
 
 | Rule | Hook (`file:function`) | Status | What to add |
 | --- | --- | --- | --- |
-| D3 resolver result | `src/scene_runtime/renderer/material_color.ts` (WP-COLOR, M3) | EXISTS | `resolve_color_result(material_name, registry)` returns the D3 discriminated union `{ ok: true; color: string | null } | { ok: false; reason: string }`: `empty` -> `{ ok: true, color: null }`, built-in `mixed` -> `{ ok: true, color: "#686868" }`, registry-backed scalar -> `{ ok: true, color }`, non-sentinel absent from registry or invalid hex -> `{ ok: false, reason }`. No local fallback color; every `{ ok: false }` routes to the degrade path. Contract locked by 12 pure tests in `tests/test_material_color.mjs`. |
-| L4 / L7 consumer rules | `src/scene_runtime/renderer/subpart_visual_state_renderer.tsx` (WP-SUBPART-RENDER, M3) | EXISTS | The subpart renderer paints `color` on `{ ok: true, color }`, renders `fill="transparent"` for `{ ok: true, color: null }` (empty/sentinel/unseeded, D4), and routes `{ ok: false }` to the per-item degrade sink. It never catches a failure and substitutes a color, and never treats `null` as a failure. Contract locked by `tests/test_subpart_visual_state_renderer.mjs`. |
-| L9 (no id concatenation, no arbitrary DOM) | material/anchor renderer that reads an anchor target (WP-SUBPART-RENDER, M3) | TODO | The anchor-rendering path must resolve a bare authored target (`anchor_liquid_bounds`, `anchor_liquid_clip`) through the SVG-injection path's lookup seam (the SVG plan's M5 deliverable), never by building a DOM id from asset/scene/placement/target/anchor names. The current subpart renderer builds no DOM id, queries no arbitrary DOM, and references no base-SVG id. Anchor-target resolution through the lookup seam is a future M5 deliverable. |
-| L10 (declaration-based render mode) | scene render-mode selection that chooses `<img>` vs injected SVG (WP-SUBPART-RENDER, M3) | EXISTS | `subpart_dispatch.ts` (`find_material_tint_subpart_field`) dispatches from the DECLARATION (`render_effect == material_tint`, `applies_to == subpart`, generated `subpart_geometry`/`view_box`), not from the runtime value. The render mode is decided from the declaration; `<img>` is never chosen for a declared material/anchor object, even when the current material value is `empty`. |
+| D3 resolver result | `src/scene_runtime/renderer/material_color.ts` (WP-COLOR, M3) | EXISTS | `resolve_color_result(material_name, registry)` accepts `string \| null` and `MaterialRegistry \| null`, and returns `{ ok: true; color: string \| null } \| { ok: false; reason: string }`. Null name is no material field; `empty` returns null before lookup; `mixed` always returns `#686868`; null registry yields null-color success for non-built-ins only in a no-context diagnostic render. With any provided registry, including `{}`, a non-sentinel absent name or invalid registry color returns failure. No local fallback color; every `{ ok: false }` routes to the degrade path. Contract locked by 14 pure tests in `tests/test_material_color.mjs`. |
+| L4 / L7 consumer rules | `src/scene_runtime/renderer/subpart_visual_state_renderer.tsx` (WP-SUBPART-RENDER, M3) | EXISTS | The subpart renderer paints `color` on `{ ok: true, color }`, renders `fill="transparent"` for `{ ok: true, color: null }` (empty, no-field, or unseeded context), and routes `{ ok: false }` to the per-item degrade sink. It never catches a failure and substitutes a color, and never treats `null` as a failure. Contract locked by `tests/test_subpart_visual_state_renderer.mjs`. |
+| L9 (generated handles only) | `validation/svg/material_anti_return_lint.py:lint_material_anti_return` | EXISTS | Runtime material paint consumes generated liquid-region handles only. The gate rejects direct authored `data-vlab-*` reads, semantic selector/id lookups, and material runtime SVG rectangle creation. The injection seam may resolve opaque generated handles. |
+| L10 (material compiler and validator) | `tools/normalize_svg_v3.py`, `validation/svg/layer_recipe_validator.py`, `pipeline/gen_liquid_regions.py`, and `pipeline/gen_svg_manifest.py` | EXISTS | The compiler validates the embedded reserved vocabulary and ordering, preserves boundaries and anchors, accepts no sidecar input or recipe authority, rejects direct publication of a material source through the publication planner, and emits the derived manifest. |
+| L10 (build-loop publication enforcement) | `pipeline/build_generated.sh` and its integration tests | EXISTS (M3) | The build front door runs the anti-return gate, compiles material SVGs into `generated/material_svg/`, emits `generated/liquid_regions.json`, and publishes only compiled material artifacts. |
+| L10 (runtime generated-handle consumption) | `src/scene_runtime/renderer/liquid_paint.ts` and `inject_svg.ts` | EXISTS (M4) | Material paint receives only injected generated-handle operations. `inject_svg.ts` owns the opaque-handle lookup and the manifest-to-instance binding; `liquid_paint.ts` never inspects authored SVG semantics. |
+| L10 (anti-return lint) | `validation/svg/material_anti_return_lint.py:lint_material_anti_return` | EXISTS (M7) | Composes authored SVG semantic validation, recursive taxonomy binding validation, and the repository-wide `src/` source scan. It names the violated file and one of `M7-SVG-SEMANTICS`, `M7-OBJECT-BINDING`, `M7-GENERATED-HANDLES`, or `M7-RETIRED-OVERLAY`. |
 
-### Sequencing summary
+### Current implementation state
 
-One hard flip still waits on content migration:
+The following completed rules are tracked as EXISTS:
 
-- **L5 nested-rejection** flips in
-  `material_validator.py:_validate_display_color` only after WP-MAT-SWEEP makes
-  every `materials.yaml` scalar. Flipping early rejects all current content and
-  blocks the sweep. Status: EXISTS (WP-MAT-SWEEP completed the scalar migration;
-  the validator now enforces the scalar `^#[0-9a-f]{6}$` rule and rejects nested).
-
-The following flips previously listed as TODO are now EXISTS:
+- **L5 scalar enforcement** in `material_validator.py`: completed. The validator
+  requires scalar `^#[0-9a-f]{6}$` and rejects nested `display_color` mappings.
 
 - **L3 sentinel narrowing** in `sentinels.py`: completed (task #23). The
   eight-value `MATERIAL_SENTINEL_ALLOWLIST` was split into two narrower frozensets;
   `cells`, `formazan`, `mtt`, and every `waste_*` stream are now registry-required.
+
+- **L10 compiler and normalized-output validation**: completed in WP-R2. Material
+  semantic normalization, post-sanitizer validation, derived manifest generation, and
+  the publication-planning guard are implemented. Build-loop activation is M3, runtime
+  handle consumption is M4, and the post-cutover anti-return lint is active in M7 via
+  `material_anti_return_lint.py`. Its tests include isolated scratch reintroductions of
+  a material rectangle, direct semantic selector, unclassified material geometry, and
+  an ordinary object-level `fill_height` selection.
 - **L4 walk-time color check** in `state.py`: TODO. After L3 narrowing, a
   registered-but-uncolored material is still not checked at walk time. This remains
   a future task once all authored materials are confirmed to have valid scalar colors.

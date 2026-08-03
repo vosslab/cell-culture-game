@@ -38,10 +38,10 @@ visual_states:
     cases:
       - when: empty
         output:
-          asset_name: bottle_pink
+          asset_name: bottle_medium_pink
       - when: media
         output:
-          asset_name: bottle_pink
+          asset_name: bottle_medium_pink
 capabilities:
   - clickable
   - material_container

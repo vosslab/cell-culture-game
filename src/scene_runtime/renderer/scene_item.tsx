@@ -64,7 +64,7 @@ import {
   type ResolvedVisualState,
 } from "./visual_state_resolver.js";
 import { injectSvgFromManifest } from "./inject_svg.js";
-import { render_anchor_material_effects } from "./anchor_material_renderer.js";
+import { render_liquid_material_effects } from "./liquid_paint.js";
 import { resolveSvgUrl, requiresDomSvg } from "./svg_manifest_loader.js";
 import { SubpartVisualStateOverlay } from "./subpart_visual_state_renderer.js";
 import { SubpartHitSurface, resolve_active_subpart_selection } from "./subpart_hit_surface.js";
@@ -434,10 +434,8 @@ function Overlays(props: { resolved: ResolvedVisualState }): JSXElement {
 }
 
 // Render object-level declarative material effects into the already-injected
-// SVG. This is a Solid effect, not an object-specific renderer: it reacts to
-// the resolved declaration and asks the generic anchor helper to replace only
-// its SVG material group. Anchor failures share SceneItem's established degrade
-// path, making a bad asset observable instead of silently falling back to a box.
+// compiled SVG. Ordinary assets may have no effects, but an authored effect on
+// an ordinary asset is a contract violation and degrades visibly.
 function AnchorMaterialEffects(props: {
   host: HTMLElement | undefined;
   resolved: ResolvedVisualState | null;
@@ -450,10 +448,11 @@ function AnchorMaterialEffects(props: {
       return;
     }
     try {
-      // A resolver failure is not permission for an old fill to remain on the
-      // instrument. An empty effect list hides the static overlay nodes in
-      // place, preserving their structure for a later recovery.
-      render_anchor_material_effects(host, resolved?.anchor_material_effects ?? []);
+      const effects = resolved?.anchor_material_effects ?? [];
+      const handled = render_liquid_material_effects(host, effects);
+      if (effects.length > 0 && !handled) {
+        throw new Error("material fill effect requires a compiled material SVG");
+      }
       props.onDegrade("");
     } catch (err) {
       props.onDegrade(err instanceof Error ? err.message : String(err));

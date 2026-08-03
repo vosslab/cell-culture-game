@@ -20,12 +20,20 @@ Validates all SVGs under assets/**/*.svg, then emits two outputs:
 
 import os
 import re
+import shutil
 import sys
 import subprocess
 from pathlib import Path
 
 import yaml
 import lxml.etree
+from validation.svg.layer_recipe_validator import (
+	MaterialSvgValidationError,
+	validate_material_svg,
+	validate_reserved_attributes,
+)
+from validation.svg.asset_taxonomy_validator import validate_asset_taxonomy
+from validation.svg.asset_registry import build_svg_asset_registry
 
 # Import the shared validator (lives in tools/ as a dev-tool helper).
 # pipeline/ generator scripts add the sibling tools/ dir to sys.path so the
@@ -110,12 +118,23 @@ def main() -> None:
 	repo_root = _get_repo_root()
 	assets_dir = os.path.join(repo_root, "assets")
 	generated_dir = os.path.join(repo_root, "generated")
+	if "--publish-to" in sys.argv:
+		flag_index = sys.argv.index("--publish-to")
+		if flag_index + 1 >= len(sys.argv):
+			raise SystemExit("--publish-to requires a repo-relative output directory")
+		output_dir = Path(sys.argv[flag_index + 1])
+		if output_dir.is_absolute() or ".." in output_dir.parts:
+			raise SystemExit("--publish-to must be a repo-relative output directory")
+		publish_svg_tree(Path(assets_dir), Path(generated_dir), Path(repo_root) / output_dir)
+		return
+	validate_asset_taxonomy(Path(assets_dir), Path(repo_root) / "content" / "objects")
+	asset_registry = build_svg_asset_registry(Path(assets_dir))
 
 	# Ensure generated/ exists
 	os.makedirs(generated_dir, exist_ok=True)
 
 	# Collect all SVG files
-	svg_files = sorted(Path(assets_dir).rglob("*.svg"))
+	svg_files = [entry.source_path for entry in asset_registry.entries]
 
 	print(f"Found {len(svg_files)} SVG files under {assets_dir}")
 
@@ -149,8 +168,23 @@ def main() -> None:
 			failed_files.append((abs_path, f"XML parse error: {e}"))
 			continue
 
+		# Reserved material attributes have a closed placement/value contract. They
+		# are retained for the material compiler rather than silently stripped.
+		try:
+			is_material = validate_reserved_attributes(root)
+			if is_material:
+				validate_material_svg(root)
+		except MaterialSvgValidationError as e:
+			failed_files.append((abs_path, str(e)))
+			continue
 		# Strip unsafe attributes (onclick, onload, etc. are already caught by validator)
-		_strip_unsafe_attrs(root)
+		_strip_unsafe_attrs(root, preserve_material_semantics=is_material)
+		if is_material:
+			try:
+				validate_material_svg(root)
+			except MaterialSvgValidationError as e:
+				failed_files.append((abs_path, f"sanitized material SVG invalid: {e}"))
+				continue
 
 		# Convert back to string. lxml accepts encoding="unicode" for
 		# ElementTree-API compatibility and returns a str (not bytes).
@@ -291,7 +325,7 @@ def _is_placeholder_svg(svg_str: str) -> bool:
 	return has_border and has_text
 
 
-def _strip_unsafe_attrs(elem: lxml.etree._Element) -> None:
+def _strip_unsafe_attrs(elem: lxml.etree._Element, preserve_material_semantics: bool = False) -> None:
 	"""Recursively strip attributes that could be sanitization risks.
 
 	The safe_attrs set uses both bare names (e.g. 'xlink:href') and
@@ -429,6 +463,19 @@ def _strip_unsafe_attrs(elem: lxml.etree._Element) -> None:
 		"data-plate-id",
 		"data-name",
 	}
+	if preserve_material_semantics:
+		safe_attrs.update({
+			"data-vlab-rendering",
+			"data-vlab-max-fill-percent",
+			"data-vlab-min-fill-percent",
+			"data-vlab-body-start-fill-percent",
+			"data-vlab-fill-height-exponent",
+			"data-vlab-layer-name",
+			"data-vlab-layer-kind",
+			"data-vlab-paint-role",
+			"data-vlab-adjustment",
+			"data-vlab-liquid-part",
+		})
 
 	# Remove attributes not in safe list
 	attrs_to_remove = [key for key in elem.attrib.keys() if key not in safe_attrs]
@@ -436,7 +483,40 @@ def _strip_unsafe_attrs(elem: lxml.etree._Element) -> None:
 		del elem.attrib[key]
 
 	for child in elem:
-		_strip_unsafe_attrs(child)
+		_strip_unsafe_attrs(child, preserve_material_semantics=preserve_material_semantics)
+
+
+def plan_svg_publication(source_path: Path, assets_dir: Path, generated_dir: Path) -> Path:
+	"""Return the sole publishable artifact for one source SVG.
+
+	Ordinary art publishes directly from source. A root-declared material form
+	publishes only from its matching compiler artifact.
+	"""
+	parser = lxml.etree.XMLParser(resolve_entities=False, no_network=True)
+	root = lxml.etree.parse(str(source_path), parser).getroot()
+	try:
+		is_material = validate_reserved_attributes(root)
+		if is_material:
+			validate_material_svg(root)
+	except MaterialSvgValidationError as exc:
+		raise ValueError(f"invalid SVG semantic attributes: {exc}") from exc
+	if not is_material:
+		return source_path
+	artifact = generated_dir / "material_svg" / source_path.relative_to(assets_dir)
+	if not artifact.is_file():
+		raise FileNotFoundError(f"material SVG requires compiled artifact: {artifact}")
+	return artifact
+
+
+def publish_svg_tree(assets_dir: Path, generated_dir: Path, output_dir: Path) -> None:
+	"""Publish each SVG at its stable logical URL, independent of source folders."""
+	registry = build_svg_asset_registry(assets_dir)
+	for entry in registry.entries:
+		source_path = entry.source_path
+		publication_path = plan_svg_publication(source_path, assets_dir, generated_dir)
+		output_path = output_dir / entry.public_relative_path
+		output_path.parent.mkdir(parents=True, exist_ok=True)
+		shutil.copyfile(publication_path, output_path)
 
 
 def _build_asset_category_map(assets_dir: str, svg_files: list) -> dict:

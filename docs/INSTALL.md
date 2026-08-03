@@ -42,10 +42,10 @@ The HTML file is a generated artifact and is not committed to git.
 
 The `generated/` tree at the repo root holds SVG asset modules emitted by
 [gen_svg_manifest.py](../pipeline/gen_svg_manifest.py) from
-`assets/equipment/*.svg`. The whole tree is gitignored, so a fresh clone has
-no `generated/` directory. Most workflows regenerate it transparently, but it
-must exist before `tsc`, the bundler, or any test that imports from
-`generated/` will run.
+the behavior-organized `assets/equipment/**/*.svg` source tree. The whole
+generated tree is gitignored, so a fresh clone has no `generated/` directory.
+Most workflows regenerate it transparently, but it must exist before `tsc`, the
+bundler, or any test that imports from `generated/` will run.
 
 Three ways to make `generated/` exist on a fresh clone:
 

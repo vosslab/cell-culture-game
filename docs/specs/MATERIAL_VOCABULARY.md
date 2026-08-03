@@ -93,6 +93,24 @@ material registry, never from protocol YAML, object YAML, scene YAML, or
 TypeScript. Adding a new material color is a `materials.yaml` edit, not a code
 or asset change.
 
+## Material identity versus SVG recipe
+
+The protocol material registry and an SVG's rendering recipe are different
+vocabularies with different owners. `materials.yaml` names a material and gives
+it a `label` and `display_color`. Object `visual_states` bind material identity
+and amount state to an object form. A material-rendered SVG describes only its
+own semantic regions; it contains no material name or color and has no YAML
+sidecar. The exact SVG contract belongs to [SVG_PIPELINE.md](SVG_PIPELINE.md).
+For variable-volume vessels, material regions use the closed optional gravity
+parts `bottom`, `body`, and `surface`. A form may also own a closed maximum fill
+percent as reviewed vessel geometry; this ceiling never comes from material,
+object, or protocol YAML.
+
+The pipeline derives a liquid-region manifest from normalized semantic SVG
+structure. That manifest provides opaque runtime handles and is generated data,
+not authored material content. One SVG recipe can therefore render any material
+identity from any protocol registry without a material-specific variant.
+
 ## Material condition is a separate material
 
 A material's **condition** -- fresh versus old, clean versus dirty, unused
@@ -147,10 +165,13 @@ gets its color through exactly one of two mechanisms:
   protocol (today, only the sentinel `mixed`). A built-in is not registered in
   `materials.yaml`.
 
-The binding invariant (D2): a non-`empty` material name that resolves to no
-color is a resolver error, never a silent invisible "success". The error is
-surfaced by the color resolver (see "Color resolver" below), never papered over
-with a fallback color or an invisible well.
+The binding invariant (D2): with an active, provided material registry, a
+non-`empty`, non-built-in material name that resolves to no color is a resolver
+error, never a silent invisible "success". The error is surfaced by the color
+resolver (see "Color resolver" below), never papered over with a fallback color
+or an invisible well. A null registry is instead the explicitly bounded
+no-protocol-color-context case used for diagnostic or unseeded rendering; it is
+not registry acceptance.
 
 ## Material registry
 
@@ -268,16 +289,20 @@ WP-MAT-LINT and stepper `s-unregistered` work.
 ## Color resolver
 
 The **color resolver** is the single place a material name becomes a color. It
-takes a material name and a material registry and returns a concrete typed
-result: a success carrying a color (or `null` for `empty`), or a failure
-carrying a reason. It reads the scalar `display_color` and selects no theme.
+takes a material name and an optional material registry and returns a concrete
+typed result: a success carrying a color or `null`, or a failure carrying a
+reason. `empty` is the only authored material name that yields `null` before
+lookup; a null material name, or a non-built-in name evaluated without a
+registry in diagnostic/unseeded no-context mode, can also succeed with `null`.
+It reads the scalar `display_color` and selects no theme.
 The resolver is the only component allowed to turn a name into a color;
 components must not invent local color fallbacks and must not reinterpret a
 failure. The resolver's exact typed contract, the failure cases, and the
 degrade path live in [MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md) and
 `MATERIAL_LINT.md`; this doc names the term and fixes the invariant that a
-non-`empty` name with no color is a resolver failure, never a silent invisible
-success.
+non-empty name missing from an authoritative provided registry (including
+`{}`) is a resolver failure, never a silent invisible success. A null registry
+is no color context, not registry acceptance.
 
 ## The material side of the boundary
 
@@ -314,7 +339,14 @@ The four-way authoring boundary names what each vocabulary owns:
 | sentinel | A material name carrying no registered identity, exempt from registration; the closed allowlist is `empty` and `mixed`. |
 | visible material | Any material name that resolves to a color (every name except `empty`); registry-backed by default, built-in only for `mixed`. |
 | material registry | The set of visible materials authored in one protocol's `materials.yaml`; per-protocol, not global. |
+| SVG layer recipe | The self-describing semantic rendering description inside one material-rendered SVG form; it describes regions, never a material or color. |
+| object material binding | The object YAML `visual_states` declaration that connects object material/amount state to rendering; it does not describe SVG geometry. |
+| material-rendered layer | One semantic SVG region identified for recoloring and one closed gravity-part behavior. |
+| liquid bottom | Optional material part anchored to the vessel bottom; it never translates or stretches. |
+| liquid body | Optional middle material part scaled only in Y about its fixed lower anchor. |
+| liquid surface | Optional fixed-shape meniscus or surface detail translated only in Y. |
+| derived liquid-region manifest | Generated runtime data derived from normalized material SVG semantics; it supplies opaque handles and is never authored. |
 | mixture | A visible material produced by combining inputs; tracked (registered) or untracked (the `mixed` sentinel); no component-list vocabulary. |
 | waste | A visible material naming a disposal stream; registered per stream; not a sentinel. |
 | transfer | Moving material between objects via protocol `ObjectStateChange` ops on source, tool, and destination state fields; not a material-side primitive. |
-| color resolver | The single component that turns a material name plus a registry into a typed color result; returns a color, `null` for `empty`, or a failure reason. |
+| color resolver | The single component that turns `string \| null` material name plus `MaterialRegistry \| null` into a typed color result. `empty` is the only authored name returning null before lookup; null name means no material field, and null registry means no active protocol color context. |

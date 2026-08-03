@@ -21,14 +21,112 @@ own docs and must not be restated here:
   `MATERIAL_LINT.md`.
 - The `visual_states` authoring keys on an object (`kind`, `cases`, `formula`,
   `applies_to`) are defined in [OBJECT_YAML_FORMAT.md](OBJECT_YAML_FORMAT.md).
-  This doc names the render-effect and target *semantics* the runtime applies;
+  This doc names the render-effect and target _semantics_ the runtime applies;
   the object-side declaration keys that select them are owned by that doc.
 
 Protocol terminology is defined in [PROTOCOL_VOCABULARY.md](PROTOCOL_VOCABULARY.md).
 
+## Material-rendered SVG ownership
+
+The material-SVG compiler implements the asset syntax, normalization policy,
+validation, and derived manifest canonical in
+[SVG_PIPELINE.md](SVG_PIPELINE.md). This document owns the cross-layer material
+semantics.
+
+Materials remain independent from SVG art:
+
+| Concern                                                                         | Owner                                            |
+| ------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Material identity and scalar `display_color`                                    | Protocol `materials.yaml` and the color resolver |
+| Selection of a complete SVG form; material identity and amount binding          | Object YAML `visual_states`                      |
+| Material geometry, document order, clip, source paint fallback, semantic layers | One self-describing material-rendered SVG        |
+| Opaque per-layer runtime handles                                                | Generated liquid-region manifest                 |
+
+There is no material-specific SVG sidecar and no material/volume SVG fan-out
+for one runtime material binding. Legitimate complete discrete forms remain
+independent of this rule.
+Object `visual_states` selects complete forms and binds material state; it does
+not describe SVG geometry or semantic layers. A root
+`data-vlab-rendering="material"` makes a form subject to material normalization
+and validation even when unreferenced. A binding controls whether runtime
+mutation is applied, not whether the form is processed.
+
+The renderer derives paint from this document's color resolver and amount from
+the existing capacity rule. It applies both through generated manifest handles
+and the SVG injection seam. Runtime code never queries authored `data-vlab-*`,
+uses authored layer names as DOM IDs, or concatenates DOM IDs. Source SVGs keep
+literal fallback paint; generated artifacts alone may carry opaque paint handles.
+
+`anchor_liquid_clip` and `anchor_liquid_bounds` remain unique structural SVG
+anchors. They support the compiler's derived gravity-part region but are not the
+semantic material-layer recipe. Numeric instrument displays remain object-level
+text overlays. Static and discrete-state forms remain complete SVG files; a
+discrete collection may contain either static or material-rendered forms without
+becoming a general animated-SVG system.
+
+An authored semantic material-layer `<g>` must not carry `clip-path`.
+`anchor_liquid_clip` remains in `defs`; the compiler applies it only to the
+derived liquid region. Ordinary child artwork follows the ordinary SVG
+pipeline's supported clip rules.
+
+### Selected-form dispatch
+
+After `visual_states` selects a complete SVG form, an exact root declaration
+`data-vlab-rendering="material"` identifies the compiled material path. Invalid
+or misplaced reserved attributes fail validation.
+
+An optional root `data-vlab-max-fill-percent` is a closed integer ceiling from
+1 through 100. It limits the compiled form's rendered fill height after an
+object binding resolves its ordinary percentage; requests above the ceiling
+render exactly at the ceiling. It is form geometry, not an object-YAML override.
+
+An optional root `data-vlab-min-fill-percent` is a closed integer floor from 1
+through 99. A zero request remains empty; every nonzero resolved percentage
+below the floor renders at it. When both floor and ceiling are present, the
+floor must not exceed the ceiling. It is form geometry, not an object-YAML
+override.
+
+An optional root `data-vlab-body-start-fill-percent` is a closed finite decimal
+strictly between 0 and 100 for a conical form. It maps that volume percentage to
+the compiled body's measured lower anchor; the runtime linearly interpolates
+below it through the cone and above it through the cylindrical body. It is form
+geometry, not an object-YAML calibration or asset-name rule.
+
+Alternatively, a non-conical form may declare
+`data-vlab-fill-height-exponent`, a finite decimal in `(0, 10]`. The runtime
+normalizes its effective percentage by the form ceiling or 100, then maps height
+as `q^exponent`; this is form geometry, not an object-YAML calibration or
+asset-name rule. It is mutually exclusive with the conical body-start calibration.
+
+An object-level `fill_height` binding selects generated liquid-region manifest
+handles through the SVG injection seam: identity recolors semantic material
+groups by role and volume/capacity applies the generic liquid-part operations:
+fixed `bottom`, Y-scaled `body`, and translated `surface`. Below a conical
+form's `body-start` percentage, the surface uniformly scales by
+`effective_fill / body_start_fill` about the liquid-bounds horizontal center
+and surface datum, then translates to the calibrated level; at or above that
+percentage it remains full width. The
+material runtime neither creates a rect nor queries/mutates structural anchors
+or authored `data-vlab-*`.
+
+The compiler derives the base surface's depth below the body datum and carries
+that private manifest value to the runtime. The body begins below the *scaled
+visible lower edge* of that base meniscus, rather than at its top. This prevents
+a stretchable rectangle from showing above the curved sides of an oval surface
+without an asset-name rule or an authored offset attribute.
+
+For the material path, the existing YAML binding and capacity fields remain
+valid compiler inputs. The compiler validates the required structural-anchor
+contract and emits the manifest handles and derived gravity-part region; it does not
+expose structural anchor elements to the compiled runtime. Anchors are not
+semantic paint layers and are not ignored. This introduces no new object YAML
+field, target, or binding token. A root-declared form without a
+runtime material binding remains compiled and validated and displays authored
+fallback paint without state mutation.
+
 ## The general render model
 
-A material becomes visible through one declarative contract that is identical for
+A material becomes visible through one declarative binding contract that is identical for
 every object kind that holds, contains, or carries a material: a well subpart, a
 pipette, a reagent bottle, a flask, a conical tube, a microtube, a waste
 container, and an electrophoresis chamber all render through the same model. The
@@ -41,8 +139,8 @@ model has four declarative parts and one resolver:
   on the whole object or independently per structured subpart;
 - a **`render_effect`** (the closed set below): what visible change the field
   drives;
-- a **`target`** (the closed vocabulary below): which region of the rendered
-  art the effect updates;
+- a **`target`** (the closed vocabulary below): which authored/generated binding
+  region the effect addresses;
 - the **color resolver** (defined in [MATERIAL_VOCABULARY.md](MATERIAL_VOCABULARY.md)),
   the single component that turns a material name into a color.
 
@@ -62,10 +160,10 @@ closed and extensible only by a vocabulary edit (see
 [SPEC_DESIGN_CHECKLIST.md](SPEC_DESIGN_CHECKLIST.md)); an author selects an
 effect, never invents one. There are exactly two effects, one per render layer:
 
-| `render_effect` | Layer    | Driving field type        | Updates                                                    |
-| --------------- | -------- | ------------------------- | --------------------------------------------------------- |
-| `material_tint` | identity | a material-name field     | `fill` of the target region                               |
-| `fill_height`   | amount   | a material-volume field   | `fill`, `y`, `height` (and `clip-path`) of the target region |
+| `render_effect` | Layer    | Driving field type      | Updates                                                              |
+| --------------- | -------- | ----------------------- | -------------------------------------------------------------------- |
+| `material_tint` | identity | a material-name field   | generated subpart fill, or compiled material semantic groups by role |
+| `fill_height`   | amount   | a material-volume field | generated subpart geometry, or compiled gravity-part operations      |
 
 The two layers are independent (see [MATERIAL_DESIGN.md](MATERIAL_DESIGN.md)):
 color encodes identity and only identity; height encodes amount and only amount.
@@ -82,11 +180,11 @@ glassware outline, the cap, or a label.
 
 Typed params:
 
-| Param          | Required | Type   | Allowed values                                      | Meaning                                                       |
-| -------------- | -------- | ------ | --------------------------------------------------- | ------------------------------------------------------------ |
-| `render_effect`| yes      | enum   | `material_tint`                                     | selects the identity effect                                  |
-| `applies_to`   | yes      | enum   | `object`, `subpart`                                 | render once for the object, or independently per subpart    |
-| `target`       | yes      | enum   | a member of the target vocabulary (below)           | which region's `fill` is recolored                          |
+| Param           | Required | Type | Allowed values                            | Meaning                                                  |
+| --------------- | -------- | ---- | ----------------------------------------- | -------------------------------------------------------- |
+| `render_effect` | yes      | enum | `material_tint`                           | selects the identity effect                              |
+| `applies_to`    | yes      | enum | `object`, `subpart`                       | render once for the object, or independently per subpart |
+| `target`        | yes      | enum | a member of the target vocabulary (below) | which region's `fill` is recolored                       |
 
 The driving field is the `visual_states` key the effect is declared under (a
 material-name field); the effect names no field of its own. Color comes only from
@@ -111,23 +209,39 @@ empty/zero semantics below).
 
 ### `fill_height` (amount layer)
 
-`fill_height` raises and lowers the liquid surface of the target region with the
-material amount, computed from the driving volume field against a declared
-capacity. Height encodes amount and never identity; the fill color still comes
-from `material_tint` when both effects are declared on the same region. The
-runtime computes the fill as `height * (volume / capacity)`, anchors the fill to
-the bottom of the target bounds, and clips it to the declared clip region.
+`fill_height` raises and lowers the liquid surface with the material amount,
+computed from the driving volume field against a declared capacity. Height
+encodes amount and never identity. For an object-level material binding,
+compilation supplies opaque manifest handles for optional `bottom`, `body`, and
+`surface` parts. Runtime leaves bottom geometry stationary, scales the middle
+body only in Y about its lower anchor, uniformly narrows a conical surface in
+both axes below its body-start percentage before translating it in Y, and
+updates a reveal boundary in stationary vessel coordinates. The
+complete material region is hidden at zero.
+The fixed layers alone must render a continuous empty vessel: a recolored donor
+liquid path must not remain fixed merely because it resembles glass, and no
+fixed path may expose an artificial endpoint at the donor meniscus. Every
+liquid-dependent base, tint, side shade, highlight, shadow, bubble, and
+reflection belongs to `bottom`, `body`, or `surface` according to how it behaves
+as the level changes. At every rendered amount, no material-dependent feature
+may remain above the current surface; a surface feature moves with that surface.
+The authored target bounds are the supported operating range: their top may
+preserve headspace or stop below a cross-section change. Therefore 100% is the
+declared capacity at that reviewed maximum, not necessarily the vessel's
+geometric brim. A tapered shoulder that changes liquid width is outside the
+constant-middle proof and must be separately decomposed before the supported
+range enters it.
 
 Typed params:
 
-| Param          | Required | Type    | Allowed values                                       | Meaning                                                                 |
-| -------------- | -------- | ------- | ---------------------------------------------------- | --------------------------------------------------------------------- |
-| `render_effect`| yes      | enum    | `fill_height`                                        | selects the amount effect                                              |
-| `applies_to`   | yes      | enum    | `object`, `subpart`                                  | render once for the object, or independently per subpart              |
-| `target`       | yes      | enum    | `anchor_liquid_bounds` (or a `subpart_geometry` region) | which region's bounds the fill rises within                           |
-| `clip`         | no       | enum    | `anchor_liquid_clip`                                 | the clip region the fill is masked to (for anchor targets)            |
-| `capacity_ul`  | one of   | float   | positive number                                      | the vessel capacity in microliters; the volume/capacity denominator   |
-| `capacity_ml`  | one of   | float   | positive number                                      | the vessel capacity in milliliters; the volume/capacity denominator   |
+| Param           | Required | Type  | Allowed values                               | Meaning                                                                                                 |
+| --------------- | -------- | ----- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `render_effect` | yes      | enum  | `fill_height`                                | selects the amount effect                                                                               |
+| `applies_to`    | yes      | enum  | `object`, `subpart`                          | render once for the object, or independently per subpart                                                |
+| `target`        | yes      | enum  | `anchor_liquid_bounds` or `subpart_geometry` | compiler source bounds for an object-level material SVG, or generated geometry for a structured subpart |
+| `clip`          | no       | enum  | `anchor_liquid_clip`                         | compiler source clip for an object-level material SVG                                                   |
+| `capacity_ul`   | one of   | float | positive number                              | the vessel capacity in microliters; the volume/capacity denominator                                     |
+| `capacity_ml`   | one of   | float | positive number                              | the vessel capacity in milliliters; the volume/capacity denominator                                     |
 
 Exactly one of `capacity_ul` / `capacity_ml` is declared, matching the driving
 volume field's unit. The driving field is the `visual_states` key the effect is
@@ -146,22 +260,23 @@ visual_states:
     capacity_ml: 25.0
 ```
 
-`fill_height` and anchor-target rendering are specified here as part of the
-general model.
+`fill_height` has two intentional mechanisms: object-level material SVGs use
+compiled gravity parts; structured subparts use generated subpart geometry.
 
 ## Target vocabulary (closed)
 
-A `target` names the region of the rendered art an effect updates. The
-vocabulary is closed and covers both generated geometry (structured subparts the
-generator emits) and SVG anchor regions (vessel and instrument liquid regions
-authored into the base SVG). The interpreter is agnostic to object kind because
-both target kinds are explicitly typed.
+A `target` names the authored/generated binding region an effect uses. The
+vocabulary is closed and covers generated geometry (structured subparts) and
+compiler-only SVG structural anchors. An object-level anchor binding selects
+generated manifest handles and a derived gravity-part region; it never resolves
+a structural anchor at runtime. The YAML target never becomes a runtime material
+DOM selector.
 
-| `target`               | Kind               | Region it names                                                           |
-| ---------------------- | ------------------ | ------------------------------------------------------------------------ |
-| `subpart_geometry`     | generated geometry | the generated shape for the current structured subpart (well, lane, rack position) |
-| `anchor_liquid_bounds` | SVG anchor         | the authored fill region a vessel's or instrument's liquid rises within  |
-| `anchor_liquid_clip`   | SVG anchor         | the authored clip region that masks a vessel's liquid fill               |
+| `target`               | Kind                     | Region it names                                                                      |
+| ---------------------- | ------------------------ | ------------------------------------------------------------------------------------ |
+| `subpart_geometry`     | generated geometry       | the generated shape for the current structured subpart (well, lane, rack position)   |
+| `anchor_liquid_bounds` | compiler-only SVG anchor | the authored operating range from which the compiler derives the gravity-part region |
+| `anchor_liquid_clip`   | compiler-only SVG anchor | the authored clip used to constrain the derived gravity-part region                  |
 
 ### Generated geometry targets
 
@@ -187,19 +302,18 @@ to `A1` colors the top-left well and a write to `H12` colors the bottom-right.
 
 ### SVG anchor targets
 
-`anchor_liquid_bounds` and `anchor_liquid_clip` name the two invisible anchor
-regions authored into a vessel or instrument base SVG. They are the vessel/
-instrument counterpart of generated geometry: a pipette, bottle, flask, conical
-tube, microtube, waste container, and electrophoresis chamber all carry these two
-anchors and render their liquid through the same effects.
+`anchor_liquid_bounds` and `anchor_liquid_clip` name the two invisible structural
+anchors authored into an object-level material SVG. They are compiler inputs,
+not runtime targets: the material pipeline validates them and derives generated
+handles plus the gravity-part region. Structured subparts instead use
+`subpart_geometry` and do not use these anchors.
 
 ```
 type AnchorTarget = "anchor_liquid_bounds" | "anchor_liquid_clip";
 ```
 
-A visual-state target is therefore one of: a `subpart_geometry` region (resolved
-through the `SubpartGeometryMap`), or an `AnchorTarget`. The interpreter handles
-both through one code path.
+A visual-state target is therefore either a `subpart_geometry` region (resolved
+through the `SubpartGeometryMap`) or an `AnchorTarget` consumed by the compiler.
 
 #### Authored anchor SVG structure
 
@@ -221,48 +335,16 @@ excluding cotton plug, tip, cap, or label), and an invisible
 The clip geometry must cover the interior space where liquid appears without
 spilling onto non-liquid parts of the art.
 
-#### Anchor id boundary: bare authored targets, resolved per SVG instance
+#### Anchor id boundary
 
 The authored SVG carries bare `id="anchor_liquid_clip"` and
 `id="anchor_liquid_bounds"`, and the object declaration names those bare targets
 (`anchor_liquid_bounds`, `anchor_liquid_clip`). These names are declarative
-targets, not DOM ids. Authors type the bare name, and material code reads the
-bare name; neither side ever constructs a longer DOM id from it.
+compiler inputs, not live DOM ids. The compiler consumes them before publishing
+the material artifact, and runtime never reads or resolves them.
 
-The bare authored id is not the live DOM id. SVG markup is injected into a shared
-DOM, where many assets reuse the same internal ids (`id="a"`, and the two anchor
-ids), so a bare `url(#anchor_liquid_clip)` reference would resolve against
-whichever instance defined that id first. To keep references local to one
-rendered instance, the SVG-injection path namespaces every internal id **per
-render instance** as it injects. That namespacing is owned by the SVG pipeline
-(see [SVG_PIPELINE.md](SVG_PIPELINE.md)), not by the material layer.
-
-Earlier wording said the generator namespaces these ids to a fixed
-`<asset_name>__anchor_liquid_*` form at composition time. That was a
-composition-time, per-asset assumption that does not survive per-instance
-namespacing: two placements of the same asset share an asset name but are
-separate render instances with separate DOM ids, so a per-asset prefix cannot
-address one instance. The fixed-prefix form is removed; the bare target is
-resolved to a concrete instance through the lookup contract below.
-
-The asset-readiness check in the object validator opens each collapsed base SVG
-and confirms both bare ids are present; a missing bare id is reported against the
-SVG path, not the YAML. The same two bare ids appear in every vessel/instrument
-kind.
-
-##### Lookup contract for an SVG-anchor target
-
-Runtime material code never constructs a DOM id. For an `anchor_liquid_bounds`
-or `anchor_liquid_clip` target, the runtime resolves the bare authored target to
-the rendered DOM element for **that SVG instance** through a lookup seam owned by
-the SVG-injection path. The seam is the SVG plan's deliverable (exposed by its
-M5 static-SVG-plus-manifest stage); the material layer is its caller, not its
-implementer, and this doc does not define the seam's function signature.
-
-After M5 there is a single SVG DOM path: a static SVG file's text is fetched,
-per-instance namespaced on injection, and then used by material and anchor
-rendering. There is no second, old-registry compatibility path; the lookup seam
-is the only way the material layer reaches an injected anchor element.
+The asset-readiness check opens each selected material SVG and confirms both bare
+ids are present; a missing id is reported against the SVG path, not the YAML.
 
 SVG DOM is the legitimate rendering substrate here, not application state. For an
 object whose internal SVG structure is part of its declared contract (anchors,
@@ -272,30 +354,23 @@ is never used as application state or control flow: render state, reactivity, an
 attribute updates stay in the Solid layer, and the runtime never reads a value
 back out of the DOM to decide what to do next.
 
-DOM access is isolated in the SVG injection/lookup layer. Material code asks that
-layer for a declared target and receives the resolved element; it does not build
-ids and does not query arbitrary DOM itself. The material layer issues no
-`document.querySelector`, no `getElementById`, and no string-built `url(#...)`
-reference; every reach into the injected SVG goes through the lookup seam. Solid
-owns state, reactivity, and attribute updates: the material renderer updates the
-declared attributes (`fill`, `x`, `y`, `width`, `height`, `clip-path`, `opacity`)
-on the element returned by the lookup seam through Solid reactivity, rather than
-reading or writing the DOM as a state store.
+DOM access is isolated in the SVG injection layer. A compiled material runtime
+issues no `document.querySelector`, no `getElementById`, no string-built
+`url(#...)` reference, and no structural-anchor lookup or mutation. It updates
+only role paint through opaque manifest handles and gravity-part operations; it
+does not use the DOM as a state store.
 
 ##### No id construction by name concatenation (invariant)
 
 Runtime material code must not construct a DOM id by concatenating asset, scene,
 placement, target, or anchor names (no `<asset_name>__anchor_liquid_clip`, no
 `<placement>_<target>`, no string-built `url(#...)` reference). The material
-layer owns declarative target names only; turning a bare target into a concrete
-DOM element is the SVG-injection path's job, reached through the lookup seam
-above. Constructing an id by name is a layer-boundary violation: it reintroduces
-the per-asset assumption that per-instance namespacing exists to remove.
+layer owns declarative target names only. Constructing an id by name is a
+layer-boundary violation.
 
 Well subparts (`target: subpart_geometry`) are namespace-safe by construction:
 they render into a separate overlay SVG built from generated geometry that
-references no base-SVG ids, so they carry no shared-id collision and need no
-lookup seam.
+references no base-SVG ids.
 
 ## Generic evaluation rule
 
@@ -309,19 +384,17 @@ branch:
    structured subpart's field value independently (a per-subpart material name is
    resolved per subpart, not once for the whole object).
 3. For a `material_tint` effect, resolve the material name through the color
-   resolver to a color; for a `fill_height` effect, compute the fill geometry
+   resolver to a color; for a `fill_height` effect, compute the level fraction
    from the volume and capacity.
-4. Apply the declared effect to the declared target by updating only SVG
-   attributes (`fill`, `y`, `height`, `clip-path`, and the like). The runtime
-   never adds, removes, or reorders DOM nodes per state change.
+4. Dispatch by target scope: generated subparts update their generated geometry;
+   object-level material SVGs use generated manifest handles to write role paint
+   and apply the generic gravity-part operations. The runtime never adds,
+   removes, or reorders DOM nodes per state change.
 
-This is the static-overlay model: the renderer builds a stable overlay structure
-once from the declarations plus the geometry, and runtime state updates only the
-declared attributes of existing nodes. The same interpreter serves a well
-(`subpart_geometry`, `material_tint`), a pipette (`anchor_liquid_bounds` /
-`anchor_liquid_clip`, `fill_height` from `held_material_volume`), and a bottle
-(anchor target, `fill_height` from `material_volume`). The runtime dispatches on
-the declared contract, not on which object it is rendering.
+Generated subparts and compiled material SVGs are separate intentional
+mechanisms. The former updates generated subpart geometry; the latter changes
+existing gravity-part state through the generated manifest. Neither path adds,
+removes, or reorders nodes on state change.
 
 ## Color resolver behavior
 
@@ -332,8 +405,15 @@ behavior: its typed result, what each input maps to, and how rendering consumes
 the result. No other component turns a name into a color, and no component
 invents a local fallback color or reinterprets a failure.
 
-The resolver takes a material name and the active material registry and returns a
-concrete typed result, a discriminated union of a success or a failure:
+`resolve_color_result(material_name, material_registry)` takes a
+`string | null` material name and a `MaterialRegistry | null`. A `null` name
+means the object declares no material field; it is not an authored material
+name (`empty` remains the authored named-absence value). A `null` registry
+means there is no active protocol color context, as in diagnostic scene-viewer
+or unseeded rendering. It is not an empty authoritative registry.
+
+The resolver returns a concrete typed result, a discriminated union of a
+success or a failure:
 
 ```
 type ColorResult =
@@ -342,41 +422,65 @@ type ColorResult =
 ```
 
 The `color` of a success is either a `#rrggbb` hex string or `null`. `null` is
-not a failure: it is the one success that renders no fill (the `empty` case). A
-failure carries a human-readable `reason` and renders no color through the
+not a failure. It can mean the authored `empty` sentinel, that the object has
+no material field, or that a diagnostic render has no protocol color context.
+A failure carries a human-readable `reason` and renders no color through the
 degrade path, never a painted region.
 
 The resolver maps each input to exactly one result:
 
-| Input material name                                       | Result                                  | Rendered as                                  |
-| -------------------------------------------------------- | --------------------------------------- | -------------------------------------------- |
-| `empty`                                                  | `{ ok: true, color: null }`             | no fill (`fill="transparent"`); art shows through |
-| `mixed`                                                  | `{ ok: true, color: "#686868" }`        | the spec-fixed built-in gray                 |
-| a registry-backed name with a valid scalar `display_color` | `{ ok: true, color: "#rrggbb" }`        | that scalar color                            |
-| a non-`empty` name absent from the registry and not a built-in | `{ ok: false, reason }`           | the per-item degrade path (never a color)    |
-| a registry-backed name whose `display_color` is missing or not a valid `#rrggbb` | `{ ok: false, reason }` | the per-item degrade path (never a color)    |
+| Input condition                                                                     | Result                           | Rendered as                                         |
+| ----------------------------------------------------------------------------------- | -------------------------------- | --------------------------------------------------- |
+| `material_name` is `null`                                                           | `{ ok: true, color: null }`      | no material field; no material paint                |
+| material name is `empty`                                                            | `{ ok: true, color: null }`      | no fill (`fill="transparent"`); art shows through   |
+| material name is `mixed` (with either registry value)                               | `{ ok: true, color: "#686868" }` | the spec-fixed built-in gray                        |
+| non-built-in name with `material_registry: null`                                    | `{ ok: true, color: null }`      | diagnostic/unseeded render: no active color context |
+| non-sentinel name in a provided registry with valid scalar `display_color`          | `{ ok: true, color: "#rrggbb" }` | that scalar color                                   |
+| non-sentinel name absent from any provided registry, including `{}`                 | `{ ok: false, reason }`          | the per-item degrade path (never a color)           |
+| name in a provided registry whose `display_color` is missing or not valid `#rrggbb` | `{ ok: false, reason }`          | the per-item degrade path (never a color)           |
 
-`empty` is the only `ok: true` with `color: null`; it is the single no-fill
-success. The built-in `mixed` is resolved by the resolver itself to the concrete
-spec-fixed gray `#686868` (see "Built-in material colors" below); it is never a
-registry lookup and never resolves to `null`. The resolver reads only the scalar
+`empty` is the only authored material name that returns `ok: true` with
+`color: null` before registry lookup. It is not the only runtime input that can
+produce null color. The built-in `mixed` is resolved by the resolver itself to
+the concrete spec-fixed gray `#686868` (see "Built-in material colors" below);
+it is never a registry lookup and never resolves to `null`. The resolver reads only the scalar
 `display_color` (see [MATERIAL_YAML_FORMAT.md](MATERIAL_YAML_FORMAT.md) for the
 `^#[0-9a-f]{6}$` format); it selects no theme and reads no `.light` / `.dark`
 branch, because no such branch exists.
 
 The success/failure split is the rendering boundary: an `ok: true` result paints
-the resolved `color` (or paints nothing for `null`), and an `ok: false` result is
-routed, unmodified, to the observable per-item degrade path defined in
-`MATERIAL_LINT.md`. A consumer must not catch an `ok: false` and substitute a
+the resolved `color` (or has no material paint for `null`), and an `ok: false`
+result is routed, unmodified, to the observable per-item degrade path defined
+in `MATERIAL_LINT.md`. A consumer must not catch an `ok: false` and substitute a
 color, and must not treat `color: null` as a failure. The binding invariant from
-[MATERIAL_VOCABULARY.md](MATERIAL_VOCABULARY.md) holds here: a non-`empty` name
-that resolves to no color is a fault to be seen, never a silent invisible
-"success".
+[MATERIAL_VOCABULARY.md](MATERIAL_VOCABULARY.md) applies when a registry is
+provided: a non-`empty`, non-built-in name must resolve from that authoritative
+registry or fail visibly. The null-registry diagnostic exception is not registry
+acceptance and must never apply when a registry is provided.
+
+### Material-SVG shade derivation
+
+For a material-rendered SVG, every material semantic group derives paint only
+from the resolved base `display_color`; there is no per-asset color source.
+`base` uses that lowercase `#rrggbb` color unchanged. `highlight` and `shadow`
+require an authored `data-vlab-adjustment` whose syntax and allowed range are
+defined in [SVG_PIPELINE.md](SVG_PIPELINE.md): highlight is strictly positive
+and at most `0.5`; shadow is at least `-0.5` and strictly negative.
+
+The compiler converts the resolved base color to OKLCH, computes
+`L' = clamp(L + adjustment, 0, 1)`, preserves hue, and reduces chroma only as
+needed to reach the sRGB gamut. It serializes the result as lowercase
+`#rrggbb`. This is an additive delta to normalized OKLCH lightness, not a new
+color source and not a material-specific or asset-specific override.
+
+Property-style tests may assert role ordering, accepted adjustment range, and
+sRGB-gamut serialization; they must not freeze a particular color-library's
+rounding into exact shade constants.
 
 ## Empty, null, and zero-volume semantics
 
-The sentinel material `empty` is the only material name that renders no fill. The
-runtime skips the fill entirely when either:
+The sentinel material `empty` is the only authored material name that renders
+no fill. The runtime skips visible material fill entirely when either:
 
 - the driving identity field is `empty` (`material_name == empty` or
   `held_material_name == empty`), or
@@ -389,58 +493,65 @@ absence of material (see [MATERIAL_DESIGN.md](MATERIAL_DESIGN.md)). The color
 resolver returns `null` for `empty`, and the runtime renders `fill="transparent"`
 (or omits the fill node's color) for that region.
 
-Every other outcome is a result, not a skip:
+Resolver outcome and amount-state validation are separate:
 
-- A non-`empty` material name that resolves to a color renders that color.
-- A non-`empty` material name that resolves to *no* color is a resolver failure,
-  never a silent invisible "success" (the binding invariant from
-  [MATERIAL_VOCABULARY.md](MATERIAL_VOCABULARY.md)). The runtime routes the
-  failure to the observable per-item degrade path defined in
-  `MATERIAL_LINT.md`;
-  it never paints nothing and treats the region as if it succeeded.
+- With an authoritative registry, a non-`empty` material name that resolves to
+  no color is a resolver failure, never a silent invisible "success". The
+  runtime routes it to the observable per-item degrade path defined in
+  `MATERIAL_LINT.md`.
+- A non-empty material with volume `0` is a valid no-visible-amount state under
+  this skip rule; it is not a `ColorResult` failure. A missing required volume
+  for a `fill_height` binding is likewise a separate object binding/state
+  validation failure, not resolver output.
+- In a diagnostic render with a null registry, a non-built-in material name can
+  resolve to null because no protocol color context exists. That exception does
+  not relax the authoritative-registry binding invariant.
 
-`empty` is the single no-fill success; every other no-fill outcome is a fault to
-be seen, not hidden.
+`empty` is the single authored named-absence value; runtime null color also has
+the explicitly bounded no-field and no-color-context meanings above.
 
-## Single base SVG, no per-material variant
+## Shared material-bound form, no material or volume fan-out
 
-Each container or pipette is rendered from a single base SVG. The runtime
-overlays material fill from the resolved state through the render effects above.
-There is no per-material variant SVG: no `<object>_empty.svg`,
-`<object>_filled.svg`, or `<object>_with_<material>.svg`. Every material-name
-case in an object's `visual_states` resolves to the same `asset_name`; the
-visible difference between an empty PBS bottle and a full PBS bottle is the
-runtime overlay's height and color, not a second base SVG. Declaring a per-
-material variant SVG is the fan-out smell the convention forbids and is rejected
-by `validation/yaml/object_validator.py` (and the rules in
-`MATERIAL_LINT.md`).
+When a paired material identity and amount binding uses runtime material
+rendering (`material_tint` and/or `fill_height`), every case in that pair selects
+the same complete SVG form. The compiled material path changes semantic groups
+and its derived gravity-part region from that state. Material identity and amount
+therefore change runtime paint and level, not the selected SVG filename.
+
+This rule is deliberately narrower than a filename rule. Complete discrete forms
+remain valid when they represent genuine form, geometry, or content states, even
+when their names include words such as `empty` or `full`, or when the selecting
+field is material-like but has no paired runtime material binding. For example,
+`mtt_powder_vial.svg` / `mtt_powder_vial_empty.svg` and
+`sharps_container.svg` / `sharps_container_full.svg` are legitimate ordinary
+discrete forms. Names alone never classify an asset's intent.
+
+The prohibited fan-out is selecting different forms solely to encode the color
+or liquid level of a paired runtime material binding, such as making the same
+vessel choose `<object>_with_<material>.svg` or separate empty/filled art for
+its `fill_height` state. That fan-out is rejected by
+`validation/yaml/object_validator.py` (and the rules in `MATERIAL_LINT.md`).
 
 ## Declaration-based render mode
 
-Render mode is decided by what an object **declares**, not by its current runtime
-state. Any object that declares material rendering or anchor targeting requires
-injected, per-instance-namespaced SVG DOM; it is never rendered through an
-`<img>` element, even when its material state is currently empty.
+Render mode is decided by the selected form's declared SVG requirements, not by
+its current runtime state. A material-declared selected form requires injected,
+per-instance-namespaced SVG DOM and does not flip to an `<img>` when empty.
 
-An object declares material rendering or anchor targeting when it carries a
-`visual_states` entry with a `render_effect` (`material_tint` or `fill_height`)
-on a material-name, material-volume, or anchor target. Such a declaration is the
-trigger: the runtime must inject the SVG markup so the named ids exist in the DOM
-and the lookup seam can resolve them. An `<img>` element exposes no internal DOM
-and cannot be per-instance namespaced, so it cannot host an anchor target or a
-material overlay.
+An object binding supplies the state and target. Its material-declared form uses
+the compiled material manifest. An `<img>` exposes no internal DOM and cannot
+host a compiled material instance.
 
 The trigger is the declaration, not the value. A bottle that declares
-`fill_height` but currently holds `empty` still renders as injected SVG, because
-the moment its material becomes non-empty the overlay must already have a DOM
-home. Deciding render mode from the current value would flip an object between
-`<img>` and injected SVG as its state changes, which the static-overlay model
-(see "Generic evaluation rule") forbids.
+`fill_height` but currently holds `empty` still renders as injected SVG because
+compiled material handles must already have a DOM home. Deciding render mode
+from the current value would incorrectly flip an object between `<img>` and
+injected SVG as its state changes.
 
 ## Single scalar display_color rendering
 
-`display_color` is the sole source of material color for both the body tint
-(`material_tint`) and the liquid-fill overlay (`fill_height`). It is a **single
+`display_color` is the sole source of material color for both identity paint
+(`material_tint`) and liquid appearance controlled with `fill_height`. It is a **single
 scalar hex string**, read as-is by the color resolver. This project targets light
 scientific workspaces only: there is no light/dark theme, no `.light` / `.dark`
 branch, and no theme-aware color selection. One color renders a material in every
@@ -460,8 +571,8 @@ authored per protocol. The built-in set is closed and is the only place a color
 appears outside `materials.yaml`. Today the set has exactly one member, the
 sentinel `mixed`:
 
-| Material name | Built-in `display_color` | Renders | Why built-in                                                                   |
-| ------------- | ------------------------ | ------- | ------------------------------------------------------------------------------ |
+| Material name | Built-in `display_color` | Renders | Why built-in                                                                                                                            |
+| ------------- | ------------------------ | ------- | --------------------------------------------------------------------------------------------------------------------------------------- |
 | `mixed`       | `#686868`                | yes     | A sentinel carrying no tracked identity, so it is not a registry entry; a non-`empty` material must render, so its color is spec-fixed. |
 
 `#686868` is a neutral gray with a 5.57:1 contrast ratio against the white
@@ -494,15 +605,16 @@ The render model binds every kind that holds, contains, or carries a material:
 
 For every kind above, fill color is material identity (driven by `material_tint`
 from the resolved `display_color`), and fill height is material amount (driven by
-`fill_height` from the volume). The fill never encodes progress state. Progress
+`fill_height` from the volume); the selected form root dispatches the rendering
+mechanism. The fill never encodes progress state. Progress
 state (active, completed, future) is carried by an outline CSS class on the host
 element, which never touches the fill color, so material identity stays readable
 at every progress stage.
 
 ## Worked example: a well subpart and a vessel
 
-Identity layer on a well subpart, plus the (separately implemented) amount layer
-on a vessel, both through the same model:
+Identity layer on a well subpart, plus the separate object-level amount layer on
+a vessel:
 
 ```yaml
 # well subpart (per-subpart identity layer; implemented by the well_plate_96 plan)
@@ -524,15 +636,16 @@ visual_states:
 
 For the well: when a subpart's `material_name` is `media`, the runtime resolves
 `media` to its registered color and tints that one well's generated circle; when
-the subpart is `empty`, the well renders transparent. For the vessel: the fill
-rises within `anchor_liquid_bounds`, clipped to `anchor_liquid_clip`, in
-proportion to `material_volume / 1000 ul`.
+the subpart is `empty`, the well renders transparent. For the vessel, the
+material pipeline validates `anchor_liquid_bounds` and `anchor_liquid_clip`,
+derives its gravity-part region, and runtime controls those parts through opaque
+manifest handles in proportion to `material_volume / 1000 ul`.
 
 ## Testing
 
-`devel/test_pipette_liquid.mjs` uses Playwright to verify the overlay behavior
-the runtime provides:
+Material-path tests verify generated manifest handles, role recoloring,
+gravity-part operations, and no direct runtime anchor or `data-vlab-*` access.
 
-1. Liquid overlay present when a pipette is loaded.
-2. Overlay color matches the resolved `display_color` for the held material name.
+1. Semantic liquid parts are visible when a pipette is loaded.
+2. Their color matches the resolved `display_color` for the held material name.
 3. Fill height is non-zero and consistent with the volume/capacity ratio.

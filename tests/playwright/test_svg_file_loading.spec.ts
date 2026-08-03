@@ -35,7 +35,7 @@
 //       asset/placement string concatenation in the test. resolveAnchor is the
 //       shipped exported resolver, reached through the same window-harness
 //       mechanism the existing test uses (esbuild bundle of
-//       svg_namespacing_harness.ts), injected onto the real wedge page.
+//       svg_namespacing_harness.ts), injected onto a real production page.
 //   B5 (evidence): before/after screenshots of the four wedge pages to
 //       test-results/.
 //
@@ -67,20 +67,25 @@ const WEDGE_PAGES = [
   "sdspage_image_gel",
 ];
 
-// The wedge page that carries the concrete tiering + anchor targets. The
-// staining_bench placements on this page include destain_bottle -> bottle_green
-// (requires_dom_svg:true, carries anchor_liquid_bounds) and rocking_shaker ->
+// The wedge page that carries the concrete tiering targets. The
+// staining_bench placements on this page include destain_bottle -> bottle_medium_pink
+// (requires_dom_svg:true) and rocking_shaker ->
 // rocking_shaker_idle (requires_dom_svg:false). See PROBE_TARGETS below.
 const PROBE_PAGE = "sdspage_destain_gel_rock";
 
+// Material SVG compilation replaces authored anchors with opaque runtime
+// handles, so B4 intentionally exercises the still-authored-anchor contract on
+// the binary T75 state asset. passage_pellet_reseed seeds that flask with
+// cell_suspension, selecting t75_flask_filled on its real entry scene.
+const ANCHOR_PROBE_PAGE = "passage_pellet_reseed";
+
 // Concrete tiering + anchor targets, chosen by reading generated/svg_manifest.ts
 // and confirming the assets are actually placed on PROBE_PAGE:
-//   - bottle_green:        requires_dom_svg:true  -> must inject an <svg>; the
-//                          source SVG declares the bare authored anchor id
-//                          "anchor_liquid_bounds" (used for the B4 anchor seam).
+//   - bottle_medium_pink:  requires_dom_svg:true  -> must inject an <svg>.
 //   - rocking_shaker_idle: requires_dom_svg:false -> must render as an <img>.
-const DOM_SVG_ASSET = "bottle_green";
+const DOM_SVG_ASSET = "bottle_medium_pink";
 const IMG_ASSET = "rocking_shaker_idle";
+const ANCHOR_DOM_SVG_ASSET = "t75_flask_filled";
 const ANCHOR_BARE_ID = "anchor_liquid_bounds";
 
 type ServerHandle = {
@@ -105,7 +110,7 @@ function ensureArtifactDir(): void {
 // Bundle the test harness (real src functions incl. resolveAnchor, no registry)
 // into a temp ESM file with esbuild, write a host HTML for the /harness/ route,
 // and ALSO keep the bundled harness.js so it can be added as a module script tag
-// onto a real wedge page (B4 needs the REAL resolveAnchor on that page).
+// onto a real production page (B4 needs the REAL resolveAnchor on that page).
 // COPIED from test_svg_id_namespacing.spec.ts (server/build/subpath-mount reuse).
 function buildHarness(): string {
   const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "svg_load_harness_"));
@@ -529,12 +534,12 @@ test.describe("svg file loading under a repo subpath", () => {
     const page = await browser.newPage({ viewport: { width: 1600, height: 1000 } });
     const errors: string[] = [];
     page.on("pageerror", (e) => errors.push(String(e)));
-    const url = `${serverHandle.base}/${REPO_SUBPATH}/${PROBE_PAGE}.html`;
+    const url = `${serverHandle.base}/${REPO_SUBPATH}/${ANCHOR_PROBE_PAGE}.html`;
     await page.goto(url, { waitUntil: "networkidle" });
     await page.waitForSelector("[data-placement-name] svg", { timeout: 8000 });
     await page.waitForTimeout(randomSettleMs());
 
-    // Add the REAL resolver onto this real wedge page via the same window-harness
+    // Add the REAL resolver onto this real production page via the same window-harness
     // mechanism the existing test uses: the esbuild-bundled harness module exposes
     // window.svgHarness.resolveAnchor (the shipped export). No src is modified.
     await page.addScriptTag({
@@ -549,7 +554,7 @@ test.describe("svg file loading under a repo subpath", () => {
     );
 
     const anchor = await page.evaluate(probeAnchorInPage, {
-      domSvgAsset: DOM_SVG_ASSET,
+      domSvgAsset: ANCHOR_DOM_SVG_ASSET,
       bareId: ANCHOR_BARE_ID,
     });
     if (anchor.failures.length > 0) {

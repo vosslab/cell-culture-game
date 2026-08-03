@@ -583,6 +583,89 @@ Rule:
   on YAML fields and schema field-name cells.
 - Default severity: `blocker`.
 
+### 30. Material-rendered SVGs have one semantic authority
+
+Flag: a material SVG sidecar or recipe YAML; a collection manifest duplicating
+object `visual_states` SVG case maps; a directory or filename used as rendering
+authority; a material binding used to decide whether root-declared material SVG
+normalization runs; an authored runtime DOM id or CSS paint handle; an authored
+stacking phase; an open `data-vlab-*` field/value map; or runtime code querying
+authored `data-vlab-*` or constructing DOM IDs from authored names.
+
+Rule:
+
+- Selection authority is object YAML `visual_states` `kind: svg` case maps.
+  A discrete collection is only the set of complete selected forms; it has no
+  duplicate manifest.
+- Per-form rendering authority is only the validated root
+  `data-vlab-rendering="material"`. Every declared material SVG is normalized
+  and validated even if it is unreferenced; an object material binding gates
+  runtime mutation only.
+- After selection, exact root `data-vlab-rendering="material"` selects the
+  compiled material-layer path; its absence identifies a static opaque form.
+  Invalid or misplaced reserved attributes fail. Object-level `fill_height`
+  uses generated manifest handles: identity recolors semantic groups by role and
+  volume/capacity applies the compiler-derived gravity-part operations (fixed
+  bottom, Y-scaled body, translated fixed-shape surface, stationary reveal).
+  It creates no runtime rect and never queries/mutates anchors or authored
+  `data-vlab-*`. `anchor_liquid_bounds`, `anchor_liquid_clip`, and existing
+  capacity fields remain compiler inputs for material forms; no new YAML target
+  or binding token is introduced. Structured subpart material rendering remains
+  the separate generated-geometry mechanism. A declared unbound material form
+  is still compiled/validated and shows authored fallback paint without state
+  mutation.
+- `data-vlab-rendering` is valid only on the root `<svg>` and only with exact
+  value `material`. The root may also declare the optional closed geometry
+  ceiling `data-vlab-max-fill-percent`, an integer from 1 through 100. Requests
+  above that ceiling render exactly at it. The root may also declare
+  `data-vlab-min-fill-percent`, an integer from 1 through 99: zero remains
+  empty, while nonzero requests below it render at that floor, which cannot
+  exceed the optional ceiling. A conical form may instead declare
+  `data-vlab-body-start-fill-percent`, a finite decimal strictly between 0 and
+  100, to map that volume percentage to its measured body anchor. Any reserved `data-vlab-*` attribute
+  in an SVG without the rendering declaration fails rather than taking the
+  ordinary path. In a material SVG, every remaining reserved attribute is valid
+  only on direct root-child semantic groups; unknown, misplaced, and
+  role-incompatible attributes fail.
+- The material SVG is self-describing. It owns its closed semantic layer recipe,
+  geometry, document order, clip anchors, and literal fallback paint. There is
+  no sidecar. `materials.yaml` owns material color and object YAML owns binding.
+- The only initial semantic vocabulary is root
+  `data-vlab-rendering="material"`, optional root
+  `data-vlab-max-fill-percent`, `data-vlab-min-fill-percent`, `data-vlab-body-start-fill-percent`, or
+  `data-vlab-fill-height-exponent` (finite decimal in `(0, 10]`, mutually
+  exclusive with body-start), then direct root-child semantic `<g>` groups
+  with unique snake_case `data-vlab-layer-name`,
+  `data-vlab-layer-kind` (`fixed` or `material`), and, for material groups,
+  `data-vlab-paint-role` (`base`, `highlight`, `shadow`). Roles may repeat and
+  at least one `base` is required. `data-vlab-adjustment` is required for
+  highlights and shadows, forbidden otherwise, and uses only
+  `-?[0-9]+(?:\.[0-9]+)?`: highlight is `0 < value <= 0.5`; shadow is
+  `-0.5 <= value < 0`. Unknown fields and values fail validation.
+- SVG document order is the only stacking authority. Material groups are one
+  nonempty contiguous band; fixed groups before/after derive back/front. No
+  authored stacking metadata is permitted.
+- A semantic material-layer `<g>` must not carry `clip-path`.
+  `anchor_liquid_clip` stays in `defs` and the compiler applies it to the
+  derived level group; ordinary child artwork follows ordinary supported clip
+  rules.
+- `base` paint is the resolved `display_color` unchanged. Highlight and shadow
+  apply their adjustment as an additive normalized-OKLCH-lightness delta,
+  preserve hue, reduce chroma only for sRGB gamut, and serialize lowercase
+  `#rrggbb`; no per-asset color source is allowed.
+- `id` is only for unique structural anchors; `class` is styling only. Runtime
+  handles and generated paint properties are opaque derived data, never source
+  SVG authoring.
+- One material-aware policy in the shared normalizer must preserve/canonicalize
+  the vocabulary and semantic boundaries, validate normalized and sanitized
+  output, generate the manifest, and be byte-stable. Runtime uses only that
+  manifest and the injection seam. No `<symbol>` / `<use>` support or general
+  animated-SVG mechanism is implied.
+- Any new carrier, semantic field, paint role, or extension requires a
+  specification edit and user approval.
+
+Default severity: `blocker`.
+
 ## Smell-class quick reference
 
 | Class                                                                                                            | Detector keyword set                                                                                                                                                                   | Rule                                                                                                                                                         |

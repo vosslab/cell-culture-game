@@ -180,11 +180,35 @@ semantic.
 The `visual_states` is keyed by `state_field` name. For each named
 `state_field`, it maps state values to visual outputs.
 
+### Form selection and material rendering
+
+For `visual_states.<field>.kind: svg`, the closed `cases` mapping is the
+sole object-authoring authority for selecting complete SVG forms. A single
+form is a one-case mapping; a discrete-state collection is the set of forms
+selected by the cases for one or more object state fields. There is no
+collection manifest, and filenames and asset directories do not declare a
+collection.
+
+Selection and rendering are independent. After a case selects its complete
+form, the SVG pipeline reads that form's exact root declaration. A root
+`data-vlab-rendering="material"` selects the compiled material-rendering
+path; its absence selects the ordinary SVG path. One discrete collection may
+therefore contain static and material-rendered forms. Object YAML neither
+declares a rendering model nor describes layers inside a selected form. See
+[SVG_PIPELINE.md](SVG_PIPELINE.md) for the asset contract.
+
+The paired material identity and amount entries in `visual_states` remain the
+object's material binding authority. They supply the registered material and
+volume; they do not name SVG geometry. A material-bound selected form stays
+inline SVG DOM even while its amount is zero because the compiled material
+instance needs the same injected DOM home. `requires_dom_svg` is derived from
+the selected form and binding, not authored in object YAML.
+
 | Field                              | Required                | Purpose                                                                                                                                                                                                                                                                                                                                                                                              |
 | ---------------------------------- | ----------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `visual_states.<field>.kind`       | yes                     | One of `svg`, `overlay`, `composite`. `svg` names a base SVG asset name. `overlay` names an SVG fragment composited over the base. `composite` is a list of any of the above.                                                                                                                                                                                                                        |
 | `visual_states.<field>.cases`      | yes for `enum` / `bool` | One case per allowed value of the `state_field`. Each case has a `when` (the state value) and an output (asset_name, overlay_name, or composite list).                                                                                                                                                                                                                                               |
-| `visual_states.<field>.formula`    | yes for `int` / `float` | A declarative recipe drawn from the closed mini-language in [OBJECT_YAML_FORMAT.md](OBJECT_YAML_FORMAT.md) (for example "fill the container SVG to height proportional to `material_volume / capacity`"). For numeric fields where enumerating cases is impractical, the formula names the rendering rule; the runtime resolves it. The token set is closed; per-object formula code is not allowed. |
+| `visual_states.<field>.formula`    | yes for `int` / `float` | A declarative recipe drawn from the closed mini-language in [OBJECT_YAML_FORMAT.md](OBJECT_YAML_FORMAT.md) (for example `fill_height(...)`). For numeric fields where enumerating cases is impractical, the formula names the rendering rule; the runtime resolves it. The token set is closed; per-object formula code is not allowed. |
 | `visual_states.<field>.applies_to` | no                      | `object` or `subpart`. When `subpart`, the `visual_states` applies per subpart (for example one fill per well). Default: `object`.                                                                                                                                                                                                                                                                   |
 
 Rules:
@@ -197,24 +221,31 @@ Rules:
 - The `visual_states` is the only object-side authoring surface that names
   SVG asset names or overlay names. An identity field, a `state_field`, a
   capability, or a layout hint never names an asset name.
-- **One base asset per paired material enum (variant-collapse rule).**
-  When an object's `visual_states` declares a
-  `<prefix>material_volume` (or `<prefix>held_material_volume`)
-  `composite` formula using `fill_height(...)`, every case in the paired
-  `<prefix>material_name` (or `<prefix>held_material_name`)
-  `visual_states.cases[]` must resolve to the same `asset_name`. The
-  sentinel `empty` resolves to the same base asset as every non-empty
-  value; the runtime skips the liquid overlay when the material name is
-  `empty` or the volume is `0`. Per-state variant SVGs
-  (`<object>_empty.svg`, `<object>_filled.svg`,
-  `<object>_with_<material>.svg`) are forbidden by this rule. Pairing is
-  by shared field-name prefix, so an electrophoresis chamber that
-  declares both `inner_chamber_material_*` and `outer_chamber_material_*`
-  validates each pair independently. See
-  [MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md) "Canonical rule:
-  single base SVG + runtime overlay" for the rendering contract; the
-  worked container example below (`bme_bottle`) shows the single-asset
-  shape.
+- **One selected form per paired runtime material binding (variant-collapse
+  rule).** When paired identity and amount entries use runtime material rendering
+  (for example `material_tint` with `fill_height(...)`), every material-name case
+  resolves to the same `asset_name`. The sentinel `empty` resolves to that same
+  form. Material identity and amount change runtime material state, not the
+  selected form. Pairing is by shared field-name prefix, so an electrophoresis
+  chamber that declares both `inner_chamber_material_*` and
+  `outer_chamber_material_*` validates each pair independently. See
+  [MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md) for the binding and dispatch
+  contract. A material-rendered selected form uses generated, opaque manifest
+  handles for role paint and the derived gravity-part transform. Structured
+  subpart material rendering remains a separate generated-geometry mechanism.
+
+  This rule does not prohibit complete discrete forms that depict genuine form,
+  geometry, or content states, including `mtt_powder_vial_empty` and
+  `sharps_container_full`; they may be selected by a material-like field when no
+  paired runtime material binding applies. Filenames never determine intent.
+
+Object YAML must not name an SVG `layer_name`, `paint_role`, `adjustment`,
+stacking phase, runtime handle, DOM id, or SVG-recipe sidecar. Runtime code
+does not query authored `data-vlab-*` through an object declaration. Those
+are SVG-pipeline concerns, not object vocabulary. The existing
+`anchor_liquid_bounds`, optional `anchor_liquid_clip`, and capacity values
+remain binding/compiler inputs for `fill_height`; their interpretation is
+defined by [MATERIAL_CONVENTION.md](MATERIAL_CONVENTION.md).
 
 `SvgSwap`, `ColorChange`, `LiquidDisplayChange`, and
 `SetPointDisplayChange` are object/render-layer mechanisms invoked by
@@ -284,7 +315,7 @@ the only override category.
 
 ## Object ownership of SVG manipulation
 
-The object owns the state-to-visual map and SVG manipulation. The
+The object owns the state-to-visual map and SVG manipulation boundary. The
 protocol sets semantic state through `ObjectStateChange`; the object's
 `visual_states` resolves the asset. The protocol never names an SVG asset
 name and never names a visual variant.
@@ -294,7 +325,7 @@ This rule is binding on:
 - [`state_fields`](#state_fields) -- the only authoring surface for
   declared state.
 - [`visual_states`](#visual-states) -- the only authoring surface for
-  state-to-visual resolution.
+  state-to-visual resolution and complete-form selection.
 - `ObjectStateChange` (defined in
   [PROTOCOL_VOCABULARY.md](PROTOCOL_VOCABULARY.md)) -- the only
   protocol primitive that mutates declared state on an object. An
@@ -318,7 +349,7 @@ The three-way boundary names what each vocabulary owns:
 - **Object** names what a thing is and how its state appears. An
   object declares identity, structure (subparts only), the typed
   flat-primitive `state_fields` schema, the
-  `visual_states` from state value to visual asset, the closed
+  `visual_states` from state value to complete visual output, the closed
   `capabilities` set, and object-default layout hints. The object
   owns the state-to-visual map and SVG manipulation. The object never
   names where it goes in any one scene.
@@ -482,8 +513,10 @@ subparts). It declares three flat `state_fields`: `set_volume` (a
 `float` set-point), `held_material_name` (an `enum` of which material is
 loaded), and `held_material_volume` (a `float` for the amount held).
 The `visual_states` resolves each independently: the set-point becomes an
-overlay label, the material becomes a base SVG, and the volume becomes
-a fill height. No SVG asset name appears in any `state_field`. The
+object-level overlay label, the material selects a complete SVG form, and the
+volume becomes a fill-height binding. A material-declared selected form uses
+compiled gravity parts; object YAML does not describe its internals. No SVG
+asset name appears in any `state_field`. The
 layout hints (`default_width: 3`, `label_width: 6`, `anchor_y_offset: 0`,
 `anchor_y: tip`) are object-owned; the tip anchor reflects that a
 serological pipette is tip-anchored wherever it is placed.
@@ -500,7 +533,7 @@ serological pipette is tip-anchored wherever it is placed.
 | structured surface  | An object with a `structure` block declaring addressable subparts.                                                                                                                                                                                       |
 | subpart             | An addressable internal unit of a structured surface (a `well`, `tube`, `lane`, `slot`, `channel`).                                                                                                                                                      |
 | `state_field`       | One declared, typed flat-primitive state variable on an object or per subpart; the contract between the protocol and the object.                                                                                                                         |
-| `visual_states`     | The object's state-to-visual function; resolves a `state_field` value to an SVG asset name, overlay name, or composite.                                                                                                                                  |
+| `visual_states`     | The object's state-to-visual function; its `svg` cases select complete forms and its material entries bind identity and amount. It never describes internal SVG layers. |
 | capability          | A closed-vocabulary affordance tag declared on the object: `clickable`, `material_container`, `instrument_with_setpoint`, `structured_surface`, `cursor_attachable`, `decoration_only`.                                                                  |
 | layout hint         | An object-owned visual metric or anchor the layout engine consumes (`display_width_cm`, `default_width`, `label_width`, `anchor_y_offset`, `anchor_y`). Scene placements cannot override intrinsic metrics. |
 | `ObjectStateChange` | The protocol-level primitive that mutates declared `state_fields` on an object; defined in [PROTOCOL_VOCABULARY.md](PROTOCOL_VOCABULARY.md).                                                                                                             |

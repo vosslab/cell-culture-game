@@ -5,6 +5,7 @@ generated/
 *.tsbuildinfo
 *.pyc
 test-results/
+rendered-reports/
 deploy-pages.yml
 SUPER_LOG.txt
 
@@ -45,5 +46,4 @@ blob-report/
 coverage/
 meta.json
 stats.html
-
 

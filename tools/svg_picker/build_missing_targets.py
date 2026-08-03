@@ -4,8 +4,8 @@ Build missing targets JSON for SVG picker.
 
 Walks content/objects/<kind>/*.yaml and extracts every asset_name value
 from visual_states.<state>.cases[].output.asset_name. Diffs against the
-set of basenames in assets/equipment/*.svg. Emits missing_targets.json
-grouped by state_family with variant_looking flag.
+recursive logical SVG registry. Emits missing_targets.json grouped by
+state_family with behavior placement and variant_looking metadata.
 
 Reference: content/objects/bottle/bme_tube.yaml, flask/t75_flask.yaml,
 equipment/electrophoresis_tank.yaml
@@ -22,8 +22,12 @@ import argparse
 import json
 import os
 import subprocess
+from pathlib import Path
 
 import yaml
+
+from validation.svg.asset_registry import build_svg_asset_registry
+from validation.svg.asset_taxonomy_validator import derive_requested_asset_behavior_categories
 
 
 def get_repo_root() -> str:
@@ -64,16 +68,9 @@ def extract_asset_names(yaml_path: str) -> list:
 	return asset_names
 
 
-def get_existing_assets(assets_dir: str) -> set:
-	"""Get set of basenames (without .svg) from assets/equipment/."""
-	existing = set()
-	try:
-		for fname in os.listdir(assets_dir):
-			if fname.endswith('.svg'):
-				existing.add(fname[:-4])
-	except FileNotFoundError:
-		pass
-	return existing
+def get_existing_assets(assets_dir: str) -> set[str]:
+	"""Get stable logical names from the recursive asset source tree."""
+	return set(build_svg_asset_registry(Path(assets_dir)).asset_names)
 
 
 def extract_variant_suffix(asset_name: str) -> tuple:
@@ -185,6 +182,7 @@ def main():
 				all_asset_names[asset_name]['referenced_by'].append(yaml_path)
 
 	existing_assets = get_existing_assets(assets_dir)
+	requested_categories = derive_requested_asset_behavior_categories(Path(content_dir))
 
 	if args.verbose:
 		print(f"Total asset_name refs: {total_refs}")
@@ -198,6 +196,7 @@ def main():
 			info = all_asset_names[asset_name]
 			variant_suffix, state_family = extract_variant_suffix(asset_name)
 			variant_looking = (variant_suffix != "")
+			behavior_category = requested_categories[asset_name]
 
 			record = {
 				"asset_name": asset_name,
@@ -207,8 +206,9 @@ def main():
 				"state_family": state_family,
 				"variant_suffix": variant_suffix,
 				"variant_looking": variant_looking,
+				"behavior_category": behavior_category,
 				"expected_path": os.path.join(
-					"assets/equipment", f"{asset_name}.svg"
+					"assets/equipment", behavior_category, f"{asset_name}.svg"
 				)
 			}
 			missing_records.append(record)

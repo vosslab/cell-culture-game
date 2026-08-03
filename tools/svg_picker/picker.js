@@ -449,9 +449,11 @@ function renderMiddlePane() {
         const cand = candidates[state.selectedCandidateIndex];
         for (const assetName of state.multiSelect) {
           const candData = state.candidatesById[cand.candidate_id];
+          const selectedTarget = state.targets.find((x) => x.asset_name === assetName);
           state.decisions.set(assetName, {
             asset_name: assetName,
             state: "assigned",
+            behavior_category: selectedTarget.behavior_category,
             candidate_id: cand.candidate_id,
             source_repo: candData.source_repo,
             source_path: candData.rel_path,
@@ -743,7 +745,7 @@ function getVisibleCandidates(target) {
 
   // Sort priority (highest first):
   //   1. Servier icons (bioicons subfamily, consistent visual style -- preferred theme)
-  //   2. Repo assets (already in assets/equipment/, stylistically settled)
+  //   2. Repo assets (already below assets/equipment/, stylistically settled)
   //   3. Other bioicons
   //   4. scienceicons + anything else
   // Within a tier: ranker score desc, then alphabetic on filename.
@@ -810,6 +812,7 @@ function assignCurrentCandidate() {
   state.decisions.set(target.asset_name, {
     asset_name: target.asset_name,
     state: "assigned",
+    behavior_category: target.behavior_category,
     candidate_id: cand.candidate_id,
     source_repo: candData.source_repo,
     source_path: candData.rel_path,

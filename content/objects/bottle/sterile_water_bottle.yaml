@@ -21,7 +21,7 @@ visual_states:
     kind: svg
     cases:
       - when: water
-        output: { asset_name: bottle_green }
+        output: { asset_name: bottle_medium_pink }
   material_volume:
     applies_to: object
     render_effect: fill_height
