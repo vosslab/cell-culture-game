@@ -2,7 +2,7 @@
 
 Current-state record of which scenes emit which layout diagnostics when `runPipeline` runs over every generated scene at a canonical 16:9 viewport (1920x1080). This is a read-only evidence snapshot taken before any layout-engine changes, so later improvements are measurable.
 
-- Generated: 2026-08-03 13:53 UTC
+- Generated: 2026-08-03 14:16 UTC
 - Scenes scanned: 42
 - Viewport: 1920x1080 (16:9)
 - Source: `tests/e2e/e2e_layout_diagnostics_baseline.mjs` over `generated/scenes.ts`
