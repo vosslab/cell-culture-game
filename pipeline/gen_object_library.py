@@ -205,19 +205,24 @@ RECORDED_SUBPART_GRIDS = {
 			"height": 50.0,
 		},
 	},
-	# gel_cassette (asset gel_cassette.svg, viewBox 0 0 214 308): the ten
-	# lanes are a horizontal row across the resolving gel. Each 16 x 228 rect
-	# stays inside its visible lane and leaves a small gutter for the lane walls.
+	# gel_cassette (assets/equipment/multi_state/gel_cassette_empty.svg,
+	# viewBox 0 0 214 308): lane state is
+	# represented in the resolving gel, but the physical loading target is the
+	# narrow well mouth at its top. The source art marks each mouth with a
+	# data-subpart-id path: lane_1 spans x=36..47, lane_2 x=50..61, and so on,
+	# through lane_10 x=162..173. These exact rectangles prevent a learner from
+	# successfully clicking the entire vertical gel lane while loading a sample.
 	"gel_cassette": {
-		"shape": "rect",
-		"origin_x": 19.0,
-		"origin_y": 57.0,
-		"row_dx": 0.0,
-		"row_dy": 0.0,
-		"col_dx": 18.0,
-		"col_dy": 0.0,
-		"width": 16.0,
-		"height": 228.0,
+		"explicit_geometry": {
+			f"lane_{index}": {
+				"shape": "rect",
+				"x": float(36 + 14 * (index - 1)),
+				"y": 33.0,
+				"w": 11.0,
+				"h": 20.0,
+			}
+			for index in range(1, 11)
+		},
 		"view_box": {
 			"min_x": 0.0,
 			"min_y": 0.0,
@@ -914,16 +919,15 @@ def process_object_yaml(
 
 	if not data:
 		raise ValueError(f"Empty YAML: {yaml_path}")
+	# Normalize every authored string value at the parsed-YAML boundary. Object
+	# labels, enum defaults/allowed values, descriptions, formulas, and visual
+	# cases must all use the same Unicode runtime vocabulary as protocol codegen.
+	data = pipeline.entity_decode.decode_entity_values(data)
 
 	# Validate required identity fields
 	object_name = data["object_name"]
 	kind = data["kind"]
-	# Decode authored HTML entities (e.g. &micro;) to their Unicode glyph before
-	# emission, so generated/object_library.ts carries the real character and
-	# the runtime renders it as a normal DOM text node. This label emit point
-	# does not route through to_ts_literal (gen_object_library.py uses repr()
-	# directly), so decoding happens here instead.
-	label = pipeline.entity_decode.decode_entities(data["label"])
+	label = data["label"]
 
 	if kind not in kinds_enum:
 		raise ValueError(

@@ -5,9 +5,14 @@ label: BSC workspace
 state_fields:
   - field_name: surface_cleanliness
     type: enum
-    allowed: [dirty, ethanol_sprayed]
+    allowed: [dirty, ethanol_sprayed, ethanol_wiped]
     default: dirty
-    description: Whether the hood surface has been cleaned with ethanol.
+    description: Whether the hood surface is awaiting ethanol contact or has been disinfected by a wet wipe.
+  - field_name: contact_status
+    type: enum
+    allowed: [not_wiped, wet_wipe_complete]
+    default: not_wiped
+    description: Whether a clean paper towel has completed wet contact across the hood surface.
 
 visual_states:
   surface_cleanliness:
@@ -16,7 +21,12 @@ visual_states:
       - when: dirty
         output: { asset_name: hood_workspace_surface }
       - when: ethanol_sprayed
+        output: { asset_name: hood_workspace_surface }
+      - when: ethanol_wiped
         output: { asset_name: hood_workspace_surface_clean }
+  contact_status:
+    kind: overlay
+    formula: 'conditional(state(contact_status), label(state(contact_status), format="Hood wipe: {value}"), "")'
 
 capabilities: [clickable]
 

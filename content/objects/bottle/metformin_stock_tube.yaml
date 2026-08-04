@@ -5,8 +5,8 @@ label: Metformin 1 M
 state_fields:
   - field_name: material_name
     type: enum
-    allowed: [metformin]
-    default: metformin
+    allowed: [metformin, metformin_1mol]
+    default: metformin_1mol
     description: Contents currently in this bottle.
   - field_name: material_volume
     type: float
@@ -21,6 +21,8 @@ visual_states:
     kind: svg
     cases:
       - when: metformin
+        output: { asset_name: falcon_50ml }
+      - when: metformin_1mol
         output: { asset_name: falcon_50ml }
   material_volume:
     applies_to: object

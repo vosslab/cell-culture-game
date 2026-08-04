@@ -21,12 +21,14 @@ visual_states:
       - when: true
         output: { asset_name: electrophoresis_tank_lidded }
   module_present:
-    # The electrode module is a separately placed, stateful object.  Its
-    # mounted/cassette/clamp evidence remains visible in the assembled scene;
-    # a second whole-tank SVG selector would overwrite lid_present in the
-    # one-base-asset resolver and would duplicate the module artwork.
     kind: composite
-    composite: []
+    cases:
+      - when: false
+        output: { composite: [] }
+      - when: true
+        output:
+          composite:
+            - { asset_name: electrophoresis_tank_module_mounted }
 
 capabilities: [clickable]
 

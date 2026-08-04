@@ -20,6 +20,21 @@ state_fields:
     allowed: [not_inspected, observed_at_confluence]
     default: not_inspected
     description: Whether the flask has been inspected for confluence under the microscope.
+  - field_name: cell_state
+    type: enum
+    allowed: [not_applicable, attached_70_80, rounded_detached, suspension]
+    default: not_applicable
+    description: Visible culture morphology relevant to confluence and detachment decisions.
+  - field_name: label_status
+    type: enum
+    allowed: [unlabeled, identity_complete]
+    default: unlabeled
+    description: Whether the fixed cell-line, date, passage, and initials label is complete.
+  - field_name: rinse_status
+    type: enum
+    allowed: [not_rinsed, pbs_coverage_pending, pbs_rinse_complete]
+    default: not_rinsed
+    description: Whether the adherent-cell surface has been covered and gently rinsed with PBS.
 
 visual_states:
   material_name:
@@ -41,6 +56,15 @@ visual_states:
   inspection_status:
     kind: composite
     composite: []
+  cell_state:
+    kind: overlay
+    formula: 'label(state(cell_state), format="Cells: {value}")'
+  label_status:
+    kind: overlay
+    formula: 'label(state(label_status), format="Flask label: {value}")'
+  rinse_status:
+    kind: overlay
+    formula: 'conditional(state(rinse_status), label(state(rinse_status), format="PBS rinse: {value}"), "")'
 
 capabilities: [clickable, material_container]
 

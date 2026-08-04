@@ -1,0 +1,42 @@
+object_name: reagent_reservoir
+kind: bottle
+label: Sterile reagent reservoir
+
+state_fields:
+  - field_name: material_name
+    type: enum
+    allowed: [empty, media, cell_suspension, dmso, mtt_solution_12mm]
+    default: empty
+    description: Reagent available to all channels in the reservoir trough.
+  - field_name: material_volume
+    type: float
+    unit: ml
+    min: 0
+    max: 100
+    default: 0
+    description: Reagent volume remaining in the reservoir trough.
+
+visual_states:
+  material_name:
+    kind: svg
+    cases:
+      - when: empty
+        output: { asset_name: reagent_reservoir_empty }
+      - when: media
+        output: { asset_name: reagent_reservoir_filled }
+      - when: cell_suspension
+        output: { asset_name: reagent_reservoir_filled }
+      - when: dmso
+        output: { asset_name: reagent_reservoir_filled }
+      - when: mtt_solution_12mm
+        output: { asset_name: reagent_reservoir_filled }
+  material_volume:
+    kind: overlay
+    formula: 'label(state(material_volume), format="Reservoir: {value} mL")'
+
+capabilities: [clickable, material_container]
+
+layout:
+  default_width: 12
+  display_width_cm: 16
+  label_width: 10

@@ -113,8 +113,9 @@ individual gestures live inside it in the ordered `sequence`. Each
 `response`. The full slot charters and the closed `gesture` value set
 (`click`, `drag`, `adjust`, `select`, `type`) are in
 [PROTOCOL_VOCABULARY.md](PROTOCOL_VOCABULARY.md).
-For cross-layer gesture status and the unresolved role of the currently unused
-`select` value, see `docs/specs/GESTURE_MODEL.md`.
+For cross-layer gesture status and the distinct roles of directed actions,
+visible calculation choices, and the runtime-only `type` path, see
+[GESTURE_MODEL.md](GESTURE_MODEL.md).
 
 ## Writing materials.yaml
 
@@ -194,25 +195,27 @@ multi-gesture case:
 
 ### A set-point step
 
-Setting a pipette volume is a real lab skill. Encode it with `gesture:
-adjust` and the `target_with_value` validator preset, never as a plain
-`click` with a volume field. The authored value must fit the target object's
-declared `min`, `max`, and `step`; use the instrument whose physical range
-contains the requested set point:
+Setting an adjustable micropipette or repeating dispenser volume is a real
+lab skill. Encode it with `gesture: adjust` and the `target_with_value`
+validator preset, never as a plain `click` with a volume field. The authored
+value must fit the target object's declared `min`, `max`, and `step`; use the
+instrument whose physical range contains the requested set point. A
+single-use graduated serological pipette has no digital set point: load it to
+the needed graduation and represent the loaded volume as material state.
 
 ```yaml
 - step_name: set_pipette_volume
-  prompt: "Set the serological pipette to 4 mL."
+  prompt: "Set the p200 micropipette to 100 uL."
   sequence:
-    - target: serological_pipette
+    - target: p200_micropipette
       gesture: adjust
-      validator: { preset: target_with_value, value: { set_volume: 4 } }
+      validator: { preset: target_with_value, value: { set_volume: 100 } }
       response:
         scene_operations:
           - type: ObjectStateChange
-            target: serological_pipette
+            target: p200_micropipette
             state:
-              set_volume: 4
+              set_volume: 100
   step_validator: { preset: sequence_complete }
   outcome:
     on_success: complete
@@ -411,13 +414,13 @@ an interaction is a pedagogical decision, not just a UI decision:
 
 - `adjust` on a continuous control teaches a set-point skill.
 - `click` on a scene object teaches recognition and sequencing.
-- `select` on an answer-choice target teaches a decision.
+- `select` on a visible choice object teaches a decision.
 - `drag` on a scene object teaches a spatial placement skill.
 - `type` on a control teaches entering a precise value.
 
 The anti-pattern this rule catches is collapsing a skill-based interaction
-into a rote `click` -- for example encoding a pipette volume as a field on
-a `click` instead of using `gesture: adjust`. See
+into a rote `click` -- for example encoding an adjustable micropipette volume
+as a field on a `click` instead of using `gesture: adjust`. See
 [PROTOCOL_VOCABULARY.md](PROTOCOL_VOCABULARY.md) for the full rule.
 
 ## Per-step authoring checklist

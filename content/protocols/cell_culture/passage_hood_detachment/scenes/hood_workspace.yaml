@@ -83,6 +83,27 @@ add_placements:
     depth_tier: 1
     align_stop: center
 
+  # Each incompatible source gets a new sterile disposable serological
+  # pipette; the pack makes that source transition observable and actionable.
+  - placement_name: right_sterile_serological_pipette_pack
+    object_name: serological_pipette_pack
+    # The disposable pack is a small front-of-hood supply, not a third tall
+    # item in the vertical tool rack.  It remains immediately visible for each
+    # sterile-pipette change while leaving the rack for the microscope and
+    # aspirator.
+    zone: front_center
+    depth_tier: 1
+    align_stop: left
+
+  - placement_name: right_clean_paper_towel
+    object_name: paper_towel_pad
+    # Blotting is a small, active work-surface task.  Keeping the pad in the
+    # open front-center zone avoids stacking it below the tool rack, where the
+    # renderer correctly reports it as off-canvas.
+    zone: front_center
+    depth_tier: 1
+    align_stop: right
+
 reposition_placements:
   # Keep ethanol in rear_left for sterilization step
   - placement_name: rear_left_ethanol

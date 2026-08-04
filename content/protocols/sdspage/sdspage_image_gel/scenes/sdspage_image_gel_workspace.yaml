@@ -11,7 +11,18 @@ remove_placements:
   - rear_tip_box
   - rear_microtube_rack
   - left_microtube
-  - right_micropipette
+
+add_placements:
+  - placement_name: front_left_gel_conclusion_expected_band
+    object_name: gel_conclusion_expected_band
+    zone: left_tool_area
+    depth_tier: 1
+    align_stop: center
+  - placement_name: front_right_gel_conclusion_nonspecific_bands
+    object_name: gel_conclusion_nonspecific_bands
+    zone: right_tool_area
+    depth_tier: 1
+    align_stop: left
 
 scene_notes: |
   Focused final-rinse and lightbox workspace. The tray and lightbox dominate;

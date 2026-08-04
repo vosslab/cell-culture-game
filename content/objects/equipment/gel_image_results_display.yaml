@@ -1,0 +1,25 @@
+object_name: gel_image_results_display
+kind: equipment
+label: Lane-resolved gel result
+
+state_fields:
+  - field_name: visible
+    type: bool
+    default: true
+    description: Whether the fixed representative lane-resolved image and capture record are visible.
+
+visual_states:
+  visible:
+    kind: svg
+    cases:
+      - when: true
+        output: { asset_name: gel_image_results_display }
+      - when: false
+        output: { asset_name: gel_image_results_display }
+
+capabilities: [decoration_only]
+
+layout:
+  default_width: 66
+  display_width_cm: 80
+  label_width: 28

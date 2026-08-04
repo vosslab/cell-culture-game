@@ -1,52 +1,92 @@
 materials:
-  carboplatin:
-    label: "Carboplatin solution"
-    display_color: "#a719db"
-
   carboplatin_4umol:
     label: "4 &micro;M carboplatin"
-    display_color: "#a719db"
+    display_color: "#c74bda"
 
   carboplatin_8umol:
     label: "8 &micro;M carboplatin"
-    display_color: "#a719db"
+    display_color: "#b932d0"
 
   carboplatin_20umol:
     label: "20 &micro;M carboplatin"
-    display_color: "#a719db"
+    display_color: "#a51ac4"
 
   carboplatin_40umol:
     label: "40 &micro;M carboplatin"
-    display_color: "#a719db"
+    display_color: "#9418b2"
 
   carboplatin_80umol:
     label: "80 &micro;M carboplatin"
-    display_color: "#a719db"
+    display_color: "#8317a0"
 
   carboplatin_200umol:
     label: "200 &micro;M carboplatin"
-    display_color: "#a719db"
+    display_color: "#71158f"
 
   carboplatin_400umol:
     label: "400 &micro;M carboplatin"
-    display_color: "#a719db"
-
-  metformin:
-    label: "Metformin solution"
-    display_color: "#00775f"
+    display_color: "#5f147f"
 
   metformin_200mmol:
     label: "200 mM metformin"
-    display_color: "#00775f"
+    display_color: "#249178"
 
   media:
     label: "Growth media"
     display_color: "#6c6c00"
 
-  cells:
-    label: "Seeded cells (in plate wells)"
-    display_color: "#cc0066"
+  cells_in_growth_media:
+    label: "Seeded cells in growth media"
+    display_color: "#8d7050"
 
-  carboplatin_metformin_combo:
-    label: "Carboplatin and metformin mixture"
-    display_color: "#b84db8"
+  cells_in_growth_media_control:
+    label: "Cells in growth media control"
+    display_color: "#8d7050"
+
+  cells_in_growth_media_metformin_5mmol:
+    label: "Cells in growth media with 5 mM metformin"
+    display_color: "#4f8575"
+
+  cells_in_growth_media_carboplatin_0_1umol:
+    label: "Cells in growth media with 0.1 &micro;M carboplatin"
+    display_color: "#9a5d9a"
+  cells_in_growth_media_carboplatin_0_2umol:
+    label: "Cells in growth media with 0.2 &micro;M carboplatin"
+    display_color: "#985a98"
+  cells_in_growth_media_carboplatin_0_5umol:
+    label: "Cells in growth media with 0.5 &micro;M carboplatin"
+    display_color: "#955795"
+  cells_in_growth_media_carboplatin_1umol:
+    label: "Cells in growth media with 1 &micro;M carboplatin"
+    display_color: "#925492"
+  cells_in_growth_media_carboplatin_2umol:
+    label: "Cells in growth media with 2 &micro;M carboplatin"
+    display_color: "#8f518f"
+  cells_in_growth_media_carboplatin_5umol:
+    label: "Cells in growth media with 5 &micro;M carboplatin"
+    display_color: "#8c4e8c"
+  cells_in_growth_media_carboplatin_10umol:
+    label: "Cells in growth media with 10 &micro;M carboplatin"
+    display_color: "#894b89"
+
+  cells_in_growth_media_carboplatin_0_1umol_metformin_5mmol:
+    label: "Cells in growth media with 0.1 &micro;M carboplatin and 5 mM metformin"
+    display_color: "#755a9d"
+  cells_in_growth_media_carboplatin_0_2umol_metformin_5mmol:
+    label: "Cells in growth media with 0.2 &micro;M carboplatin and 5 mM metformin"
+    display_color: "#73579a"
+  cells_in_growth_media_carboplatin_0_5umol_metformin_5mmol:
+    label: "Cells in growth media with 0.5 &micro;M carboplatin and 5 mM metformin"
+    display_color: "#705497"
+  cells_in_growth_media_carboplatin_1umol_metformin_5mmol:
+    label: "Cells in growth media with 1 &micro;M carboplatin and 5 mM metformin"
+    display_color: "#6d5194"
+  cells_in_growth_media_carboplatin_2umol_metformin_5mmol:
+    label: "Cells in growth media with 2 &micro;M carboplatin and 5 mM metformin"
+    display_color: "#6a4e91"
+  cells_in_growth_media_carboplatin_5umol_metformin_5mmol:
+    label: "Cells in growth media with 5 &micro;M carboplatin and 5 mM metformin"
+    display_color: "#674b8e"
+  cells_in_growth_media_carboplatin_10umol_metformin_5mmol:
+    label: "Cells in growth media with 10 &micro;M carboplatin and 5 mM metformin"
+    display_color: "#64488b"

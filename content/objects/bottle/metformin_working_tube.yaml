@@ -5,7 +5,7 @@ label: Metformin 200 mM working stock
 state_fields:
   - field_name: material_name
     type: enum
-    allowed: [empty, metformin, media, metformin_10mmol]
+    allowed: [empty, metformin, media, metformin_10mmol, metformin_1mol, metformin_200mmol]
     default: empty
     description: Contents currently in the tube.
   - field_name: material_volume
@@ -23,6 +23,10 @@ visual_states:
       - when: empty
         output: { asset_name: microtube }
       - when: metformin
+        output: { asset_name: microtube }
+      - when: metformin_1mol
+        output: { asset_name: microtube }
+      - when: metformin_200mmol
         output: { asset_name: microtube }
       - when: media
         output: { asset_name: microtube }

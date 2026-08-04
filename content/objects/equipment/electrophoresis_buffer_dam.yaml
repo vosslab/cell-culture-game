@@ -1,0 +1,25 @@
+object_name: electrophoresis_buffer_dam
+kind: equipment
+label: Mini-PROTEAN buffer dam
+
+state_fields:
+  - field_name: seated
+    type: bool
+    default: false
+    description: Whether the buffer dam is seated and sealed in the electrode module.
+
+visual_states:
+  seated:
+    kind: svg
+    cases:
+      - when: false
+        output: { asset_name: electrophoresis_buffer_dam }
+      - when: true
+        output: { asset_name: electrophoresis_buffer_dam_seated }
+
+capabilities: [clickable]
+
+layout:
+  default_width: 8
+  display_width_cm: 13
+  label_width: 10

@@ -15,7 +15,7 @@ test("action rail advances within the first Trypan Blue guided step", async ({ p
   const activeTarget = page.locator("#scene-root [data-item-id][data-affordance='active']");
 
   await expect(actionRail).toBeVisible();
-  await expect(actionProgress).toHaveText("Action 1 of 4");
+  await expect(actionProgress).toHaveText("Action 1 of 5");
   await expect(guidedProgress).toContainText("0 / 9");
   await expect(activeTarget).toHaveCount(1);
   await expect(activeTarget).toBeVisible();
@@ -59,9 +59,8 @@ test("action rail advances within the first Trypan Blue guided step", async ({ p
 
   await activeTarget.click();
 
-  await expect(actionProgress).toHaveText("Action 2 of 4");
+  await expect(actionProgress).toHaveText("Action 2 of 5");
   await expect(guidedProgress).toContainText("0 / 9");
-  await expect(page.locator("[data-adjust-panel]")).toBeVisible();
 
   // The active target can redraw after the first click (for example, a
   // cursor-attached pipette state). Re-check the newly active DOM node rather
@@ -88,4 +87,12 @@ test("action rail advances within the first Trypan Blue guided step", async ({ p
   expect(transitionedBounds.bottom).toBeLessThanOrEqual(transitionedBounds.viewportHeight);
   expect(transitionedBounds.width).toBeGreaterThanOrEqual(24);
   expect(transitionedBounds.height).toBeGreaterThanOrEqual(24);
+
+  // Fresh-tip selection is now an explicit contamination-control action.
+  // Completing it advances to the value-setting action without completing the
+  // broader trypan-blue preparation step.
+  await transitionedTarget.click();
+  await expect(actionProgress).toHaveText("Action 3 of 5");
+  await expect(guidedProgress).toContainText("0 / 9");
+  await expect(page.locator("[data-adjust-panel]")).toBeVisible();
 });

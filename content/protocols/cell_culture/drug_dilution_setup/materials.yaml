@@ -3,50 +3,46 @@ materials:
     label: "Growth media"
     display_color: "#6c6c00"
 
-  carboplatin:
-    label: "Carboplatin solution"
-    display_color: "#a719db"
+  cells_in_growth_media:
+    label: "Seeded cells in growth media"
+    display_color: "#8d7050"
 
   carboplatin_10mmol:
     label: "10 mM carboplatin master stock"
-    display_color: "#a719db"
+    display_color: "#4d0f66"
 
   carboplatin_400umol:
     label: "400 &micro;M carboplatin"
-    display_color: "#a719db"
+    display_color: "#5f147f"
 
   carboplatin_4umol:
     label: "4 &micro;M carboplatin"
-    display_color: "#a719db"
+    display_color: "#c74bda"
 
   carboplatin_8umol:
     label: "8 &micro;M carboplatin"
-    display_color: "#a719db"
+    display_color: "#b932d0"
 
   carboplatin_20umol:
     label: "20 &micro;M carboplatin"
-    display_color: "#a719db"
+    display_color: "#a51ac4"
 
   carboplatin_40umol:
     label: "40 &micro;M carboplatin"
-    display_color: "#a719db"
+    display_color: "#9418b2"
 
   carboplatin_80umol:
     label: "80 &micro;M carboplatin"
-    display_color: "#a719db"
+    display_color: "#8317a0"
 
   carboplatin_200umol:
     label: "200 &micro;M carboplatin"
-    display_color: "#a719db"
-
-  metformin:
-    label: "Metformin solution"
-    display_color: "#00775f"
+    display_color: "#71158f"
 
   metformin_1mol:
     label: "1 M metformin master stock"
-    display_color: "#00775f"
+    display_color: "#005844"
 
   metformin_200mmol:
     label: "200 mM metformin"
-    display_color: "#00775f"
+    display_color: "#249178"

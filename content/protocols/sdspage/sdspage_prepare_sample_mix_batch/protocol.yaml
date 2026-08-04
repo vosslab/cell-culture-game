@@ -1,6 +1,6 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_prepare_sample_mix_batch
-entry_step: prepare_sample_one
+entry_step: prepare_batch
 initial_state:
   - target: microtube_rack_8.slot_A1
     state: { material_name: protein_sample_raw, material_volume: 21 }
@@ -8,21 +8,23 @@ initial_state:
     state: { material_name: protein_sample_raw, material_volume: 21 }
   - target: microtube_rack_8.slot_A3
     state: { material_name: protein_sample_raw, material_volume: 21 }
-  - target: microtube_rack_8.slot_B4
-    state: { material_name: protein_ladder, material_volume: 20 }
   - target: laemmli_4x_tube
     state: { material_name: laemmli_4x, material_volume: 1.0 }
   - target: bme_tube
     state: { material_name: bme, material_volume: 1.0 }
 
 learning:
-  objectives: "Students completing this mini-protocol will have achieved proficiency with repetitive liquid-transfer workflows, maintaining accuracy and consistency across three sample-preparation cycles, and safely handling volatile reducing agents at scale."
-  outcomes: "Students completing this mini-protocol will be able to accurately prepare three independent protein sample denaturation mixes in sequence, each combining 21 &micro;L protein sample, 7.5 &micro;L 4x Laemmli buffer, and 1.5 &micro;L beta-mercaptoethanol in the correct order, for a total of three ready-to-heat sample tubes."
-  goals: "Overall, this mini-protocol aims to accomplish the complete batch preparation of protein sample mixes for three lanes of an SDS-PAGE gel, establishing the repetitive pipette-and-mix discipline required for multi-lane gel preparation."
+  objectives: "Students completing this mini-protocol will have achieved consistent, correctly labeled batch preparation of three SDS-PAGE samples while using a fresh tip for every source transfer."
+  outcomes: "Students completing this mini-protocol will be able to make three independent 30 &micro;L denaturation mixes from the pre-normalized simulated 21 &micro;L inputs, 7.5 &micro;L 4x Laemmli buffer, and 1.5 &micro;L BME."
+  goals: "Overall, this mini-protocol aims to accomplish one batch lesson: the first B1 mix is a worked example, then B2 and B3 use the same checklist without losing lane identities."
 
 steps:
-  - step_name: prepare_sample_one
-    prompt: Open the sample-preparation workspace, use the P200 micropipette at 21 &micro;L to transfer raw sample from slot A1 to slot B1, then switch to the P10 micropipette for 7.5 &micro;L Laemmli buffer and 1.5 &micro;L BME to make a 30 &micro;L denatured-sample mix.
+  - step_name: prepare_batch
+    prompt: >-
+      In the fume-hood workspace, make the lane 1 mix in B1 as the worked example:
+      21 &micro;L from A1, 7.5 &micro;L 4x Laemmli, then 1.5 &micro;L BME. Repeat the
+      same fresh-tip checklist for A2 to B2 and A3 to B3. Each finished tube is
+      a separate 30 &micro;L lane sample; BME handling remains in the hood.
     sequence:
       - target: p200_micropipette
         gesture: click
@@ -31,6 +33,11 @@ steps:
           scene_operations:
             - type: SceneChange
               to_scene: sdspage_prepare_sample_mix_batch_workspace
+      # B1 worked example: sample -> Laemmli -> BME.
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }], feedback: { correct: "Fresh tip fitted for sample B1.", incorrect: "Fit a fresh tip before drawing sample." } }
       - target: p200_micropipette
         gesture: adjust
         validator: { preset: target_with_value, value: { set_volume: 21 } }
@@ -38,29 +45,15 @@ steps:
       - target: microtube_rack_8.slot_A1
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: microtube_rack_8.slot_A1
-              state: { material_name: empty, material_volume: 0 }
-            - type: ObjectStateChange
-              target: p200_micropipette
-              state: { held_material_name: protein_sample_raw, held_material_volume: 21 }
+        response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_A1, state: { material_name: empty, material_volume: 0 } }, { type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: protein_sample_raw, held_material_volume: 21 } }] }
       - target: microtube_rack_8.slot_B1
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: microtube_rack_8.slot_B1
-              state: { material_name: protein_sample_raw, material_volume: 21 }
-            - type: ObjectStateChange
-              target: p200_micropipette
-              state: { held_material_name: empty, held_material_volume: 0 }
-      - target: p10_micropipette
+        response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B1, state: { material_name: protein_sample_raw, material_volume: 21 } }, { type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
+      - target: micropipette_tip_box
         gesture: click
         validator: { preset: correct_target }
-        response: { scene_operations: [] }
+        response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { tip_status: fresh } }], feedback: { correct: "Fresh tip fitted for Laemmli.", incorrect: "Use a fresh reagent tip after handling sample." } }
       - target: p10_micropipette
         gesture: adjust
         validator: { preset: target_with_value, value: { set_volume: 7.5 } }
@@ -68,25 +61,15 @@ steps:
       - target: laemmli_4x_tube
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: laemmli_4x_tube
-              state: { material_name: laemmli_4x, material_volume: 0.9925 }
-            - type: ObjectStateChange
-              target: p10_micropipette
-              state: { held_material_name: laemmli_4x, held_material_volume: 7.5 }
+        response: { scene_operations: [{ type: ObjectStateChange, target: laemmli_4x_tube, state: { material_name: laemmli_4x, material_volume: 0.9925 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: laemmli_4x, held_material_volume: 7.5 } }] }
       - target: microtube_rack_8.slot_B1
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: microtube_rack_8.slot_B1
-              state: { material_name: protein_sample_mixed, material_volume: 28.5 }
-            - type: ObjectStateChange
-              target: p10_micropipette
-              state: { held_material_name: empty, held_material_volume: 0 }
+        response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B1, state: { material_name: protein_sample_mixed, material_volume: 28.5 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { tip_status: fresh } }], feedback: { correct: "Fresh tip fitted for BME.", incorrect: "Use a fresh tip before entering the BME source." } }
       - target: p10_micropipette
         gesture: adjust
         validator: { preset: target_with_value, value: { set_volume: 1.5 } }
@@ -94,31 +77,16 @@ steps:
       - target: bme_tube
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: bme_tube
-              state: { material_name: bme, material_volume: 0.9985 }
-            - type: ObjectStateChange
-              target: p10_micropipette
-              state: { held_material_name: bme, held_material_volume: 1.5 }
+        response: { scene_operations: [{ type: ObjectStateChange, target: bme_tube, state: { material_name: bme, material_volume: 0.9985 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: bme, held_material_volume: 1.5 } }] }
       - target: microtube_rack_8.slot_B1
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: microtube_rack_8.slot_B1
-              state: { material_name: protein_sample_mixed, material_volume: 30 }
-            - type: ObjectStateChange
-              target: p10_micropipette
-              state: { held_material_name: empty, held_material_volume: 0 }
-    step_validator: { preset: sequence_complete }
-    outcome: { on_success: complete, on_failure: retry }
-    next_step: prepare_sample_two
-  - step_name: prepare_sample_two
-    prompt: Repeat the complete sample-mix workflow from slot A2 into slot B2, using the P200 at 21 &micro;L for raw sample and switching to the P10 for 7.5 &micro;L Laemmli buffer and 1.5 &micro;L BME.
-    sequence:
+        response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B1, state: { material_name: protein_sample_mixed, material_volume: 30 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
+      # B2 and B3: the same transfer checklist, kept in this one batch skill.
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }] }
       - target: p200_micropipette
         gesture: adjust
         validator: { preset: target_with_value, value: { set_volume: 21 } }
@@ -126,29 +94,15 @@ steps:
       - target: microtube_rack_8.slot_A2
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: microtube_rack_8.slot_A2
-              state: { material_name: empty, material_volume: 0 }
-            - type: ObjectStateChange
-              target: p200_micropipette
-              state: { held_material_name: protein_sample_raw, held_material_volume: 21 }
+        response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_A2, state: { material_name: empty, material_volume: 0 } }, { type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: protein_sample_raw, held_material_volume: 21 } }] }
       - target: microtube_rack_8.slot_B2
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: microtube_rack_8.slot_B2
-              state: { material_name: protein_sample_raw, material_volume: 21 }
-            - type: ObjectStateChange
-              target: p200_micropipette
-              state: { held_material_name: empty, held_material_volume: 0 }
-      - target: p10_micropipette
+        response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B2, state: { material_name: protein_sample_raw, material_volume: 21 } }, { type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
+      - target: micropipette_tip_box
         gesture: click
         validator: { preset: correct_target }
-        response: { scene_operations: [] }
+        response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { tip_status: fresh } }] }
       - target: p10_micropipette
         gesture: adjust
         validator: { preset: target_with_value, value: { set_volume: 7.5 } }
@@ -156,25 +110,15 @@ steps:
       - target: laemmli_4x_tube
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: laemmli_4x_tube
-              state: { material_name: laemmli_4x, material_volume: 0.985 }
-            - type: ObjectStateChange
-              target: p10_micropipette
-              state: { held_material_name: laemmli_4x, held_material_volume: 7.5 }
+        response: { scene_operations: [{ type: ObjectStateChange, target: laemmli_4x_tube, state: { material_name: laemmli_4x, material_volume: 0.985 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: laemmli_4x, held_material_volume: 7.5 } }] }
       - target: microtube_rack_8.slot_B2
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: microtube_rack_8.slot_B2
-              state: { material_name: protein_sample_mixed, material_volume: 28.5 }
-            - type: ObjectStateChange
-              target: p10_micropipette
-              state: { held_material_name: empty, held_material_volume: 0 }
+        response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B2, state: { material_name: protein_sample_mixed, material_volume: 28.5 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { tip_status: fresh } }] }
       - target: p10_micropipette
         gesture: adjust
         validator: { preset: target_with_value, value: { set_volume: 1.5 } }
@@ -182,31 +126,15 @@ steps:
       - target: bme_tube
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: bme_tube
-              state: { material_name: bme, material_volume: 0.997 }
-            - type: ObjectStateChange
-              target: p10_micropipette
-              state: { held_material_name: bme, held_material_volume: 1.5 }
+        response: { scene_operations: [{ type: ObjectStateChange, target: bme_tube, state: { material_name: bme, material_volume: 0.997 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: bme, held_material_volume: 1.5 } }] }
       - target: microtube_rack_8.slot_B2
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: microtube_rack_8.slot_B2
-              state: { material_name: protein_sample_mixed, material_volume: 30 }
-            - type: ObjectStateChange
-              target: p10_micropipette
-              state: { held_material_name: empty, held_material_volume: 0 }
-    step_validator: { preset: sequence_complete }
-    outcome: { on_success: complete, on_failure: retry }
-    next_step: prepare_sample_three
-  - step_name: prepare_sample_three
-    prompt: Repeat the complete sample-mix workflow from slot A3 into slot B3, using the P200 at 21 &micro;L for raw sample and switching to the P10 for 7.5 &micro;L Laemmli buffer and 1.5 &micro;L BME.
-    sequence:
+        response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B2, state: { material_name: protein_sample_mixed, material_volume: 30 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }] }
       - target: p200_micropipette
         gesture: adjust
         validator: { preset: target_with_value, value: { set_volume: 21 } }
@@ -214,29 +142,15 @@ steps:
       - target: microtube_rack_8.slot_A3
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: microtube_rack_8.slot_A3
-              state: { material_name: empty, material_volume: 0 }
-            - type: ObjectStateChange
-              target: p200_micropipette
-              state: { held_material_name: protein_sample_raw, held_material_volume: 21 }
+        response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_A3, state: { material_name: empty, material_volume: 0 } }, { type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: protein_sample_raw, held_material_volume: 21 } }] }
       - target: microtube_rack_8.slot_B3
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: microtube_rack_8.slot_B3
-              state: { material_name: protein_sample_raw, material_volume: 21 }
-            - type: ObjectStateChange
-              target: p200_micropipette
-              state: { held_material_name: empty, held_material_volume: 0 }
-      - target: p10_micropipette
+        response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B3, state: { material_name: protein_sample_raw, material_volume: 21 } }, { type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
+      - target: micropipette_tip_box
         gesture: click
         validator: { preset: correct_target }
-        response: { scene_operations: [] }
+        response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { tip_status: fresh } }] }
       - target: p10_micropipette
         gesture: adjust
         validator: { preset: target_with_value, value: { set_volume: 7.5 } }
@@ -244,25 +158,15 @@ steps:
       - target: laemmli_4x_tube
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: laemmli_4x_tube
-              state: { material_name: laemmli_4x, material_volume: 0.9775 }
-            - type: ObjectStateChange
-              target: p10_micropipette
-              state: { held_material_name: laemmli_4x, held_material_volume: 7.5 }
+        response: { scene_operations: [{ type: ObjectStateChange, target: laemmli_4x_tube, state: { material_name: laemmli_4x, material_volume: 0.9775 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: laemmli_4x, held_material_volume: 7.5 } }] }
       - target: microtube_rack_8.slot_B3
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: microtube_rack_8.slot_B3
-              state: { material_name: protein_sample_mixed, material_volume: 28.5 }
-            - type: ObjectStateChange
-              target: p10_micropipette
-              state: { held_material_name: empty, held_material_volume: 0 }
+        response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B3, state: { material_name: protein_sample_mixed, material_volume: 28.5 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { tip_status: fresh } }] }
       - target: p10_micropipette
         gesture: adjust
         validator: { preset: target_with_value, value: { set_volume: 1.5 } }
@@ -270,25 +174,11 @@ steps:
       - target: bme_tube
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: bme_tube
-              state: { material_name: bme, material_volume: 0.9955 }
-            - type: ObjectStateChange
-              target: p10_micropipette
-              state: { held_material_name: bme, held_material_volume: 1.5 }
+        response: { scene_operations: [{ type: ObjectStateChange, target: bme_tube, state: { material_name: bme, material_volume: 0.9955 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: bme, held_material_volume: 1.5 } }] }
       - target: microtube_rack_8.slot_B3
         gesture: click
         validator: { preset: correct_target }
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: microtube_rack_8.slot_B3
-              state: { material_name: protein_sample_mixed, material_volume: 30 }
-            - type: ObjectStateChange
-              target: p10_micropipette
-              state: { held_material_name: empty, held_material_volume: 0 }
+        response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B3, state: { material_name: protein_sample_mixed, material_volume: 30 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
     step_validator: { preset: sequence_complete }
     outcome: { on_success: complete, on_failure: retry }
     next_step: null

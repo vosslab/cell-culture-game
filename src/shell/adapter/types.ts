@@ -11,8 +11,7 @@
 // - docs/specs/PROTOCOL_VOCABULARY.md (gesture, validator presets,
 //   scene operation primitives, step/interaction model)
 // - docs/PRIMARY_SPEC.md (entry_step, outcome resolution, walker rule)
-// - docs/active_plans/active/web_ui/runtime_seam_plan.md (this file
-//   is the M1 deliverable)
+// - docs/archive/web_ui/runtime_seam_plan.md
 
 //============================================
 // Closed enums mirrored from PROTOCOL_VOCABULARY.md
@@ -72,9 +71,8 @@ export interface TrayItem {
 
 export interface TrayState {
   readonly items: ReadonlyArray<TrayItem>;
-  // Toolbar semantics by default. A pilot needing single-active
-  // selected state extends this in a follow-up; do not add a free
-  // string here.
+  // The toolbar exposes independent tool availability. A selected-tool
+  // state must be represented by a closed field when the shell needs one.
 }
 
 export interface ProgressTuple {
@@ -96,6 +94,18 @@ export interface LastRejection {
   readonly reason_code: InteractionRejectReason;
   readonly target_name: string;
   readonly gesture: Gesture;
+  // Choice labels are projected only after a rejected select. They let the
+  // shell teach the observed decision without revealing the answer beforehand.
+  readonly selected_label: string | null;
+  readonly expected_label: string | null;
+}
+
+// A short learner-facing acknowledgement tied to the most recent accepted or
+// rejected interaction. The runtime projects only the already-ratified
+// response.feedback fields; the shell never inspects response operations.
+export interface LastInteractionFeedback {
+  readonly kind: "correct" | "incorrect";
+  readonly message: string;
 }
 
 // A TimedWait temporarily blocks further learner input. The runtime owns this
@@ -124,6 +134,7 @@ export interface ShellViewSnapshot {
   readonly progress: ProgressTuple;
   readonly last_outcome: LastOutcome | null;
   readonly last_rejection: LastRejection | null;
+  readonly last_interaction_feedback: LastInteractionFeedback | null;
   readonly pending_validator_kind: ValidatorPreset | null;
   readonly modal: ModalState;
   readonly help: HelpState;
@@ -182,6 +193,8 @@ export interface InteractionValidatedEvent {
   readonly target_name: string;
   readonly gesture: Gesture;
   readonly validator_preset: InteractionValidatorPreset;
+  // Optional learner-facing acknowledgement from response.feedback.correct.
+  readonly feedback?: string | null;
 }
 
 export interface InteractionRejectedEvent {
@@ -192,6 +205,8 @@ export interface InteractionRejectedEvent {
   readonly gesture: Gesture;
   readonly validator_preset: InteractionValidatorPreset;
   readonly reason_code: InteractionRejectReason;
+  // Optional learner-facing recovery guidance from response.feedback.incorrect.
+  readonly feedback?: string | null;
 }
 
 export type InteractionRejectReason =

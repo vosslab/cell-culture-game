@@ -1,0 +1,49 @@
+scene_name: viability_review
+extends: cell_counter_basic
+
+remove_placements:
+  - main_cell_counter
+  - rear_counter_slide_cartridge
+  - rear_trypan_blue_tube
+  - rear_cell_suspension_tube
+  - left_microtube_rack
+  - left_tip_box
+  - base_hemocytometer_slide
+
+add_placements:
+  - placement_name: main_viability_results_display
+    object_name: cell_viability_results_display
+    zone: instrument_area
+    depth_tier: 1
+    align_stop: center
+
+  - placement_name: rear_counted_slide
+    object_name: hemocytometer_slide
+    zone: rear_shelf
+    depth_tier: 1
+    align_stop: right
+
+  - placement_name: rear_counter_instrument
+    object_name: cell_counter
+    zone: rear_shelf
+    depth_tier: 1
+    align_stop: left
+
+  - placement_name: viability_proceed_choice
+    object_name: viability_decision_proceed
+    zone: left_bench
+    depth_tier: 1
+    align_stop: center
+
+  - placement_name: viability_recount_choice
+    object_name: viability_decision_recount
+    zone: right_accessory_area
+    depth_tier: 1
+    align_stop: center
+
+scene_notes: |
+  The completed counter instrument, a readable zoom of its result, and the counted physical slide
+  remain visible while the two viability-gate decisions occupy separate full-size
+  zones. No count is recreated here: the 92.5% automated result, its 8.5 x 10^5
+  viable cells/mL unit, and the 85/7 manual cross-check carry from the measurement
+  workspace before the learner decides whether seeding may proceed.

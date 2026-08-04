@@ -259,11 +259,14 @@ describe("per-subpart amount contract and behavior", () => {
     assert.match(circle_fill_path(circle, 75), /7\.5/);
   });
 
-  test("a malformed material state degrades without corrupting a valid sibling", () => {
+  test("zero visible amount is valid without corrupting a nonzero sibling", () => {
     const registry = { media: { label: "Media", display_color: "#123456" } };
-    const failed = resolve_subpart_material_state("media", 0, 100, "", registry);
+    const zeroAmount = resolve_subpart_material_state("media", 0, 100, "", registry);
     const sibling = resolve_subpart_material_state("media", 50, 100, "", registry);
-    assert.match(failed.degraded, /zero amount/);
+    assert.deepEqual(
+      { fill: zeroAmount.fill, percent: zeroAmount.fill_percent, degraded: zeroAmount.degraded },
+      { fill: "transparent", percent: 0, degraded: "" },
+    );
     assert.deepEqual(
       { fill: sibling.fill, percent: sibling.fill_percent },
       { fill: "#123456", percent: 50 },

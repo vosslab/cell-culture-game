@@ -2,18 +2,18 @@ scene_name: sdspage_fill_tank_buffer_workspace
 extends: electrophoresis_bench
 
 scene_notes: |
-  Electrophoresis bench workspace for filling tank buffer chambers. The full tank
-  remains rear context while intentionally enlarged chamber views in the foreground
-  let students compare the two distinct reservoir volumes during each transfer.
+  Buffer-fill view keeps the assembled tank in the background and the upper and
+  lower reservoir indicators in the foreground. The buffer carboy remains the only
+  source so each transfer visibly supports a gasket check or a marked fill line.
 
 remove_placements:
-  # Keep the tank, 1x carboy, and serological pipette needed to compare the
-  # inner and outer reservoirs. Remove loading and unrelated reagent context.
+  # Keep the tank and the prepared 1x carboy as the one visible transfer
+  # source. Remove pipettes, loading, and unrelated reagent context.
   - rear_left_running_buffer_10x
   - center_running_buffer_1x_carboy
   - rear_right_power_supply
   - center_ddh2o_bottle
-  - center_electrode_module
+  - center_serological_pipette
   - center_p200_micropipette
   - right_tool_area_p10_gel_loading_tip_box
   - rear_left_protein_ladder_tube
@@ -28,7 +28,7 @@ add_placements:
   - placement_name: center_running_buffer_preparation_carboy
     object_name: running_buffer_preparation_carboy
     zone: center
-    depth_tier: 2
+    depth_tier: 1
     align_stop: left
   - placement_name: front_left_electrophoresis_inner_chamber
     object_name: electrophoresis_inner_chamber
@@ -40,3 +40,8 @@ add_placements:
     zone: front_right
     depth_tier: 1
     align_stop: center
+  - placement_name: front_center_electrophoresis_buffer_dam
+    object_name: electrophoresis_buffer_dam
+    zone: front_center
+    depth_tier: 2
+    align_stop: right

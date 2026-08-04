@@ -2,8 +2,10 @@ protocol_type: mini_protocol
 protocol_name: sdspage_image_gel
 entry_step: final_rinse
 initial_state:
+  # The preceding destain block already transfers its 250 mL to stain waste.
+  # Start with the same empty tray, then teach one measured water rinse.
   - target: staining_tray
-    state: { material_name: destain, material_volume: 250, gel_present: true, gel_state: destained }
+    state: { material_name: empty, material_volume: 0, gel_present: true, gel_state: destained, lane_pattern: samples_1_to_3_ladder_5, orientation_status: wells_top_ladder_lane_5 }
   - target: ddh2o_bottle
     state: { material_name: ddh2o, material_volume: 100 }
 learning:
@@ -27,10 +29,9 @@ learning:
 steps:
   - step_name: final_rinse
     prompt:
-      "Transfer the destained gel and staining tray to the imaging bench. Perform
-      a final rinse: pour any residual destain from the staining tray into the waste
-      container, add a small volume of ddH2O for a brief rinse, and pour the rinse solution
-      into the waste container."
+      "Move the destained, empty tray to the imaging bench. Add 100 mL ddH2O around
+      the flat gel, then discard that rinse to the designated aqueous waste. The endpoint is a
+      clean-background gel that remains wells-top with ladder in lane 5."
     sequence:
       - target: staining_tray
         gesture: click
@@ -40,46 +41,19 @@ steps:
           scene_operations:
             - type: SceneChange
               to_scene: sdspage_image_gel_workspace
-      - target: staining_tray
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: staining_tray
-              state:
-                material_name: empty
-                material_volume: 0
-      - target: waste_container
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
       - target: ddh2o_bottle
         gesture: click
         validator:
           preset: correct_target
         response:
-          scene_operations: []
-      - target: staining_tray
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
           scene_operations:
             - type: ObjectStateChange
               target: staining_tray
-              state:
-                material_name: ddh2o
-                material_volume: 100
+              state: { material_name: ddh2o, material_volume: 100 }
             - type: ObjectStateChange
               target: ddh2o_bottle
-              state:
-                material_name: ddh2o
-                material_volume: 0
-      - target: staining_tray
+              state: { material_name: ddh2o, material_volume: 0 }
+      - target: waste_container
         gesture: click
         validator:
           preset: correct_target
@@ -90,17 +64,14 @@ steps:
               state:
                 material_name: empty
                 material_volume: 0
+                rinse_count: 1
+                background_status: clean_background_oriented
             - type: ObjectStateChange
               target: waste_container
-              state:
-                material_name: mixed
-                material_volume: 100
-      - target: waste_container
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
+              state: { material_name: mixed, material_volume: 100 }
+          feedback:
+            correct: "The tray shows a clean-background endpoint; the gel stayed flat with its wells at the top and ladder in lane 5."
+            incorrect: "Discard the water rinse to waste only after the gel remains flat and oriented in the tray."
     step_validator:
       preset: sequence_complete
     outcome:
@@ -109,8 +80,7 @@ steps:
     next_step: place_on_lightbox
   - step_name: place_on_lightbox
     prompt:
-      Power on the lightbox by clicking its power switch. Then transfer the staining
-      tray containing the rinsed gel to the lightbox imaging surface.
+      Power on the lightbox, then place the rinsed tray on its imaging surface without rotating the gel.
     sequence:
       - target: lightbox
         gesture: click
@@ -133,6 +103,8 @@ steps:
               state:
                 tray_present: true
                 gel_state: destained
+                lane_pattern: samples_1_to_3_ladder_5
+                orientation_status: wells_top_ladder_lane_5
     step_validator:
       preset: sequence_complete
     outcome:
@@ -140,7 +112,9 @@ steps:
       on_failure: retry
     next_step: capture
   - step_name: capture
-    prompt: Capture a digital image of the gel by clicking the lightbox capture button.
+    prompt: >-
+      Capture the fixed-course overhead image only when lanes 1-3, ladder lane 5, and the
+      wells-top orientation are sharp and evenly lit. The capture records the Group A lane map.
     sequence:
       - target: lightbox
         gesture: click
@@ -152,9 +126,37 @@ steps:
               target: lightbox
               state:
                 image_captured: true
+                result_state: bands_visible
+                archive_metadata_status: group_a_lane_map_recorded
+                image_quality_status: lanes_sharp_evenly_lit
+            - type: SceneChange
+              to_scene: sdspage_image_gel_result_review
+          feedback:
+            correct: "Image captured with the Group A lane map and sharp, evenly lit lanes; the lane-resolved image is ready for ladder interpretation."
+            incorrect: "Capture only after the flat gel is wells-top, lanes 1-3 and ladder lane 5 are visible, and the image is sharp and evenly lit."
     step_validator:
       preset: sequence_complete
     outcome:
       on_success: complete
       on_failure: retry
+    next_step: interpret_ladder_and_sample_lanes
+  - step_name: interpret_ladder_and_sample_lanes
+    prompt: >-
+      Review the visible captured image with the ladder. Select the conclusion supported
+      by the simulated lane-resolved result: a strong 24-28 kDa miraculin monomer band
+      in lanes 1-3 and no prominent extra bands.
+    sequence:
+      - target: gel_conclusion_expected_band
+        gesture: select
+        validator: { preset: correct_choice }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: lightbox
+              state: { result_state: molecular_weight_interpreted }
+          feedback:
+            correct: "Correct: lanes 1-3 show the expected 24-28 kDa monomer band, and lane 5 supplies the molecular-weight reference."
+            incorrect: "Use the visible ladder and lane-resolved bands: this simulated result supports the expected-band conclusion, not nonspecific bands."
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
     next_step: null

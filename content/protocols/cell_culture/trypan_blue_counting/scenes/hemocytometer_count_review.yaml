@@ -1,0 +1,45 @@
+scene_name: hemocytometer_count_review
+extends: microscope_basic
+
+remove_placements:
+  - main_microscope
+  - rear_tip_box
+  - rear_ethanol_bottle
+  - left_microtube_rack
+  - left_cell_suspension
+  - right_hemocytometer_slide
+  - right_microtube
+
+add_placements:
+  - placement_name: left_hemocytometer_observation_display
+    object_name: hemocytometer_observation_display
+    zone: instrument_area
+    depth_tier: 1
+    align_stop: center
+
+  - placement_name: right_counted_hemocytometer_slide
+    object_name: hemocytometer_slide
+    zone: right_bench
+    depth_tier: 1
+    align_stop: center
+    layout:
+      label_placement: bottom
+
+  - placement_name: manual_count_correct_choice
+    object_name: manual_count_85_live_7_dead
+    zone: rear_left
+    depth_tier: 1
+    align_stop: center
+
+  - placement_name: manual_count_incorrect_choice
+    object_name: manual_count_46_live_46_dead
+    zone: rear_right
+    depth_tier: 1
+    align_stop: center
+
+scene_notes: |
+  The counted hemocytometer remains visible beside a magnified microscope field. The
+  four-quadrant field makes the clear/blue evidence and quadrant subtotals
+  readable while each candidate live/dead count receives its own rear decision
+  zone. Experimental state is carried from the microscope view; the cards ask
+  students to add and interpret visible counts rather than enter an interface-only value.

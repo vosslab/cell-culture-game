@@ -10,14 +10,9 @@
 // by their own placement identity (no z-order occlusion), per
 // docs/PRIMARY_CONTRACT.md item 3.
 //
-// microscope_basic is a base scene (also covered by the generalization
-// render sweep once its EXPECTED_FAIL_SCENES entry is retired).
-// hemocytometer_view and passage_hood_detachment_microscope_view live
-// under content/protocols/**/scenes/, outside content/base_scenes/, so
-// discoverBaseSceneNames() never reaches them; the witness confirmed
-// both still render through the generic scene_viewer.html?scene=<name>
-// route (src/dist_entry.tsx mount_scene_viewer), so this spec renders all
-// three scenes through that one shared route.
+// microscope_basic is the surviving scene that intentionally contains both
+// placements. Protocol-specific observation scenes now use dedicated result
+// displays and no longer inherit this unrelated rack/tip-box composition.
 //
 // Selector contract:
 //   - #scene-root                      src/scene_runtime/renderer/scene_root.tsx
@@ -32,11 +27,7 @@ import { bboxsOverlap } from "../../tools/bbox_helpers.mjs";
 // Test configuration
 //============================================
 
-const AFFECTED_SCENES = [
-  "microscope_basic",
-  "hemocytometer_view",
-  "passage_hood_detachment_microscope_view",
-];
+const AFFECTED_SCENES = ["microscope_basic"];
 
 const ITEM_A = "rear_tip_box";
 const ITEM_B = "left_microtube_rack";

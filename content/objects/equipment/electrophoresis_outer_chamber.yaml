@@ -15,20 +15,30 @@ state_fields:
     max: 500
     default: 0
     description: Buffer volume currently in the outer chamber, in milliliters.
+  - field_name: fill_state
+    type: enum
+    allowed: [empty, partial, filled, leak_checked]
+    default: empty
+    description: Visible outer-chamber fill level and successful leak-check state.
 
 visual_states:
   material_name:
+    kind: composite
+    composite: []
+  material_volume:
+    kind: overlay
+    formula: 'label(state(material_volume), format="Outer chamber: {value} mL")'
+  fill_state:
     kind: svg
     cases:
       - when: empty
-        output: { asset_name: electrophoresis_tank_outer_chamber }
-      - when: running_buffer_1x
-        output: { asset_name: electrophoresis_tank_outer_chamber }
-      - when: running_buffer_1x_used
-        output: { asset_name: electrophoresis_tank_outer_chamber }
-  material_volume:
-    kind: composite
-    composite: []
+        output: { asset_name: electrophoresis_outer_chamber_empty }
+      - when: partial
+        output: { asset_name: electrophoresis_outer_chamber_partial }
+      - when: filled
+        output: { asset_name: electrophoresis_outer_chamber_filled }
+      - when: leak_checked
+        output: { asset_name: electrophoresis_outer_chamber_leak_checked }
 capabilities: [clickable, material_container]
 
 layout:

@@ -211,10 +211,10 @@ describe("walker_debug gameState", () => {
   test("selectedTool/heldLiquid reflect the cursor-attached tool", () => {
     const config = make_config();
     const store = create_scene_store();
-    store.seed_from_scene([{ target: "micropipette", object_name: "micropipette" }]);
+    store.seed_from_scene([{ target: "p20_micropipette", object_name: "p20_micropipette" }]);
     const emitter = make_emitter(config);
     const dispose = install_walker_debug_surface(config, emitter, store);
-    store.set_cursor("micropipette", {
+    store.set_cursor("p20_micropipette", {
       attach: true,
       held_material_name: "trypan_blue",
       held_material_volume: 10,
@@ -223,9 +223,9 @@ describe("walker_debug gameState", () => {
     emitter.emit({
       kind: "scene_operation_applied",
       operation_type: "CursorAttach",
-      target_name: "micropipette",
+      target_name: "p20_micropipette",
     });
-    assert.strictEqual(window.gameState.selectedTool, "micropipette");
+    assert.strictEqual(window.gameState.selectedTool, "p20_micropipette");
     assert.strictEqual(window.gameState.heldLiquid.liquid, "trypan_blue");
     dispose();
   });

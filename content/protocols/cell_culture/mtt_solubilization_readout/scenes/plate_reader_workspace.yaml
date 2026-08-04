@@ -20,7 +20,6 @@ remove_placements:
   - center_water_bath
   - center_centrifuge
   - base_right_tip_box
-  - base_right_micropipette
 
 add_placements:
   # The reader scene stays reader-led, but the learner can still see the plate

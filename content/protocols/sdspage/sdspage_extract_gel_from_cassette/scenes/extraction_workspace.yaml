@@ -7,6 +7,21 @@ add_placements:
     zone: front_center
     depth_tier: 2
     align_stop: center
+  # Kept visible beside the stopped apparatus so the direct-entry state makes
+  # the seated buffer dam inspectable rather than silently recreating it.
+  - placement_name: front_right_electrophoresis_buffer_dam
+    object_name: electrophoresis_buffer_dam
+    zone: front_right
+    depth_tier: 2
+    align_stop: center
+  - placement_name: right_tool_area_electrophoresis_black_lead
+    object_name: electrophoresis_black_lead
+    zone: right_tool_area
+    depth_tier: 1
+  - placement_name: right_tool_area_electrophoresis_red_lead
+    object_name: electrophoresis_red_lead
+    zone: right_tool_area
+    depth_tier: 1
 
 remove_placements:
   # This extraction block uses the electrical assembly, gel cassette, opening

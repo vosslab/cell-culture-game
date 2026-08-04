@@ -1,6 +1,6 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_prepare_running_buffer
-entry_step: dilute_10x_concentrate
+entry_step: combine_concentrate_and_water
 initial_state:
   - target: running_buffer_preparation_carboy
     state: { material_name: empty, material_volume: 0 }
@@ -11,27 +11,22 @@ initial_state:
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
-    buffer dilution using serological pipettes, volume scaling for bulk reagent preparation,
-    and verification of final volume in a 1 L vessel.
+    calculating and preparing a bulk 1x working buffer from a 10x concentrate.
   outcomes:
-    Students completing this mini-protocol will be able to prepare 1 L of
-    1x running buffer by diluting 10x concentrate, using aseptic technique with a
-    serological pipette to accurately transfer 100 mL of concentrate and 900 mL of
-    ddH2O into a sterile carboy.
+    Students completing this mini-protocol will be able to combine 100 mL of
+    10x Tris/Glycine/SDS concentrate with 900 mL of deionized water in a 1 L carboy
+    and confirm the final 1 L volume and 1x identity.
   goals:
-    Overall, this mini-protocol aims to accomplish preparing a large-volume working
-    stock of running buffer (1 L of 1x Tris/Glycine/SDS) from a concentrated stock
-    -- the fundamental task that precedes all gel-running protocols and teaches proper
-    use of large-volume transfer tools and bulk vessel handling.
+    Overall, this mini-protocol aims to accomplish preparing the working running
+    buffer that conducts current through the electrophoresis apparatus.
 steps:
-  - step_name: dilute_10x_concentrate
-    prompt:
-      Prepare the 1x running buffer by first diluting the 10x concentrate. Set
-      the serological pipette to 25 mL, and make four aspirations and dispersals to
-      transfer a total of 100 mL of 10x buffer from the concentrate bottle into the
-      1 L carboy.
+  - step_name: combine_concentrate_and_water
+    prompt: |
+      Prepare 1 L of 1x running buffer: transfer 100 mL of 10x concentrate into
+      the labeled 1 L carboy, then add deionized water to the 1 L mark (900 mL).
+      This is a bulk preparation, not a 25 mL pipette-setpoint exercise.
     sequence:
-      - target: serological_pipette
+      - target: running_buffer_10x_bottle
         gesture: click
         validator:
           preset: correct_target
@@ -39,24 +34,9 @@ steps:
           scene_operations:
             - type: SceneChange
               to_scene: sdspage_prepare_running_buffer_workspace
-      - target: serological_pipette
-        gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 25
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: serological_pipette
-              state:
-                set_volume: 25
-      - target: running_buffer_10x_bottle
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
+            - type: CursorAttach
+              target: running_buffer_10x_bottle
+              operation: attach
       - target: running_buffer_preparation_carboy
         gesture: click
         validator:
@@ -73,44 +53,18 @@ steps:
               state:
                 material_name: running_buffer_10x
                 material_volume: 100
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: add_diluent_water
-  - step_name: add_diluent_water
-    prompt:
-      Complete the buffer preparation by adding ddH2O. Set the serological pipette
-      to 25 mL, and make multiple aspirations and dispersals to transfer a total of
-      900 mL of deionized water from the ddH2O carboy into the preparation carboy
-      to reach a final volume of 1 L total. Verify the carboy holds 1 L total before
-      storing.
-    sequence:
-      - target: serological_pipette
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
-      - target: serological_pipette
-        gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 25
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: serological_pipette
-              state:
-                set_volume: 25
+            - type: CursorAttach
+              target: running_buffer_10x_bottle
+              operation: detach
       - target: ddh2o_carboy
         gesture: click
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: CursorAttach
+              target: ddh2o_carboy
+              operation: attach
       - target: running_buffer_preparation_carboy
         gesture: click
         validator:
@@ -127,6 +81,12 @@ steps:
               state:
                 material_name: running_buffer_1x
                 material_volume: 1000
+            - type: CursorAttach
+              target: ddh2o_carboy
+              operation: detach
+          feedback:
+            correct: The carboy now contains 1 L of 1x Tris/Glycine/SDS running buffer.
+            incorrect: Transfer the 10x concentrate before adding water to the final mark.
     step_validator:
       preset: sequence_complete
     outcome:

@@ -1,14 +1,22 @@
 // Browser acceptance for the in-flow type and adjust control hosts.
 //
-// The cell-seeding protocol starts with an authored immediate `adjust` action,
-// making it a real protocol fixture for rejection, recovery, and Enter commit.
-// The correct 2.4 mL set point is part of that protocol's teaching content; the
-// test drives it only through the learner-visible numeric input.
+// The Trypan Blue protocol reaches an authored `adjust` action after the learner
+// visibly selects the P20 and mounts a fresh tip. The correct 10 microliter set
+// point is part of that protocol's teaching content; the test drives it only
+// through the learner-visible numeric input.
 
 import { test, expect, type Page } from "@playwright/test";
 
-const PROTOCOL = "cell_seeding_plate_setup";
-const TEACHING_SET_POINT = "2.4";
+const PROTOCOL = "trypan_blue_counting";
+const TEACHING_SET_POINT = "10";
+
+async function openFirstAdjustControl(page: Page): Promise<void> {
+  const activeTarget = page.locator("#scene-root [data-item-id][data-affordance='active']");
+  await expect(activeTarget).toHaveCount(1);
+  await activeTarget.click();
+  await expect(activeTarget).toHaveCount(1);
+  await activeTarget.click();
+}
 
 interface PanelLayout {
   panelPosition: string;
@@ -71,6 +79,7 @@ for (const viewport of [
   }) => {
     await page.setViewportSize({ width: viewport.width, height: viewport.height });
     await page.goto(`/${PROTOCOL}.html`, { waitUntil: "networkidle" });
+    await openFirstAdjustControl(page);
 
     const controls = page.locator('[data-region="interaction-controls"]');
     const adjustPanel = page.locator("[data-adjust-panel]");
@@ -103,6 +112,7 @@ for (const viewport of [
 test("shell=off retains a functional in-flow adjust root", async ({ page }) => {
   await page.setViewportSize({ width: 820, height: 928 });
   await page.goto(`/${PROTOCOL}.html?shell=off`, { waitUntil: "networkidle" });
+  await openFirstAdjustControl(page);
 
   await expect(page.locator("#shell-root")).toBeEmpty();
   await expect(page.locator("#adjust-editor-root")).toBeAttached();

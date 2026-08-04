@@ -1,0 +1,25 @@
+object_name: manual_count_85_live_7_dead
+kind: decoration
+label: 85 live / 7 dead
+
+state_fields:
+  - field_name: visible
+    type: bool
+    default: true
+    description: Whether this count interpretation is visible.
+
+visual_states:
+  visible:
+    kind: svg
+    cases:
+      - when: true
+        output: { asset_name: interpretation_choice_card }
+      - when: false
+        output: { asset_name: interpretation_choice_card }
+
+capabilities: [clickable]
+
+layout:
+  default_width: 14
+  display_width_cm: 18
+  label_width: 18

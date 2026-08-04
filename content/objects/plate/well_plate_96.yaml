@@ -118,6 +118,50 @@ structure:
               G7, G8, G9, G10, G11, G12,
               H7, H8, H9, H10, H11, H12,
             ]
+        - name: row_B_1_6
+          contains: [B1, B2, B3, B4, B5, B6]
+        - name: row_B_7_12
+          contains: [B7, B8, B9, B10, B11, B12]
+        - name: row_C_1_6
+          contains: [C1, C2, C3, C4, C5, C6]
+        - name: row_C_7_12
+          contains: [C7, C8, C9, C10, C11, C12]
+        - name: row_D_1_6
+          contains: [D1, D2, D3, D4, D5, D6]
+        - name: row_D_7_12
+          contains: [D7, D8, D9, D10, D11, D12]
+        - name: row_E_1_6
+          contains: [E1, E2, E3, E4, E5, E6]
+        - name: row_E_7_12
+          contains: [E7, E8, E9, E10, E11, E12]
+        - name: row_F_1_6
+          contains: [F1, F2, F3, F4, F5, F6]
+        - name: row_F_7_12
+          contains: [F7, F8, F9, F10, F11, F12]
+        - name: row_G_1_6
+          contains: [G1, G2, G3, G4, G5, G6]
+        - name: row_G_7_12
+          contains: [G7, G8, G9, G10, G11, G12]
+        - name: row_H_1_6
+          contains: [H1, H2, H3, H4, H5, H6]
+        - name: row_H_7_12
+          contains: [H7, H8, H9, H10, H11, H12]
+        - name: block_A_D_7_12
+          contains:
+            [
+              A7, A8, A9, A10, A11, A12,
+              B7, B8, B9, B10, B11, B12,
+              C7, C8, C9, C10, C11, C12,
+              D7, D8, D9, D10, D11, D12,
+            ]
+        - name: block_E_H_7_12
+          contains:
+            [
+              E7, E8, E9, E10, E11, E12,
+              F7, F8, F9, F10, F11, F12,
+              G7, G8, G9, G10, G11, G12,
+              H7, H8, H9, H10, H11, H12,
+            ]
 
 state_fields:
   - field_name: inspection_status
@@ -126,6 +170,12 @@ state_fields:
     default: not_inspected
     applies_to: object
     description: Plate-level inspection status from microscopy.
+  - field_name: assay_status
+    type: enum
+    allowed: [not_started, crystals_retained, dry, dissolved]
+    default: not_started
+    applies_to: object
+    description: Visible MTT assay state after decanting, drying, and DMSO dissolution.
   # Per-well material identity. Per D1 the object declares only the closed
   # sentinel allowlist [empty, mixed]; registry-backed curriculum materials
   # are accepted by the stepper predicate, not enumerated here.
@@ -159,19 +209,37 @@ visual_states:
         output: { asset_name: 96well_pcr_plate }
       - when: cells_healthy
         output: { asset_name: 96well_pcr_plate }
+  assay_status:
+    # Dry precipitate is not liquid volume. Keep material_volume at zero after
+    # decanting and render the retained condition-dependent crystals as a
+    # separate full-frame plate layer until DMSO trituration dissolves them.
+    kind: composite
+    cases:
+      - when: not_started
+        output: { composite: [] }
+      - when: crystals_retained
+        output:
+          composite:
+            - { asset_name: well_plate_formazan_crystals }
+      - when: dry
+        output:
+          composite:
+            - { asset_name: well_plate_formazan_crystals }
+      - when: dissolved
+        output: { composite: [] }
   # Identity layer: each well is tinted by its own material identity. The
   # color comes from the resolved material display_color; no hex appears here.
   material_name:
     applies_to: subpart
     render_effect: material_tint
     target: subpart_geometry
-  # Amount layer is out of scope for this plan (D5: no fill_height on wells).
-  # material_volume has no visual effect yet, declared with an explicit empty
-  # composite so absence stays loud.
+  # Amount is a separate per-well visual layer. It makes the teaching-critical
+  # 90/95/100/195/200 &micro;L states visibly distinct without encoding identity.
   material_volume:
-    kind: composite
     applies_to: subpart
-    composite: []
+    render_effect: fill_height
+    target: subpart_geometry
+    capacity_ul: 300
 
 capabilities: [clickable, structured_surface, material_container]
 

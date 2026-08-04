@@ -6,7 +6,13 @@ that carry a decoded glyph are asserted via chr(codepoint) rather than a
 literal character, so this test file stays ASCII-only.
 """
 
+import pathlib
+import re
+
 import pipeline.entity_decode
+
+
+REPO_ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 
 def test_decode_named_entity_micro() -> None:
@@ -47,3 +53,37 @@ def test_decode_entity_adjacent_to_punctuation() -> None:
 def test_decode_unknown_named_entity_passes_through() -> None:
 	decoded = pipeline.entity_decode.decode_entities("&notarealentity;")
 	assert decoded == "&notarealentity;"
+
+
+#============================================
+
+def test_decode_entity_values_normalizes_nested_yaml_strings() -> None:
+	"""Object enum values and visual cases share the protocol Unicode vocabulary."""
+	authored = {
+		"state_fields": [{
+			"allowed": ["unlabeled", "400 &micro;M"],
+			"default": "unlabeled",
+		}],
+		"visual_states": {"label": {"formula": "value=&micro;M"}},
+		"capacity": 1000,
+	}
+
+	decoded = pipeline.entity_decode.decode_entity_values(authored)
+	micro = chr(0x00B5)
+
+	assert decoded["state_fields"][0]["allowed"][1] == f"400 {micro}M"
+	assert decoded["visual_states"]["label"]["formula"] == f"value={micro}M"
+	assert decoded["capacity"] == 1000
+
+
+#============================================
+
+def test_authored_content_uses_entity_micro_units() -> None:
+	"""Authored YAML uses HTML entities so codegen owns Unicode decoding."""
+	raw_unit_pattern = re.compile(r"\bu(?:M|L)\b")
+	violations = []
+	for path in sorted((REPO_ROOT / "content").rglob("*.yaml")):
+		if raw_unit_pattern.search(path.read_text(encoding="utf-8")):
+			violations.append(str(path.relative_to(REPO_ROOT)))
+
+	assert violations == [], "raw uM/uL spellings found: " + ", ".join(violations)

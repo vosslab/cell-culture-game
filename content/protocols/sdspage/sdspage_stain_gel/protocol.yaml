@@ -1,6 +1,13 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_stain_gel
 entry_step: rinse_tray
+initial_state:
+  - target: staining_tray
+    state: { material_name: empty, material_volume: 0, gel_present: true, gel_state: separated_unstained, lane_pattern: samples_1_to_3_ladder_5 }
+  - target: ddh2o_bottle
+    state: { material_name: ddh2o, material_volume: 700 }
+  - target: coomassie_stain_bottle
+    state: { material_name: coomassie_stain, material_volume: 250, label_status: coomassie_stock }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
@@ -20,8 +27,8 @@ learning:
 steps:
   - step_name: rinse_tray
     prompt:
-      Rinse the staining tray with ddH2O. Pour water into the tray, then discard
-      the rinse to the waste container.
+      Rinse the tray while the gel stays flat in it. Pour water around, not onto, the
+      gel, then discard only the rinse to the waste container.
     sequence:
       - target: staining_tray
         gesture: click
@@ -70,7 +77,7 @@ steps:
       on_failure: retry
     next_step: add_stain
   - step_name: add_stain
-    prompt: Pour Coomassie stain solution into the rinsed staining tray.
+    prompt: Add enough Coomassie stain to cover the gel by about 1.5 cm. The tray should visibly contain stain while the gel is immersed.
     sequence:
       - target: coomassie_stain_bottle
         gesture: click
@@ -84,11 +91,16 @@ steps:
                 material_name: coomassie_stain
                 material_volume: 250
                 gel_state: stained
+                lane_pattern: samples_1_to_3_ladder_5
+                coverage_depth_cm: 1.5
             - type: ObjectStateChange
               target: coomassie_stain_bottle
               state:
                 material_name: empty
                 material_volume: 0
+          feedback:
+            correct: "The gel remains oriented in the tray and is visibly covered by 1.5 cm of Coomassie stain."
+            incorrect: "Add the Coomassie stain to the rinsed tray."
     step_validator:
       preset: sequence_complete
     outcome:
@@ -98,9 +110,8 @@ steps:
   - step_name: microwave_stain
     prompt:
       Place the staining tray in the microwave. Set the timer for 50 seconds and
-      start the heating to accelerate stain binding to the protein. When removing the
-      tray from the microwave, avoid breathing deeply - heated Coomassie emits strong
-      fumes.
+      start heating to accelerate stain binding. Stop if stain starts to boil; handle
+      heated stain only with the course-approved ventilation and local SOP.
     sequence:
       - target: microwave
         gesture: click
@@ -136,6 +147,10 @@ steps:
               target: microwave
               state:
                 running: false
+                heating_outcome: heated_without_boiling
+          feedback:
+            correct: "Heating is complete without boiling; transfer the covered gel to gentle rocking."
+            incorrect: "Set the microwave timer and start the short stain-heating interval."
     step_validator:
       preset: sequence_complete
     outcome:
@@ -144,8 +159,7 @@ steps:
     next_step: transfer_to_rocker
   - step_name: transfer_to_rocker
     prompt:
-      Transfer the staining tray to the rocking shaker. Set the time for 7 minutes
-      and start the shaker for agitated incubation.
+      Transfer the staining tray to the rocking shaker. Set 7 minutes and start gentle rocking; high speed can slosh stain out of the tray.
     sequence:
       - target: staining_tray
         gesture: click
@@ -191,6 +205,9 @@ steps:
               target: rocking_shaker
               state:
                 running: false
+          feedback:
+            correct: "Gentle rocking distributed stain across the immersed gel. The used stain can now be recovered and labeled."
+            incorrect: "Set the rocking time and start gentle agitation."
     step_validator:
       preset: sequence_complete
     outcome:
@@ -199,8 +216,10 @@ steps:
     next_step: recover_stain
   - step_name: recover_stain
     prompt:
-      Pour the used stain from the tray into the Coomassie recycle bottle for
-      reuse.
+      Recover the used stain in the Coomassie recycle bottle. Confirm its fixed-course
+      label records used Coomassie stain, today's laboratory date, and the course/batch;
+      then cap it and return it to designated stain storage. Retain the gel in the tray
+      for its two water rinses before destaining.
     sequence:
       - target: coomassie_recycle_bottle
         gesture: click
@@ -213,11 +232,20 @@ steps:
               state:
                 material_name: coomassie_stain_used
                 material_volume: 250
+                label_status: coomassie_recycle_complete
+                stain_identity_status: used_coomassie_stain
+                date_status: date_recorded
+                course_batch_status: course_batch_recorded
+                cap_status: closed
+                storage_status: designated_stain_storage
             - type: ObjectStateChange
               target: staining_tray
               state:
                 material_name: empty
                 material_volume: 0
+          feedback:
+            correct: "Used Coomassie is recovered with its identity, date, and course/batch recorded; the bottle is capped in designated stain storage, and the gel remains in the tray for its next rinse."
+            incorrect: "Recover the used stain in the Coomassie recycle bottle, then verify the visible label, closed cap, and designated storage state."
     step_validator:
       preset: sequence_complete
     outcome:

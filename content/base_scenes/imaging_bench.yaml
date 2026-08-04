@@ -98,17 +98,12 @@ placements:
     depth_tier: 1
     align_stop: center
 
-  # Right tool area: micropipette and waste container (protocol target)
-  - placement_name: right_micropipette
-    object_name: micropipette
-    zone: right_tool_area
-    depth_tier: 1
-    align_stop: left
+  # Right tool area: waste container
   - placement_name: right_waste_container
     object_name: waste_container
     zone: right_tool_area
     depth_tier: 1
-    align_stop: right
+    align_stop: center
 
 layout_rules:
   label_line_height: 1.1

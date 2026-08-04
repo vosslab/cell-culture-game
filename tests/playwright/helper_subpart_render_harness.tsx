@@ -21,7 +21,7 @@
 // write:
 //   - mixed       -> the built-in color #686868 (painted, no registry needed)
 //   - empty       -> null color -> fill "transparent" (no fill; base art shows)
-//   - carboplatin -> a REGISTERED drug -> its scalar display_color #a719db
+//   - carboplatin_200umol -> a REGISTERED drug -> its scalar display color
 //     (registry-backed acceptance + registry-backed color, end to end)
 //
 // The registry is supplied to BOTH the store (acceptance) and mountScene (color
@@ -39,12 +39,12 @@ import type { MaterialRegistry } from "../../src/scene_runtime/renderer/visual_s
 const SCENE_NAME = "plate_focus_bench";
 const PLATE_OBJECT = "well_plate_96";
 
-// A small material registry. carboplatin is the registered drug the drug-color
-// render proof writes; its scalar display_color #a719db matches the production
+// A small material registry. carboplatin_200umol is the registered drug the
+// drug-color render proof writes; its scalar display color matches the production
 // registry (generated/protocol_materials.ts). media exercises a second registry
 // entry. The sentinels (mixed, empty) need no registry entry.
 const MATERIAL_REGISTRY: MaterialRegistry = {
-  carboplatin: { label: "Carboplatin solution", display_color: "#a719db" },
+  carboplatin_200umol: { label: "200 \u00B5M carboplatin", display_color: "#71158f" },
   media: { label: "Growth media", display_color: "#e87fb0" },
 };
 

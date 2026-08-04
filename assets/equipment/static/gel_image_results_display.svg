@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 500">
+  <rect x="8" y="8" width="884" height="484" rx="20" fill="#eef7ff" stroke="#173b49" stroke-width="5"/>
+  <text x="32" y="50" fill="#173b49" font-family="Arial, sans-serif" font-size="30" font-weight="700">Representative captured SDS-PAGE image</text>
+  <text x="32" y="82" fill="#315c69" font-family="Arial, sans-serif" font-size="19">Group A * wells at top * samples in lanes 1-3 * molecular-weight ladder in lane 5</text>
+  <rect x="70" y="108" width="500" height="340" rx="10" fill="#d9e9fb" stroke="#315c69" stroke-width="3"/>
+  <g fill="#173b49" font-family="Arial, sans-serif" font-size="20" font-weight="700">
+    <text x="137" y="136">1</text><text x="217" y="136">2</text><text x="297" y="136">3</text><text x="377" y="136">4</text><text x="454" y="136">L5</text>
+  </g>
+  <g fill="#ffffff" stroke="#6d8fa0" stroke-width="2"><rect x="116" y="145" width="48" height="18"/><rect x="196" y="145" width="48" height="18"/><rect x="276" y="145" width="48" height="18"/><rect x="356" y="145" width="48" height="18"/><rect x="436" y="145" width="48" height="18"/></g>
+  <g stroke="#bfd0e0" stroke-width="2"><path d="M180 145V424M260 145V424M340 145V424M420 145V424M500 145V424"/></g>
+  <g fill="#274b9f"><rect x="116" y="338" width="48" height="12" rx="5"/><rect x="196" y="336" width="48" height="13" rx="5"/><rect x="276" y="339" width="48" height="12" rx="5"/></g>
+  <g fill="#274b9f"><rect x="440" y="192" width="40" height="7" rx="3"/><rect x="440" y="230" width="40" height="7" rx="3"/><rect x="440" y="272" width="40" height="7" rx="3"/><rect x="440" y="337" width="40" height="7" rx="3"/><rect x="440" y="374" width="40" height="7" rx="3"/><rect x="440" y="410" width="40" height="7" rx="3"/></g>
+  <g fill="#173b49" font-family="Arial, sans-serif" font-size="16"><text x="506" y="199">75 kDa</text><text x="506" y="237">50</text><text x="506" y="279">37</text><text x="506" y="344">25</text><text x="506" y="381">20</text><text x="506" y="417">15</text></g>
+  <path d="M330 344H402" stroke="#287a51" stroke-width="4"/><path d="M399 336L414 344L399 352" fill="#287a51"/>
+  <text x="589" y="174" fill="#1c6745" font-family="Arial, sans-serif" font-size="23" font-weight="700">SUPPORTED RESULT</text>
+  <text x="589" y="210" fill="#173b49" font-family="Arial, sans-serif" font-size="21">Strong band at 24-28 kDa</text>
+  <text x="589" y="239" fill="#173b49" font-family="Arial, sans-serif" font-size="21">in sample lanes 1-3</text>
+  <text x="589" y="268" fill="#173b49" font-family="Arial, sans-serif" font-size="21">No prominent extra bands</text>
+  <rect x="589" y="300" width="272" height="122" rx="14" fill="#ffffff" stroke="#6d8fa0" stroke-width="2"/>
+  <text x="610" y="333" fill="#173b49" font-family="Arial, sans-serif" font-size="19" font-weight="700">Capture record</text>
+  <text x="610" y="363" fill="#315c69" font-family="Arial, sans-serif" font-size="17">Lane map: Group A recorded</text>
+  <text x="610" y="390" fill="#315c69" font-family="Arial, sans-serif" font-size="17">Quality: sharp, evenly lit</text>
+  <text x="610" y="417" fill="#315c69" font-family="Arial, sans-serif" font-size="17">Orientation: wells top</text>
+  <text x="450" y="476" text-anchor="middle" fill="#315c69" font-family="Arial, sans-serif" font-size="18">Interpret the band pattern before completing the protocol.</text>
+</svg>

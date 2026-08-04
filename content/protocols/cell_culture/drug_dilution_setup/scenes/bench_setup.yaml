@@ -40,6 +40,12 @@ add_placements:
     depth_tier: 1
     align_stop: left
 
+  - placement_name: rear_center_calculation_pad
+    object_name: calculation_pad
+    zone: rear_center
+    depth_tier: 1
+    align_stop: right
+
   # Metformin working tube at center (center stop)
   - placement_name: center_metformin_working_tube
     object_name: metformin_working_tube
@@ -59,10 +65,20 @@ add_placements:
     depth_tier: 1
     align_stop: right
 
-reposition_placements:
-  # Collapse the inherited micropipette from tier 2 to tier 1 so the whole sparse
-  # scene renders as a single tier-row. The scene is 96% empty, so the objects fit
-  # side by side horizontally, and dropping the second tier-row removes its label
-  # overhead from the vertical stack fit, raising the scene-wide scale factor.
-  - placement_name: base_right_micropipette
+  - placement_name: right_p20_micropipette
+    object_name: p20_micropipette
+    zone: right_tool_area
     depth_tier: 1
+    align_stop: center
+
+  - placement_name: right_p200_micropipette
+    object_name: p200_micropipette
+    zone: right_tool_area
+    depth_tier: 2
+    align_stop: center
+
+  - placement_name: right_p1000_micropipette
+    object_name: p1000_micropipette
+    zone: right_tool_area
+    depth_tier: 3
+    align_stop: center

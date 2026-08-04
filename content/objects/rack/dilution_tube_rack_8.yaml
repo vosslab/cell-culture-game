@@ -10,12 +10,19 @@ structure:
   name_pattern: "tube_{row_letter}"
 
 state_fields:
+  - field_name: rack_status
+    type: enum
+    allowed: [ready]
+    default: ready
+    description: Static rack form supporting per-tube material overlays.
   - field_name: material_name
     type: enum
-    allowed: [empty, carboplatin, media]
+    allowed: [empty, mixed]
     default: empty
     applies_to: subpart
-    description: Contents currently in this tube.
+    description: Contents currently in this tube. Registered lesson materials are
+      accepted at runtime, so this shared rack does not encode a single course's
+      stock vocabulary.
   - field_name: material_volume
     type: float
     unit: ul
@@ -24,24 +31,34 @@ state_fields:
     default: 0
     applies_to: subpart
     description: Volume of contents in this tube, in microliters.
+  - field_name: concentration_label
+    type: enum
+    allowed:
+      - unlabeled
+      - "B: 4 &micro;M; C: 8 &micro;M; D: 20 &micro;M; E: 40 &micro;M; F: 80 &micro;M; G: 200 &micro;M; 400 &micro;M parent: separate tube"
+    default: unlabeled
+    applies_to: object
+    description: Optional readable mapping supplied by a protocol after it labels
+      its working-stock series; the shared rack begins unlabeled.
 
 visual_states:
-  material_name:
+  rack_status:
     kind: svg
-    applies_to: subpart
     cases:
-      - when: empty
+      - when: ready
         output: { asset_name: dilution_tube_rack }
-      - when: carboplatin
-        output: { asset_name: dilution_tube_rack }
-      - when: media
-        output: { asset_name: dilution_tube_rack }
-  material_volume:
-    # Tube volume is retained as state.  Rendering individual rack contents
-    # is a structured-subpart question, not a whole-vessel material effect.
-    kind: composite
+  material_name:
     applies_to: subpart
-    composite: []
+    render_effect: material_tint
+    target: subpart_geometry
+  material_volume:
+    applies_to: subpart
+    render_effect: fill_height
+    target: subpart_geometry
+    capacity_ul: 1000
+  concentration_label:
+    kind: overlay
+    formula: 'label(state(concentration_label), format="{value}")'
 
 capabilities: [clickable, structured_surface, material_container]
 

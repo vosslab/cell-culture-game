@@ -165,18 +165,26 @@ export async function readVisibleAdjustValue(page, target) {
 
 // Wait for the read-only walker surfaces to appear (after load and after reload).
 export async function waitForExports(page, timeoutMs = 8000) {
-  await page.waitForFunction(
-    () => {
-      return (
-        typeof window.gameState !== "undefined" &&
-        typeof window.PROTOCOL_STEPS !== "undefined" &&
-        Array.isArray(window.PROTOCOL_STEPS) &&
-        window.PROTOCOL_STEPS.length > 0
-      );
-    },
-    undefined,
-    { timeout: timeoutMs },
-  );
+  try {
+    await page.waitForFunction(
+      () => {
+        return (
+          typeof window.gameState !== "undefined" &&
+          typeof window.PROTOCOL_STEPS !== "undefined" &&
+          Array.isArray(window.PROTOCOL_STEPS) &&
+          window.PROTOCOL_STEPS.length > 0
+        );
+      },
+      undefined,
+      { timeout: timeoutMs },
+    );
+  } catch (error) {
+    const pageError = latestPageError(page);
+    if (pageError !== null) {
+      throw new Error(`protocol_runtime_did_not_mount: ${pageError}`, { cause: error });
+    }
+    throw error;
+  }
 }
 
 //============================================

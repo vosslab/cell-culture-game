@@ -1,0 +1,25 @@
+object_name: electrophoresis_endpoint_display
+kind: equipment
+label: Magnified tracking-dye endpoint
+
+state_fields:
+  - field_name: visible
+    type: bool
+    default: true
+    description: Whether the fixed near-bottom tracking-dye observation is visible.
+
+visual_states:
+  visible:
+    kind: svg
+    cases:
+      - when: true
+        output: { asset_name: electrophoresis_endpoint_display }
+      - when: false
+        output: { asset_name: electrophoresis_endpoint_display }
+
+capabilities: [decoration_only]
+
+layout:
+  default_width: 56
+  display_width_cm: 58
+  label_width: 28

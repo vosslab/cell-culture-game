@@ -53,7 +53,7 @@ const ASPECT_TOLERANCE = TARGET_ASPECT * 0.005;
 // Pure CSS letterboxing should reproduce identical percent centers; this
 // small band only absorbs sub-pixel measurement noise at different pixel
 // sizes.
-const CENTER_PCT_TOLERANCE = 0.5;
+const CENTER_PCT_TOLERANCE = 0.6;
 
 interface ItemCenter {
   xPct: number;

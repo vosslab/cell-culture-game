@@ -1,26 +1,41 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_run_electrophoresis
 entry_step: set_voltage
+initial_state:
+  - target: electrophoresis_tank
+    state: { lid_present: true, module_present: true }
+  - target: electrode_module
+    state: { mounted: true, cassette_mounted: true, wing_clamps_open: false }
+  - target: electrophoresis_buffer_dam
+    state: { seated: true }
+  - target: electrophoresis_black_lead
+    state: { attached: true }
+  - target: electrophoresis_red_lead
+    state: { attached: true }
+  - target: gel_cassette
+    state: { tape_present: false, comb_present: false, wing_clamps_locked: true, migration_state: not_started, lane_pattern: samples_1_to_3_ladder_5 }
+  - target: electrophoresis_inner_chamber
+    state: { material_name: running_buffer_1x, material_volume: 200, fill_state: filled }
+  - target: electrophoresis_outer_chamber
+    state: { material_name: running_buffer_1x, material_volume: 500, fill_state: filled }
+  - target: power_supply
+    state:
+      { running: false, cathode_lead_attached: true, anode_lead_attached: true }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
-    operating a power supply and understanding the voltage settings and timing required
-    for SDS-PAGE electrophoresis.
+    setting the power supply and stopping an SDS-PAGE run when the tracking dye reaches
+    its safe endpoint.
   outcomes:
-    Students completing this mini-protocol will be able to set the power supply
-    to the appropriate voltage, initiate the electrophoresis run, monitor the run
-    for the required duration, and safely stop the power supply after separation is
-    complete.
+    Students completing this mini-protocol will be able to set 150 V, start a lidded
+    and connected apparatus, monitor the run for 30 minutes, and turn off the supply when
+    the tracking dye is near the bottom of the gel.
   goals:
-    Overall, this mini-protocol aims to accomplish the critical step of running
-    the SDS-PAGE gel at the correct voltage for the appropriate duration to achieve
-    protein separation.
+    Overall, this mini-protocol aims to accomplish electrophoretic separation while
+    connecting the voltage and stop decision to the observable migration endpoint.
 steps:
   - step_name: set_voltage
-    prompt:
-      "Set the power supply to 150 volts for electrophoresis. Alternative: 200
-      V for 20-25 min produces equivalent results; this protocol uses 150 V for 30 min
-      by default."
+    prompt: Set the power supply to 150 V for this 30-minute SDS-PAGE run.
     sequence:
       - target: power_supply
         gesture: adjust
@@ -36,17 +51,19 @@ steps:
               target: power_supply
               state:
                 set_voltage: 150
+          feedback:
+            correct: The supply is set to 150 V.
+            incorrect: Set the electrophoresis supply to 150 V.
     step_validator:
       preset: sequence_complete
     outcome:
       on_success: complete
       on_failure: retry
-    next_step: start_run
-  - step_name: start_run
+    next_step: run_to_tracking_dye_endpoint
+  - step_name: run_to_tracking_dye_endpoint
     prompt:
-      Start the electrophoresis run. Confirm the tank lid is in place and your
-      hands are dry before powering on; high voltage is present at the banana plugs
-      once the run starts. Do not open the lid mid-run.
+      Start the run with the lid seated and both leads connected. Monitor the gel at
+      150 V for 30 minutes; the tracking dye should approach, not pass, the bottom edge.
     sequence:
       - target: power_supply
         gesture: click
@@ -58,31 +75,67 @@ steps:
               target: power_supply
               state:
                 running: true
+            - type: ObjectStateChange
+              target: gel_cassette
+              state:
+                migration_state: running
+            - type: TimedWait
+              target: power_supply
+              duration_min: 30
+              display: Running the gel at 150 V
+            - type: ObjectStateChange
+              target: gel_cassette
+              state:
+                migration_state: near_bottom
+            - type: SceneChange
+              to_scene: sdspage_run_electrophoresis_endpoint_review
+          feedback:
+            correct: Current is applied; the dye migrates through the visible gel and reaches the near-bottom stop zone after this timed interval.
+            incorrect: Start the connected electrophoresis power supply.
     step_validator:
       preset: sequence_complete
     outcome:
       on_success: complete
       on_failure: retry
-    next_step: wait_and_stop
-  - step_name: wait_and_stop
+    next_step: stop_at_tracking_dye_endpoint
+  - step_name: stop_at_tracking_dye_endpoint
     prompt:
-      Allow the gel to run for 30 minutes at 150 volts. When the run is complete,
-      stop the power supply.
+      The visible tracking dye is near the bottom of the gel. First choose the scientifically
+      appropriate endpoint decision, then turn off the power supply. Letting the dye run off
+      the gel compromises the separation before the apparatus is opened.
     sequence:
+      - target: electrophoresis_endpoint_stop_now
+        gesture: select
+        validator:
+          preset: correct_choice
+        response:
+          scene_operations: []
+          feedback:
+            correct: "Correct: stop now. The visible dye front is at the near-bottom endpoint, before it can run off the gel."
+            incorrect: "Do not continue this run: the visible dye front is already near the bottom of the gel. Select Stop now, then switch the supply off."
       - target: power_supply
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
-            - type: TimedWait
-              target: power_supply
-              duration_min: 30
-              display: Running gel electrophoresis
             - type: ObjectStateChange
               target: power_supply
               state:
                 running: false
+            - type: ObjectStateChange
+              target: gel_cassette
+              state:
+                gel_state: separated_unstained
+            - type: ObjectStateChange
+              target: electrophoresis_inner_chamber
+              state: { material_name: running_buffer_1x_used, material_volume: 200 }
+            - type: ObjectStateChange
+              target: electrophoresis_outer_chamber
+              state: { material_name: running_buffer_1x_used, material_volume: 500 }
+          feedback:
+            correct: Power is off at the visible endpoint; the lane-resolved gel is ready for safe removal.
+            incorrect: Turn off the power supply at the visible near-bottom tracking-dye endpoint to prevent an overrun.
     step_validator:
       preset: sequence_complete
     outcome:

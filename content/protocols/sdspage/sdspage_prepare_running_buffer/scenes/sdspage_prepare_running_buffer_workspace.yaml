@@ -2,23 +2,35 @@ scene_name: sdspage_prepare_running_buffer_workspace
 extends: electrophoresis_bench
 
 scene_notes: |
-  Electrophoresis bench workspace for preparing running buffer. Extends electrophoresis_bench
-  for the serological pipette and 10x concentrate bottle. This protocol replaces the inherited
-  filled 1x-buffer and 500 mL water vessels with an empty 1 L preparation carboy and a full 1 L
-  ddH2O carboy so each visible transfer has a truthful source and receiver.
+  Bulk-buffer preparation view. The three vessels alone remain in the working area
+  so the visible 100 mL plus water-to-1-L relationship, rather than an incidental
+  serological-pipette set point, is the student's focus.
 
 remove_placements:
   - center_running_buffer_1x_carboy
   - center_ddh2o_bottle
+  - rear_center_electrophoresis_tank
+  - rear_right_power_supply
+  - center_electrode_module
+  - center_serological_pipette
+  - center_p200_micropipette
+  - right_tool_area_p10_gel_loading_tip_box
+  - rear_left_protein_ladder_tube
+  - rear_left_recycle_buffer_bottle
+  - rear_right_gel_opening_tool
+  - front_left_mini_protean_gel
+  - front_center_gel_cassette
+  - front_center_waste_container
+  - front_right_gel_comb
 
 add_placements:
   - placement_name: center_running_buffer_preparation_carboy
     object_name: running_buffer_preparation_carboy
     zone: center
-    depth_tier: 2
+    depth_tier: 1
     align_stop: left
   - placement_name: center_ddh2o_carboy
     object_name: ddh2o_carboy
     zone: center
-    depth_tier: 2
-    align_stop: left
+    depth_tier: 1
+    align_stop: center

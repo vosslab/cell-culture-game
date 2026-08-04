@@ -1,13 +1,18 @@
 protocol_type: mini_protocol
 protocol_name: trypan_blue_counting
 entry_step: add_trypan_blue_to_chamber
+initial_state:
+  # A direct run begins with the retained resuspended passage fraction. The
+  # full runner carries this same state from passage_pellet_reseed instead.
+  - target: conical_15ml
+    state:
+      material_name: cell_suspension
+      material_volume: 6.86
 learning:
   objectives:
     "Students completing this mini-protocol will have achieved fluency with
 
-    hemocytometer use for manual cell counting and trypan blue exclusion
-
-    for viability assessment, as well as automated cell-counter operation
+    trypan blue exclusion sample preparation and automated cell-counter operation
 
     and viability-threshold interpretation.
 
@@ -16,35 +21,31 @@ learning:
 
     trypan-blue-stained cell suspension on a hemocytometer slide, perform
 
-    manual quadrant counting to estimate cell density and viability,
+    prepare a 1:1 trypan-blue cell mixture, load a hemocytometer chamber by capillary action,
 
     operate an automated cell counter, and interpret viability results
 
-    against a 90% threshold for downstream seeding decisions.
+    against the required greater-than-90% threshold for downstream seeding decisions.
 
     "
   goals: "Overall, this mini-protocol aims to accomplish the cell-counting and
 
     viability-assessment stage of the OVCAR8 passage workflow. It teaches
 
-    both manual hemocytometer counting (A20-A24) and automated cell-counter
+    trypan-blue exclusion sample preparation and automated cell-counter
 
-    operation (A25-A28) in sequence, allowing students to understand the
+    operation in sequence. The hemocytometer is used as the sample chamber;
 
-    classical technique before the modern instrument. The 9 steps reflect the
-
-    full pedagogical pathway from chamber preparation through viability gate
-
-    and decision point; no steps have been compressed or omitted.
+    the counter supplies the displayed count and viability result.
 
     "
 steps:
   - step_name: add_trypan_blue_to_chamber
     prompt:
-      Add 10 microL of Trypan Blue stain to the central diamond mixing chamber of a
-      clean hemocytometer slide.
+      Mount a fresh P20 tip, then add 10 microL of Trypan Blue stain to the central
+      diamond mixing chamber of a clean hemocytometer slide.
     sequence:
-      - target: micropipette
+      - target: p20_micropipette
         gesture: click
         validator:
           preset: correct_target
@@ -53,9 +54,22 @@ steps:
             - type: SceneChange
               to_scene: cell_counter_workspace
             - type: CursorAttach
-              target: micropipette
+              target: p20_micropipette
               operation: attach
-      - target: micropipette
+      - target: micropipette_tip_box
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: p20_micropipette
+              state:
+                tip_status: fresh
+          feedback:
+            correct: "Fresh P20 tip mounted before contacting the Trypan Blue source."
+            incorrect: "Mount a fresh P20 tip before drawing Trypan Blue."
+      - target: p20_micropipette
         gesture: adjust
         validator:
           preset: target_with_value
@@ -64,7 +78,7 @@ steps:
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
+              target: p20_micropipette
               state:
                 set_volume: 10
       - target: trypan_blue_tube
@@ -73,13 +87,13 @@ steps:
           preset: correct_target
         response:
           scene_operations:
-            # 10 uL = 0.01 mL; the pre-filled tube starts at 10 mL.
+            # 10 &micro;L = 0.01 mL; the pre-filled tube starts at 10 mL.
             - type: ObjectStateChange
               target: trypan_blue_tube
               state:
                 material_volume: 9.99
             - type: ObjectStateChange
-              target: micropipette
+              target: p20_micropipette
               state:
                 held_material_name: trypan_blue
                 held_material_volume: 10
@@ -95,10 +109,11 @@ steps:
                 material_name: trypan_blue
                 material_volume: 0.01
             - type: ObjectStateChange
-              target: micropipette
+              target: p20_micropipette
               state:
                 held_material_name: empty
                 held_material_volume: 0
+                tip_status: used
     step_validator:
       preset: sequence_complete
     outcome:
@@ -107,19 +122,31 @@ steps:
     next_step: add_cell_suspension_to_chamber
   - step_name: add_cell_suspension_to_chamber
     prompt:
-      Add 10 microL of cell suspension to the same central diamond chamber, mixing with
-      the Trypan Blue.
+      Use a fresh tip to add 10 microL cell suspension to the central diamond chamber, making a 1:1 mixture with Trypan Blue.
     sequence:
-      - target: micropipette
+      - target: micropipette_tip_box
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: p20_micropipette
+              state:
+                tip_status: fresh
+          feedback:
+            correct: "Fresh tip selected before contacting the cell-suspension source."
+            incorrect: "Select a new sterile tip before drawing cell suspension; the prior tip contacted Trypan Blue."
+      - target: p20_micropipette
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: CursorAttach
-              target: micropipette
+              target: p20_micropipette
               operation: attach
-      - target: micropipette
+      - target: p20_micropipette
         gesture: adjust
         validator:
           preset: target_with_value
@@ -128,22 +155,22 @@ steps:
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
+              target: p20_micropipette
               state:
                 set_volume: 10
-      - target: cell_suspension_tube
+      - target: conical_15ml
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
-            # The counted suspension tube is pre-filled with 15 mL.
+            # The conical carries the resuspended passage fraction.
             - type: ObjectStateChange
-              target: cell_suspension_tube
+              target: conical_15ml
               state:
-                material_volume: 14.99
+                material_volume: 6.85
             - type: ObjectStateChange
-              target: micropipette
+              target: p20_micropipette
               state:
                 held_material_name: cell_suspension
                 held_material_volume: 10
@@ -159,10 +186,11 @@ steps:
                 material_name: trypan_blue_mixture
                 material_volume: 0.02
             - type: ObjectStateChange
-              target: micropipette
+              target: p20_micropipette
               state:
                 held_material_name: empty
                 held_material_volume: 0
+                tip_status: used
     step_validator:
       preset: sequence_complete
     outcome:
@@ -171,17 +199,17 @@ steps:
     next_step: mix_by_pipetting
   - step_name: mix_by_pipetting
     prompt:
-      Mix the Trypan Blue and cell suspension by pipetting up and down 3-4 times
-      to ensure even staining.
+      Gently pipette the 1:1 Trypan Blue-cell mixture up and down three times. Watch the
+      visible cycle counter; homogeneous mixing is required before chamber loading.
     sequence:
-      - target: micropipette
+      - target: p20_micropipette
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: CursorAttach
-              target: micropipette
+              target: p20_micropipette
               operation: attach
       - target: hemocytometer_slide.diamond
         gesture: click
@@ -193,6 +221,49 @@ steps:
               target: hemocytometer_slide.diamond
               state:
                 material_name: trypan_blue_mixture
+            - type: ObjectStateChange
+              target: hemocytometer_slide
+              state:
+                mix_cycles: 1
+      - target: hemocytometer_slide.diamond
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: hemocytometer_slide.diamond
+              state:
+                material_name: trypan_blue_mixture
+            - type: ObjectStateChange
+              target: hemocytometer_slide
+              state:
+                mix_cycles: 2
+      - target: hemocytometer_slide.diamond
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: hemocytometer_slide.diamond
+              state:
+                material_name: trypan_blue_mixture
+            - type: ObjectStateChange
+              target: hemocytometer_slide
+              state:
+                mix_cycles: 3
+            - type: ObjectStateChange
+              target: hemocytometer_slide
+              state:
+                mixture_homogeneous: true
+            - type: ObjectStateChange
+              target: p20_micropipette
+              state:
+                tip_status: used
+          feedback:
+            correct: "Three gentle cycles completed; the mixture is visibly homogeneous and ready for capillary loading."
+            incorrect: "Complete all three gentle mixing cycles before loading the chamber."
     step_validator:
       preset: sequence_complete
     outcome:
@@ -201,19 +272,18 @@ steps:
     next_step: load_semicircle_chamber
   - step_name: load_semicircle_chamber
     prompt:
-      Aspirate 10 microL from the central diamond mixing chamber, then load it into the
-      right-hand semicircle loading chamber of the hemocytometer.
+      Draw 10 microL from the central diamond mixing chamber, then touch the right-hand chamber edge so capillary action loads the semicircle without bubbles.
     sequence:
-      - target: micropipette
+      - target: p20_micropipette
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: CursorAttach
-              target: micropipette
+              target: p20_micropipette
               operation: attach
-      - target: micropipette
+      - target: p20_micropipette
         gesture: adjust
         validator:
           preset: target_with_value
@@ -222,7 +292,7 @@ steps:
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
+              target: p20_micropipette
               state:
                 set_volume: 10
       - target: hemocytometer_slide.diamond
@@ -237,7 +307,11 @@ steps:
                 material_name: trypan_blue_mixture
                 material_volume: 0.01
             - type: ObjectStateChange
-              target: micropipette
+              target: hemocytometer_slide
+              state:
+                chamber_load_quality: capillary_loading
+            - type: ObjectStateChange
+              target: p20_micropipette
               state:
                 held_material_name: trypan_blue_mixture
                 held_material_volume: 10
@@ -253,10 +327,18 @@ steps:
                 material_name: trypan_blue_mixture
                 material_volume: 0.01
             - type: ObjectStateChange
-              target: micropipette
+              target: hemocytometer_slide
+              state:
+                chamber_load_quality: bubble_free
+            - type: ObjectStateChange
+              target: p20_micropipette
               state:
                 held_material_name: empty
                 held_material_volume: 0
+                tip_status: used
+          feedback:
+            correct: "The semicircle filled by capillary action with a bubble-free meniscus."
+            incorrect: "Touch the chamber edge gently so capillary action fills the semicircle without bubbles."
     step_validator:
       preset: sequence_complete
     outcome:
@@ -292,6 +374,51 @@ steps:
     outcome:
       on_success: complete
       on_failure: retry
+    next_step: observe_manual_live_dead_cells
+  - step_name: observe_manual_live_dead_cells
+    prompt: >
+      Move the loaded chamber to the microscope and view it. Clear cells exclude Trypan Blue
+      (live); blue cells are nonviable. Count the representative quadrants before
+      comparing your observation with the automated counter.
+    sequence:
+      - target: hemocytometer_slide
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: SceneChange
+              to_scene: hemocytometer_view
+      - target: hemocytometer_slide
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: hemocytometer_slide
+              state:
+                observation_state: live_dead_cells_visible
+            - type: SceneChange
+              to_scene: hemocytometer_count_review
+      - target: manual_count_85_live_7_dead
+        gesture: select
+        validator:
+          preset: correct_choice
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: hemocytometer_slide
+              state:
+                observation_state: quadrants_counted
+          feedback:
+            correct: "That count matches the visible clear and blue cells. Continue to compare it with the automated result."
+            incorrect: "Recount the visible clear and blue cells in the representative quadrants, then choose the count that matches your observation."
+    step_validator:
+      preset: sequence_complete
+    outcome:
+      on_success: complete
+      on_failure: retry
     next_step: insert_slide_into_counter
   - step_name: insert_slide_into_counter
     prompt:
@@ -316,16 +443,16 @@ steps:
               target: cell_counter
               state:
                 slide_loaded: true
+                manual_observation: quadrants_counted
     step_validator:
       preset: sequence_complete
     outcome:
       on_success: complete
       on_failure: retry
-    next_step: wait_for_focus
-  - step_name: wait_for_focus
+    next_step: press_capture
+  - step_name: press_capture
     prompt:
-      Allow the cell counter to auto-focus on the hemocytometer slide. This typically
-      takes 2-3 seconds.
+      Start the counter, wait for its focus-complete status, then press Capture to record the measured cell count and viability.
     sequence:
       - target: cell_counter
         gesture: click
@@ -336,34 +463,20 @@ steps:
             - type: TimedWait
               target: cell_counter
               duration_min: 0.05
-              display: spinner
+              display: focusing
             - type: ObjectStateChange
               target: cell_counter
               state:
                 focused: true
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: press_capture
-  - step_name: press_capture
-    prompt:
-      Press the Capture button on the cell counter to count cells and calculate
-      viability percentage.
-    sequence:
-      - target: cell_counter
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations:
             - type: ObjectStateChange
               target: cell_counter
               state:
                 capture_pressed: true
                 cell_count: 850000
+                cell_concentration_per_ml: 850000
                 viability_percent: 92.5
+            - type: SceneChange
+              to_scene: viability_review
     step_validator:
       preset: sequence_complete
     outcome:
@@ -371,20 +484,23 @@ steps:
       on_failure: retry
     next_step: verify_viability_gate
   - step_name: verify_viability_gate
-    prompt:
-      Review the viability result displayed on the counter. For cell seeding to
-      proceed, viability must be 90% or greater.
+    prompt: >
+      Review the displayed viable-cell concentration and viability percentage. Choose whether
+      this sample is strictly greater than 90% viable, the required gate for downstream seeding.
     sequence:
-      - target: cell_counter
-        gesture: click
+      - target: viability_decision_proceed
+        gesture: select
         validator:
-          preset: correct_target
+          preset: correct_choice
         response:
           scene_operations:
             - type: ObjectStateChange
               target: cell_counter
               state:
                 viability_verified: true
+          feedback:
+            correct: "Accepted. The displayed viability clears the stated gate, so the measured viable-cell concentration can carry forward to seeding."
+            incorrect: "Compare the displayed viability percentage with the stated threshold before deciding whether to proceed or recount."
     step_validator:
       preset: final_state_matches
       target: cell_counter

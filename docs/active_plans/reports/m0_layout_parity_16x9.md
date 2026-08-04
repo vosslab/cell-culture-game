@@ -5,8 +5,8 @@ Work package WP-FEAS1. Proves the existing layout engine produces the same `Comp
 ## Verdict
 
 - Go signal: GO
-- Scenes checked: 42
-- Scenes passing parity + scene_name keying: 42
+- Scenes checked: 57
+- Scenes passing parity + scene_name keying: 57
 - All scenes exact bit-for-bit (no epsilon needed): yes
 - Viewport sweep correct: yes
 
@@ -23,48 +23,63 @@ Work package WP-FEAS1. Proves the existing layout engine produces the same `Comp
 
 | scene_name | items | parity | exact-zero | max abs delta | scene_name keyed | consumed artifact |
 | --- | --- | --- | --- | --- | --- | --- |
-| bench_basic | 10 | PASS | yes | 0 | yes | match |
+| bench_basic | 9 | PASS | yes | 0 | yes | match |
 | cell_counter_basic | 7 | PASS | yes | 0 | yes | match |
-| cell_counter_workspace | 9 | PASS | yes | 0 | yes | match |
-| centrifuge_workspace | 13 | PASS | yes | 0 | yes | match |
-| dilution_workspace | 11 | PASS | yes | 0 | yes | match |
-| drug_dilution_setup_bench_setup | 9 | PASS | yes | 0 | yes | match |
+| cell_counter_workspace | 10 | PASS | yes | 0 | yes | match |
+| centrifuge_workspace | 15 | PASS | yes | 0 | yes | match |
+| dilution_calculation_200 | 5 | PASS | yes | 0 | yes | match |
+| dilution_calculation_50 | 5 | PASS | yes | 0 | yes | match |
+| dilution_calculation_500 | 5 | PASS | yes | 0 | yes | match |
+| dilution_calculation_60 | 5 | PASS | yes | 0 | yes | match |
+| dilution_initial_calculation_review | 4 | PASS | yes | 0 | yes | match |
+| dilution_volume_review | 4 | PASS | yes | 0 | yes | match |
+| dilution_workspace | 13 | PASS | yes | 0 | yes | match |
+| drug_dilution_setup_bench_setup | 12 | PASS | yes | 0 | yes | match |
 | electrophoresis_bench | 16 | PASS | yes | 0 | yes | match |
-| extraction_workspace | 6 | PASS | yes | 0 | yes | match |
-| heat_block_bench | 13 | PASS | yes | 0 | yes | match |
-| hemocytometer_view | 9 | PASS | yes | 0 | yes | match |
+| extraction_workspace | 9 | PASS | yes | 0 | yes | match |
+| heat_block_bench | 12 | PASS | yes | 0 | yes | match |
+| hemocytometer_count_review | 4 | PASS | yes | 0 | yes | match |
+| hemocytometer_view | 8 | PASS | yes | 0 | yes | match |
 | hood_basic | 9 | PASS | yes | 0 | yes | match |
-| hood_workspace | 8 | PASS | yes | 0 | yes | match |
-| imaging_bench | 12 | PASS | yes | 0 | yes | match |
-| incubator_workspace | 6 | PASS | yes | 0 | yes | match |
+| hood_workspace | 11 | PASS | yes | 0 | yes | match |
+| imaging_bench | 11 | PASS | yes | 0 | yes | match |
+| incubator_workspace | 8 | PASS | yes | 0 | yes | match |
 | microscope_basic | 7 | PASS | yes | 0 | yes | match |
-| mtt_reagent_prep_bench_workspace | 8 | PASS | yes | 0 | yes | match |
-| mtt_solubilization_readout_bench_workspace | 4 | PASS | yes | 0 | yes | match |
+| mtt_reagent_prep_bench_workspace | 10 | PASS | yes | 0 | yes | match |
+| mtt_solubilization_readout_bench_workspace | 6 | PASS | yes | 0 | yes | match |
 | mtt_solubilization_readout_plate_reader_workspace | 2 | PASS | yes | 0 | yes | match |
-| passage_hood_detachment_hood_workspace | 10 | PASS | yes | 0 | yes | match |
-| passage_hood_detachment_microscope_view | 6 | PASS | yes | 0 | yes | match |
-| plate_drug_treatment_media_adjustment_plate_workspace | 4 | PASS | yes | 0 | yes | match |
+| mtt_solubilization_readout_result_review | 4 | PASS | yes | 0 | yes | match |
+| passage_hood_detachment_hood_workspace | 12 | PASS | yes | 0 | yes | match |
+| passage_hood_detachment_microscope_view | 7 | PASS | yes | 0 | yes | match |
+| plate_drug_treatment_media_adjustment_plate_map_review | 3 | PASS | yes | 0 | yes | match |
+| plate_drug_treatment_media_adjustment_plate_workspace | 6 | PASS | yes | 0 | yes | match |
 | plate_focus_bench | 1 | PASS | yes | 0 | yes | match |
 | plate_focus_hood | 1 | PASS | yes | 0 | yes | match |
 | plate_workspace | 6 | PASS | yes | 0 | yes | match |
-| sample_prep_bench | 12 | PASS | yes | 0 | yes | match |
-| sdspage_attach_lid_and_leads_workspace | 4 | PASS | yes | 0 | yes | match |
-| sdspage_destain_gel_rock_workspace | 4 | PASS | yes | 0 | yes | match |
+| sample_prep_bench | 11 | PASS | yes | 0 | yes | match |
+| sdspage_assemble_electrode_module_workspace | 4 | PASS | yes | 0 | yes | match |
+| sdspage_attach_lid_and_leads_workspace | 7 | PASS | yes | 0 | yes | match |
+| sdspage_destain_gel_rock_workspace | 6 | PASS | yes | 0 | yes | match |
 | sdspage_destain_gel_setup_workspace | 7 | PASS | yes | 0 | yes | match |
-| sdspage_fill_tank_buffer_workspace | 5 | PASS | yes | 0 | yes | match |
+| sdspage_fill_tank_buffer_workspace | 6 | PASS | yes | 0 | yes | match |
 | sdspage_heat_denature_samples_workspace | 2 | PASS | yes | 0 | yes | match |
-| sdspage_image_gel_workspace | 4 | PASS | yes | 0 | yes | match |
-| sdspage_load_protein_ladder_workspace | 5 | PASS | yes | 0 | yes | match |
-| sdspage_load_sample_single_lane_workspace | 7 | PASS | yes | 0 | yes | match |
-| sdspage_load_samples_batch_workspace | 7 | PASS | yes | 0 | yes | match |
-| sdspage_prepare_running_buffer_workspace | 16 | PASS | yes | 0 | yes | match |
-| sdspage_prepare_sample_mix_batch_workspace | 7 | PASS | yes | 0 | yes | match |
-| sdspage_prepare_sample_mix_single_lane_workspace | 6 | PASS | yes | 0 | yes | match |
-| sdspage_recycle_buffer_workspace | 4 | PASS | yes | 0 | yes | match |
-| sdspage_run_electrophoresis_workspace | 4 | PASS | yes | 0 | yes | match |
+| sdspage_image_gel_result_review | 5 | PASS | yes | 0 | yes | match |
+| sdspage_image_gel_workspace | 6 | PASS | yes | 0 | yes | match |
+| sdspage_load_protein_ladder_workspace | 7 | PASS | yes | 0 | yes | match |
+| sdspage_load_sample_single_lane_workspace | 8 | PASS | yes | 0 | yes | match |
+| sdspage_load_samples_batch_workspace | 8 | PASS | yes | 0 | yes | match |
+| sdspage_prepare_gel_cassette_workspace | 3 | PASS | yes | 0 | yes | match |
+| sdspage_prepare_running_buffer_workspace | 3 | PASS | yes | 0 | yes | match |
+| sdspage_prepare_sample_mix_batch_workspace | 8 | PASS | yes | 0 | yes | match |
+| sdspage_prepare_sample_mix_single_lane_workspace | 9 | PASS | yes | 0 | yes | match |
+| sdspage_recycle_buffer_workspace | 6 | PASS | yes | 0 | yes | match |
+| sdspage_run_electrophoresis_endpoint_review | 8 | PASS | yes | 0 | yes | match |
+| sdspage_run_electrophoresis_workspace | 11 | PASS | yes | 0 | yes | match |
 | sdspage_stain_gel_workspace | 7 | PASS | yes | 0 | yes | match |
-| seeding_workspace | 9 | PASS | yes | 0 | yes | match |
+| seeding_calculation_review | 4 | PASS | yes | 0 | yes | match |
+| seeding_workspace | 10 | PASS | yes | 0 | yes | match |
 | staining_bench | 10 | PASS | yes | 0 | yes | match |
+| viability_review | 5 | PASS | yes | 0 | yes | match |
 
 The consumed-artifact column compares `PRECOMPUTED_LAYOUT[scene].final` (generated/precomputed_layout.ts, the exact array the browser production path renders under WP-PRECOMP2) against the runtime engine at the canonical 16:9 frame. `match` means the build artifact is byte-current with the engine.
 

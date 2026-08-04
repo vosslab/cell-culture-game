@@ -2,9 +2,10 @@ scene_name: sdspage_run_electrophoresis_workspace
 extends: electrophoresis_bench
 
 scene_notes: |
-  Electrophoresis workspace for running the gel. The power supply remains the
-  active target while the tank, mounted electrode module, and cassette provide
-  the small coherent apparatus context needed to understand what it powers.
+  Run view keeps the lidded tank, mounted module, cassette, and buffer dam in
+  apparatus context while the power supply remains the active control. The scene
+  should make the current run and its tracking-dye endpoint legible without exposing
+  unrelated preparation supplies.
 
 remove_placements:
   - rear_left_running_buffer_10x
@@ -19,3 +20,39 @@ remove_placements:
   - front_left_mini_protean_gel
   - front_center_waste_container
   - front_right_gel_comb
+
+add_placements:
+  # Keep the used-buffer state visible at the same moment the run is stopped:
+  # the lower chamber is on the left of the central apparatus and the
+  # upper chamber on the right, while the endpoint choices remain at front.
+  - placement_name: center_electrophoresis_inner_chamber
+    object_name: electrophoresis_inner_chamber
+    zone: center
+    depth_tier: 1
+    align_stop: left
+  - placement_name: center_electrophoresis_outer_chamber
+    object_name: electrophoresis_outer_chamber
+    zone: center
+    depth_tier: 1
+    align_stop: right
+  - placement_name: front_center_electrophoresis_buffer_dam
+    object_name: electrophoresis_buffer_dam
+    zone: front_center
+    depth_tier: 2
+    align_stop: right
+  - placement_name: front_left_endpoint_stop_now
+    object_name: electrophoresis_endpoint_stop_now
+    zone: front_left
+    depth_tier: 1
+  - placement_name: front_right_endpoint_continue
+    object_name: electrophoresis_endpoint_continue
+    zone: front_right
+    depth_tier: 1
+  - placement_name: right_tool_area_electrophoresis_black_lead
+    object_name: electrophoresis_black_lead
+    zone: right_tool_area
+    depth_tier: 1
+  - placement_name: right_tool_area_electrophoresis_red_lead
+    object_name: electrophoresis_red_lead
+    zone: right_tool_area
+    depth_tier: 1

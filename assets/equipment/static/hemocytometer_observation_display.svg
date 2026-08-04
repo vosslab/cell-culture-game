@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 380">
+  <rect x="8" y="8" width="704" height="364" rx="18" fill="#f7fbf8" stroke="#173b49" stroke-width="5"/>
+  <text x="32" y="48" fill="#173b49" font-family="Arial, sans-serif" font-size="28" font-weight="700">Magnified Trypan Blue chamber - four counted quadrants</text>
+  <g font-family="Arial, sans-serif" font-size="18">
+    <circle cx="48" cy="78" r="8" fill="#ffffff" stroke="#287a51" stroke-width="3"/>
+    <text x="64" y="84" fill="#173b49">clear = viable</text>
+    <circle cx="210" cy="78" r="8" fill="#2c72c7" stroke="#143c78" stroke-width="2"/>
+    <text x="226" y="84" fill="#173b49">blue = nonviable</text>
+  </g>
+  <g fill="#ffffff" stroke="#287a51" stroke-width="2.2">
+    <circle cx="86" cy="139" r="7"/><circle cx="119" cy="137" r="7"/><circle cx="153" cy="142" r="7"/><circle cx="187" cy="135" r="7"/><circle cx="220" cy="143" r="7"/>
+    <circle cx="92" cy="177" r="7"/><circle cx="129" cy="174" r="7"/><circle cx="166" cy="181" r="7"/><circle cx="204" cy="173" r="7"/>
+    <circle cx="411" cy="139" r="7"/><circle cx="445" cy="137" r="7"/><circle cx="480" cy="143" r="7"/><circle cx="514" cy="136" r="7"/><circle cx="549" cy="142" r="7"/>
+    <circle cx="419" cy="177" r="7"/><circle cx="456" cy="174" r="7"/><circle cx="493" cy="181" r="7"/><circle cx="531" cy="173" r="7"/>
+    <circle cx="86" cy="256" r="7"/><circle cx="121" cy="253" r="7"/><circle cx="156" cy="260" r="7"/><circle cx="190" cy="252" r="7"/><circle cx="225" cy="259" r="7"/>
+    <circle cx="94" cy="294" r="7"/><circle cx="132" cy="291" r="7"/><circle cx="170" cy="298" r="7"/><circle cx="208" cy="290" r="7"/>
+    <circle cx="411" cy="256" r="7"/><circle cx="446" cy="253" r="7"/><circle cx="481" cy="260" r="7"/><circle cx="516" cy="252" r="7"/><circle cx="551" cy="259" r="7"/>
+    <circle cx="419" cy="294" r="7"/><circle cx="457" cy="291" r="7"/><circle cx="495" cy="298" r="7"/><circle cx="533" cy="290" r="7"/>
+  </g>
+  <g fill="#2c72c7" stroke="#143c78" stroke-width="2">
+    <circle cx="243" cy="174" r="8"/><circle cx="271" cy="140" r="8"/>
+    <circle cx="570" cy="174" r="8"/><circle cx="598" cy="140" r="8"/>
+    <circle cx="243" cy="290" r="8"/><circle cx="271" cy="256" r="8"/>
+    <circle cx="570" cy="290" r="8"/>
+  </g>
+  <g fill="none" stroke="#9ab4ba" stroke-width="2">
+    <rect x="48" y="106" width="274" height="106" rx="8"/><rect x="373" y="106" width="274" height="106" rx="8"/>
+    <rect x="48" y="225" width="274" height="106" rx="8"/><rect x="373" y="225" width="274" height="106" rx="8"/>
+  </g>
+  <g fill="#173b49" font-family="Arial, sans-serif" font-size="20" font-weight="700">
+    <text x="60" y="204">Q1: 22 clear + 2 blue</text><text x="385" y="204">Q2: 21 clear + 2 blue</text>
+    <text x="60" y="323">Q3: 21 clear + 2 blue</text><text x="385" y="323">Q4: 21 clear + 1 blue</text>
+  </g>
+  <text x="360" y="360" text-anchor="middle" fill="#173b49" font-family="Arial, sans-serif" font-size="22" font-weight="700">Add the four quadrant counts before choosing the manual result.</text>
+</svg>

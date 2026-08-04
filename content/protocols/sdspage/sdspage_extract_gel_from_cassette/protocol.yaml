@@ -1,6 +1,26 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_extract_gel_from_cassette
 entry_step: disconnect_power_and_remove_lid
+initial_state:
+  # Match the stopped-run endpoint so this protocol is a viable standalone
+  # continuation as well as the next block in the full SDS-PAGE runner.
+  - target: electrophoresis_tank
+    state: { lid_present: true, module_present: true }
+  - target: electrode_module
+    state: { mounted: true, cassette_mounted: true, wing_clamps_open: false }
+  - target: electrophoresis_buffer_dam
+    state: { seated: true }
+  - target: electrophoresis_black_lead
+    state: { attached: true }
+  - target: electrophoresis_red_lead
+    state: { attached: true }
+  - target: power_supply
+    state: { set_voltage: 150, running: false, cathode_lead_attached: true, anode_lead_attached: true }
+  - target: gel_cassette
+    state:
+      { tape_present: false, comb_present: false, wing_clamps_locked: true,
+        migration_state: near_bottom, gel_state: separated_unstained,
+        lane_pattern: samples_1_to_3_ladder_5 }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved hands-on competency
@@ -23,8 +43,8 @@ steps:
   - step_name: disconnect_power_and_remove_lid
     prompt:
       Disconnect the power supply leads and open the electrophoresis tank. Turn
-      off the power supply, remove the leads from the electrode module, then lift and
-      remove the tank lid.
+      off the supply first, remove both leads, then lift the lid. Never open a
+      powered electrophoresis chamber.
     sequence:
       - target: electrophoresis_tank
         gesture: click
@@ -44,16 +64,33 @@ steps:
               target: power_supply
               state:
                 running: false
-      - target: power_supply
+      - target: electrophoresis_black_lead
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
+              target: electrophoresis_black_lead
+              state:
+                attached: false
+            - type: ObjectStateChange
               target: power_supply
               state:
                 cathode_lead_attached: false
+      - target: electrophoresis_red_lead
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: electrophoresis_red_lead
+              state:
+                attached: false
+            - type: ObjectStateChange
+              target: power_supply
+              state:
                 anode_lead_attached: false
       - target: electrophoresis_tank
         gesture: click
@@ -65,6 +102,9 @@ steps:
               target: electrophoresis_tank
               state:
                 lid_present: false
+          feedback:
+            correct: "The chamber is de-energized and open; the gel cassette can now be handled safely."
+            incorrect: "Turn off the supply, disconnect both leads, then remove the tank lid."
     step_validator:
       preset: sequence_complete
     outcome:
@@ -98,8 +138,9 @@ steps:
     next_step: pry_cassette_open
   - step_name: pry_cassette_open
     prompt:
-      Use the gel-opening tool to carefully pry apart the gel cassette plates.
-      This separates the top and bottom plates of the cassette.
+      Locate the arrows on the cassette, align the gel-opening tool with an arrow,
+      and use gentle downward pressure to break the seal. Do not twist the tool,
+      which can crack or tear the gel.
     sequence:
       - target: gel_opening_tool
         gesture: click
@@ -120,9 +161,13 @@ steps:
               target: gel_cassette
               state:
                 top_plate_inserted: false
+                opening_status: arrows_aligned_straight_open
             - type: CursorAttach
               target: gel_opening_tool
               operation: detach
+          feedback:
+            correct: "The cassette records arrow-aligned, straight opening; the gel remains supported for a gentle transfer."
+            incorrect: "Align the opening tool at a marked cassette arrow and press straight down; twisting can tear the gel."
     step_validator:
       preset: sequence_complete
     outcome:
@@ -130,7 +175,7 @@ steps:
       on_failure: retry
     next_step: transfer_gel_to_staining_tray
   - step_name: transfer_gel_to_staining_tray
-    prompt: Transfer the gel to the staining tray.
+    prompt: Gently release the opened gel without folding or tearing it and transfer it flat into the staining tray. Keep the wells at the top and ladder in lane 5 for later comparison.
     sequence:
       - target: gel_cassette
         gesture: click
@@ -142,6 +187,7 @@ steps:
               target: gel_cassette
               state:
                 gel_state: separated_unstained
+                gel_transfer_status: free_flat
       - target: staining_tray
         gesture: click
         validator:
@@ -153,8 +199,13 @@ steps:
               state:
                 gel_present: true
                 gel_state: separated_unstained
+                lane_pattern: samples_1_to_3_ladder_5
+                orientation_status: wells_top_ladder_lane_5
             - type: SceneChange
               to_scene: staining_bench
+          feedback:
+            correct: "The fragile gel is free and flat in the tray; its wells-top, lane-5 ladder orientation is recorded for the workflow."
+            incorrect: "Transfer the opened gel flat into the staining tray while preserving the wells-top, lane-5 ladder orientation."
     step_validator:
       preset: sequence_complete
     outcome:

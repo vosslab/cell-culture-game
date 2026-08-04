@@ -68,3 +68,21 @@ add_placements:
     zone: right_tool_area
     depth_tier: 1
     align_stop: center
+
+  - placement_name: right_p20_micropipette
+    object_name: p20_micropipette
+    zone: right_tool_area
+    depth_tier: 1
+    align_stop: left
+
+  - placement_name: right_p200_micropipette
+    object_name: p200_micropipette
+    zone: right_tool_area
+    depth_tier: 1
+    align_stop: center
+
+  - placement_name: right_p1000_micropipette
+    object_name: p1000_micropipette
+    zone: right_tool_area
+    depth_tier: 1
+    align_stop: right

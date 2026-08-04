@@ -1,0 +1,61 @@
+scene_name: sdspage_run_electrophoresis_endpoint_review
+extends: electrophoresis_bench
+
+remove_placements:
+  - rear_left_running_buffer_10x
+  - center_running_buffer_1x_carboy
+  - center_ddh2o_bottle
+  - center_electrode_module
+  - center_serological_pipette
+  - center_p200_micropipette
+  - right_tool_area_p10_gel_loading_tip_box
+  - rear_left_protein_ladder_tube
+  - rear_left_recycle_buffer_bottle
+  - rear_right_gel_opening_tool
+  - front_left_mini_protean_gel
+  - front_center_gel_cassette
+  - front_center_waste_container
+  - front_right_gel_comb
+
+add_placements:
+  - placement_name: center_electrophoresis_endpoint_display
+    object_name: electrophoresis_endpoint_display
+    zone: center
+    depth_tier: 1
+    align_stop: center
+
+  - placement_name: rear_left_endpoint_gel_cassette
+    object_name: gel_cassette
+    zone: rear_left
+    depth_tier: 1
+    align_stop: center
+
+  - placement_name: front_center_endpoint_inner_chamber
+    object_name: electrophoresis_inner_chamber
+    zone: front_center
+    depth_tier: 1
+    align_stop: left
+
+  - placement_name: front_center_endpoint_outer_chamber
+    object_name: electrophoresis_outer_chamber
+    zone: front_center
+    depth_tier: 1
+    align_stop: right
+
+  - placement_name: front_left_endpoint_stop_now
+    object_name: electrophoresis_endpoint_stop_now
+    zone: front_left
+    depth_tier: 1
+    align_stop: center
+
+  - placement_name: front_right_endpoint_continue
+    object_name: electrophoresis_endpoint_continue
+    zone: front_right
+    depth_tier: 1
+    align_stop: center
+
+scene_notes: |
+  The lidded tank, powered supply, and two filled chamber states remain in apparatus context while a
+  magnified, explicitly scaled gel view makes the near-bottom dye front visible.
+  The learner must compare that evidence with the stop/continue choices before
+  using the physical power control; no endpoint state is inferred off-screen.

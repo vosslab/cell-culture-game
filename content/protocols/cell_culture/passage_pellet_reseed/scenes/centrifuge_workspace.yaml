@@ -31,6 +31,18 @@ add_placements:
     depth_tier: 1
     align_stop: center
 
+  - placement_name: rear_center_balance_tube
+    object_name: centrifuge_balance_tube
+    zone: rear_center
+    depth_tier: 1
+    align_stop: left
+
+  - placement_name: rear_center_sterile_water_bottle
+    object_name: sterile_water_bottle
+    zone: rear_center
+    depth_tier: 1
+    align_stop: right
+
   # Centrifuge at center (left stop) -- main instrument for spinning pellets
   - placement_name: center_centrifuge_spin
     object_name: centrifuge
@@ -54,6 +66,13 @@ add_placements:
     depth_tier: 1
     align_stop: right
 
+  # Sterile source for both milliliter-scale cell-suspension transfers.
+  - placement_name: rear_right_serological_pipette_pack
+    object_name: serological_pipette_pack
+    zone: rear_right
+    depth_tier: 1
+    align_stop: left
+
   # Aspirating pipette is used only to remove supernatant at right tool area.
   - placement_name: right_aspirating_pipette
     object_name: aspirating_pipette
@@ -68,9 +87,9 @@ add_placements:
     depth_tier: 1
     align_stop: left
 
-  # The original flask receives the 6.86 mL return fraction after the split.
-  - placement_name: center_t75_flask_reseed
-    object_name: t75_flask
+  # Fresh vessel for the retained one-seventh passage fraction.
+  - placement_name: center_t75_flask_new_reseed
+    object_name: t75_flask_new
     zone: center
     depth_tier: 1
     align_stop: right

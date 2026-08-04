@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 393.3275 278.5243">
+  <defs>
+    <!-- Six retained precipitate discs aligned to columns 1-6 of the plate. -->
+    <g id="six-well-crystals">
+      <circle cx="45.010" cy="49.260" r="5"/>
+      <circle cx="73.357" cy="49.260" r="5"/>
+      <circle cx="101.704" cy="49.260" r="5"/>
+      <circle cx="130.051" cy="49.260" r="5"/>
+      <circle cx="158.398" cy="49.260" r="5"/>
+      <circle cx="186.745" cy="49.260" r="5"/>
+    </g>
+  </defs>
+  <g opacity="0.94" stroke="#ffffff" stroke-opacity="0.38" stroke-width="0.8">
+    <use href="#six-well-crystals" fill="#5b1479"/>
+    <use href="#six-well-crystals" transform="translate(170.082 0)" fill="#681a80"/>
+    <use href="#six-well-crystals" transform="translate(0 28.347)" fill="#6a1c86"/>
+    <use href="#six-well-crystals" transform="translate(170.082 28.347)" fill="#75268d"/>
+    <use href="#six-well-crystals" transform="translate(0 56.694)" fill="#74268f"/>
+    <use href="#six-well-crystals" transform="translate(170.082 56.694)" fill="#833695"/>
+    <use href="#six-well-crystals" transform="translate(0 85.041)" fill="#803398"/>
+    <use href="#six-well-crystals" transform="translate(170.082 85.041)" fill="#9649a2"/>
+    <use href="#six-well-crystals" transform="translate(0 113.388)" fill="#9142a4"/>
+    <use href="#six-well-crystals" transform="translate(170.082 113.388)" fill="#aa61af"/>
+    <use href="#six-well-crystals" transform="translate(0 141.735)" fill="#a454b2"/>
+    <use href="#six-well-crystals" transform="translate(170.082 141.735)" fill="#bd7bc0"/>
+    <use href="#six-well-crystals" transform="translate(0 170.082)" fill="#bb78c3"/>
+    <use href="#six-well-crystals" transform="translate(170.082 170.082)" fill="#d2a4d5"/>
+    <use href="#six-well-crystals" transform="translate(0 198.429)" fill="#d3abdc"/>
+    <use href="#six-well-crystals" transform="translate(170.082 198.429)" fill="#e6cfe7"/>
+  </g>
+</svg>

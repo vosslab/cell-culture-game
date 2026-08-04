@@ -67,55 +67,126 @@ state_fields:
     allowed: [empty, separated_unstained, stained, destaining, destained]
     default: empty
     description: Visible lifecycle state of the gel matrix.
+  - field_name: migration_state
+    type: enum
+    allowed: [not_started, running, near_bottom, overrun]
+    default: not_started
+    description: Visible position of the tracking dye during electrophoresis.
+  - field_name: lane_pattern
+    type: enum
+    allowed: [unassigned, samples_1_to_3_ladder_5]
+    default: unassigned
+    description: Identity of the assigned sample and ladder lanes carried through the workflow.
+  - field_name: wells_rinsed
+    type: bool
+    default: false
+    description: Whether the wells were rinsed with running buffer after comb removal and before loading.
+  - field_name: opening_status
+    type: enum
+    allowed: [sealed, arrows_aligned_straight_open]
+    default: sealed
+    description: Whether the cassette was opened at its marked arrows using straight pressure.
+  - field_name: gel_transfer_status
+    type: enum
+    allowed: [cassette_supported, free_flat]
+    default: cassette_supported
+    description: Whether the fragile gel remains supported in the cassette or has been transferred flat.
 
 visual_states:
   material_name:
-    kind: svg
     applies_to: subpart
-    cases:
-      - when: empty
-        output: { asset_name: gel_cassette }
-      - when: protein_ladder
-        output: { asset_name: gel_cassette }
-      - when: protein_ladder_denatured
-        output: { asset_name: gel_cassette }
-      - when: protein_sample_denatured
-        output: { asset_name: gel_cassette }
+    render_effect: material_tint
+    target: subpart_geometry
   material_volume:
-    # Lane volume remains modeled for protocol state, but its per-lane visual
-    # geometry is a structured-subpart concern.  M6 deliberately leaves no
-    # object or subpart fill-height renderer here; M8 owns that decision.
-    kind: composite
     applies_to: subpart
-    composite: []
+    render_effect: fill_height
+    target: subpart_geometry
+    capacity_ul: 30
   tape_present:
     kind: composite
-    composite: []
+    cases:
+      - when: false
+        output: { composite: [] }
+      - when: true
+        output:
+          composite:
+            - { asset_name: gel_cassette_bottom_tape }
   comb_present:
     kind: composite
-    composite: []
+    cases:
+      - when: false
+        output: { composite: [] }
+      - when: true
+        output:
+          composite:
+            - { asset_name: gel_cassette_comb_inserted }
   top_plate_inserted:
     kind: composite
-    composite: []
+    cases:
+      - when: true
+        output: { composite: [] }
+      - when: false
+        output:
+          composite:
+            - { asset_name: gel_cassette_top_plate_removed }
   side_clamps_locked:
     kind: composite
-    composite: []
+    cases:
+      - when: false
+        output: { composite: [] }
+      - when: true
+        output:
+          composite:
+            - { asset_name: gel_cassette_side_clamps_locked }
   wing_clamps_locked:
     kind: composite
-    composite: []
+    cases:
+      - when: false
+        output: { composite: [] }
+      - when: true
+        output:
+          composite:
+            - { asset_name: gel_cassette_wing_clamps_locked }
   gel_state:
     kind: svg
     cases:
       - when: empty
-        output: { asset_name: gel_cassette }
+        output: { asset_name: gel_cassette_empty }
       - when: separated_unstained
-        output: { asset_name: gel_cassette }
+        output: { asset_name: gel_cassette_separated_unstained }
       - when: stained
-        output: { asset_name: gel_cassette }
+        output: { asset_name: gel_cassette_stained }
       - when: destaining
-        output: { asset_name: gel_cassette }
+        output: { asset_name: gel_cassette_destaining }
       - when: destained
-        output: { asset_name: gel_cassette }
+        output: { asset_name: gel_cassette_destained }
+  migration_state:
+    kind: composite
+    cases:
+      - when: not_started
+        output:
+          composite: [{ asset_name: gel_migration_not_started }]
+      - when: running
+        output:
+          composite: [{ asset_name: gel_migration_running }]
+      - when: near_bottom
+        output:
+          composite: [{ asset_name: gel_migration_near_bottom }]
+      - when: overrun
+        output:
+          composite: [{ asset_name: gel_migration_overrun }]
+  lane_pattern:
+    kind: overlay
+    formula: 'label(state(lane_pattern), format="Lanes: {value}")'
+  wells_rinsed:
+    kind: overlay
+    formula: 'label(state(wells_rinsed), format="Wells rinsed: {value}")'
+  opening_status:
+    kind: overlay
+    formula: 'label(state(opening_status), format="Cassette opening: {value}")'
+  gel_transfer_status:
+    kind: overlay
+    formula: 'label(state(gel_transfer_status), format="Gel transfer: {value}")'
 
 capabilities: [clickable, structured_surface, material_container]
 

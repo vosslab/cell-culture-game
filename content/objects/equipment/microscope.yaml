@@ -12,6 +12,11 @@ state_fields:
     type: bool
     default: false
     description: Whether the microscope illumination is on.
+  - field_name: observation_state
+    type: enum
+    allowed: [not_observed, confluent_70_80, rounded_detached]
+    default: not_observed
+    description: Visible fixed-scenario cell field currently observed through the microscope.
 
 visual_states:
   objective:
@@ -32,6 +37,23 @@ visual_states:
         output: { asset_name: microscope }
       - when: true
         output: { asset_name: microscope }
+  observation_state:
+    # The transparent field layers turn the instrument into evidence: the
+    # student sees an adherent near-confluent monolayer before passage and
+    # rounded cells after trypsin rather than inferring either state from a
+    # flask label alone.
+    kind: composite
+    cases:
+      - when: not_observed
+        output: { composite: [] }
+      - when: confluent_70_80
+        output:
+          composite:
+            - { asset_name: microscope_field_confluent_70_80 }
+      - when: rounded_detached
+        output:
+          composite:
+            - { asset_name: microscope_field_rounded_detached }
 
 capabilities: [clickable]
 

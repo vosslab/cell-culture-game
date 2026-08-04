@@ -2,3 +2,7 @@ materials:
   running_buffer_1x:
     label: Tris/Glycine/SDS 1x running buffer
     display_color: "#e8dcc0"
+
+  running_buffer_1x_used:
+    label: Used 1x running buffer
+    display_color: "#d9cbb0"

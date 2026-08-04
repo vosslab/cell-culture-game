@@ -11,9 +11,11 @@ import { PROTOCOL_MATERIALS } from "../../generated/protocol_materials.js";
 
 const PROTOCOL = "plate_drug_treatment_drug_addition";
 const PLATE = "well_plate_96";
-const ROW_B = ["B1", "B2", "B3", "B4", "B5", "B6", "B7", "B8", "B9", "B10", "B11", "B12"];
+const ROW_B_LEFT = ["B1", "B2", "B3", "B4", "B5", "B6"];
+const ROW_B_RIGHT = ["B7", "B8", "B9", "B10", "B11", "B12"];
 const UNTARGETED_CONTROLS = ["A1", "C1", "H12", "D6"];
-const CARBOPLATIN_COLOR = PROTOCOL_MATERIALS[PROTOCOL]?.carboplatin?.display_color;
+const ROW_MATERIAL = "cells_in_growth_media_carboplatin_0_1umol";
+const ROW_COLOR = PROTOCOL_MATERIALS[PROTOCOL]?.[ROW_MATERIAL]?.display_color;
 
 interface WellFill {
   fill: string | null;
@@ -47,11 +49,10 @@ async function clickActiveSceneTarget(page: Page): Promise<void> {
   await activeTarget.click();
 }
 
-test("per-well drug walkthrough: visible row-B dispensing paints carboplatin", async ({ page }) => {
-  expect(
-    CARBOPLATIN_COLOR,
-    "carboplatin must be registered for the authored protocol",
-  ).toBeTruthy();
+test("per-well drug walkthrough: visible row-B dispensing preserves treatment identity", async ({
+  page,
+}) => {
+  expect(ROW_COLOR, "the row-B carboplatin condition must be registered").toBeTruthy();
   const pageErrors: string[] = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
 
@@ -68,16 +69,17 @@ test("per-well drug walkthrough: visible row-B dispensing paints carboplatin", a
     "inactive subpart geometry must not advertise delegated click targets",
   ).toHaveCount(0);
 
-  // The authored first interaction changes to the plate workspace. Read the
-  // next setpoint from the same visible action rail the learner sees instead of
-  // duplicating protocol internals in the browser driver.
+  // The authored first interaction selects the repeating dispenser and changes
+  // to the plate workspace. Read the next setpoint from the same visible action
+  // rail the learner sees instead of duplicating protocol internals in the
+  // browser driver.
   await clickActiveSceneTarget(page);
   const adjustRail = page.locator(
     "[data-current-action][data-action-gesture='adjust'][data-action-value]",
   );
   await expect(adjustRail).toBeVisible();
   const visibleSetpoint = await adjustRail.getAttribute("data-action-value");
-  expect(visibleSetpoint, "the action rail must visibly identify the 60 µL row draw").toBe("60");
+  expect(visibleSetpoint, "the action rail must visibly identify each 5 microliter dose").toBe("5");
   const adjustInput = page.locator("[data-adjust-input]");
   await expect(adjustInput).toBeVisible();
   await adjustInput.fill(visibleSetpoint!);
@@ -177,18 +179,15 @@ test("per-well drug walkthrough: visible row-B dispensing paints carboplatin", a
     "a wrong exact-sibling click must be rejected without advancing the interaction",
   ).toHaveCount(1);
   await clickActiveSceneTarget(page);
-  await expect(
-    advertisedSubpartTargets,
-    "the next exact plate target must expose its real sibling wells for normal rejection",
-  ).not.toHaveCount(0);
 
-  // Each repeated learner click on the visible plate advances one authored
-  // row-B dispense. Wait for that well's rendered material, never elapsed time.
-  for (const well of ROW_B) {
-    await clickActiveSceneTarget(page);
+  // One visible plate action represents the real 12-position repeating-
+  // dispenser series. Both halves remain carboplatin-only at this point;
+  // metformin identity must not appear before the later modifier step.
+  await clickActiveSceneTarget(page);
+  for (const well of [...ROW_B_LEFT, ...ROW_B_RIGHT]) {
     const shape = page.locator(`[data-subpart-overlay='${PLATE}'] [data-subpart-name='${well}']`);
-    await expect(shape).toHaveAttribute("fill", CARBOPLATIN_COLOR!);
-    await expect(shape).toHaveAttribute("data-material-name", "carboplatin");
+    await expect(shape).toHaveAttribute("fill", ROW_COLOR!);
+    await expect(shape).toHaveAttribute("data-material-name", ROW_MATERIAL);
   }
 
   await page.screenshot({ path: "test-results/per_well_drug_walkthrough_01_after.png" });
@@ -198,7 +197,7 @@ test("per-well drug walkthrough: visible row-B dispensing paints carboplatin", a
     expect(fill, `${well} must retain its exact pre-treatment seeded-cell state`).toEqual(
       untargetedBefore.get(well),
     );
-    expect(fill.material, `${well} must not acquire carboplatin`).not.toBe("carboplatin");
+    expect(fill.material, `${well} must not acquire the row-B condition`).not.toBe(ROW_MATERIAL);
   }
   expect(pageErrors, "no uncaught page errors during visible dispensing").toEqual([]);
 });

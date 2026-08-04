@@ -16,6 +16,11 @@ state_fields:
     max: 250
     default: 250
     description: Volume of Coomassie stain remaining, in milliliters.
+  - field_name: label_status
+    type: enum
+    allowed: [unlabeled, coomassie_stock]
+    default: unlabeled
+    description: Whether the fixed Coomassie stain stock label is visible.
 visual_states:
   material_name:
     kind: svg
@@ -32,6 +37,9 @@ visual_states:
     target: anchor_liquid_bounds
     clip: anchor_liquid_clip
     capacity_ml: 250
+  label_status:
+    kind: overlay
+    formula: 'label(state(label_status), format="Bottle label: {value}")'
 capabilities:
   - clickable
   - material_container

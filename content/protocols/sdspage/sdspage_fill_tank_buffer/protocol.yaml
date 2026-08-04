@@ -1,33 +1,39 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_fill_tank_buffer
-entry_step: fill_inner_chamber
+entry_step: check_upper_chamber_seal
 initial_state:
   - target: running_buffer_preparation_carboy
     state: { material_name: running_buffer_1x, material_volume: 1000 }
+  - target: electrophoresis_tank
+    state: { lid_present: false, module_present: true }
+  - target: electrode_module
+    state: { mounted: true, cassette_mounted: true, wing_clamps_open: false }
+  - target: electrophoresis_buffer_dam
+    state: { seated: true }
+  - target: gel_cassette
+    state: { tape_present: false, comb_present: false, wing_clamps_locked: true }
+  - target: electrophoresis_inner_chamber
+    state: { material_name: empty, material_volume: 0, fill_state: empty }
+  - target: electrophoresis_outer_chamber
+    state: { material_name: empty, material_volume: 0, fill_state: empty }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
-    serological pipettes for multi-volume transfers, accurate volume measurement and
-    transfer into structured lab equipment with multiple compartments, and verification
-    of chamber fill levels.
+    filling the upper and lower buffer reservoirs of an assembled one-gel apparatus.
   outcomes:
-    Students completing this mini-protocol will be able to fill both the inner
-    and outer chambers of an electrophoresis tank with 1x running buffer using a serological
-    pipette, transferring 600 mL into the inner chamber and 400 mL into the outer
-    chamber with proper aseptic technique.
+    Students completing this mini-protocol will be able to use a small initial
+    buffer addition to check the upper-chamber gasket seal, then fill the upper chamber
+    to the well-covering line and the lower chamber to its required level.
   goals:
-    Overall, this mini-protocol aims to accomplish preparing the electrophoresis
-    tank for gel separation by filling both buffer chambers to their required volumes
-    -- a critical setup task that precedes sample loading and running the gel.
+    Overall, this mini-protocol aims to accomplish completing the conductive buffer
+    path without substituting an incidental pipette dial for the physical fill-level check.
 steps:
-  - step_name: fill_inner_chamber
+  - step_name: check_upper_chamber_seal
     prompt:
-      Fill the inner chamber of the electrophoresis tank with 1x running buffer.
-      Set the serological pipette to 25 mL, and make multiple aspirations and dispersals
-      from the running buffer carboy into the focused inner-chamber view until it
-      contains 600 mL of buffer.
+      Pour a small amount of 1x running buffer into the upper chamber and inspect the
+      cassette-and-dam gasket seal before committing the full buffer volume.
     sequence:
-      - target: serological_pipette
+      - target: running_buffer_preparation_carboy
         gesture: click
         validator:
           preset: correct_target
@@ -35,24 +41,9 @@ steps:
           scene_operations:
             - type: SceneChange
               to_scene: sdspage_fill_tank_buffer_workspace
-      - target: serological_pipette
-        gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 25
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: serological_pipette
-              state:
-                set_volume: 25
-      - target: running_buffer_preparation_carboy
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
+            - type: CursorAttach
+              target: running_buffer_preparation_carboy
+              operation: attach
       - target: electrophoresis_inner_chamber
         gesture: click
         validator:
@@ -63,49 +54,83 @@ steps:
               target: electrophoresis_inner_chamber
               state:
                 material_name: running_buffer_1x
-                material_volume: 600
+                material_volume: 25
+                fill_state: leak_checked
             - type: ObjectStateChange
               target: running_buffer_preparation_carboy
               state:
                 material_name: running_buffer_1x
-                material_volume: 400
+                material_volume: 975
+            - type: CursorAttach
+              target: running_buffer_preparation_carboy
+              operation: detach
+          feedback:
+            correct: "The small upper-chamber fill stays behind the gasket: no leak is visible."
+            incorrect: Add the test volume to the upper buffer chamber.
     step_validator:
       preset: sequence_complete
     outcome:
       on_success: complete
       on_failure: retry
-    next_step: fill_outer_chamber
-  - step_name: fill_outer_chamber
+    next_step: fill_upper_chamber
+  - step_name: fill_upper_chamber
     prompt:
-      Fill the outer chamber of the electrophoresis tank with 1x running buffer.
-      Set the serological pipette to 25 mL, and make multiple aspirations and dispersals
-      from the running buffer carboy into the focused outer-chamber view until it
-      contains 400 mL of buffer.
+      With the seal confirmed, fill the upper chamber with 1x running buffer to the
+      line just below the outer plate edge so the wells are covered.
     sequence:
-      - target: serological_pipette
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
-      - target: serological_pipette
-        gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 25
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: serological_pipette
-              state:
-                set_volume: 25
       - target: running_buffer_preparation_carboy
         gesture: click
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: CursorAttach
+              target: running_buffer_preparation_carboy
+              operation: attach
+      - target: electrophoresis_inner_chamber
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: electrophoresis_inner_chamber
+              state:
+                material_name: running_buffer_1x
+                material_volume: 200
+                fill_state: filled
+            - type: ObjectStateChange
+              target: running_buffer_preparation_carboy
+              state:
+                material_name: running_buffer_1x
+                material_volume: 800
+            - type: CursorAttach
+              target: running_buffer_preparation_carboy
+              operation: detach
+          feedback:
+            correct: The upper reservoir reaches the well-covering fill line.
+            incorrect: Fill the upper chamber after its seal check.
+    step_validator:
+      preset: sequence_complete
+    outcome:
+      on_success: complete
+      on_failure: retry
+    next_step: fill_lower_chamber
+  - step_name: fill_lower_chamber
+    prompt:
+      Fill the lower reservoir with 1x running buffer to its marked fill line. This
+      teaching scenario models 200 mL in the upper chamber plus 500 mL in the lower
+      chamber (700 mL total); verify the exact split against your local apparatus SOP.
+    sequence:
+      - target: running_buffer_preparation_carboy
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: CursorAttach
+              target: running_buffer_preparation_carboy
+              operation: attach
       - target: electrophoresis_outer_chamber
         gesture: click
         validator:
@@ -116,12 +141,19 @@ steps:
               target: electrophoresis_outer_chamber
               state:
                 material_name: running_buffer_1x
-                material_volume: 400
+                material_volume: 500
+                fill_state: filled
             - type: ObjectStateChange
               target: running_buffer_preparation_carboy
               state:
-                material_name: empty
-                material_volume: 0
+                material_name: running_buffer_1x
+                material_volume: 300
+            - type: CursorAttach
+              target: running_buffer_preparation_carboy
+              operation: detach
+          feedback:
+            correct: Both reservoirs contain conductive 1x buffer at their fill lines.
+            incorrect: Fill the lower reservoir after the upper chamber is sealed and filled.
     step_validator:
       preset: sequence_complete
     outcome:

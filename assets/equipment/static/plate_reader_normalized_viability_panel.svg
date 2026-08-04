@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 571 305">
+  <path fill="#07191f" opacity="0.98" d="M 60 29 L 511 29 L 511 112 L 60 112 Z"/>
+  <text x="72" y="50" fill="#d7ffff" font-family="Arial, sans-serif" font-size="13" font-weight="700">Normalized viability, 560 nm</text>
+  <text x="72" y="72" fill="#9eeef5" font-family="Arial, sans-serif" font-size="12">Untreated control: 100%</text>
+  <text x="72" y="94" fill="#ffcf69" font-family="Arial, sans-serif" font-size="13" font-weight="700">10 uM carboplatin: 22% viable</text>
+  <text x="72" y="108" fill="#d8a8ff" font-family="Arial, sans-serif" font-size="10">+ metformin: 10% viable</text>
+</svg>

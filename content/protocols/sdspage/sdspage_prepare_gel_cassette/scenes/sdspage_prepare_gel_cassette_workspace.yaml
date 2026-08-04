@@ -1,0 +1,40 @@
+scene_name: sdspage_prepare_gel_cassette_workspace
+extends: electrophoresis_bench
+
+scene_notes: |
+  Close preparation view for the fragile precast cassette. The package, cassette,
+  and comb are foregrounded; electrical hardware and buffer vessels are absent until
+  the later module-assembly learning block.
+
+remove_placements:
+  - rear_left_running_buffer_10x
+  - rear_center_electrophoresis_tank
+  - rear_right_power_supply
+  - center_running_buffer_1x_carboy
+  - center_ddh2o_bottle
+  - center_electrode_module
+  - center_serological_pipette
+  - center_p200_micropipette
+  - right_tool_area_p10_gel_loading_tip_box
+  - rear_left_protein_ladder_tube
+  - rear_left_recycle_buffer_bottle
+  - rear_right_gel_opening_tool
+  - front_left_mini_protean_gel
+  - front_center_gel_cassette
+  - front_center_waste_container
+  - front_right_gel_comb
+
+add_placements:
+  - placement_name: front_left_unsealed_mini_protean_gel
+    object_name: mini_protean_gel
+    zone: front_left
+    depth_tier: 1
+  - placement_name: center_gel_cassette
+    object_name: gel_cassette
+    zone: center
+    depth_tier: 1
+    align_stop: center
+  - placement_name: front_right_removed_gel_comb
+    object_name: gel_comb
+    zone: front_right
+    depth_tier: 1

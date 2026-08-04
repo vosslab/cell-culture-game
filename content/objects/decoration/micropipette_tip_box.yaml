@@ -19,7 +19,7 @@ visual_states:
         output:
           asset_name: tip_box
 
-capabilities: [decoration_only]
+capabilities: [clickable, cursor_attachable]
 
 layout:
   default_width: 10

@@ -43,6 +43,26 @@ state_fields:
     type: bool
     default: false
     description: Whether excess liquid has been wiped from slide edges.
+  - field_name: mix_cycles
+    type: int
+    min: 0
+    max: 3
+    default: 0
+    description: Completed gentle pipette mixing cycles for the 1:1 Trypan Blue sample.
+  - field_name: mixture_homogeneous
+    type: bool
+    default: false
+    description: Whether the stained cell suspension has been mixed evenly before chamber loading.
+  - field_name: chamber_load_quality
+    type: enum
+    allowed: [not_loaded, capillary_loading, bubble_free]
+    default: not_loaded
+    description: Visible quality of capillary loading into the hemocytometer chamber.
+  - field_name: observation_state
+    type: enum
+    allowed: [not_observed, live_dead_cells_visible, quadrants_counted]
+    default: not_observed
+    description: Manual live/dead cell observation state for the loaded chamber.
 
 visual_states:
   slide_status:
@@ -61,6 +81,31 @@ visual_states:
   excess_wiped:
     kind: overlay
     formula: 'conditional(state(excess_wiped), "Wiped clean", "Excess present")'
+  mix_cycles:
+    kind: overlay
+    formula: 'conditional(state(mix_cycles), label(state(mix_cycles), format="Gentle mix cycles: {value}/3"), "Gentle mix cycles: 0/3")'
+  mixture_homogeneous:
+    kind: overlay
+    formula: 'conditional(state(mixture_homogeneous), "Evenly mixed", "Mix before loading")'
+  chamber_load_quality:
+    kind: overlay
+    formula: 'label(state(chamber_load_quality), format="Capillary load: {value}")'
+  observation_state:
+    # A labelled status alone did not teach trypan-blue exclusion.  The
+    # overlays preserve the physical grid and make viable (clear) and
+    # nonviable (blue) cells, then the counted quadrants, observable.
+    kind: composite
+    cases:
+      - when: not_observed
+        output: { composite: [] }
+      - when: live_dead_cells_visible
+        output:
+          composite:
+            - { asset_name: hemocytometer_live_dead_cells_visible }
+      - when: quadrants_counted
+        output:
+          composite:
+            - { asset_name: hemocytometer_quadrants_counted }
 
 capabilities: [clickable, structured_surface, material_container]
 

@@ -1,21 +1,57 @@
 scene_name: sdspage_prepare_sample_mix_single_lane_workspace
-extends: sample_prep_bench
+extends: hood_basic
 
 remove_placements:
-  # Base microtube removed; protocol adds its own at center (eppendorf_tube)
-  - mid_microtube_sample
-  # Keep only this learning block's three reagents, receiving tube, rack, and
-  # micropipette. Ladder, water, waste, spare racks, and tip boxes belong to
-  # other SDS-PAGE tasks and dilute the transfer sequence.
-  - rear_left_protein_ladder
-  - rear_center_ddh2o
-  - rear_right_waste
-  - mid_eppendorf_rack
-  - mid_p10_tip_box
-  - right_tool_area_tip_box
+  - rear_left_ethanol
+  - base_rear_left_tip_box
+  - base_rear_center_pbs
+  - rear_center_waste
+  - base_rear_right_media
+  - base_rear_right_sterile_water
+  - right_aspirating_pipette
+  - base_right_serological_pipette
 
 add_placements:
+  - placement_name: rear_left_micropipette_tip_box
+    object_name: micropipette_tip_box
+    zone: rear_left
+    depth_tier: 1
+  - placement_name: rear_left_protein_sample
+    object_name: protein_sample_tube
+    zone: rear_left
+    depth_tier: 1
+    align_stop: left
+  - placement_name: rear_center_laemmli
+    object_name: laemmli_4x_tube
+    zone: rear_center
+    depth_tier: 1
+    align_stop: left
+  - placement_name: rear_right_bme
+    object_name: bme_tube
+    zone: rear_right
+    depth_tier: 1
+    align_stop: left
+  - placement_name: center_p20_micropipette
+    object_name: p20_micropipette
+    zone: right_tool_area
+    depth_tier: 2
+    align_stop: left
+  - placement_name: center_p200_micropipette
+    object_name: p200_micropipette
+    zone: right_tool_area
+    depth_tier: 2
+    align_stop: right
+  - placement_name: center_p10_micropipette
+    object_name: p10_micropipette
+    zone: rear_right
+    depth_tier: 2
+    align_stop: right
   - placement_name: center_sds_microtube_rack
     object_name: microtube_rack_8
     zone: center
     depth_tier: 3
+
+scene_notes: |
+  BME-containing SDS-PAGE sample preparation takes place in the fume hood.
+  The hood surface, reagents, pipettes, and receiving rack remain visible as
+  one focused source-to-tube workflow.

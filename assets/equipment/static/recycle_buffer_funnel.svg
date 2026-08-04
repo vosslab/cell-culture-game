@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 260" role="img" aria-labelledby="funnel-title funnel-desc">
+  <title id="funnel-title">Laboratory funnel for buffer recovery</title>
+  <desc id="funnel-desc">A clean, wide-mouth laboratory funnel positioned upright for transferring used running buffer into a recycle bottle.</desc>
+  <defs>
+    <linearGradient id="funnel-glass" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#f6ffff" stop-opacity="0.92"/>
+      <stop offset="0.55" stop-color="#d8eff0" stop-opacity="0.72"/>
+      <stop offset="1" stop-color="#9cc5ca" stop-opacity="0.86"/>
+    </linearGradient>
+    <linearGradient id="funnel-stem" x1="0" x2="1">
+      <stop offset="0" stop-color="#b7dadd"/>
+      <stop offset="0.45" stop-color="#efffff"/>
+      <stop offset="1" stop-color="#8ebbc2"/>
+    </linearGradient>
+  </defs>
+  <ellipse cx="90" cy="38" rx="72" ry="22" fill="#e8f8f7" stroke="#416a72" stroke-width="7"/>
+  <path d="M20 40L76 172H104L160 40C143 52 121 59 90 59C59 59 37 52 20 40Z" fill="url(#funnel-glass)" stroke="#416a72" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M75 172H105V242C105 251 98 257 90 257C82 257 75 251 75 242V172Z" fill="url(#funnel-stem)" stroke="#416a72" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M42 54C52 111 70 146 82 163M138 54C128 111 110 146 98 163" fill="none" stroke="#ffffff" stroke-opacity="0.78" stroke-width="8" stroke-linecap="round"/>
+  <ellipse cx="90" cy="38" rx="49" ry="12" fill="none" stroke="#ffffff" stroke-opacity="0.76" stroke-width="5"/>
+  <path d="M82 185V234M97 185V234" fill="none" stroke="#ffffff" stroke-opacity="0.72" stroke-width="4" stroke-linecap="round"/>
+</svg>

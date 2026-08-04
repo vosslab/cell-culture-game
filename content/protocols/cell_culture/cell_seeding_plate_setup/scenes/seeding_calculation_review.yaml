@@ -1,0 +1,27 @@
+scene_name: seeding_calculation_review
+extends: plate_focus_hood
+
+add_placements:
+  - placement_name: center_calculation_pad
+    object_name: calculation_pad
+    zone: center
+    depth_tier: 1
+    align_stop: left
+
+  - placement_name: calculation_2_8_choice
+    object_name: calculation_2_8_ml
+    zone: center
+    depth_tier: 1
+    align_stop: center
+
+  - placement_name: calculation_2_4_choice
+    object_name: calculation_2_4_ml
+    zone: center
+    depth_tier: 1
+    align_stop: right
+
+scene_notes: |
+  A dedicated calculation review keeps the visible 96-well destination as
+  experimental context while giving the equation pad and both answers enough
+  space to remain legible and clickable. The selected result carries into the
+  physical seeding workspace; this scene does not perform a liquid transfer.

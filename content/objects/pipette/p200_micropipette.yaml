@@ -1,6 +1,6 @@
 object_name: p200_micropipette
 kind: pipette
-label: p200 micropipette
+label: P200 micropipette (20-200 &micro;L)
 
 state_fields:
   - field_name: set_volume
@@ -11,11 +11,22 @@ state_fields:
     step: 1
     default: 100
     description: Volume the pipette is set to dispense.
+  - field_name: tip_status
+    type: enum
+    allowed: [none, fresh, used]
+    default: none
+    description: Disposable tip state before and after liquid handling.
   - field_name: held_material_name
     type: enum
     allowed:
       [
         empty,
+        carboplatin,
+        carboplatin_10mmol,
+        carboplatin_400umol,
+        metformin,
+        metformin_1mol,
+        media,
         protein_sample_raw,
         protein_sample_denatured,
         protein_ladder,
@@ -26,7 +37,7 @@ state_fields:
         ddh2o,
       ]
     default: empty
-    description: Contents currently aspirated in the pipette tip.
+    description: Contents currently loaded in the pipette tip.
   - field_name: held_material_volume
     type: float
     unit: ul
@@ -38,28 +49,43 @@ state_fields:
 visual_states:
   set_volume:
     kind: overlay
-    formula: label(state(set_volume), format="{value} ul")
+    formula: label(state(set_volume), format="{value} &micro;L")
+  tip_status:
+    kind: overlay
+    formula: 'label(state(tip_status), format="Tip: {value}")'
   held_material_name:
     kind: svg
     cases:
       - when: empty
-        output: { asset_name: p200_micropipette_empty }
+        output: { asset_name: p200_micropipette_unloaded }
+      - when: carboplatin
+        output: { asset_name: p200_micropipette_loaded }
+      - when: carboplatin_10mmol
+        output: { asset_name: p200_micropipette_loaded }
+      - when: carboplatin_400umol
+        output: { asset_name: p200_micropipette_loaded }
+      - when: metformin
+        output: { asset_name: p200_micropipette_loaded }
+      - when: metformin_1mol
+        output: { asset_name: p200_micropipette_loaded }
+      - when: media
+        output: { asset_name: p200_micropipette_loaded }
       - when: protein_sample_raw
-        output: { asset_name: p200_micropipette_empty }
+        output: { asset_name: p200_micropipette_loaded }
       - when: protein_sample_denatured
-        output: { asset_name: p200_micropipette_empty }
+        output: { asset_name: p200_micropipette_loaded }
       - when: protein_ladder
-        output: { asset_name: p200_micropipette_empty }
+        output: { asset_name: p200_micropipette_loaded }
       - when: protein_ladder_denatured
-        output: { asset_name: p200_micropipette_empty }
+        output: { asset_name: p200_micropipette_loaded }
       - when: laemmli_4x
-        output: { asset_name: p200_micropipette_empty }
+        output: { asset_name: p200_micropipette_loaded }
       - when: bme
-        output: { asset_name: p200_micropipette_empty }
+        output: { asset_name: p200_micropipette_loaded }
       - when: running_buffer_1x
-        output: { asset_name: p200_micropipette_empty }
+        output: { asset_name: p200_micropipette_loaded }
       - when: ddh2o
-        output: { asset_name: p200_micropipette_empty }
+        output: { asset_name: p200_micropipette_loaded }
   held_material_volume:
     kind: composite
     composite: []

@@ -147,6 +147,22 @@ describe("step machine - happy path click", () => {
     assert.strictEqual(emitter.get_snapshot().current_interaction_index, 1);
   });
 
+  test("projects authored correct feedback and retains it when the next step starts", () => {
+    const first = make_click_step("a", "obj_a", "b");
+    first.sequence[0].response.feedback = { correct: "PBS transferred." };
+    const cfg = make_config([first, make_click_step("b", "obj_b", null)], "a");
+    const { machine, events, emitter } = build_harness(cfg);
+    machine.start();
+    machine.handle_click("obj_a", "click");
+
+    const validated = events.find((event) => event.kind === "interaction_validated");
+    assert.strictEqual(validated.feedback, "PBS transferred.");
+    assert.deepStrictEqual(emitter.get_snapshot().last_interaction_feedback, {
+      kind: "correct",
+      message: "PBS transferred.",
+    });
+  });
+
   test("scene_operation_applied and scene_changed fire for SceneChange op", () => {
     const cfg = make_config([make_two_click_step("a", "t1", "t2", null)], "a");
     const { machine, events, scene_ops } = build_harness(cfg);
@@ -235,6 +251,23 @@ describe("step machine - wrong target", () => {
     assert.strictEqual(emitter.get_snapshot().current_interaction_index, 0);
     // No interaction_validated should have fired.
     assert.ok(!events.some((e) => e.kind === "interaction_validated"));
+  });
+
+  test("projects authored incorrect feedback without advancing", () => {
+    const first = make_click_step("a", "obj_a", null);
+    first.sequence[0].response.feedback = { incorrect: "Use the PBS bottle." };
+    const cfg = make_config([first], "a");
+    const { machine, events, emitter } = build_harness(cfg);
+    machine.start();
+    machine.handle_click("wrong_bottle", "click");
+
+    const rejected = events.find((event) => event.kind === "interaction_rejected");
+    assert.strictEqual(rejected.feedback, "Use the PBS bottle.");
+    assert.deepStrictEqual(emitter.get_snapshot().last_interaction_feedback, {
+      kind: "incorrect",
+      message: "Use the PBS bottle.",
+    });
+    assert.strictEqual(emitter.get_snapshot().current_interaction_index, 0);
   });
 
   test("a correct interaction clears an earlier rejection within the same step", () => {
@@ -544,12 +577,22 @@ describe("step machine - select chooses the next-step object (correct_choice)", 
     const cfg = make_config([make_select_step()], "a");
     const { machine, events, emitter } = build_harness(cfg);
     machine.start();
-    machine.handle_click("waste_beaker", "select");
+    // A real wrong card arrives as its physical click. The expected authored
+    // interaction remains select and owns the post-rejection teaching panel.
+    machine.handle_click("waste_beaker", "click");
     const rejected = events.find((e) => e.kind === "interaction_rejected");
     assert.ok(rejected);
     assert.strictEqual(rejected.reason_code, "wrong_target");
-    assert.strictEqual(emitter.get_snapshot().is_complete, false);
-    assert.strictEqual(emitter.get_snapshot().current_step_name, "a");
+    const snapshot = emitter.get_snapshot();
+    assert.strictEqual(snapshot.is_complete, false);
+    assert.strictEqual(snapshot.current_step_name, "a");
+    assert.deepStrictEqual(snapshot.last_rejection, {
+      reason_code: "wrong_target",
+      target_name: "waste_beaker",
+      gesture: "click",
+      selected_label: "waste_beaker",
+      expected_label: "treatment_plate",
+    });
   });
 });
 

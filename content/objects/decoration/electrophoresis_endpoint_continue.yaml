@@ -1,0 +1,25 @@
+object_name: electrophoresis_endpoint_continue
+kind: decoration
+label: "Continue running: let the dye front pass the gel"
+
+state_fields:
+  - field_name: visible
+    type: bool
+    default: true
+    description: Whether the unsafe endpoint alternative is visible for comparison.
+
+visual_states:
+  visible:
+    kind: svg
+    cases:
+      - when: true
+        output: { asset_name: interpretation_choice_card }
+      - when: false
+        output: { asset_name: interpretation_choice_card }
+
+capabilities: [clickable]
+
+layout:
+  default_width: 20
+  display_width_cm: 24
+  label_width: 24

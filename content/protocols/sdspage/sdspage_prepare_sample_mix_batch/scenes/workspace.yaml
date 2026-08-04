@@ -1,17 +1,36 @@
 scene_name: sdspage_prepare_sample_mix_batch_workspace
-extends: sample_prep_bench
+extends: hood_basic
 
 remove_placements:
-  - mid_microtube_sample
-  - mid_eppendorf_rack
-  - mid_p10_tip_box
-  - right_tool_area_tip_box
-  - center_micropipette
-  - rear_left_protein_ladder
-  - rear_center_ddh2o
-  - rear_right_waste
+  - rear_left_ethanol
+  - base_rear_left_tip_box
+  - base_rear_center_pbs
+  - rear_center_waste
+  - base_rear_right_media
+  - base_rear_right_sterile_water
+  - right_aspirating_pipette
+  - base_right_serological_pipette
 
 add_placements:
+  - placement_name: rear_left_micropipette_tip_box
+    object_name: micropipette_tip_box
+    zone: rear_left
+    depth_tier: 1
+  - placement_name: rear_left_protein_sample
+    object_name: protein_sample_tube
+    zone: rear_left
+    depth_tier: 1
+    align_stop: left
+  - placement_name: rear_center_laemmli
+    object_name: laemmli_4x_tube
+    zone: rear_center
+    depth_tier: 1
+    align_stop: left
+  - placement_name: rear_right_bme
+    object_name: bme_tube
+    zone: rear_right
+    depth_tier: 1
+    align_stop: left
   - placement_name: center_p10_reagent_micropipette
     object_name: p10_micropipette
     zone: center
@@ -26,3 +45,7 @@ add_placements:
     object_name: microtube_rack_8
     zone: center
     depth_tier: 3
+
+scene_notes: |
+  Batch sample preparation stays in the fume hood while BME is present. The
+  rack and both correctly ranged micropipettes dominate the active work area.

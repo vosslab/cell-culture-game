@@ -71,7 +71,7 @@ EXPECTED_ANCHORED_FLEET = (
 )
 STRUCTURED_EVIDENCE = (
 	"96well_pcr_plate.svg",
-	"gel_cassette.svg",
+	"gel_cassette_empty.svg",
 	"tube_rack.svg",
 )
 HIGHLIGHT_COLOR = "#ff00a8"

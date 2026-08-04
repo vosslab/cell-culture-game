@@ -23,7 +23,8 @@ test("hemocytometer diamond keeps a center-hittable semicircle sibling that is r
   page,
 }) => {
   await page.goto("/trypan_blue_counting.html", { waitUntil: "networkidle" });
-  await clickDirectedTarget(page, "right_micropipette");
+  await clickDirectedTarget(page, "right_p20_micropipette");
+  await clickDirectedTarget(page, "left_tip_box");
   const input = page.locator("[data-adjust-input]");
   await expect(input).toBeVisible();
   await input.fill("10");

@@ -7,6 +7,11 @@ scene_notes: |
   biohazard bin, and paper towel are the exact supports for its authored steps.
 
 add_placements:
+  - placement_name: rear_center_reagent_reservoir
+    object_name: reagent_reservoir
+    zone: rear_center
+    depth_tier: 1
+    align_stop: center
   # MTT solution bottle at rear left (right stop beside waste)
   - placement_name: mtt_solution
     object_name: mtt_solution_tube
@@ -41,3 +46,9 @@ add_placements:
     zone: right_tool_area
     depth_tier: 1
     align_stop: center
+
+  - placement_name: multichannel_tip_box
+    object_name: micropipette_tip_box
+    zone: right_tool_area
+    depth_tier: 1
+    align_stop: left

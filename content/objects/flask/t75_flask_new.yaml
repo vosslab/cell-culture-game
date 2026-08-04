@@ -20,6 +20,16 @@ state_fields:
     allowed: [out, in_incubator]
     default: out
     description: Whether the flask is currently in the incubator.
+  - field_name: cell_state
+    type: enum
+    allowed: [not_applicable, attached_70_80, rounded_detached, suspension]
+    default: not_applicable
+    description: Visible culture morphology relevant to reseeding.
+  - field_name: label_status
+    type: enum
+    allowed: [unlabeled, identity_complete]
+    default: unlabeled
+    description: Whether the fixed cell-line, date, passage, and initials label is complete.
 
 visual_states:
   material_name:
@@ -41,6 +51,12 @@ visual_states:
   incubation_status:
     kind: composite
     composite: []
+  cell_state:
+    kind: overlay
+    formula: 'label(state(cell_state), format="Cells: {value}")'
+  label_status:
+    kind: overlay
+    formula: 'label(state(label_status), format="Flask label: {value}")'
 
 capabilities: [clickable, material_container]
 

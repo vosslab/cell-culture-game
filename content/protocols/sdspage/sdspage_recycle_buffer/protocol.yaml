@@ -1,120 +1,92 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_recycle_buffer
-entry_step: inspect_buffer
+entry_step: choose_buffer_destination
 initial_state:
   - target: electrophoresis_inner_chamber
-    state: { material_name: running_buffer_1x_used, material_volume: 600 }
+    state: { material_name: running_buffer_1x_used, material_volume: 200 }
   - target: electrophoresis_outer_chamber
-    state: { material_name: running_buffer_1x_used, material_volume: 400 }
+    state: { material_name: running_buffer_1x_used, material_volume: 500 }
 learning:
-  objectives:
-    Students completing this mini-protocol will have achieved fluency with
-    post-run gel inspection, buffer evaluation, and safe recycling of chemical waste.
-  outcomes:
-    Students completing this mini-protocol will be able to inspect the electrophoresis
-    tank after a run is complete, confirm the buffer is clean and suitable for recycling,
-    and safely pour the used buffer into a recycling container.
-  goals:
-    Overall, this mini-protocol aims to accomplish the safe disposal and recycling
-    of used electrophoresis buffer -- an essential waste-management step that follows
-    every gel run and teaches proper chemical handling and laboratory sustainability.
+  objectives: "Students completing this mini-protocol will have achieved inspection of used running buffer, selection of its appropriate destination, and recovery of both physical tank compartments without losing the recovery total."
+  outcomes: "Students completing this mini-protocol will be able to recognize this clear simulated buffer as recyclable and transfer 200 mL from the inner chamber plus 500 mL from the outer chamber into the labeled recycle bottle."
+  goals: "Overall, this mini-protocol aims to accomplish a consequential destination decision followed by one recycling step representing drainage of the complete apparatus, not two unrelated interface lessons."
 steps:
-  - step_name: inspect_buffer
-    prompt:
-      Inspect the electrophoresis tank to confirm the buffer is clean and ready
-      for recycling. Review the buffer state in the tank. If the buffer appears colored,
-      cloudy, or contaminated, do NOT recycle. Dispose as hazardous chemical waste -
-      it may contain Laemmli buffer or beta-mercaptoethanol.
+  - step_name: choose_buffer_destination
+    prompt: >-
+      Inspect the tank, then choose the visible destination for this clear,
+      simulated buffer. It is eligible for the labeled recycle bottle. In a real
+      run, color, cloudiness, or contamination means use hazardous liquid waste
+      instead; Laemmli buffer or BME may be present.
     sequence:
       - target: electrophoresis_tank
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: SceneChange
               to_scene: sdspage_recycle_buffer_workspace
-            # The full sequence runner reaches this scene after a gel run. These
-            # writes also make this mini-protocol truthful when launched alone.
-            - type: ObjectStateChange
-              target: electrophoresis_inner_chamber
-              state:
-                material_name: running_buffer_1x_used
-                material_volume: 600
-            - type: ObjectStateChange
-              target: electrophoresis_outer_chamber
-              state:
-                material_name: running_buffer_1x_used
-                material_volume: 400
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: pour_inner_chamber
-  - step_name: pour_inner_chamber
-    prompt:
-      Pour the used buffer from the focused inner chamber into the buffer recycle
-      bottle.
+          feedback:
+            correct: "The clear simulated buffer may be recycled; contaminated buffer follows the hazardous-waste route."
+            incorrect: "Inspect the tank before choosing a destination."
+      - target: recycle_buffer_bottle
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations: []
+          feedback:
+            correct: "Correct: this clear buffer goes to the labeled recycle bottle."
+            incorrect: "For this clear-buffer scenario, choose the recycle bottle; colored or cloudy buffer goes to hazardous liquid waste."
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
+    next_step: recycle_complete_tank
+  - step_name: recycle_complete_tank
+    prompt: >-
+      Drain the complete apparatus into the selected recycle bottle: empty the
+      200 mL inner chamber, then the 500 mL outer chamber. Confirm the bottle
+      label shows 700 mL recovered running buffer.
     sequence:
       - target: electrophoresis_inner_chamber
         gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
+        validator: { preset: correct_target }
+        response: { scene_operations: [] }
       - target: recycle_buffer_bottle
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: electrophoresis_inner_chamber
-              state:
-                material_name: empty
-                material_volume: 0
+              state: { material_name: empty, material_volume: 0 }
             - type: ObjectStateChange
               target: recycle_buffer_bottle
-              state:
-                material_name: running_buffer_1x_used
-                material_volume: 600
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: pour_outer_chamber
-  - step_name: pour_outer_chamber
-    prompt:
-      Pour the used buffer from the focused outer chamber into the buffer recycle
-      bottle to complete the recycling process.
-    sequence:
+              state: { material_name: running_buffer_1x_used, material_volume: 200, label_status: running_buffer_recycle }
       - target: electrophoresis_outer_chamber
         gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
+        validator: { preset: correct_target }
+        response: { scene_operations: [] }
       - target: recycle_buffer_bottle
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: electrophoresis_outer_chamber
-              state:
-                material_name: empty
-                material_volume: 0
+              state: { material_name: empty, material_volume: 0 }
             - type: ObjectStateChange
               target: recycle_buffer_bottle
               state:
                 material_name: running_buffer_1x_used
-                material_volume: 1000
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
+                material_volume: 700
+                label_status: running_buffer_recycle
+                buffer_identity_status: running_buffer_1x
+                date_status: date_recorded
+                course_batch_status: course_batch_recorded
+                use_count: 1
+                cap_status: closed
+                storage_status: designated_buffer_storage
+          feedback:
+            correct: "Both chambers are empty and the labeled bottle visibly records 700 mL recovered."
+            incorrect: "Drain both chambers into the selected recycle bottle to preserve the 700 mL recovery record."
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
     next_step: null

@@ -1,0 +1,25 @@
+object_name: electrophoresis_black_lead
+kind: equipment
+label: Black cathode lead
+
+state_fields:
+  - field_name: attached
+    type: bool
+    default: false
+    description: Whether the black negative lead is attached to the cathode terminal.
+
+visual_states:
+  attached:
+    kind: svg
+    cases:
+      - when: false
+        output: { asset_name: electrophoresis_black_lead_unattached }
+      - when: true
+        output: { asset_name: electrophoresis_black_lead_attached }
+
+capabilities: [clickable]
+
+layout:
+  default_width: 7
+  display_width_cm: 12
+  label_width: 8

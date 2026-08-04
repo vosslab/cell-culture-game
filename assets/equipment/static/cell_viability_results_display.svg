@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 400">
+  <rect x="8" y="8" width="744" height="384" rx="20" fill="#08242d" stroke="#8de8ef" stroke-width="5"/>
+  <text x="34" y="52" fill="#e6ffff" font-family="Arial, sans-serif" font-size="30" font-weight="700">Automated cell-counter result</text>
+  <text x="34" y="86" fill="#b9f8ff" font-family="Arial, sans-serif" font-size="20">Representative fixed-course measurement * viable-cell channel</text>
+  <line x1="32" y1="106" x2="728" y2="106" stroke="#467b87" stroke-width="2"/>
+  <rect x="34" y="126" width="214" height="128" rx="12" fill="#123d49" stroke="#467b87" stroke-width="2"/>
+  <text x="56" y="166" fill="#b9f8ff" font-family="Arial, sans-serif" font-size="20">Viable concentration</text>
+  <text x="56" y="215" fill="#f0d66f" font-family="Arial, sans-serif" font-size="34" font-weight="700">8.5 x 10&#x2075;</text>
+  <text x="56" y="241" fill="#e6ffff" font-family="Arial, sans-serif" font-size="20">cells/mL</text>
+  <rect x="272" y="126" width="214" height="128" rx="12" fill="#123d49" stroke="#467b87" stroke-width="2"/>
+  <text x="294" y="166" fill="#b9f8ff" font-family="Arial, sans-serif" font-size="20">Automated viability</text>
+  <text x="294" y="224" fill="#79efb4" font-family="Arial, sans-serif" font-size="48" font-weight="700">92.5%</text>
+  <rect x="510" y="126" width="218" height="128" rx="12" fill="#123d49" stroke="#467b87" stroke-width="2"/>
+  <text x="532" y="166" fill="#b9f8ff" font-family="Arial, sans-serif" font-size="20">Seeding gate</text>
+  <text x="532" y="205" fill="#e6ffff" font-family="Arial, sans-serif" font-size="28" font-weight="700">must be &gt;90%</text>
+  <text x="532" y="237" fill="#79efb4" font-family="Arial, sans-serif" font-size="24" font-weight="700">threshold cleared</text>
+  <text x="34" y="292" fill="#d8f6f8" font-family="Arial, sans-serif" font-size="20">Manual check: 85 clear + 7 blue = 92.4% viable.</text>
+  <text x="34" y="320" fill="#d8f6f8" font-family="Arial, sans-serif" font-size="20">That agrees with the automated 92.5% result.</text>
+  <text x="34" y="354" fill="#f0d66f" font-family="Arial, sans-serif" font-size="20" font-weight="700">Decision: compare the displayed percentage with the gate.</text>
+  <text x="34" y="380" fill="#f0d66f" font-family="Arial, sans-serif" font-size="20" font-weight="700">Do not choose from the button label alone.</text>
+</svg>

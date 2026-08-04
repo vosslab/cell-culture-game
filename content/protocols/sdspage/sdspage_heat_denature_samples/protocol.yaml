@@ -1,6 +1,6 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_heat_denature_samples
-entry_step: open_heat_block_lid
+entry_step: denature_samples
 initial_state:
   - target: microtube_rack_8.slot_B1
     state: { material_name: protein_sample_mixed, material_volume: 30 }
@@ -24,8 +24,8 @@ learning:
     samples mixed with reducing agent (BME) and buffer, preparing them for SDS-PAGE
     electrophoresis.
 steps:
-  - step_name: open_heat_block_lid
-    prompt: Open the heat block lid to access the heating surface.
+  - step_name: denature_samples
+    prompt: Open the pre-set 95 C heat block, place the rack containing the three prepared samples and molecular-weight ladder inside, then close the lid and start the 5-minute denaturation. The temperature is supplied by the heat block; this step teaches safe staging and timed denaturation, not a hidden set-point control.
     sequence:
       - target: heat_block
         gesture: click
@@ -39,17 +39,6 @@ steps:
               target: heat_block
               state:
                 lid_open: true
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: place_rack_in_heat_block
-  - step_name: place_rack_in_heat_block
-    prompt:
-      Place the microtube rack containing the prepared protein samples (3 student
-      samples plus 1 MW ladder tube) into the heat block.
-    sequence:
       - target: microtube_rack_8
         gesture: click
         validator:
@@ -60,19 +49,6 @@ steps:
               target: heat_block
               state:
                 rack_present: true
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: close_lid_and_start_timer
-  - step_name: close_lid_and_start_timer
-    prompt:
-      Close the heat block lid and start the 5-minute denaturation incubation.
-      Heating to 95C drives the protein into its fully unfolded SDS-bound state; the
-      reducing agent maintains disulfides in their reduced state during preparation,
-      which is essential for size-based migration.
-    sequence:
       - target: heat_block
         gesture: click
         validator:
@@ -99,16 +75,17 @@ steps:
             - type: ObjectStateChange
               target: microtube_rack_8.slot_B4
               state: { material_name: protein_ladder_denatured, material_volume: 20 }
+          feedback:
+            correct: "All four tubes were heated together at 95 C for 5 minutes; SDS and reducing agent now support size-based migration."
+            incorrect: "Stage the sample rack in the open heat block, then close it to begin the timed denaturation."
     step_validator:
       preset: sequence_complete
     outcome:
       on_success: complete
       on_failure: retry
-    next_step: retrieve_denatured_samples
-  - step_name: retrieve_denatured_samples
-    prompt:
-      After the 5-minute incubation is complete, open the heat block lid and remove
-      the sample rack.
+    next_step: retrieve_denatured_rack
+  - step_name: retrieve_denatured_rack
+    prompt: After the timed incubation, open the lid and retrieve the denatured sample rack for immediate gel loading. Keep the labeled tubes together so lane identity is preserved.
     sequence:
       - target: heat_block
         gesture: click
@@ -130,6 +107,9 @@ steps:
               target: heat_block
               state:
                 rack_present: false
+          feedback:
+            correct: "The denatured, labeled samples and ladder are ready for their assigned wells."
+            incorrect: "Open the heat block, then remove the rack as one labeled set."
     step_validator:
       preset: sequence_complete
     outcome:

@@ -7,6 +7,11 @@ scene_notes: |
   readable; DMSO, pipette, and plate reader are the protocol's only supports.
 
 add_placements:
+  - placement_name: rear_center_reagent_reservoir
+    object_name: reagent_reservoir
+    zone: rear_center
+    depth_tier: 1
+    align_stop: center
   # DMSO bottle at rear left beside waste container
   - placement_name: rear_left_dmso
     object_name: dmso_tube
@@ -28,3 +33,9 @@ add_placements:
     zone: right_tool_area
     depth_tier: 1
     align_stop: center
+
+  - placement_name: right_multichannel_tip_box
+    object_name: micropipette_tip_box
+    zone: right_tool_area
+    depth_tier: 1
+    align_stop: left

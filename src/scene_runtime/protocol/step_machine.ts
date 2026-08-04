@@ -141,6 +141,7 @@ export function initial_snapshot(protocol_name: string): ShellViewSnapshot {
     progress: { completed_step_count: 0, total_step_count: 0 },
     last_outcome: null,
     last_rejection: null,
+    last_interaction_feedback: null,
     pending_validator_kind: null,
     modal: {
       is_open: false,
@@ -260,6 +261,7 @@ function create_snapshot_reducer(
           is_complete: false,
           current_interaction_count: 0,
           last_rejection: null,
+          last_interaction_feedback: null,
           active_interaction_target: null,
           active_interaction_label: null,
           active_interaction_gesture: null,
@@ -304,6 +306,10 @@ function create_snapshot_reducer(
           current_interaction_index: next_index,
           pending_validator_kind: event.validator_preset,
           last_rejection: null,
+          last_interaction_feedback:
+            event.feedback === null || event.feedback === undefined
+              ? null
+              : { kind: "correct", message: event.feedback },
           active_interaction_target: to_active_placement(active.target),
           active_interaction_label: to_active_label(active.target),
           active_interaction_gesture: active.gesture,
@@ -312,6 +318,9 @@ function create_snapshot_reducer(
         return next;
       }
       case "interaction_rejected": {
+        const active = get_active_interaction(config, event.step_name, event.interaction_index);
+        const is_rejected_choice =
+          event.reason_code === "wrong_target" && active.gesture === "select";
         const next: ShellViewSnapshot = {
           ...prev,
           pending_validator_kind: event.validator_preset,
@@ -319,7 +328,13 @@ function create_snapshot_reducer(
             reason_code: event.reason_code,
             target_name: event.target_name,
             gesture: event.gesture,
+            selected_label: is_rejected_choice ? to_active_label(event.target_name) : null,
+            expected_label: is_rejected_choice ? to_active_label(active.target) : null,
           },
+          last_interaction_feedback:
+            event.feedback === null || event.feedback === undefined
+              ? null
+              : { kind: "incorrect", message: event.feedback },
         };
         return next;
       }
@@ -1064,6 +1079,7 @@ export function create_step_machine(
       gesture,
       validator_preset: interaction_preset,
       reason_code: reason,
+      feedback: steps_by_name.get(step_name)?.sequence[index]?.response.feedback?.incorrect ?? null,
     };
     emitter.emit(event);
   }
@@ -1074,6 +1090,7 @@ export function create_step_machine(
     gesture: Gesture,
     preset: InteractionValidatorPreset,
   ): void {
+    const interaction = step.sequence[interaction_index];
     const validated: ProtocolShellEvent = {
       kind: "interaction_validated",
       step_name: step.step_name,
@@ -1081,10 +1098,10 @@ export function create_step_machine(
       target_name: target,
       gesture,
       validator_preset: preset,
+      feedback: interaction?.response.feedback?.correct ?? null,
     };
     emitter.emit(validated);
     // Apply scene operations for the validated interaction.
-    const interaction = step.sequence[interaction_index];
     if (interaction) {
       apply_response_scene_ops_from(step, interaction.response.scene_operations, 0);
       return;

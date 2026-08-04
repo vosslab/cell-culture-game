@@ -1,6 +1,23 @@
 protocol_type: sequence_runner
 protocol_name: routine_passage
 entry_step: inspect_confluence
+initial_state:
+  # These are the Day-0 culture and consumables.  The two mini-protocols run
+  # in one session, so their direct-launch seeds do not apply at their boundary.
+  - target: t75_flask
+    state:
+      material_name: media
+      material_volume: 12
+      cell_state: attached_70_80
+      label_status: identity_complete
+  - target: media_bottle
+    state: { material_name: media, material_volume: 500 }
+  - target: pbs_bottle
+    state: { material_name: pbs, material_volume: 500 }
+  - target: trypsin_bottle
+    state: { material_name: trypsin, material_volume: 500 }
+  - target: sterile_water_bottle
+    state: { material_name: water, material_volume: 500 }
 
 mini_protocols:
   - passage_hood_detachment
@@ -8,5 +25,5 @@ mini_protocols:
 
 learning:
   objectives: "Students completing this protocol will have achieved fluency with routine maintenance-passage culture technique, including both the enzymatic detachment phase and the pellet resuspension and replating phase."
-  outcomes: "Students completing this protocol will be able to perform a complete routine cell passage on a T75 flask, detaching and neutralizing cells, transferring to a conical tube, pelleting by centrifugation, and resuspending for replating at a 1:7 dilution."
+  outcomes: "Students completing this protocol will be able to perform a complete routine cell passage on a T75 flask, detaching and neutralizing cells, transferring the complete suspension to a conical tube, pelleting by centrifugation, and reseeding a fresh T75 culture at a 1:7 dilution."
   goals: "Overall, this protocol aims to accomplish a complete maintenance-passage workflow: taking a confluent culture from a T75 flask through detachment, centrifugation, and resuspension to replating. This is the core recurring operation for maintaining a healthy cell line over passages. Counting is not part of routine maintenance; this pathway covers detach-through-reseed only."

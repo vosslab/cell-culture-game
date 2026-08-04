@@ -379,20 +379,32 @@ function Overlays(props: { resolved: ResolvedVisualState }): JSXElement {
         // Multiple declared text overlays represent distinct state facts (for
         // example, an instrument's completed analysis plus its numeric
         // results). Stack them rather than placing each in the same pixels.
-        const bottom = 2 + index() * 12;
+        // Use a pixel rhythm rather than a percentage of the object height.
+        // Percentage spacing collapsed all state facts onto the same few
+        // pixels on physically small objects (slides, tubes, and cassettes).
+        // A compact opaque-backed caption keeps each authored observation
+        // legible without changing the object's measured scene geometry.
+        const bottom = 2 + index() * 16;
         return (
           <div
             data-overlay="text"
             data-overlay-field={overlay.field_name}
             style={{
               position: "absolute",
-              left: "0",
-              right: "0",
-              bottom: `${bottom}%`,
+              left: "50%",
+              bottom: `${bottom}px`,
+              transform: "translateX(-50%)",
               "text-align": "center",
               "font-family": "monospace",
               "font-size": "10px",
+              "line-height": "1.25",
+              "white-space": "nowrap",
               color: "#222222",
+              background: "rgba(255, 255, 255, 0.88)",
+              border: "1px solid rgba(23, 59, 73, 0.22)",
+              "border-radius": "3px",
+              padding: "1px 4px",
+              "z-index": "3",
               "pointer-events": "none",
             }}
           >

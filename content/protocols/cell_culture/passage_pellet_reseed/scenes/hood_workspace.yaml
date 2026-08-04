@@ -7,9 +7,28 @@ scene_notes: |
   readout focus; all other placements below support authored protocol actions.
 
 add_placements:
-  # T75 flask is a secondary context vessel beside the foreground plate.
-  - placement_name: center_t75_flask
+  - placement_name: right_serological_pipette
+    object_name: serological_pipette
+    zone: right_tool_area
+    depth_tier: 1
+    align_stop: center
+
+  - placement_name: right_sterile_serological_pipette_pack
+    object_name: serological_pipette_pack
+    zone: right_tool_area
+    depth_tier: 1
+    align_stop: left
+
+  # The original flask is the source for the visible full-volume transfer.
+  - placement_name: center_original_t75_flask
     object_name: t75_flask
+    zone: center
+    depth_tier: 1
+    align_stop: right
+
+  # Fresh T75 flask is the reseeding destination beside the foreground plate.
+  - placement_name: center_t75_flask_new
+    object_name: t75_flask_new
     zone: center
     depth_tier: 1
     align_stop: left

@@ -1,0 +1,75 @@
+object_name: p1000_micropipette
+kind: pipette
+label: P1000 micropipette (100-1000 &micro;L)
+
+state_fields:
+  - field_name: set_volume
+    type: float
+    unit: ul
+    min: 100
+    max: 1000
+    step: 10
+    default: 500
+    description: Volume the P1000 is set to dispense.
+  - field_name: tip_status
+    type: enum
+    allowed: [none, fresh, used]
+    default: none
+    description: Disposable tip state before and after liquid handling.
+  - field_name: held_material_name
+    type: enum
+    allowed: [empty, carboplatin, carboplatin_400umol, metformin, media, cell_suspension, pbs, dmso, mtt_solution_12mm, running_buffer_1x, ddh2o]
+    default: empty
+    description: Contents currently held in the disposable tip.
+  - field_name: held_material_volume
+    type: float
+    unit: ul
+    min: 0
+    max: 1000
+    default: 0
+    description: Volume currently held in the disposable tip.
+
+visual_states:
+  set_volume:
+    kind: overlay
+    formula: label(state(set_volume), format="{value} &micro;L")
+  tip_status:
+    kind: overlay
+    formula: 'label(state(tip_status), format="Tip: {value}")'
+  held_material_name:
+    kind: svg
+    cases:
+      - when: empty
+        output: { asset_name: p1000_micropipette_empty }
+      - when: carboplatin
+        output: { asset_name: p1000_micropipette_filled }
+      - when: carboplatin_400umol
+        output: { asset_name: p1000_micropipette_filled }
+      - when: metformin
+        output: { asset_name: p1000_micropipette_filled }
+      - when: media
+        output: { asset_name: p1000_micropipette_filled }
+      - when: cell_suspension
+        output: { asset_name: p1000_micropipette_filled }
+      - when: pbs
+        output: { asset_name: p1000_micropipette_filled }
+      - when: dmso
+        output: { asset_name: p1000_micropipette_filled }
+      - when: mtt_solution_12mm
+        output: { asset_name: p1000_micropipette_filled }
+      - when: running_buffer_1x
+        output: { asset_name: p1000_micropipette_filled }
+      - when: ddh2o
+        output: { asset_name: p1000_micropipette_filled }
+  held_material_volume:
+    kind: composite
+    composite: []
+
+capabilities: [clickable, material_container, instrument_with_setpoint, cursor_attachable]
+
+layout:
+  default_width: 2.5
+  display_width_cm: 5
+  label_width: 8
+  anchor_y: tip
+  anchor_y_offset: 0

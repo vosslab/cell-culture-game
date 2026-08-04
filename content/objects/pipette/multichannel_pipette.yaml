@@ -11,6 +11,11 @@ state_fields:
     step: 1
     default: 50
     description: Volume the pipette is set to dispense per channel.
+  - field_name: tip_status
+    type: enum
+    allowed: [none, fresh, used]
+    default: none
+    description: Disposable tip state before and after liquid handling.
   - field_name: held_material_name
     type: enum
     allowed: [empty, media, cell_suspension, dmso, mtt_solution_12mm, carboplatin, metformin]
@@ -28,6 +33,9 @@ visual_states:
   set_volume:
     kind: overlay
     formula: label(state(set_volume), format="{value} ul")
+  tip_status:
+    kind: overlay
+    formula: 'label(state(tip_status), format="Tip: {value}")'
   held_material_name:
     kind: svg
     cases:

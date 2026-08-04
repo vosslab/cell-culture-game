@@ -1,0 +1,28 @@
+scene_name: dilution_initial_calculation_review
+extends: plate_focus_hood
+
+add_placements:
+  - placement_name: center_calculation_pad
+    object_name: calculation_pad
+    zone: center
+    depth_tier: 1
+    align_stop: left
+
+  - placement_name: calculation_40_choice
+    object_name: calculation_40_ul
+    zone: center
+    depth_tier: 1
+    align_stop: center
+
+  - placement_name: calculation_25_choice
+    object_name: calculation_25_ul
+    zone: center
+    depth_tier: 1
+    align_stop: right
+
+scene_notes: |
+  The first C1V1 calculation is isolated from the crowded dilution rack so the
+  equation pad and both candidate volumes are readable. The previously seeded
+  plate remains prominent as the biological reason for preparing treatment
+  stocks; choosing a result advances to the physical dilution workspace without
+  simulating a transfer.

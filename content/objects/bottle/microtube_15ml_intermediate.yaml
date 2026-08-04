@@ -1,11 +1,11 @@
 object_name: microtube_15ml_intermediate
 kind: bottle
-label: Carboplatin 400 uM intermediate
+label: Carboplatin 400 &micro;M intermediate
 
 state_fields:
   - field_name: material_name
     type: enum
-    allowed: [empty, carboplatin, carboplatin_400umol]
+    allowed: [empty, carboplatin, carboplatin_10mmol, carboplatin_400umol]
     default: empty
     description: Contents currently in the tube.
   - field_name: material_volume
@@ -23,6 +23,10 @@ visual_states:
       - when: empty
         output: { asset_name: falcon_15ml }
       - when: carboplatin
+        output: { asset_name: falcon_15ml }
+      - when: carboplatin_10mmol
+        output: { asset_name: falcon_15ml }
+      - when: carboplatin_400umol
         output: { asset_name: falcon_15ml }
   material_volume:
     applies_to: object

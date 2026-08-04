@@ -280,10 +280,11 @@ vocabulary in this document.
 
 ### `adjust` is the skill-based set-point gesture
 
-`adjust` is the continuous, skill-based set-point gesture. The
-student moves a continuous control until it reaches a target value:
-a pipette volume, a power-supply voltage, a pH titrated to a
-target. Setting a pipette to 4 mL is a lab skill; collapsing it
+`adjust` is the continuous, skill-based set-point gesture. The student moves
+an adjustable control until it reaches a target value: a micropipette or
+repeating-dispenser volume, a power-supply voltage, or a pH titrated to a
+target. Loading a graduated serological pipette is not a digital set-point
+operation. Collapsing an adjustable setting
 into a `click` teaches the student nothing about volume set-points.
 `adjust` keeps skill-based parameter-setting from collapsing into
 `click`.
@@ -344,15 +345,15 @@ teaches:
 
 ### The anti-pattern: collapsing a skill into a rote click
 
-The anti-pattern this rule exists to catch is collapsing a
-skill-based interaction into a rote `click`. The clearest case is
-pipetting: setting a serological pipette to 4 mL is a real lab
-skill, and encoding it as a timed `click` or a plain `click` with
-no set-point teaches nothing about volume set-points. Shipped
-liquid-handling steps that encode volume as a field on a `click` with
-no `adjust` gesture do not match the ratified vocabulary. The correct
-shape is `gesture: adjust` on the tool target, validated by
-`target_with_value` with the set-point value.
+The anti-pattern this rule exists to catch is collapsing a skill-based
+interaction into a rote `click`. The clearest case is setting an adjustable
+micropipette or repeating dispenser: encoding that setting as a timed `click`
+or a plain `click` with no set point teaches nothing about volume control.
+Shipped liquid-handling steps that encode an adjustable setting as a field on
+a `click` with no `adjust` gesture do not match the ratified vocabulary. The
+correct shape is `gesture: adjust` on the adjustable tool target, validated by
+`target_with_value` with the set-point value. A serological pipette is loaded
+to a graduation and represents that transfer through explicit material state.
 
 An interaction whose `target`/`gesture` pairing does not match its
 step's skill is a vocabulary violation, not an author preference.

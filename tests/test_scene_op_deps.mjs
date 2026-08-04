@@ -34,12 +34,12 @@ import { OBJECT_LIBRARY } from "../generated/object_library.js";
 //============================================
 
 // Seed a store with the bench-like fixture set used across the suite.
-//   micropipette: cursor-attachable tool with held_material_name + set_volume
+//   p20_micropipette: cursor-attachable tool with held_material_name + set_volume
 //   bme_tube: material container (material_name enum + material_volume)
 //   centrifuge:   instrument (running bool + set_rpm float)
 function seed_scene(store) {
   store.seed_from_scene([
-    { target: "micropipette", object_name: "micropipette" },
+    { target: "p20_micropipette", object_name: "p20_micropipette" },
     { target: "bme_tube", object_name: "bme_tube" },
     { target: "centrifuge", object_name: "centrifuge" },
   ]);
@@ -194,10 +194,10 @@ describe("scene_op_deps CursorAttach", () => {
     const deps = build_store_scene_op_deps(store, () => {});
     deps.apply_cursor_attach({
       type: "CursorAttach",
-      target: "micropipette",
+      target: "p20_micropipette",
       operation: "attach",
     });
-    assert.strictEqual(store.state["micropipette"].flags.cursor_attached, true);
+    assert.strictEqual(store.state["p20_micropipette"].flags.cursor_attached, true);
   });
 
   test("attach preserves an already-held material", () => {
@@ -208,23 +208,23 @@ describe("scene_op_deps CursorAttach", () => {
     // later CursorAttach must not clobber it.
     deps.apply_object_state({
       type: "ObjectStateChange",
-      target: "micropipette",
+      target: "p20_micropipette",
       state: { held_material_name: "trypan_blue", held_material_volume: 10 },
     });
     // Held-material lives in the object state for the tool; mirror it onto the
     // cursor flags via attach. attach reads current held flags (none yet), so
     // first set the cursor held material directly, then re-attach.
-    store.set_cursor("micropipette", {
+    store.set_cursor("p20_micropipette", {
       attach: true,
       held_material_name: "trypan_blue",
       held_material_volume: 10,
     });
     deps.apply_cursor_attach({
       type: "CursorAttach",
-      target: "micropipette",
+      target: "p20_micropipette",
       operation: "attach",
     });
-    const flags = store.state["micropipette"].flags;
+    const flags = store.state["p20_micropipette"].flags;
     assert.strictEqual(flags.cursor_attached, true);
     assert.strictEqual(flags.held_material_name, "trypan_blue");
   });
@@ -233,13 +233,16 @@ describe("scene_op_deps CursorAttach", () => {
     const store = create_scene_store();
     seed_scene(store);
     const deps = build_store_scene_op_deps(store, () => {});
-    store.set_cursor("micropipette", { attach: true, held_material_name: "trypan_blue" });
+    store.set_cursor("p20_micropipette", {
+      attach: true,
+      held_material_name: "trypan_blue",
+    });
     deps.apply_cursor_attach({
       type: "CursorAttach",
-      target: "micropipette",
+      target: "p20_micropipette",
       operation: "detach",
     });
-    const flags = store.state["micropipette"].flags;
+    const flags = store.state["p20_micropipette"].flags;
     assert.strictEqual(flags.cursor_attached, false);
     assert.strictEqual(flags.held_material_name, null);
   });
@@ -297,15 +300,15 @@ describe("scene_op_deps SceneChange reconciliation matrix", () => {
     seed_scene(store);
     // The tool is placed in the NEXT scene too, so its cursor state can carry.
     const deps = deps_with_next_scene(store, [
-      { target: "micropipette", object_name: "micropipette" },
+      { target: "p20_micropipette", object_name: "p20_micropipette" },
     ]);
-    store.set_cursor("micropipette", {
+    store.set_cursor("p20_micropipette", {
       attach: true,
       held_material_name: "trypan_blue",
       held_material_volume: 10,
     });
     deps.apply_scene_change({ type: "SceneChange", to_scene: "next" });
-    const flags = store.state["micropipette"].flags;
+    const flags = store.state["p20_micropipette"].flags;
     assert.strictEqual(flags.cursor_attached, true);
     assert.strictEqual(flags.held_material_name, "trypan_blue");
     assert.strictEqual(flags.held_material_volume, 10);
@@ -345,12 +348,15 @@ describe("scene_op_deps SceneChange reconciliation matrix", () => {
   test("a held tool absent from the next scene drops its cursor state", () => {
     const store = create_scene_store();
     seed_scene(store);
-    // Next scene does NOT contain the micropipette.
+    // Next scene does NOT contain the P20 micropipette.
     const deps = deps_with_next_scene(store, [{ target: "centrifuge", object_name: "centrifuge" }]);
-    store.set_cursor("micropipette", { attach: true, held_material_name: "trypan_blue" });
+    store.set_cursor("p20_micropipette", {
+      attach: true,
+      held_material_name: "trypan_blue",
+    });
     deps.apply_scene_change({ type: "SceneChange", to_scene: "next" });
-    // micropipette is not in the new scene, so its cursor state cannot carry.
-    assert.strictEqual(store.state["micropipette"], undefined);
+    // The P20 is not in the new scene, so its cursor state cannot carry.
+    assert.strictEqual(store.state["p20_micropipette"], undefined);
   });
 });
 

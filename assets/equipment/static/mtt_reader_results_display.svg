@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 300">
+  <rect x="8" y="8" width="704" height="284" rx="18" fill="#08242d" stroke="#8de8ef" stroke-width="5"/>
+  <text x="32" y="48" fill="#e6ffff" font-family="Arial, sans-serif" font-size="27" font-weight="700">Representative MTT results - 560 nm</text>
+  <text x="32" y="82" fill="#b9f8ff" font-family="Arial, sans-serif" font-size="21">Blank/background: 0.08 A   Untreated control: 1.00 A</text>
+  <line x1="28" y1="100" x2="692" y2="100" stroke="#467b87" stroke-width="2"/>
+  <text x="32" y="132" fill="#d8f6f8" font-family="Arial, sans-serif" font-size="20" font-weight="700">Carboplatin (uM)</text>
+  <text x="245" y="132" fill="#d8f6f8" font-family="Arial, sans-serif" font-size="20" font-weight="700">0</text>
+  <text x="293" y="132" fill="#d8f6f8" font-family="Arial, sans-serif" font-size="20" font-weight="700">0.1</text>
+  <text x="354" y="132" fill="#d8f6f8" font-family="Arial, sans-serif" font-size="20" font-weight="700">0.25</text>
+  <text x="425" y="132" fill="#d8f6f8" font-family="Arial, sans-serif" font-size="20" font-weight="700">0.5</text>
+  <text x="487" y="132" fill="#d8f6f8" font-family="Arial, sans-serif" font-size="20" font-weight="700">1</text>
+  <text x="533" y="132" fill="#d8f6f8" font-family="Arial, sans-serif" font-size="20" font-weight="700">2.5</text>
+  <text x="593" y="132" fill="#d8f6f8" font-family="Arial, sans-serif" font-size="20" font-weight="700">5</text>
+  <text x="642" y="132" fill="#d8f6f8" font-family="Arial, sans-serif" font-size="20" font-weight="700">10</text>
+  <text x="32" y="170" fill="#9eeef5" font-family="Arial, sans-serif" font-size="20" font-weight="700">Viability (%)</text>
+  <text x="237" y="170" fill="#9eeef5" font-family="Arial, sans-serif" font-size="20">100</text>
+  <text x="291" y="170" fill="#9eeef5" font-family="Arial, sans-serif" font-size="20">92</text>
+  <text x="360" y="170" fill="#9eeef5" font-family="Arial, sans-serif" font-size="20">86</text>
+  <text x="427" y="170" fill="#9eeef5" font-family="Arial, sans-serif" font-size="20">72</text>
+  <text x="482" y="170" fill="#9eeef5" font-family="Arial, sans-serif" font-size="20">55</text>
+  <text x="538" y="170" fill="#9eeef5" font-family="Arial, sans-serif" font-size="20">40</text>
+  <text x="590" y="170" fill="#9eeef5" font-family="Arial, sans-serif" font-size="20">30</text>
+  <text x="643" y="170" fill="#ffcf69" font-family="Arial, sans-serif" font-size="21" font-weight="700">22</text>
+  <line x1="28" y1="190" x2="692" y2="190" stroke="#467b87" stroke-width="2"/>
+  <text x="32" y="226" fill="#ffcf69" font-family="Arial, sans-serif" font-size="21" font-weight="700">10 uM carboplatin: 0.28 A -> 22% viable</text>
+  <text x="32" y="262" fill="#d8a8ff" font-family="Arial, sans-serif" font-size="21" font-weight="700">10 uM carboplatin + metformin: 0.17 A -> 10% viable</text>
+</svg>

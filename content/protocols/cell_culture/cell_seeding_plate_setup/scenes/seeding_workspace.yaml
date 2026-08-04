@@ -6,59 +6,68 @@ scene_notes: |
   well-level teaching; every supporting item below is an authored protocol target.
 
 add_placements:
+  # A single rear preparation shelf leaves the foreground band tall enough for
+  # the 96-well plate. Keeping every support object on the same depth tier
+  # avoids an artificial middle row that pushed the plate off the canvas.
   # The two preparation vessels occupy the rear-left context station. The plate
   # remains unobscured in the foreground teaching zone.
-  - placement_name: rear_left_cell_suspension_tube
-    object_name: cell_suspension_tube
-    zone: rear_left
+  - placement_name: rear_left_cell_suspension_conical
+    object_name: conical_15ml
+    zone: rear_center
     depth_tier: 1
     align_stop: center
 
   - placement_name: rear_left_conical_tube_for_dilution
     object_name: conical_tube_for_dilution
-    zone: rear_left
-    depth_tier: 2
+    zone: rear_center
+    depth_tier: 1
     align_stop: right
 
-  # Media and vortex are the two protocol targets needed to prepare the
-  # suspension before dispensing into the foreground plate.
+  # Media is the preparation reagent needed before dispensing into the
+  # foreground plate. Mixing is gentle inversion of the closed tube, not vortexing.
   - placement_name: rear_center_media_bottle
     object_name: media_bottle
     zone: rear_center
     depth_tier: 1
     align_stop: left
 
-  - placement_name: rear_center_vortex
-    object_name: vortex
+  # The reservoir is required for an eight-channel draw; a conical tube cannot
+  # physically service all eight tips at once.
+  - placement_name: rear_center_reagent_reservoir
+    object_name: reagent_reservoir
     zone: rear_center
-    depth_tier: 2
-    align_stop: right
+    depth_tier: 1
+    align_stop: center
 
   # Incubator is the post-seeding destination in the rear-right context station.
   - placement_name: rear_right_incubator
     object_name: incubator
-    zone: rear_right
+    zone: rear_center
     depth_tier: 1
     align_stop: center
 
-  # The two authored pipettes share the deliberately narrow secondary tool rack.
-  - placement_name: right_micropipette
-    object_name: micropipette
-    zone: right_tool_area
-    depth_tier: 1
-    align_stop: left
-
+  # The two required transfer tools remain on the rear preparation shelf. The
+  # generic micropipette was unused here and crowded the plate-focused composition.
   - placement_name: right_multichannel_pipette
     object_name: multichannel_pipette
-    # The 8-channel tool shares the broad rear-right preparation station with
-    # the incubator, leaving the narrow tool rack for the tall serological
-    # pipette and preserving the foreground plate's teaching scale.
-    zone: rear_right
+    zone: rear_center
     depth_tier: 1
     align_stop: left
 
   - placement_name: right_serological_pipette
     object_name: serological_pipette
-    zone: right_tool_area
+    zone: rear_center
     depth_tier: 1
     align_stop: right
+
+  - placement_name: right_sterile_serological_pipette_pack
+    object_name: serological_pipette_pack
+    zone: right_tool_area
+    depth_tier: 1
+    align_stop: center
+
+  - placement_name: right_multichannel_tip_box
+    object_name: micropipette_tip_box
+    zone: right_tool_area
+    depth_tier: 1
+    align_stop: left

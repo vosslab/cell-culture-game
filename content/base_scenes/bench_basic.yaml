@@ -87,18 +87,12 @@ placements:
     depth_tier: 1
     align_stop: right
 
-  # Right tool area: tip box and micropipette
+  # Right tool area: general tip box
   - placement_name: base_right_tip_box
     object_name: micropipette_tip_box
     zone: right_tool_area
     depth_tier: 1
     align_stop: left
-
-  - placement_name: base_right_micropipette
-    object_name: micropipette
-    zone: right_tool_area
-    depth_tier: 2
-    align_stop: right
 
 layout_rules:
   label_line_height: 1.1

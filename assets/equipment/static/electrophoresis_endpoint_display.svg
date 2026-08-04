@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 430">
+  <rect x="8" y="8" width="744" height="414" rx="20" fill="#f7fbfc" stroke="#173b49" stroke-width="5"/>
+  <text x="32" y="49" fill="#173b49" font-family="Arial, sans-serif" font-size="29" font-weight="700">SDS-PAGE endpoint observation</text>
+  <text x="32" y="82" fill="#315c69" font-family="Arial, sans-serif" font-size="20">View through the lidded tank before touching the power switch.</text>
+  <rect x="66" y="104" width="304" height="278" rx="12" fill="#dcecff" stroke="#173b49" stroke-width="4"/>
+  <rect x="104" y="125" width="228" height="230" fill="#eef7ff" stroke="#6d8fa0" stroke-width="2"/>
+  <g stroke="#b9cfda" stroke-width="2"><path d="M142 125V355M180 125V355M218 125V355M256 125V355M294 125V355"/></g>
+  <g fill="#ffffff" stroke="#315c69" stroke-width="2"><rect x="118" y="126" width="22" height="13"/><rect x="156" y="126" width="22" height="13"/><rect x="194" y="126" width="22" height="13"/><rect x="232" y="126" width="22" height="13"/><rect x="270" y="126" width="22" height="13"/></g>
+  <path d="M111 320H325" stroke="#1e45b8" stroke-width="9" stroke-linecap="round"/>
+  <path d="M342 320H399" stroke="#1e45b8" stroke-width="4" stroke-dasharray="7 6"/>
+  <path d="M385 320V355M376 320H394M376 355H394" fill="none" stroke="#b23a2c" stroke-width="4"/>
+  <text x="410" y="326" fill="#b23a2c" font-family="Arial, sans-serif" font-size="22" font-weight="700">dye front</text>
+  <text x="410" y="352" fill="#173b49" font-family="Arial, sans-serif" font-size="20">5-10 mm before gel edge</text>
+  <rect x="414" y="126" width="304" height="122" rx="14" fill="#e7f7ed" stroke="#287a51" stroke-width="3"/>
+  <text x="436" y="169" fill="#1c6745" font-family="Arial, sans-serif" font-size="29" font-weight="700">SAFE ENDPOINT</text>
+  <text x="436" y="207" fill="#173b49" font-family="Arial, sans-serif" font-size="25" font-weight="700">STOP NOW</text>
+  <text x="436" y="236" fill="#315c69" font-family="Arial, sans-serif" font-size="18">Switch power off before opening.</text>
+  <rect x="414" y="267" width="304" height="115" rx="14" fill="#fff0ee" stroke="#b23a2c" stroke-width="3"/>
+  <text x="436" y="308" fill="#8d2c22" font-family="Arial, sans-serif" font-size="24" font-weight="700">Do not continue</text>
+  <text x="436" y="339" fill="#173b49" font-family="Arial, sans-serif" font-size="19">Running the dye off the gel loses</text>
+  <text x="436" y="364" fill="#173b49" font-family="Arial, sans-serif" font-size="19">the low-molecular-weight boundary.</text>
+</svg>

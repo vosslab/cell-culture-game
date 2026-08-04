@@ -1,0 +1,19 @@
+scene_name: plate_drug_treatment_media_adjustment_plate_map_review
+extends: plate_focus_hood
+
+add_placements:
+  - placement_name: plate_map_decision_correct_choice
+    object_name: plate_map_decision_correct
+    zone: center
+    depth_tier: 1
+    align_stop: left
+  - placement_name: plate_map_decision_incorrect_choice
+    object_name: plate_map_decision_incorrect
+    zone: center
+    depth_tier: 1
+    align_stop: right
+
+scene_notes: |
+  Plate-map review keeps the completed 96-well plate dominant and offers two
+  visible conclusions beside it. The plate state is carried from the transfer
+  workspace; no experimental result is recreated for this review.

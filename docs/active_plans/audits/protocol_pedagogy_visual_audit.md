@@ -2,7 +2,13 @@
 
 Date: 2026-08-03
 
-Status: review complete; no protocol implementation changed
+Status: review complete; findings implemented with genuine blockers documented
+
+Implementation follow-up: the source-to-visible-UI disposition of every
+applicable P0, P1, and P2 finding is recorded in the
+`docs/active_plans/reports/protocol_pedagogy_visual_resolution.md` ledger.
+This audit remains the historical evidence and repair specification; the ledger
+is the current implementation and verification record.
 
 ## Scope
 
@@ -85,7 +91,7 @@ Several higher-risk findings also emerged:
   a new tip after each sample to prevent carry-over
   ([manufacturer guidance](https://www.thermofisher.com/us/en/home/life-science/lab-plasticware-supplies/lab-plasticware-supplies-learning-center/lab-plasticware-supplies-resource-library/fundamentals-of-pipetting/proper-pipetting-techniques/preventing-cross-contamination.html)).
 - A generic
-  [micropipette.yaml](../../../content/objects/pipette/micropipette.yaml) claims a
+  `content/objects/pipette/micropipette.yaml` (since retired) claims a
   0.5-1000 &micro;L range while rendering as a P200. It lets one virtual instrument
   perform transfers that require different real pipettes.
 - Seven plate-dosing steps load 60 &micro;L once and dispense twelve 5 &micro;L aliquots;

@@ -7,8 +7,8 @@ remove_placements:
   - base_hemocytometer_slide
 
 add_placements:
-  - placement_name: right_micropipette
-    object_name: micropipette
+  - placement_name: right_p20_micropipette
+    object_name: p20_micropipette
     zone: right_accessory_area
     depth_tier: 2
 
@@ -21,3 +21,9 @@ add_placements:
     object_name: lens_tissue
     zone: instrument_area
     depth_tier: 1
+
+  - placement_name: right_counting_conical
+    object_name: conical_15ml
+    zone: right_accessory_area
+    depth_tier: 1
+    align_stop: center

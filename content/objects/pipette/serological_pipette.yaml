@@ -3,14 +3,6 @@ kind: pipette
 label: Serological pipette
 
 state_fields:
-  - field_name: set_volume
-    type: float
-    unit: ml
-    min: 0.1
-    max: 25.0
-    step: 0.1
-    default: 1.0
-    description: Volume the pipette is set to dispense.
   - field_name: held_material_name
     type: enum
     allowed:
@@ -26,7 +18,7 @@ state_fields:
         ddh2o,
       ]
     default: empty
-    description: Contents currently aspirated in the pipette barrel.
+    description: Contents currently drawn into the pipette barrel.
   - field_name: held_material_volume
     type: float
     unit: ml
@@ -34,11 +26,13 @@ state_fields:
     max: 25.0
     default: 0
     description: Volume of contents currently held, in milliliters.
+  - field_name: freshness
+    type: enum
+    allowed: [sterile, used]
+    default: sterile
+    description: Whether this disposable graduated pipette has contacted a reagent source.
 
 visual_states:
-  set_volume:
-    kind: overlay
-    formula: label(state(set_volume), format="{value} ml")
   held_material_name:
     kind: svg
     cases:
@@ -66,9 +60,12 @@ visual_states:
     target: anchor_liquid_bounds
     clip: anchor_liquid_clip
     capacity_ml: 25.0
+  freshness:
+    kind: overlay
+    formula: 'label(state(freshness), format="Pipette: {value}")'
 
 capabilities:
-  [clickable, material_container, instrument_with_setpoint, cursor_attachable]
+  [clickable, material_container, cursor_attachable]
 
 layout:
   default_width: 3

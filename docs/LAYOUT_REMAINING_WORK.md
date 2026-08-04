@@ -221,12 +221,13 @@ scatter rather than creating a legible workflow cluster. This is an authoring
 problem that requires a human decision before any layout edit.
 
 **Focal status.**
-Primary object: `micropipette`, primary area ~0.3%. This is almost certainly a
-wrong primary pick. A micropipette at 0.3% is invisible as a focal object; the
+Historical primary object: the former generic `micropipette`, primary area
+~0.3%. This was a wrong primary pick. A pipette at 0.3% is invisible as a focal object; the
 visual evidence from round-0 shows no dominant teaching instrument. The reviewer
 noted "no single dominant teaching object." Before any focal-promotion edit, the
 scene author must identify which object the protocol intends as the teaching
-focus. Do not enlarge the micropipette; it is not the intended dominant object.
+focus. The generic object has since been retired in favor of range-specific
+pipettes; do not restore or enlarge it.
 
 **Label status.**
 Round-0 found duplicate labels "Microtube rack (24-slot)" twice. This is an
@@ -445,7 +446,8 @@ The `unresolved_label_overlap` Error on `rear_left_waste` vs `center_centrifuge`
 is cleared. The baseline stats showed `label_art_overlap_count=2` (two overlapping
 pairs); both are now resolved. Alignment pass rate: 10/11 (90.9%).
 
-One remaining fail: `base_right_micropipette` (diff 5.9 px, above threshold).
+Historical remaining fail: former `base_right_micropipette` (diff 5.9 px,
+above threshold).
 No standing label Errors. No crop fails.
 
 Prior Error diagnostics (for reference only -- now resolved):
@@ -454,8 +456,9 @@ shared the left edge at x=5, causing a cross-zone label-vs-artwork collision
 the 4-pass resolver could not clear. The WP-6 label-position fix resolved it.
 
 **Recommendation.**
-No label authoring action required. The micropipette fail (5.9 px) is a
-minor positional offset, not a diagnostic Error. Scene is clean.
+No label authoring action is required. The former generic-pipette fail (5.9 px)
+was a minor positional offset, not a diagnostic Error. The current scene uses
+range-specific tools.
 
 ---
 
@@ -754,7 +757,8 @@ Do NOT mass-rewrite all scenes. Pick only the worst, clearest cases.
 ### Priority 5 -- focal-promotion (OPTIONAL targeted polish)
 
 Do NOT promote objects based on the engine's current "primary" picks alone.
-Several are likely wrong (notably `micropipette` at 0.3% for `sample_prep_bench`).
+Several historical picks were wrong (notably the retired generic
+`micropipette` at 0.3% for `sample_prep_bench`).
 Before any promotion edit:
 
 1. Identify the protocol's first-interaction target for the scene (the object
@@ -774,8 +778,9 @@ Scenes with plausible focal-promotion value (subject to step 1-3 verification):
 
 Do NOT promote:
 
-- `micropipette` in `sample_prep_bench` (0.3%): wrong primary pick; scene
-  needs a human authoring decision first.
+- The retired generic `micropipette` in `sample_prep_bench` (historical 0.3%):
+  wrong primary pick; do not restore it. Review the active range-specific tool
+  only when a current protocol makes that tool the focal skill.
 - `hood_surface` in `hood_basic` (14.6%): likely a layout zone artifact, not a
   physical object.
 - `microscope` in `passage_hood_detachment_microscope_view` (18.1%): already
@@ -937,7 +942,7 @@ Data source:
 | --- | --- | --- | --- | --- | --- |
 | `staining_bench` | ~85% | Real defect -- fix | `staining_tray` | 3.1% | Primary pick may be wrong; verify against protocol |
 | `electrophoresis_bench` | ~72% | Real defect -- fix (after placeholder asset resolved) | `electrophoresis_tank` | 3.0% | Needs promotion but blocked by zone recomposition |
-| `sample_prep_bench` | ~65% | Real defect -- blocked by human decisions | `micropipette` | 0.3% | Wrong primary pick; do not promote |
+| `sample_prep_bench` | ~65% | Historical measurement; current composition differs | retired generic `micropipette` | 0.3% | Former wrong primary pick; do not restore or promote |
 | `cell_counter_basic` | ~55% | Real defect -- fix | `cell_counter` | 12.4% | Already adequate; no promotion needed |
 | `seeding_workspace` | ~48% | Real defect -- fix after correctness Error | `well_plate_96` | 1.4% | Incubator is likelier focal; verify |
 | `bench_basic` | ~42% | Borderline -- defer | `centrifuge` | 10.2% | Adequate |

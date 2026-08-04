@@ -1,0 +1,26 @@
+object_name: serological_pipette_pack
+kind: decoration
+label: Sterile serological pipette pack
+
+state_fields:
+  - field_name: pack_status
+    type: enum
+    allowed: [available, depleted]
+    default: available
+    description: Whether a sterile disposable graduated pipette is available for the next source.
+
+visual_states:
+  pack_status:
+    kind: svg
+    cases:
+      - when: available
+        output: { asset_name: serological_pipette_pack_available }
+      - when: depleted
+        output: { asset_name: serological_pipette_pack_depleted }
+
+capabilities: [clickable, cursor_attachable]
+
+layout:
+  default_width: 6
+  display_width_cm: 10
+  label_width: 10

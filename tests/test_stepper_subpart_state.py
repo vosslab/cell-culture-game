@@ -8,6 +8,8 @@
 # do not touch the real content tree.
 
 # local repo modules
+from pathlib import Path
+
 import file_utils
 from validation.yaml_schema.database import ContentDatabase
 from validation.stepper.loader import LoadedContentTree
@@ -325,3 +327,28 @@ def test_formazan_and_waste_pass_when_registered():
 	assert ok_waste is True
 	assert state_map.get_subpart_state("plate_1", "A1")["state"]["material_name"] == "formazan"
 	assert state_map.get_subpart_state("plate_1", "A2")["state"]["material_name"] == "waste_mtt"
+
+
+def test_derived_scene_replacement_survives_inherited_removal() -> None:
+	"""Stepper scene inheritance keeps a same-name local replacement clickable."""
+	db = ContentDatabase()
+	db.objects["mini_plate"] = PLATE_OBJECT
+	db.objects["replacement_plate"] = {**PLATE_OBJECT, "object_name": "replacement_plate"}
+	db.base_scenes["bench"] = BASE_SCENE
+	db.protocols["p1"] = PROTOCOL
+	db.materials_by_protocol["p1"] = MATERIALS
+	tree = LoadedContentTree(db, root_path=Path(__file__).resolve().parents[1])
+	tree.protocol_local_scenes["p1"] = {
+		"derived_bench": {
+			"scene_name": "derived_bench",
+			"extends": "bench",
+			"remove_placements": ["plate_1"],
+			"add_placements": [
+				{"placement_name": "plate_1", "object_name": "replacement_plate"},
+			],
+		},
+	}
+	emitter = FindingEmitter()
+	state_map = StateMap(tree, "p1", emitter)
+	effective = state_map._get_effective_placements(tree.protocol_local_scenes["p1"]["derived_bench"])
+	assert effective == [{"placement_name": "plate_1", "object_name": "replacement_plate"}]

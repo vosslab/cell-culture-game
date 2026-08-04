@@ -25,22 +25,24 @@ test("well plate seeds its object state and every declared well in order", () =>
   assert.ok(seeds.every((seed) => seed.object_name === "well_plate_96"));
 });
 
-test("dilution rack seeds declared tubes without a state-free bare rack", () => {
+test("dilution rack seeds its declared root and tubes in definition order", () => {
   const rack = OBJECT_LIBRARY.dilution_tube_rack_8;
   const tubes = rack.subparts ?? [];
   const seeds = build_seed_list(resultWith("dilution_tube_rack_8"));
 
-  assert.deepEqual(
-    targets(seeds),
-    tubes.map((tube) => `dilution_tube_rack_8.${tube}`),
-  );
-  assert.ok(!targets(seeds).includes("dilution_tube_rack_8"));
+  assert.deepEqual(targets(seeds), [
+    "dilution_tube_rack_8",
+    ...tubes.map((tube) => `dilution_tube_rack_8.${tube}`),
+  ]);
 });
 
 test("duplicate placements share one deterministic set of object and subpart seeds", () => {
   const rack = OBJECT_LIBRARY.dilution_tube_rack_8;
   const plate = OBJECT_LIBRARY.well_plate_96;
-  const rackTargets = (rack.subparts ?? []).map((tube) => `dilution_tube_rack_8.${tube}`);
+  const rackTargets = [
+    "dilution_tube_rack_8",
+    ...(rack.subparts ?? []).map((tube) => `dilution_tube_rack_8.${tube}`),
+  ];
   const plateTargets = [
     "well_plate_96",
     ...(plate.subparts ?? []).map((well) => `well_plate_96.${well}`),

@@ -171,13 +171,10 @@ class StateMap:
 			base_placements = base_scene.get("placements", [])
 			placements = list(base_placements) if isinstance(base_placements, list) else []
 
-		# Apply add_placements
-		add_placements = scene_data.get("add_placements", [])
-		if isinstance(add_placements, list):
-			placements.extend(add_placements)
-
 		# Apply remove_placements (by name)
-		# remove_placements entries are plain strings (placement_name values)
+		# Removal applies to inherited placements before same-name local additions,
+		# matching the runtime scene resolver. This lets a derived scene replace a
+		# base placement deliberately instead of deleting its own replacement.
 		remove_placements = scene_data.get("remove_placements", [])
 		if isinstance(remove_placements, list):
 			# Handle string entries (the YAML format) as well as legacy dict entries
@@ -190,6 +187,12 @@ class StateMap:
 					if name:
 						removed_names.add(name)
 			placements = [p for p in placements if not (isinstance(p, dict) and p.get("placement_name") in removed_names)]
+
+		# Apply add_placements after inherited removals so a local replacement with
+		# the same placement_name remains visible and addressable.
+		add_placements = scene_data.get("add_placements", [])
+		if isinstance(add_placements, list):
+			placements.extend(add_placements)
 
 		# Register all placements
 		for placement in placements:
@@ -518,13 +521,10 @@ class StateMap:
 			base_placements = base_scene.get("placements", [])
 			placements = list(base_placements) if isinstance(base_placements, list) else []
 
-		# Apply add_placements
-		add_placements = scene_data.get("add_placements", [])
-		if isinstance(add_placements, list):
-			placements.extend(add_placements)
-
 		# Apply remove_placements (by name)
-		# remove_placements entries are plain strings (placement_name values)
+		# Apply removals to inherited placements before additions, the same order
+		# used by the runtime scene resolver. A derived same-name addition is a
+		# replacement, not a second thing to remove.
 		remove_placements = scene_data.get("remove_placements", [])
 		if isinstance(remove_placements, list):
 			# Handle string entries (the YAML format) as well as legacy dict entries
@@ -537,6 +537,11 @@ class StateMap:
 					if name:
 						removed_names.add(name)
 			placements = [p for p in placements if not (isinstance(p, dict) and p.get("placement_name") in removed_names)]
+
+		# Apply local additions after inherited removals.
+		add_placements = scene_data.get("add_placements", [])
+		if isinstance(add_placements, list):
+			placements.extend(add_placements)
 
 		return placements
 

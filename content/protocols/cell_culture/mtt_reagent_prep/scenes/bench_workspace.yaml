@@ -43,4 +43,22 @@ add_placements:
     object_name: serological_pipette
     zone: right_tool_area
     depth_tier: 1
-    align_stop: center
+    align_stop: right
+
+  - placement_name: right_serological_pipette_pack
+    object_name: serological_pipette_pack
+    zone: right_tool_area
+    depth_tier: 1
+    align_stop: left
+
+  - placement_name: volume_sufficient_choice
+    object_name: volume_decision_sufficient
+    zone: right_tool_area
+    depth_tier: 2
+    align_stop: left
+
+  - placement_name: volume_insufficient_choice
+    object_name: volume_decision_insufficient
+    zone: right_tool_area
+    depth_tier: 2
+    align_stop: right

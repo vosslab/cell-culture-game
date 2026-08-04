@@ -1,148 +1,29 @@
 # Roadmap
 
+## Completed: protocol pedagogy and visible-UI workflows
 
-Completed: Solid shell vertical slice
+The reusable shell, all five gestures, per-subpart state, protocol runners, and
+visible browser walkthroughs are established. The 2026-08-03 pedagogy overhaul
+adds range-specific laboratory tools, contamination controls, calculation and
+observation decisions, visible experimental outcomes, and durable cell-culture
+and SDS-PAGE continuity. All 31 generated protocol pages complete through the
+visible interface; see
+`docs/active_plans/reports/protocol_pedagogy_visual_resolution.md`.
 
-A first Solid-based protocol shell vertical slice is complete.
+## Current roadmap
 
-The current green proof is sdspage_heat_denature_samples:
+The next protocol-quality work depends on explicit evidence or contract
+decisions rather than another generic shell milestone:
 
-* Launcher renders student-visible protocols.
-* Protocol host opens from launcher.
-* Per-protocol scene YAML is indexed.
-* Scene renders.
-* HUD shows prompt and progress.
-* Runtime advances through visible object clicks.
-* Protocol reaches terminal completion.
-* Screenshots are captured during the Playwright walker.
-* ?shell=off confirms the runtime is not shell-dependent.
-* npm run check passes.
-* M4 Playwright specs pass headless.
-
-This milestone proves the shell / runtime / scene / walker path can work end-to-end for a click-only protocol.
-
-Next milestone: Complete the shell UI surface
-
-Goal: turn the current bare-bones shell into the reusable protocol shell.
-
-Scope:
-
-* Inventory / tool tray
-* Interaction modal
-* Feedback toast
-* Professor / help overlay
-* Results screen
-* Basic shell styling
-* Shell CSS isolation from scene internals
-
-Completion criteria:
-
-* Shell components are mounted through the protocol host.
-* Each shell component has stable test selectors.
-* Shell components do not mutate protocol state directly.
-* Shell CSS does not target renderer-owned scene elements.
-
-Next milestone: Add adjust gesture support
-
-Goal: support real lab protocol interactions that require setting values, not just clicking objects.
-
-Initial target: mtt_reagent_prep.
-
-Scope:
-
-* Define visible affordance for adjust.
-* Support value input for pipette volume and similar set-points.
-* Emit typed runtime event with target, gesture, and value.
-* Validate through existing validator system.
-* Add Playwright proof for an adjust protocol.
-
-Completion criteria:
-
-* A protocol with adjust completes through visible UI.
-* Walker does not use hidden controls.
-* Screenshots show the value-setting interaction.
-* Runtime, not shell, remains authoritative for validation and step progression.
-
-Next milestone: Expand pilot coverage
-
-Goal: prove the shell across more than one simple click-only protocol.
-
-Pilot selection should cover:
-
-* HUD
-* Tray
-* Feedback
-* Modal or help overlay
-* At least one protocol with adjust
-
-Candidate protocols:
-
-* sdspage_heat_denature_samples as current green baseline.
-* mtt_reagent_prep after adjust support.
-* mtt_solubilization_readout if modal or readout flow coverage is needed.
-* open_plate_workspace if a simpler click-only comparison is needed.
-
-Completion criteria:
-
-* At least two protocols complete through visible UI.
-* At least one protocol exercises more than HUD and basic clicking.
-* Walker evidence is stored under tests/playwright/artifacts/<protocol_name>/.
-
-Next milestone: Scene integrity and scene YAML hardening
-
-Goal: make scene YAML reliable enough that protocol authors can use it without hidden layout failures.
-
-Scope:
-
-* Scene lint coverage for per-protocol scenes.
-* Fix layout drift in flagged scenes.
-* Confirm scientific assets are not cropped or aspect-distorted.
-* Replace neutral background placeholders with real asset rendering.
-* Keep asset integrity tests running with shell mounted.
-
-Completion criteria:
-
-* Flagged scenes pass scene-integrity checks.
-* Background assets render correctly.
-* Scene lint catches common scene YAML failures before browser tests.
-* Shell chrome does not alter scene layout or crop assets.
-
-Next milestone: Protocol content cleanup
-
-Goal: reduce broken and ambiguous protocol references before scaling protocol coverage.
-
-Scope:
-
-* Resolve 6 unresolved protocol targets.
-* Review ambiguous target mappings.
-* Review intentional fanouts.
-* Confirm protocol object references match scene object names.
-* Add or improve audits so these issues stay caught.
-
-Completion criteria:
-
-* No unresolved targets in student-visible protocols.
-* Ambiguous mappings are either fixed or explicitly documented as intentional.
-* Fanout behavior is walker-safe and visible.
-
-Next milestone: Generator pipeline consolidation
-
-Goal: keep one canonical file-generation path.
-
-Scope:
-
-* Archive scripts marked SAFE_TO_ARCHIVE.
-* Decide build_new_scene_data.py.
-* Decide build_protocol_html.py.
-* Keep generated artifacts deterministic.
-* Ensure docs match package.json and actual build scripts.
-
-Completion criteria:
-
-* One canonical pipeline path is documented.
-* Dead pipeline scripts are archived by the human via git mv.
-* docs/FILE_STRUCTURE.md and build scripts agree.
-* Build and generated protocol / scene artifacts are reproducible.
+- Supply the faculty-owned Bradford inputs, ladder product/load volume,
+  one-gel apparatus values, and local microwave SOP recorded as B1-B4.
+- Approve a closed conditional step-graph vocabulary before implementing B5.
+- Decide whether selection candidates need a closed choice-role capability
+  (B6), so decision scenes can retain visible experimental context without
+  presenting every clickable context object as an answer.
+- Re-run the optional SVG text-outline E2E with a working Inkscape installation.
+- Continue evidence-led protocol expansion without weakening visible-action,
+  state-continuity, or scientific-conservation gates.
 
 Per-well material state plan status (dynamic-coalescing-flask.md, 2026-06-03)
 
@@ -165,14 +46,11 @@ What shipped (M0-M4):
 * M4: production render-path per-well color proven; walkthrough spec retained, honestly
   reports blocker.
 
-Visible-UI per-well-protocol walkthrough (separate web_ui task, not a material item):
+Visible-UI per-well-protocol walkthrough:
 
-* Task #28: wire visible `adjust` gesture affordance. This is a separate web_ui task in
-  the same gesture family as the landed select and type gestures (WS-M5-ST). It gates the
-  end-to-end visible walkthrough for per-well protocols (e.g.,
-  plate_drug_treatment_drug_addition) but is not a material-rendering defect and is out of
-  scope for the material plan. No design decision yet on the visible affordance shape
-  (slider, text input, dial, stepper).
+* Completed. The in-flow set-point editor supplies the visible `adjust`
+  affordance, and the per-well protocols complete through the same
+  runtime-authoritative validation path as the other gestures.
 
 Non-goals of this plan:
 
@@ -288,9 +166,9 @@ Surfaced cleanups that would land alongside:
 - [protocol_manual.py](../validation/manual/protocol_manual.py) already enforces
   "draw" for pipette loading + "aspirate and remove" for vacuum-to-waste;
   glossary ratifies the convention.
-- Repo-wide pass replacing remaining authored "aspirate" prose in
-  pipette-loading contexts (8 protocols flagged in
-  [TODO.md](TODO.md)).
+- The protocol validator now rejects "aspirate" in a learner-facing loading
+  prompt unless the step uses the dedicated vacuum aspirating pipette. The
+  current corpus is clean; retain that gate for new protocol content.
 - Authoring vocabularies (PROTOCOL_VOCABULARY, SCENE_VOCABULARY,
   OBJECT_VOCABULARY) shrink as they cite the glossary.
 

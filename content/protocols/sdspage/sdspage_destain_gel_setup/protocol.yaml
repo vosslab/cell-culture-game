@@ -1,7 +1,9 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_destain_gel_setup
-entry_step: rinse_first
+entry_step: rinse_twice
 initial_state:
+  - target: staining_tray
+    state: { material_name: empty, material_volume: 0, gel_present: true, gel_state: stained, lane_pattern: samples_1_to_3_ladder_5, rinse_count: 0 }
   - target: ddh2o_bottle
     state: { material_name: ddh2o, material_volume: 500 }
   - target: destain_bottle
@@ -22,10 +24,10 @@ learning:
     phase: preparing the gel in destain solution with physical agitation to remove
     coomassie stain."
 steps:
-  - step_name: rinse_first
-    prompt:
-      "First rinse: pour distilled water into the staining tray to rinse away
-      residual stain."
+  - step_name: rinse_twice
+    prompt: >-
+      Complete two water rinses while the gel remains flat and oriented in the tray:
+      add water around the gel and discard each rinse without transferring the gel.
     sequence:
       - target: staining_tray
         gesture: click
@@ -62,54 +64,37 @@ steps:
               state:
                 material_name: empty
                 material_volume: 0
+                rinse_count: 1
             - type: ObjectStateChange
               target: waste_container
               state:
                 material_name: mixed
                 material_volume: 200
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: rinse_second
-  - step_name: rinse_second
-    prompt:
-      "Second rinse: pour another volume of distilled water and discard to the
-      waste container."
-    sequence:
       - target: ddh2o_bottle
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: staining_tray
-              state:
-                material_name: ddh2o
-                material_volume: 200
+              state: { material_name: ddh2o, material_volume: 200 }
             - type: ObjectStateChange
               target: ddh2o_bottle
-              state:
-                material_name: ddh2o
-                material_volume: 100
+              state: { material_name: ddh2o, material_volume: 100 }
       - target: waste_container
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: staining_tray
-              state:
-                material_name: empty
-                material_volume: 0
+              state: { material_name: empty, material_volume: 0, rinse_count: 2 }
             - type: ObjectStateChange
               target: waste_container
-              state:
-                material_name: mixed
-                material_volume: 400
+              state: { material_name: mixed, material_volume: 400 }
+          feedback:
+            correct: "Two rinse cycles are complete; the oriented gel stayed in the tray throughout."
+            incorrect: "Keep the gel in the tray and discard only the second water rinse."
     step_validator:
       preset: sequence_complete
     outcome:
@@ -131,6 +116,8 @@ steps:
                 material_name: destain
                 material_volume: 250
                 gel_state: destaining
+                lane_pattern: samples_1_to_3_ladder_5
+                coverage_depth_cm: 2
             - type: ObjectStateChange
               target: destain_bottle
               state:
@@ -157,6 +144,7 @@ steps:
               target: staining_tray
               state:
                 kimwipes_present: true
+                kimwipe_count: 4
     step_validator:
       preset: sequence_complete
     outcome:
@@ -166,8 +154,8 @@ steps:
   - step_name: microwave_heat
     prompt:
       Place the staining tray in the microwave, set the timer for 50 seconds,
-      and start the heating. When removing the tray from the microwave, avoid breathing
-      deeply - heated destain emits strong fumes.
+      and start the heating. Handle heated destain only with the course-approved
+      ventilation and local SOP.
     sequence:
       - target: microwave
         gesture: adjust
@@ -199,11 +187,32 @@ steps:
               target: microwave
               state:
                 running: false
+                heating_outcome: heated_without_boiling
+          feedback:
+            correct: "The fixed simulated outcome is heated without boiling. Stop before boiling; use only the course-approved ventilation and local SOP."
+            incorrect: "Use the 50-second simulated interval and stop before boiling; local SOP governs real heating limits."
     step_validator:
       preset: sequence_complete
     outcome:
       on_success: complete
       on_failure: retry
+    next_step: remove_kimwipes_before_rocking
+  - step_name: remove_kimwipes_before_rocking
+    prompt: Remove and discard the Kimwipes after microwave heating, before the tray goes on the rocker. Keeping them in during rocking can cause uneven destaining.
+    sequence:
+      - target: kimwipe_pad
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: staining_tray
+              state: { kimwipes_present: false, kimwipe_count: 0 }
+          feedback:
+            correct: "The gel remains submerged in fresh destain; the absorbent Kimwipes are removed before mechanical rocking."
+            incorrect: "Remove the Kimwipes before transferring the tray to the rocking shaker."
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
     next_step: transfer_to_rocker
   - step_name: transfer_to_rocker
     prompt: Transfer the staining tray to the rocking shaker for continued destaining.

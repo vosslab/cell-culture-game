@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 214 308">
+  <path d="M28 16h158a12 12 0 0 1 12 12v252a12 12 0 0 1-12 12H28a12 12 0 0 1-12-12V28a12 12 0 0 1 12-12z" fill="#dbe9ef" stroke="#29495a" stroke-width="7"/>
+  <path d="M32 47h150v226H32z" fill="#1c5797" stroke="#456f84" stroke-width="4"/>
+  <path d="M39 66h136M39 252h136" fill="none" stroke="#b9def2" stroke-width="3" opacity=".75"/>
+  <g fill="#203947" stroke="#10232d" stroke-width="2">
+    <rect data-subpart-id="lane_1" x="36" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_2" x="50" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_3" x="64" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_4" x="78" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_5" x="92" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_6" x="106" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_7" x="120" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_8" x="134" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_9" x="148" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_10" x="162" y="33" width="11" height="20" rx="3"/>
+  </g>
+  <path d="M28 282h158" stroke="#29495a" stroke-linecap="round" stroke-width="8"/>
+</svg>

@@ -1,6 +1,23 @@
 protocol_type: mini_protocol
 protocol_name: passage_hood_detachment
 entry_step: inspect_confluence
+initial_state:
+  # Direct launch begins with the same representative culture that the
+  # sequence runners seed: an identity-labeled T75 containing a 70-80%
+  # adherent monolayer in complete medium. The roughly 3 mL trypsin rinse
+  # below is therefore a fixed teaching scenario, not a universal T75 rule.
+  - target: t75_flask
+    state:
+      material_name: media
+      material_volume: 12
+      cell_state: attached_70_80
+      label_status: identity_complete
+  - target: pbs_bottle
+    state: { material_name: pbs, material_volume: 500 }
+  - target: trypsin_bottle
+    state: { material_name: trypsin, material_volume: 500 }
+  - target: media_bottle
+    state: { material_name: media, material_volume: 500 }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
@@ -16,12 +33,11 @@ learning:
     cell passage: detaching cells from a T75 flask for subculture and replating. This
     is the entry point for any maintenance-passage or experimental-expansion workflow.
     The 9 steps reflect the full pedagogical pathway from initial confluence assessment
-    through trypsin neutralization, including the essential ~2-minute incubation wait."
+    through trypsin neutralization, including the essential ~2-minute incubation and visual detachment check."
 steps:
   - step_name: inspect_confluence
     prompt:
-      Inspect the T75 flask under the microscope to confirm cells are 70-80% confluent
-      before proceeding with passage. After viewing, return to the hood.
+      Inspect the representative T75 field under the microscope. Compare the visible monolayer with both decisions; this fixed scenario is about 70-80% confluent.
     sequence:
       - target: microscope
         gesture: click
@@ -31,10 +47,29 @@ steps:
           scene_operations:
             - type: SceneChange
               to_scene: passage_hood_detachment_microscope_view
+      - target: t75_flask
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: microscope
+              state:
+                observation_state: confluent_70_80
+      - target: confluence_decision_proceed
+        gesture: select
+        validator:
+          preset: correct_choice
+        response:
+          scene_operations:
             - type: ObjectStateChange
               target: t75_flask
               state:
                 inspection_status: observed_at_confluence
+          feedback:
+            correct: "Proceed: the visible monolayer is in the 70-80% confluence range for routine passage."
+            incorrect: "Compare the visible field with both choices. In this fixed scenario, the near-confluent adherent monolayer is ready to passage."
       - target: hood_surface
         gesture: click
         validator:
@@ -50,7 +85,7 @@ steps:
       on_failure: retry
     next_step: spray_hood_with_ethanol
   - step_name: spray_hood_with_ethanol
-    prompt: Spray the interior hood surface with 70% ethanol to sterilize the workspace.
+    prompt: Spray the interior hood surface with 70% ethanol, then use a clean paper towel to wipe the wetted surface. This disinfects/decontaminates the work area; it does not sterilize it.
     sequence:
       - target: ethanol_bottle
         gesture: click
@@ -62,6 +97,20 @@ steps:
               target: hood_surface
               state:
                 surface_cleanliness: ethanol_sprayed
+      - target: paper_towel_pad
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: hood_surface
+              state:
+                surface_cleanliness: ethanol_wiped
+                contact_status: wet_wipe_complete
+          feedback:
+            correct: "Correct: the wet wipe completes surface contact for disinfection/decontamination. Ethanol does not sterilize the hood."
+            incorrect: "After applying ethanol, wipe the wetted hood surface with the clean paper towel to complete the contact step."
     step_validator:
       preset: sequence_complete
     outcome:
@@ -69,7 +118,7 @@ steps:
       on_failure: retry
     next_step: aspirate_spent_media
   - step_name: aspirate_spent_media
-    prompt: Aspirate and remove the spent culture media from the flask.
+    prompt: Aspirate spent medium from the flask while keeping the tip above the adherent-cell layer.
     sequence:
       - target: aspirating_pipette
         gesture: click
@@ -96,26 +145,23 @@ steps:
     next_step: pbs_wash
   - step_name: pbs_wash
     prompt:
-      Wash the cell monolayer with approximately 4 mL of PBS to remove residual
-      media.
+      Measure approximately 4 mL PBS at the serological-pipette graduations, cover the monolayer, and rinse gently to remove residual serum.
     sequence:
+      - target: serological_pipette_pack
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: serological_pipette
+              state: { freshness: sterile }
       - target: serological_pipette
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations: []
-      - target: serological_pipette
-        gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 4
-        response:
-          scene_operations:
-            - type: CursorAttach
-              target: serological_pipette
-              operation: attach
       - target: pbs_bottle
         gesture: click
         validator:
@@ -131,6 +177,7 @@ steps:
               state:
                 held_material_name: pbs
                 held_material_volume: 4
+                freshness: used
       - target: t75_flask
         gesture: click
         validator:
@@ -142,11 +189,26 @@ steps:
               state:
                 material_name: pbs
                 material_volume: 4
+                cell_state: attached_70_80
+                rinse_status: pbs_coverage_pending
             - type: ObjectStateChange
               target: serological_pipette
               state:
                 held_material_name: empty
                 held_material_volume: 0
+      - target: t75_flask
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: t75_flask
+              state:
+                rinse_status: pbs_rinse_complete
+          feedback:
+            correct: "The visible PBS coverage has been gently rinsed across the adherent surface; the wash can now be vacuum-aspirated."
+            incorrect: "After PBS covers the monolayer, complete the gentle rinse before removing it by vacuum aspiration."
     step_validator:
       preset: sequence_complete
     outcome:
@@ -154,7 +216,7 @@ steps:
       on_failure: retry
     next_step: aspirate_pbs
   - step_name: aspirate_pbs
-    prompt: Aspirate and remove all PBS from the flask.
+    prompt: Aspirate all PBS from the flask. Residual serum can inhibit trypsin.
     sequence:
       - target: aspirating_pipette
         gesture: click
@@ -181,26 +243,23 @@ steps:
     next_step: add_trypsin
   - step_name: add_trypsin
     prompt:
-      Add trypsin to the flask to enzymatically detach cells. For a T75 flask,
-      use approximately 3 mL.
+      For this fixed teaching scenario, measure approximately 3 mL trypsin at the serological-pipette graduations and add it to cover the monolayer.
     sequence:
+      - target: serological_pipette_pack
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: serological_pipette
+              state: { freshness: sterile }
       - target: serological_pipette
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations: []
-      - target: serological_pipette
-        gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 3
-        response:
-          scene_operations:
-            - type: CursorAttach
-              target: serological_pipette
-              operation: attach
       - target: trypsin_bottle
         gesture: click
         validator:
@@ -216,6 +275,7 @@ steps:
               state:
                 held_material_name: trypsin
                 held_material_volume: 3
+                freshness: used
       - target: t75_flask
         gesture: click
         validator:
@@ -227,6 +287,7 @@ steps:
               state:
                 material_name: trypsin
                 material_volume: 3
+                cell_state: attached_70_80
             - type: ObjectStateChange
               target: serological_pipette
               state:
@@ -240,8 +301,7 @@ steps:
     next_step: incubate_for_detachment
   - step_name: incubate_for_detachment
     prompt:
-      Allow trypsin to act for approximately 2 minutes while checking for cell
-      detachment.
+      Incubate with trypsin for about 2 minutes, then inspect for rounded, detached cells rather than relying on time alone.
     sequence:
       - target: incubator
         gesture: click
@@ -261,9 +321,7 @@ steps:
     next_step: confirm_detachment
   - step_name: confirm_detachment
     prompt:
-      Inspect the flask under the microscope to confirm that cells have detached
-      from the culture surface. After viewing, return to the hood to neutralize the
-      trypsin.
+      Inspect the fixed-scenario field under the microscope. Compare the visible rounded cells with both decisions before returning to the hood to neutralize trypsin.
     sequence:
       - target: microscope
         gesture: click
@@ -273,10 +331,29 @@ steps:
           scene_operations:
             - type: SceneChange
               to_scene: passage_hood_detachment_microscope_view
+      - target: t75_flask
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: microscope
+              state:
+                observation_state: rounded_detached
+      - target: detachment_decision_neutralize
+        gesture: select
+        validator:
+          preset: correct_choice
+        response:
+          scene_operations:
             - type: ObjectStateChange
               target: t75_flask
               state:
-                material_name: cell_suspension
+                cell_state: rounded_detached
+          feedback:
+            correct: "Confirmed: the cells are rounded and detached, so medium can now neutralize trypsin."
+            incorrect: "Compare the visible field with both choices. In this fixed scenario, the rounded detached cells are ready for neutralization."
       - target: hood_surface
         gesture: click
         validator:
@@ -293,26 +370,23 @@ steps:
     next_step: neutralize_trypsin
   - step_name: neutralize_trypsin
     prompt:
-      Neutralize the trypsin by adding fresh culture media (approximately 3 times
-      the trypsin volume, or 9 mL for a T75 flask).
+      Measure 9 mL complete medium at the serological-pipette graduations and add it to neutralize 3 mL trypsin. The flask should now contain a uniform cell suspension.
     sequence:
+      - target: serological_pipette_pack
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: serological_pipette
+              state: { freshness: sterile }
       - target: serological_pipette
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations: []
-      - target: serological_pipette
-        gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 9
-        response:
-          scene_operations:
-            - type: CursorAttach
-              target: serological_pipette
-              operation: attach
       - target: media_bottle
         gesture: click
         validator:
@@ -328,6 +402,7 @@ steps:
               state:
                 held_material_name: media
                 held_material_volume: 9
+                freshness: used
       - target: t75_flask
         gesture: click
         validator:
@@ -339,6 +414,7 @@ steps:
               state:
                 material_name: cell_suspension
                 material_volume: 12
+                cell_state: suspension
             - type: ObjectStateChange
               target: serological_pipette
               state:

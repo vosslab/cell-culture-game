@@ -1,0 +1,25 @@
+object_name: volume_decision_sufficient
+kind: decoration
+label: Sufficient volume for the planned assay
+
+state_fields:
+  - field_name: visible
+    type: bool
+    default: true
+    description: Whether this volume decision is visible.
+
+visual_states:
+  visible:
+    kind: svg
+    cases:
+      - when: true
+        output: { asset_name: interpretation_choice_card }
+      - when: false
+        output: { asset_name: interpretation_choice_card }
+
+capabilities: [clickable]
+
+layout:
+  default_width: 20
+  display_width_cm: 24
+  label_width: 24

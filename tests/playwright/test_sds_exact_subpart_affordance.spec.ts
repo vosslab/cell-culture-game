@@ -74,6 +74,7 @@ test("SDS sample mixing keeps A1 and later A2 as distinct usable rack targets", 
 }) => {
   await page.goto("/sdspage_prepare_sample_mix_batch.html", { waitUntil: "networkidle" });
   await clickDirectedTarget(page, "center_p200_sample_micropipette");
+  await clickDirectedTarget(page, "rear_left_micropipette_tip_box");
   await setDirectedValue(page, "21");
   await assertExactSiblings(
     page,
@@ -82,13 +83,15 @@ test("SDS sample mixing keeps A1 and later A2 as distinct usable rack targets", 
   );
   await clickDirectedTarget(page, "center_sds_microtube_rack.slot_A1");
   await clickDirectedTarget(page, "center_sds_microtube_rack.slot_B1");
-  await clickDirectedTarget(page, "center_p10_reagent_micropipette");
+  await clickDirectedTarget(page, "rear_left_micropipette_tip_box");
   await setDirectedValue(page, "7.5");
   await clickDirectedTarget(page, "rear_center_laemmli");
   await clickDirectedTarget(page, "center_sds_microtube_rack.slot_B1");
+  await clickDirectedTarget(page, "rear_left_micropipette_tip_box");
   await setDirectedValue(page, "1.5");
   await clickDirectedTarget(page, "rear_right_bme");
   await clickDirectedTarget(page, "center_sds_microtube_rack.slot_B1");
+  await clickDirectedTarget(page, "rear_left_micropipette_tip_box");
   await setDirectedValue(page, "21");
   await assertExactSiblings(
     page,

@@ -85,17 +85,12 @@ placements:
     zone: mid_right
     depth_tier: 2
     align_stop: right
-  # Front working surface: micropipette center, second rack left
-  - placement_name: center_micropipette
-    object_name: micropipette
-    zone: center
-    depth_tier: 1
-    align_stop: center
+  # Front working surface: second rack.
   - placement_name: center_microtube_rack
     object_name: microtube_rack_24
     zone: center
     depth_tier: 1
-    align_stop: left
+    align_stop: center
   # laemmli_4x_tube is already placed once on the rear reagent shelf
   # (rear_center_laemmli). A second placement here made a bare laemmli_4x_tube
   # target ambiguous, so the working-surface duplicate is removed; the reagent

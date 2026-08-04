@@ -5,6 +5,9 @@ materials:
   cells:
     label: Seeded cells (in plate wells)
     display_color: "#cc0066"
+  cells_in_growth_media:
+    label: "Seeded cells in growth media"
+    display_color: "#8d7050"
   media:
     label: Growth media
     display_color: "#6c6c00"

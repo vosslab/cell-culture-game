@@ -1,6 +1,6 @@
 protocol_type: mini_protocol
 protocol_name: mtt_reagent_prep
-entry_step: pick_up_mtt_powder
+entry_step: prepare_solution_tube
 initial_state:
   - target: mtt_powder_container
     state:
@@ -10,6 +10,12 @@ initial_state:
     state:
       material_name: pbs
       material_volume: 496
+  - target: mtt_solution_tube
+    state:
+      material_name: empty
+      material_volume: 0
+      pbs_added: false
+      mtt_dissolved: false
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
@@ -26,10 +32,25 @@ learning:
     adding PBS, transferring the pre-weighed 20 mg powder, and mixing to ensure complete
     solubilization before use in downstream assay steps.
 steps:
-  - step_name: pick_up_mtt_powder
-    prompt: Pick up the MTT powder vial from the bench.
+  - step_name: prepare_solution_tube
+    prompt:
+      Take a sterile serological pipette from its pack, then transfer 4 mL of
+      PBS into the empty graduated MTT solution tube.
     sequence:
-      - target: mtt_powder_container
+      - target: serological_pipette_pack
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: serological_pipette
+              state:
+                freshness: sterile
+          feedback:
+            correct: "Use one visibly sterile graduated pipette for this PBS transfer."
+            incorrect: "Take a fresh serological pipette from the sterile pack before contacting PBS."
+      - target: serological_pipette
         gesture: click
         validator:
           preset: correct_target
@@ -37,38 +58,6 @@ steps:
           scene_operations:
             - type: SceneChange
               to_scene: mtt_reagent_prep_bench_workspace
-            - type: CursorAttach
-              target: mtt_powder_container
-              operation: attach
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: prepare_solution_tube
-  - step_name: prepare_solution_tube
-    prompt:
-      Transfer 4 mL of PBS into the empty MTT solution tube with a serological
-      pipette.
-    sequence:
-      - target: serological_pipette
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
-      - target: serological_pipette
-        gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 4.0
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: serological_pipette
-              state:
-                set_volume: 4.0
       # This scene removes the inherited bench_basic rear_center_pbs placement
       # (see scenes/bench_workspace.yaml remove_placements), so pbs_bottle is
       # placed only once here (rear_center_pbs_bottle). The target names the
@@ -89,6 +78,7 @@ steps:
               state:
                 held_material_name: pbs
                 held_material_volume: 4.0
+                freshness: used
       - target: mtt_solution_tube
         gesture: click
         validator:
@@ -100,6 +90,7 @@ steps:
               state:
                 material_name: pbs
                 material_volume: 4.0
+                pbs_added: true
             - type: ObjectStateChange
               target: serological_pipette
               state:
@@ -159,6 +150,7 @@ steps:
               state:
                 material_name: mtt_solution_12mm
                 material_volume: 4.0
+                mtt_dissolved: true
     step_validator:
       preset: sequence_complete
     outcome:
@@ -167,21 +159,26 @@ steps:
     next_step: verify_final_volume
   - step_name: verify_final_volume
     prompt:
-      Verify that the MTT solution tube contains 4 mL of yellow
-      solution. The solution is now 12 mM MTT in PBS and is ready for use.
+      Inspect the graduated tube's visible 4 mL homogeneous yellow solution, then choose
+      whether this preparation is ready to use in the assay.
     sequence:
-      - target: mtt_solution_tube
-        gesture: click
+      - target: volume_decision_sufficient
+        gesture: select
         validator:
-          preset: correct_target
+          preset: correct_choice
         response:
           scene_operations: []
+          feedback:
+            correct: "Ready: the visible 4 mL homogeneous yellow solution meets the preparation requirement."
+            incorrect: "Compare the visible volume and solution appearance with the stated preparation requirement before choosing."
     step_validator:
       preset: final_state_matches
       target: mtt_solution_tube
       contains:
         material_name: mtt_solution_12mm
         material_volume: 4.0
+        pbs_added: true
+        mtt_dissolved: true
     outcome:
       on_success: complete
       on_failure: retry

@@ -17,8 +17,8 @@ The following SVG files have been adopted directly from the Servier Medical Art 
 | Our Filename                 | Servier Source                                      | Notes                                                        |
 | ---------------------------- | --------------------------------------------------- | ------------------------------------------------------------ |
 | `electrophoresis_tank.svg`   | `Lab_apparatus/Servier/electrophoresis-chamber.svg` | Electrophoresis chamber                                      |
-| `gel_cassette.svg`           | `Lab_apparatus/Servier/gel-electrophoresis.svg`     | Gel electrophoresis apparatus                                |
-| `mini_protean_gel.svg`       | `Lab_apparatus/Servier/gel-electrophoresis.svg`     | Same source as gel_cassette; represents gel slab             |
+| `gel_cassette_empty.svg`     | `Lab_apparatus/Servier/gel-electrophoresis.svg`     | Empty gel electrophoresis cassette                            |
+| `mini_protean_gel.svg`       | `Lab_apparatus/Servier/gel-electrophoresis.svg`     | Same source as gel_cassette_empty; represents gel slab       |
 | `gel_comb.svg`               | `Lab_apparatus/Servier/gel-electrophoresis.svg`     | Comb detail from gel apparatus                               |
 | `water_bath.svg`             | `Lab_apparatus/Servier/bath-empty.svg`              | Direct normalized empty water-bath state; shared frame and runtime anchors only |
 | `water_bath_occupied.svg`    | `Lab_apparatus/Servier/bath_filled.svg`             | Direct normalized occupied water-bath state; shared frame and runtime anchors only |
@@ -92,6 +92,7 @@ Commercial use permitted.
 | `kimwipe_pad.svg`       | Four Kimwipes loosely tied in a knot for the SDS-PAGE destain workflow      |
 | `lens_tissue.svg`       | Folded lint-free tissue for wicking excess liquid from slide edges          |
 | `paper_towel_pad.svg`   | Layered absorbent paper-towel stack used beneath a 96-well plate             |
+| `recycle_buffer_funnel.svg` | Wide-mouth laboratory funnel kept at the buffer-recycle bottle during SDS-PAGE apparatus drainage |
 | `mtt_powder_vial.svg`   | Sealed small vial with a visible pre-weighed yellow MTT powder bed            |
 | `mtt_powder_vial_empty.svg` | Matching emptied vial after the MTT powder transfer                       |
 | `microwave_closed.svg` | Closed idle microwave with door, handle, controls, and display                 |
@@ -100,6 +101,11 @@ Commercial use permitted.
 | `rocking_shaker_running.svg` | Tilted platform, active indicators, and motion cues                         |
 | `gel_loading_tip_box.svg` | Hand-authored narrow-tip box for P20/P200 gel loading                       |
 | `microtube_rack_8.svg` | Hand-authored 2 x 4 rack with calibrated tube interiors for SDS-PAGE state  |
+| `mtt_reader_results_display.svg` | Readable representative MTT absorbance and normalized-viability result table |
+| `hemocytometer_observation_display.svg` | Magnified four-quadrant Trypan Blue field with clear/blue evidence and subtotals |
+| `cell_viability_results_display.svg` | Unit-bearing automated counter result, manual cross-check, and greater-than-90% gate |
+| `electrophoresis_endpoint_display.svg` | Magnified near-bottom tracking-dye endpoint and overrun consequence panel |
+| `gel_image_results_display.svg` | Lane-resolved representative SDS-PAGE image with molecular-weight reference and capture metadata |
 
 ## Placeholder SVGs
 

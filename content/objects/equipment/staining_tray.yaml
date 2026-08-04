@@ -23,11 +23,45 @@ state_fields:
     type: bool
     default: false
     description: Whether kimwipes are present in the tray.
+  - field_name: kimwipe_count
+    type: int
+    min: 0
+    max: 4
+    default: 0
+    description: Number of loose, no-contact knotted Kimwipes floating beside the gel.
+  - field_name: rinse_count
+    type: int
+    min: 0
+    max: 2
+    default: 0
+    description: Completed water-rinse cycles while the gel remains in the tray.
+  - field_name: coverage_depth_cm
+    type: float
+    unit: cm
+    min: 0
+    max: 5
+    default: 0
+    description: Visible solution depth above the gel.
   - field_name: gel_state
     type: enum
     allowed: [empty, separated_unstained, stained, destaining, destained]
     default: empty
     description: Visible lifecycle state of the gel in the tray.
+  - field_name: lane_pattern
+    type: enum
+    allowed: [unassigned, samples_1_to_3_ladder_5]
+    default: unassigned
+    description: Identity of the loaded lanes carried with the gel.
+  - field_name: orientation_status
+    type: enum
+    allowed: [not_confirmed, wells_top_ladder_lane_5]
+    default: not_confirmed
+    description: Whether the gel is flat with the wells at the top and ladder in lane 5.
+  - field_name: background_status
+    type: enum
+    allowed: [not_confirmed, clean_background_oriented]
+    default: not_confirmed
+    description: Whether the final rinse leaves a clean background while preserving gel orientation.
 
 visual_states:
   material_name:
@@ -52,6 +86,15 @@ visual_states:
   kimwipes_present:
     kind: composite
     composite: []
+  kimwipe_count:
+    kind: overlay
+    formula: 'label(state(kimwipe_count), format="Loose no-contact Kimwipes: {value}")'
+  rinse_count:
+    kind: overlay
+    formula: 'label(state(rinse_count), format="Rinses complete: {value}/2")'
+  coverage_depth_cm:
+    kind: overlay
+    formula: 'label(state(coverage_depth_cm), format="Gel coverage: {value} cm")'
   gel_state:
     kind: svg
     cases:
@@ -65,6 +108,15 @@ visual_states:
         output: { asset_name: staining_tray_destain }
       - when: destained
         output: { asset_name: staining_tray_water }
+  lane_pattern:
+    kind: overlay
+    formula: 'label(state(lane_pattern), format="Lanes: {value}")'
+  orientation_status:
+    kind: overlay
+    formula: 'label(state(orientation_status), format="Gel orientation: {value}")'
+  background_status:
+    kind: overlay
+    formula: 'label(state(background_status), format="Final rinse: {value}")'
 
 capabilities: [clickable, material_container]
 

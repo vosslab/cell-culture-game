@@ -1,0 +1,44 @@
+object_name: centrifuge_balance_tube
+kind: bottle
+label: Centrifuge balance tube
+
+state_fields:
+  - field_name: material_name
+    type: enum
+    allowed: [empty, water]
+    default: empty
+    description: Liquid used to match the opposing sample tube.
+  - field_name: material_volume
+    type: float
+    unit: ml
+    min: 0
+    max: 15
+    default: 0
+    description: Matched liquid volume in the balance tube.
+  - field_name: balance_status
+    type: enum
+    allowed: [empty, matched]
+    default: empty
+    description: Whether the balance tube matches the opposing sample tube mass and volume.
+
+visual_states:
+  material_name:
+    kind: composite
+    composite: []
+  material_volume:
+    kind: composite
+    composite: []
+  balance_status:
+    kind: svg
+    cases:
+      - when: empty
+        output: { asset_name: centrifuge_balance_tube_empty }
+      - when: matched
+        output: { asset_name: centrifuge_balance_tube_matched }
+
+capabilities: [clickable, material_container]
+
+layout:
+  default_width: 3
+  display_width_cm: 5
+  label_width: 8

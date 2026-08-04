@@ -76,3 +76,22 @@ def decode_entities(s: str) -> str:
 
 	decoded = ENTITY_PATTERN.sub(replace_one, s)
 	return decoded
+
+
+#============================================
+
+def decode_entity_values(value: object) -> object:
+	"""Decode entities in every string value of one parsed YAML tree."""
+	if isinstance(value, str):
+		decoded = decode_entities(value)
+		return decoded
+	if isinstance(value, list):
+		decoded_list = [decode_entity_values(item) for item in value]
+		return decoded_list
+	if isinstance(value, dict):
+		decoded_mapping = {
+			key: decode_entity_values(item)
+			for key, item in value.items()
+		}
+		return decoded_mapping
+	return value

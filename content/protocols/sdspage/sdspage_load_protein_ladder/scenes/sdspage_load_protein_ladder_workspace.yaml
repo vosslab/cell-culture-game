@@ -15,11 +15,14 @@ remove_placements:
   - rear_left_recycle_buffer_bottle
   - rear_right_gel_opening_tool
   - front_left_mini_protean_gel
-  - front_center_waste_container
   - front_right_gel_comb
   - right_tool_area_p10_gel_loading_tip_box
 
 add_placements:
+  - placement_name: front_left_electrophoresis_inner_chamber
+    object_name: electrophoresis_inner_chamber
+    zone: front_left
+    depth_tier: 1
   - placement_name: front_center_sds_microtube_rack
     object_name: microtube_rack_8
     zone: front_center

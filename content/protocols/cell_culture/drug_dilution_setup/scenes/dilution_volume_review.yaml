@@ -1,0 +1,24 @@
+scene_name: dilution_volume_review
+extends: plate_focus_hood
+
+add_placements:
+  - placement_name: center_metformin_working_tube
+    object_name: metformin_working_tube
+    zone: center
+    depth_tier: 1
+    align_stop: center
+  - placement_name: volume_decision_sufficient_choice
+    object_name: volume_decision_sufficient
+    zone: rear_left
+    depth_tier: 1
+    align_stop: center
+  - placement_name: volume_decision_insufficient_choice
+    object_name: volume_decision_insufficient
+    zone: rear_right
+    depth_tier: 1
+    align_stop: center
+
+scene_notes: |
+  The completed 300 &micro;L metformin stock, carried seeded plate, and two release
+  decisions are visible together. The learner must compare the prepared fill
+  with the stated dosing and dead-volume requirements before the protocol ends.

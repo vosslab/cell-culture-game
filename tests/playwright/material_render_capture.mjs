@@ -134,7 +134,8 @@ async function assert_scene_not_degraded(page, protocol_name, browser_diagnostic
     const root = document.querySelector("#scene-root");
     const items = Array.from(document.querySelectorAll("[data-resolver-degraded]")).map(
       (element) => ({
-        placement_name: element.getAttribute("data-placement-name") ?? "",
+        placement_name:
+          element.closest("[data-placement-name]")?.getAttribute("data-placement-name") ?? "",
         message: element.getAttribute("data-resolver-degraded") ?? "",
       }),
     );

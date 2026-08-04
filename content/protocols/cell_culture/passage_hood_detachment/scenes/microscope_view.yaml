@@ -15,6 +15,12 @@ remove_placements:
   # hood scene, not here). Remove the inherited rear_right ethanol so the
   # rear_right shelf is free for the hood-return surface below.
   - rear_ethanol_bottle
+  # These inherited accessories do not contribute to the two morphology
+  # decisions. Removing them gives the visible decision cards their own bench
+  # space beside the microscope.
+  - rear_tip_box
+  - left_microtube_rack
+  - left_cell_suspension
 
 add_placements:
   - placement_name: instrument_t75_flask
@@ -30,3 +36,27 @@ add_placements:
     zone: rear_right
     depth_tier: 1
     align_stop: center
+
+  - placement_name: confluence_proceed_choice
+    object_name: confluence_decision_proceed
+    zone: left_bench
+    depth_tier: 1
+    align_stop: left
+
+  - placement_name: confluence_wait_choice
+    object_name: confluence_decision_wait
+    zone: left_bench
+    depth_tier: 1
+    align_stop: right
+
+  - placement_name: detachment_neutralize_choice
+    object_name: detachment_decision_neutralize
+    zone: rear_left
+    depth_tier: 1
+    align_stop: center
+
+  - placement_name: detachment_extend_choice
+    object_name: detachment_decision_extend
+    zone: rear_right
+    depth_tier: 1
+    align_stop: right

@@ -1,0 +1,44 @@
+scene_name: dilution_calculation_50
+extends: bench_basic
+
+remove_placements:
+  - rear_left_waste
+  - rear_left_media_bottle
+  - rear_center_pbs
+  - rear_center_ethanol
+  - rear_right_vortex
+  - rear_right_heat_block
+  - center_water_bath
+  - center_centrifuge
+  - base_right_tip_box
+
+add_placements:
+  - placement_name: center_calculation_pad
+    object_name: calculation_pad
+    zone: rear_center
+    depth_tier: 1
+    align_stop: center
+  - placement_name: calculation_50_choice
+    object_name: calculation_50_ul
+    zone: rear_left
+    depth_tier: 1
+    align_stop: center
+  - placement_name: calculation_100_choice
+    object_name: calculation_100_ul
+    zone: rear_right
+    depth_tier: 1
+    align_stop: center
+  - placement_name: center_dilution_rack
+    object_name: dilution_tube_rack_8
+    zone: center
+    depth_tier: 1
+    align_stop: center
+  - placement_name: right_seeded_plate
+    object_name: well_plate_96
+    zone: right_tool_area
+    depth_tier: 1
+    align_stop: center
+scene_notes: |
+  Review the 20 &micro;M calculation with the carried rack visibly showing the
+  completed middle series. The seeded plate remains at the side; selecting a
+  result returns to the physical bench.

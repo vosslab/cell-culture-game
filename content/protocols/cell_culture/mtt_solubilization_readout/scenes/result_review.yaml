@@ -1,0 +1,44 @@
+scene_name: mtt_solubilization_readout_result_review
+extends: bench_basic
+
+remove_placements:
+  - rear_left_waste
+  - rear_left_media_bottle
+  - rear_center_pbs
+  - rear_center_ethanol
+  - rear_right_vortex
+  - rear_right_heat_block
+  - center_water_bath
+  - center_centrifuge
+  - base_right_tip_box
+
+add_placements:
+  - placement_name: center_mtt_results_display
+    object_name: mtt_reader_results_display
+    zone: center
+    depth_tier: 1
+    align_stop: center
+
+  - placement_name: rear_center_plate_reader
+    object_name: plate_reader
+    zone: rear_center
+    depth_tier: 1
+    align_stop: center
+
+  - placement_name: dose_response_conclusion
+    object_name: mtt_conclusion_dose_response
+    zone: rear_left
+    depth_tier: 1
+    align_stop: center
+
+  - placement_name: no_effect_conclusion
+    object_name: mtt_conclusion_no_effect
+    zone: rear_right
+    depth_tier: 1
+    align_stop: center
+
+scene_notes: |
+  The measured plate remains physically inside the reader while a readable
+  results monitor remains visible before interpretation. The monitor exposes the blank,
+  untreated control, complete carboplatin series, and combination endpoint;
+  the two conclusion cards occupy separate decision zones.

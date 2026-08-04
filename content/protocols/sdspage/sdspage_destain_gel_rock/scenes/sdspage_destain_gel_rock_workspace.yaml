@@ -11,6 +11,16 @@ remove_placements:
   - center_microwave
   - right_tool_area_waste
 
+add_placements:
+  - placement_name: left_tool_area_destain_decision_ready
+    object_name: destain_decision_ready
+    zone: rear_left
+    depth_tier: 1
+  - placement_name: right_tool_area_destain_decision_repeat
+    object_name: destain_decision_repeat
+    zone: rear_right
+    depth_tier: 1
+
 scene_notes: |
   Focused SDS-PAGE destaining workspace with the rocking shaker, staining tray,
   kimwipe pad, and dedicated destain waste bottle.

@@ -34,6 +34,8 @@ owned by the imperative SVG renderer and documented under
 - `data-tray-*` -- inventory tray.
 - `data-help-*` -- help / professor overlay.
 - `data-feedback-*` -- feedback toast.
+- `data-interaction-feedback` -- persistent guidance-bar feedback for the
+  most recent accepted or rejected interaction.
 - `data-protocol-id` -- launcher link target.
 - `data-launcher-*` -- launcher chrome.
 - `data-type-*` -- type-gesture text-input affordance.
@@ -69,13 +71,26 @@ owned by the imperative SVG renderer and documented under
 | `data-adjust-increment` | `src/shell/hud/set_point_editor.tsx` | empty, marker on the increment button |
 | `data-adjust-commit` | `src/shell/hud/set_point_editor.tsx` | empty, marker on the Commit button |
 | `data-adjust-reject-message` | `src/shell/hud/set_point_editor.tsx` | empty, marker on the visible rejection message |
+| `data-interaction-feedback` | `src/shell/regions/guidance_bar.tsx` | `correct` or `incorrect`, identifying authored feedback projected in the guidance bar |
 
-## Modal / tray / help / feedback
+## Feedback state
 
-The modal, tray, help, and feedback surfaces are not yet authored as
-shell components. Attributes are reserved (above). The first component
-patch in each namespace must update this file with the exact attribute
-names and values.
+When an interaction supplies `response.feedback.correct` or
+`response.feedback.incorrect`, the runtime projects that learner-facing text
+into the guidance bar. The emitted `data-interaction-feedback` value is
+`correct` for accepted feedback and `incorrect` for rejected feedback. Correct
+feedback remains visible through the next prompt and completion; incorrect
+feedback replaces generic recovery copy for the rejected interaction. After a
+rejected `select`, the same recovery surface shows the learner's selected label,
+the expected label, and the authored incorrect feedback as the scientific
+rationale. These labels are projected only after rejection, so the interface
+does not reveal the correct choice in advance.
+
+## Modal / tray / help
+
+The modal, tray, and help surfaces are not yet authored as shell components.
+Attributes are reserved (above). The first component patch in each namespace
+must update this file with the exact attribute names and values.
 
 ## Plan amendment policy
 

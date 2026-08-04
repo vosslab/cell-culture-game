@@ -64,12 +64,11 @@ export function resolve_subpart_material_state(
       };
     }
     if (material_name !== "empty" && raw_amount === 0) {
-      return {
-        fill: "transparent",
-        material_name: material_name ?? "",
-        fill_percent: 0,
-        degraded: "non-empty material has zero amount",
-      };
+      // MATERIAL_CONVENTION.md defines a registered non-empty identity at
+      // zero volume as a valid no-visible-liquid state. The identity can still
+      // carry experimental continuity (for example, retained precipitate),
+      // while a separate object state renders any non-liquid evidence.
+      return { fill: "transparent", material_name, fill_percent: 0, degraded: "" };
     }
   }
   const color = resolve_color_result(material_name, registry);

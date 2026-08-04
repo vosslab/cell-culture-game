@@ -3,7 +3,7 @@ protocol_name: sdspage_destain_gel_rock
 entry_step: rock_run
 initial_state:
   - target: staining_tray
-    state: { material_name: destain, material_volume: 250, gel_present: true, gel_state: destaining }
+    state: { material_name: destain, material_volume: 250, gel_present: true, gel_state: destaining, lane_pattern: samples_1_to_3_ladder_5 }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved proficiency
@@ -67,42 +67,29 @@ steps:
     outcome:
       on_success: complete
       on_failure: retry
-    next_step: remove_kimwipes
-  - step_name: remove_kimwipes
-    prompt:
-      After rocking completes, retrieve the staining tray from the shaker and
-      remove the kimwipe pad that was protecting the gel during rocking.
+    next_step: judge_destain_endpoint
+  - step_name: judge_destain_endpoint
+    prompt: >-
+      Select the visible conclusion supported by this simulated gel: its background is
+      clear and its bands are distinct after destaining.
     sequence:
-      - target: staining_tray
-        gesture: click
-        validator:
-          preset: correct_target
+      - target: destain_decision_ready
+        gesture: select
+        validator: { preset: correct_choice }
         response:
           scene_operations: []
-      - target: kimwipe_pad
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations:
-            - type: ObjectStateChange
-              target: staining_tray
-              state:
-                kimwipes_present: false
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
+          feedback:
+            correct: "Correct: the clear background and distinct bands meet the simulated destaining endpoint."
+            incorrect: "This simulated gel has a clear background and distinct bands, so it is ready rather than needing another destain cycle."
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
     next_step: dispose_destain
   - step_name: dispose_destain
     prompt:
-      Carefully dispose of the used destain solution into the destain waste bottle,
-      and mark the waste bottle as containing spent destain. If background is not sufficiently
-      clear after this cycle, repeat MP-16a (destain setup) and MP-16b (rock) once more
-      - additional 10 min on the rocker until the gel matrix is transparent. Destain
-      contains 20% methanol and 10% acetic acid. Dispose in the designated stain-waste
-      container in the fume hood.
+      Inspect the gel background after rocking. This simulated gel is ready when
+      the matrix is clear and bands are distinct. Transfer its used destain to the
+      designated stain-waste bottle in the fume hood; do not recycle it. If a real
+      gel background remains blue, repeat fresh-destain treatment before imaging.
     sequence:
       - target: staining_tray
         gesture: click
@@ -127,6 +114,9 @@ steps:
                 material_name: empty
                 material_volume: 0
                 gel_state: destained
+          feedback:
+            correct: "Clear gel background and distinct bands are the endpoint; used destain is hazardous stain waste."
+            incorrect: "Use the dedicated destain-waste bottle, not the recycle bottle."
     step_validator:
       preset: sequence_complete
     outcome:

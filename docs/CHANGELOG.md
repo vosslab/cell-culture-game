@@ -4,6 +4,26 @@
 
 ### Fixes and Maintenance
 
+- Implemented the P0/P1/P2 protocol-pedagogy audit across the cell-culture and
+  SDS-PAGE pathways. Range-specific tools, fresh-tip continuity, realistic bulk
+  and repeating transfers, visible calculation/observation decisions,
+  per-well and per-lane material state, apparatus continuity, informative
+  feedback, and interpreted experimental results now form coherent full runs.
+- Normalized authored HTML entities at both protocol and object codegen
+  boundaries. Committed YAML retains ASCII `&micro;M` / `&micro;L`, while generated
+  labels, enum values, prompts, and runtime DOM text consistently use U+00B5.
+- Preserved the MTT assay's dry, treatment-dependent formazan crystals as
+  visible non-liquid evidence after decanting, then removed that evidence only
+  after DMSO dissolution. The reviewed material baseline now covers 795
+  protocol-host surfaces with no drift.
+- Added a resolution ledger that distinguishes completed fixed teaching
+  scenarios from six genuine evidence or contract blockers: Bradford inputs,
+  ladder product/volume, local one-gel apparatus values, local microwave SOP,
+  true conditional branching, and choice-only selection eligibility.
+- Completed a six-pass pre-merge audit. Rejected scientific choices now show
+  what the learner selected, the evidence-matching answer, and the authored
+  scientific reason. Stale shell-pilot, generic-pipette, and active-plan
+  guidance now points at the current implementation or archived evidence.
 - Archived the completed semantic in-SVG liquid-rendering and protocol
   walkthrough-recovery plans after confirming that their milestones, release
   gates, and closure records were complete. Updated all tracked links to their
@@ -20,6 +40,11 @@
 
 ### Decisions and Failures
 
+- The exhaustive wrapper's optional Inkscape text-outline E2E is blocked by the
+  installed Inkscape 1.4.4 CLI: under the suite it writes the outlined SVG but
+  never exits, and a direct retry aborts with status 134. Experimental wrapper
+  changes were reverted; all protocol, material-render, repository, and 105
+  visible-browser tests pass independently of that authoring-tool defect.
 - Audited the 17 material-amount no-op declarations added during the semantic
   renderer cutover. The declarations honestly preserve nonvisual numeric state,
   but they do not approve all affected objects as intentionally static: five

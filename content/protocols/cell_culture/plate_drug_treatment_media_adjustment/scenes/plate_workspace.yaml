@@ -2,30 +2,34 @@ scene_name: plate_drug_treatment_media_adjustment_plate_workspace
 extends: plate_focus_hood
 
 add_placements:
-  # Media bottle in rear_center (protocol-specific)
   - placement_name: rear_center_media
     object_name: media_bottle
     zone: rear_center
     depth_tier: 2
+    align_stop: left
+  - placement_name: rear_center_reservoir
+    object_name: reagent_reservoir
+    zone: rear_center
+    depth_tier: 1
     align_stop: center
-
-  # Multichannel pipette in right tool area
   - placement_name: right_tool_multichannel
     object_name: multichannel_pipette
     zone: right_tool_area
     depth_tier: 1
     align_stop: center
-
-  # Row-A corrections are genuine 5 uL single-channel transfers, so the
-  # instructional target is visible rather than simulated as a hidden batch.
-  - placement_name: right_tool_micropipette
-    object_name: micropipette
+  - placement_name: right_tool_repeat_dispenser
+    object_name: repeat_dispenser
     zone: right_tool_area
     depth_tier: 2
     align_stop: right
-
+  - placement_name: right_tool_multichannel_tip_box
+    object_name: micropipette_tip_box
+    zone: right_tool_area
+    depth_tier: 1
+    align_stop: left
 scene_notes: |
-  Hood-side plate-workspace scene for plate_drug_treatment_media_adjustment.
-  96-well plate (inherited as the foreground teaching surface), media bottle in
-  rear center, multichannel and single-channel pipettes in the right tool area.
-  Protocols target well_plate_96.* against the inherited plate placement.
+  Hood-side plate workspace for a volume-balanced dose-response plate. The
+  foreground plate is the volume map: columns 1-6 receive 95 &micro;L/channel,
+  columns 7-12 receive 90 &micro;L/channel, and row A receives a visible 5 &micro;L
+  repeating-dispenser control series. The reservoir is the shared source for
+  multichannel media draws; the bottle is not used directly by the eight tips.

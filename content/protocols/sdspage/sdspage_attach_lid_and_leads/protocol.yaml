@@ -1,29 +1,38 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_attach_lid_and_leads
-entry_step: secure_apparatus
+entry_step: secure_lid
+initial_state:
+  - target: electrophoresis_tank
+    state: { lid_present: false, module_present: true }
+  - target: electrode_module
+    state: { mounted: true, cassette_mounted: true, wing_clamps_open: false }
+  - target: electrophoresis_buffer_dam
+    state: { seated: true }
+  - target: electrophoresis_black_lead
+    state: { attached: false }
+  - target: electrophoresis_red_lead
+    state: { attached: false }
+  - target: gel_cassette
+    state: { tape_present: false, comb_present: false, wing_clamps_locked: true }
+  - target: power_supply
+    state:
+      { running: false, cathode_lead_attached: false, anode_lead_attached: false }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
-    securing electrophoresis equipment by placing the lid on the tank and connecting
-    the high-voltage leads to establish the electrical circuit.
+    de-energized lid placement and correctly polarized electrophoresis lead connections.
   outcomes:
-    Students completing this mini-protocol will be able to place the electrophoresis
-    tank lid in position and attach the black (negative) and red (positive) leads
-    from the power supply to the electrode assembly, ensuring correct polarity orientation
-    for the subsequent gel run.
+    Students completing this mini-protocol will be able to confirm the supply is off,
+    seat the lid on an assembled tank, and connect the black cathode and red anode leads
+    before setting voltage.
   goals:
-    "Overall, this mini-protocol aims to accomplish the final assembly step before
-    electrophoresis: securing the tank and establishing electrical continuity. Once
-    the lid is in place and both leads are attached, the apparatus is ready for voltage
-    application and sample migration."
+    Overall, this mini-protocol aims to accomplish a safe final electrical-assembly
+    check before electrophoresis.
 steps:
-  - step_name: secure_apparatus
+  - step_name: secure_lid
     prompt:
-      Ensure the power supply is off (or unplugged) before connecting any leads.
-      Secure the electrophoresis apparatus for running the gel. First, place the lid
-      on top of the electrophoresis tank. Then connect the black lead from the power supply
-      to the negative cathode and the red lead to the positive anode. Ensure
-      both connections are firmly seated.
+      With the power supply off, seat the lid on the assembled tank before touching
+      either electrical lead.
     sequence:
       - target: electrophoresis_tank
         gesture: click
@@ -37,26 +46,64 @@ steps:
               target: electrophoresis_tank
               state:
                 lid_present: true
-      - target: power_supply
+          feedback:
+            correct: The lid is seated while the power supply remains off.
+            incorrect: Secure the lid before connecting leads.
+    step_validator:
+      preset: sequence_complete
+    outcome:
+      on_success: complete
+      on_failure: retry
+    next_step: connect_black_cathode_lead
+  - step_name: connect_black_cathode_lead
+    prompt:
+      Connect the black lead to the negative cathode connection on the lidded apparatus.
+    sequence:
+      - target: electrophoresis_black_lead
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
+            - type: ObjectStateChange
+              target: electrophoresis_black_lead
+              state:
+                attached: true
             - type: ObjectStateChange
               target: power_supply
               state:
                 cathode_lead_attached: true
-      - target: power_supply
+          feedback:
+            correct: Black lead connected to the negative cathode.
+            incorrect: Connect the black cathode lead.
+    step_validator:
+      preset: sequence_complete
+    outcome:
+      on_success: complete
+      on_failure: retry
+    next_step: connect_red_anode_lead
+  - step_name: connect_red_anode_lead
+    prompt:
+      Connect the red lead to the positive anode connection. Both leads must be seated
+      before the voltage is set.
+    sequence:
+      - target: electrophoresis_red_lead
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
+              target: electrophoresis_red_lead
+              state:
+                attached: true
+            - type: ObjectStateChange
               target: power_supply
               state:
                 anode_lead_attached: true
+          feedback:
+            correct: Red lead connected to the positive anode; the apparatus is ready to set voltage.
+            incorrect: Connect the red anode lead.
     step_validator:
       preset: sequence_complete
     outcome:

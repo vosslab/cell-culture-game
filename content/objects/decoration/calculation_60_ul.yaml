@@ -1,0 +1,22 @@
+object_name: calculation_60_ul
+kind: decoration
+label: 60 &micro;L
+
+state_fields:
+  - field_name: visible
+    type: bool
+    default: true
+    description: Whether this calculation choice is visible.
+
+visual_states:
+  visible:
+    kind: svg
+    cases:
+      - when: true
+        output: { asset_name: interpretation_choice_card }
+      - when: false
+        output: { asset_name: interpretation_choice_card }
+
+capabilities: [clickable]
+
+layout: { default_width: 12, display_width_cm: 16, label_width: 16 }

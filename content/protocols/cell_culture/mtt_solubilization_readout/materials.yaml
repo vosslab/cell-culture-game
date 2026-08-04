@@ -11,6 +11,104 @@ materials:
     label: "Formazan crystal precipitate"
     display_color: "#a719db"
 
+  formazan_control:
+    label: "Dark formazan crystals (untreated control)"
+    display_color: "#5b1479"
+  formazan_metformin_control:
+    label: "Dark formazan crystals (metformin control)"
+    display_color: "#681a80"
+  formazan_carboplatin_0_1umol:
+    label: "Formazan crystals (0.1 &micro;M carboplatin)"
+    display_color: "#6a1c86"
+  formazan_carboplatin_0_2umol:
+    label: "Formazan crystals (0.2 &micro;M carboplatin)"
+    display_color: "#74268f"
+  formazan_carboplatin_0_5umol:
+    label: "Formazan crystals (0.5 &micro;M carboplatin)"
+    display_color: "#803398"
+  formazan_carboplatin_1umol:
+    label: "Formazan crystals (1 &micro;M carboplatin)"
+    display_color: "#9142a4"
+  formazan_carboplatin_2umol:
+    label: "Formazan crystals (2 &micro;M carboplatin)"
+    display_color: "#a454b2"
+  formazan_carboplatin_5umol:
+    label: "Formazan crystals (5 &micro;M carboplatin)"
+    display_color: "#bb78c3"
+  formazan_carboplatin_10umol:
+    label: "Formazan crystals (10 &micro;M carboplatin)"
+    display_color: "#d3abdc"
+  formazan_carboplatin_0_1umol_metformin_5mmol:
+    label: "Formazan crystals (0.1 &micro;M carboplatin plus metformin)"
+    display_color: "#75268d"
+  formazan_carboplatin_0_2umol_metformin_5mmol:
+    label: "Formazan crystals (0.2 &micro;M carboplatin plus metformin)"
+    display_color: "#833695"
+  formazan_carboplatin_0_5umol_metformin_5mmol:
+    label: "Formazan crystals (0.5 &micro;M carboplatin plus metformin)"
+    display_color: "#9649a2"
+  formazan_carboplatin_1umol_metformin_5mmol:
+    label: "Formazan crystals (1 &micro;M carboplatin plus metformin)"
+    display_color: "#aa61af"
+  formazan_carboplatin_2umol_metformin_5mmol:
+    label: "Formazan crystals (2 &micro;M carboplatin plus metformin)"
+    display_color: "#bd7bc0"
+  formazan_carboplatin_5umol_metformin_5mmol:
+    label: "Formazan crystals (5 &micro;M carboplatin plus metformin)"
+    display_color: "#d2a4d5"
+  formazan_carboplatin_10umol_metformin_5mmol:
+    label: "Formazan crystals (10 &micro;M carboplatin plus metformin)"
+    display_color: "#e6cfe7"
+
+  formazan_dmso_control:
+    label: "Dark formazan in DMSO (untreated control)"
+    display_color: "#5b1479"
+  formazan_dmso_metformin_control:
+    label: "Dark formazan in DMSO (metformin control)"
+    display_color: "#681a80"
+  formazan_dmso_carboplatin_0_1umol:
+    label: "Formazan in DMSO (0.1 &micro;M carboplatin)"
+    display_color: "#6a1c86"
+  formazan_dmso_carboplatin_0_2umol:
+    label: "Formazan in DMSO (0.2 &micro;M carboplatin)"
+    display_color: "#74268f"
+  formazan_dmso_carboplatin_0_5umol:
+    label: "Formazan in DMSO (0.5 &micro;M carboplatin)"
+    display_color: "#803398"
+  formazan_dmso_carboplatin_1umol:
+    label: "Formazan in DMSO (1 &micro;M carboplatin)"
+    display_color: "#9142a4"
+  formazan_dmso_carboplatin_2umol:
+    label: "Formazan in DMSO (2 &micro;M carboplatin)"
+    display_color: "#a454b2"
+  formazan_dmso_carboplatin_5umol:
+    label: "Formazan in DMSO (5 &micro;M carboplatin)"
+    display_color: "#bb78c3"
+  formazan_dmso_carboplatin_10umol:
+    label: "Formazan in DMSO (10 &micro;M carboplatin)"
+    display_color: "#d3abdc"
+  formazan_dmso_carboplatin_0_1umol_metformin_5mmol:
+    label: "Formazan in DMSO (0.1 &micro;M carboplatin plus metformin)"
+    display_color: "#75268d"
+  formazan_dmso_carboplatin_0_2umol_metformin_5mmol:
+    label: "Formazan in DMSO (0.2 &micro;M carboplatin plus metformin)"
+    display_color: "#833695"
+  formazan_dmso_carboplatin_0_5umol_metformin_5mmol:
+    label: "Formazan in DMSO (0.5 &micro;M carboplatin plus metformin)"
+    display_color: "#9649a2"
+  formazan_dmso_carboplatin_1umol_metformin_5mmol:
+    label: "Formazan in DMSO (1 &micro;M carboplatin plus metformin)"
+    display_color: "#aa61af"
+  formazan_dmso_carboplatin_2umol_metformin_5mmol:
+    label: "Formazan in DMSO (2 &micro;M carboplatin plus metformin)"
+    display_color: "#bd7bc0"
+  formazan_dmso_carboplatin_5umol_metformin_5mmol:
+    label: "Formazan in DMSO (5 &micro;M carboplatin plus metformin)"
+    display_color: "#d2a4d5"
+  formazan_dmso_carboplatin_10umol_metformin_5mmol:
+    label: "Formazan in DMSO (10 &micro;M carboplatin plus metformin)"
+    display_color: "#e6cfe7"
+
   optical_reading:
     label: "Optical absorbance at 560 nm"
     display_color: "#ffffff"

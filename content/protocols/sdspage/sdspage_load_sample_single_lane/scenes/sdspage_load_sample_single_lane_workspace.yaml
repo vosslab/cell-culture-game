@@ -19,6 +19,11 @@ remove_placements:
   - right_tool_area_p10_gel_loading_tip_box
 
 add_placements:
+  - placement_name: front_right_electrophoresis_buffer_dam
+    object_name: electrophoresis_buffer_dam
+    zone: front_right
+    depth_tier: 2
+    align_stop: center
   - placement_name: front_center_sds_microtube_rack
     object_name: microtube_rack_8
     zone: front_center

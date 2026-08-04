@@ -2,949 +2,822 @@ protocol_type: mini_protocol
 protocol_name: drug_dilution_setup
 entry_step: prepare_carb_parent_stock
 initial_state:
-  # These are the sole material sources for this mini-protocol. Volumes are
-  # intentionally declared at the runner boundary so every later transfer has
-  # a durable, auditable source rather than relying on object-library defaults.
   - target: carboplatin_stock_tube
-    state:
-      material_name: carboplatin
-      material_volume: 50
+    state: { material_name: carboplatin_10mmol, material_volume: 50 }
   - target: media_bottle
-    state:
-      material_name: media
-      # The full Cell Culture runner has already used 24.1 mL for resuspension
-      # and seeding before this mini begins; direct play starts from that same
-      # handoff state rather than refilling the shared bottle.
-      material_volume: 475.9
+    state: { material_name: media, material_volume: 465.04 }
   - target: metformin_stock_tube
-    state:
-      material_name: metformin
-      material_volume: 50
+    state: { material_name: metformin_1mol, material_volume: 50 }
+  - target: well_plate_96.all_wells
+    state: { material_name: cells_in_growth_media, material_volume: 100 }
 learning:
-  objectives:
-    Students completing this mini-protocol will have achieved fluency with
-    independent working-stock preparation from a master stock via C1V1 = C2V2 calculations,
-    single-source dilution logic for dose-response series design, and quality-assurance
-    validation of working-stock volumes.
-  outcomes:
-    Students completing this mini-protocol will be able to prepare a carboplatin
-    400 &micro;M parent stock from the 10 mM master stock, prepare six carboplatin
-    working stocks across a 1-2-5 dose-response series (4, 8, 20, 40, 80, 200 &micro;M)
-    all from the single 400 &micro;M parent stock, prepare a fixed-concentration metformin
-    200 mM working stock independently, and verify that sufficient working-stock volume
-    is available for the full treatment experiment.
-  goals:
-    "Overall, this mini-protocol aims to accomplish the working-stock preparation
-    phase for a two-drug dose-response experiment: carboplatin as a variable dose
-    series and metformin as a fixed modifier. This step bridges the raw master stocks
-    (10 mM carboplatin, 1 M metformin) to the treatment-ready working stocks that
-    will be added to plate wells on Day 2. The carboplatin working stocks follow a
-    1-2-5 graph-friendly pattern (0.1, 0.2, 0.5, 1, 2, 5, 10 &micro;M final in well,
-    corresponding to 40x multiplier into 200 &micro;L wells). The 400 &micro;M parent
-    stock serves as the row-H working stock directly (use as-is, no additional dilution).
-    Each diluted working stock is prepared as a separate pedagogical step from the
-    single 400 &micro;M parent stock, following single-source dilution architecture;
-    metformin is a fixed working stock with its own step; volume verification closes
-    the mini-protocol."
+  objectives: >
+    Students completing this mini-protocol will have achieved fluency with C1V1 =
+    C2V2 calculations, selecting an accurate micropipette range, and preparing
+    independently labeled working stocks from master stocks.
+  outcomes: >
+    Students completing this mini-protocol will be able to prepare a 400 &micro;M
+    carboplatin parent stock, a 1-2-5 carboplatin working series (4, 8, 20, 40,
+    80, and 200 &micro;M), and a 200 mM metformin stock while preserving aseptic
+    tip changes and volume conservation.
+  goals: >
+    Overall, this mini-protocol aims to accomplish preparation and quality control
+    of the treatment-ready stocks for the two-drug dose-response experiment. The
+    400 &micro;M carboplatin parent is the 40x row-H stock; the remaining separate
+    working stocks produce 0.1-5 &micro;M final carboplatin in 200 &micro;L wells, while
+    200 mM metformin produces 5 mM final concentration.
 steps:
   - step_name: prepare_carb_parent_stock
-    prompt:
-      "Prepare the carboplatin 400 &micro;M parent stock from the 10 mM master
-      stock. Calculate using C1V1 = C2V2: 10 mM x V1 = 400 &micro;M x 1000 &micro;L,
-      so V1 = 40 &micro;L. Aspirate 40 &micro;L from the master stock and dispense into
-      the parent stock tube, then add 960 &micro;L of sterile media to reach 1000 &micro;L
-      total, and vortex."
+    scene: dilution_initial_calculation_review
+    prompt: >
+      Make 1.00 mL of labeled 400 &micro;M carboplatin parent stock from the 10 mM
+      master stock. Use C1V1 = C2V2 to calculate the master-stock volume on the
+      calculation pad. Use the P200 for the master stock, then switch to a fresh
+      P1000 tip for sterile media. Vortex the completed parent stock.
     sequence:
-      - target: micropipette
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations:
-            - type: SceneChange
-              to_scene: dilution_workspace
-      - target: micropipette
-        gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 40
+      - target: calculation_40_ul
+        gesture: select
+        validator: { preset: correct_choice }
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                set_volume: 40
+              target: calculation_pad
+              state: { entered_value: 40 }
+            - type: SceneChange
+              to_scene: dilution_workspace
+          feedback:
+            correct: "40 &micro;L of 10 mM stock in 1.00 mL gives 400 &micro;M. Select a pipette that can measure 40 &micro;L accurately."
+            incorrect: "Use C1V1 = C2V2 with 10 mM, 400 &micro;M, and 1000 &micro;L; record the master-stock volume."
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: p200_micropipette
+              state: { tip_status: fresh }
+          feedback:
+            correct: "Fit a fresh P200 tip before drawing carboplatin master stock."
+            incorrect: "Select a sterile P200 tip before entering the carboplatin stock tube."
+      - target: p200_micropipette
+        gesture: adjust
+        validator: { preset: target_with_value, value: { set_volume: 40 } }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: p200_micropipette
+              state: { set_volume: 40 }
       - target: carboplatin_stock_tube
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: carboplatin_stock_tube
-              state:
-                material_volume: 49.96
+              state: { material_volume: 49.96 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: carboplatin
-                held_material_volume: 40
+              target: p200_micropipette
+              state: { held_material_name: carboplatin_10mmol, held_material_volume: 40 }
+          feedback:
+            correct: "The P200 now holds 40 &micro;L of carboplatin master stock."
+            incorrect: "Load the calculated master-stock volume from the carboplatin tube."
       - target: microtube_15ml_intermediate
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: microtube_15ml_intermediate
-              state:
-                material_name: carboplatin
-                material_volume: 0.04
+              state: { material_name: carboplatin_10mmol, material_volume: 0.04 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: empty
-                held_material_volume: 0
-      - target: micropipette
-        gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 960
+              target: p200_micropipette
+              state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                set_volume: 960
+              target: p1000_micropipette
+              state: { tip_status: fresh }
+          feedback:
+            correct: "Fit a fresh P1000 tip before entering sterile media."
+            incorrect: "Select a new sterile P1000 tip for the media complement."
+      - target: p1000_micropipette
+        gesture: adjust
+        validator: { preset: target_with_value, value: { set_volume: 960 } }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: p1000_micropipette
+              state: { set_volume: 960 }
+          feedback:
+            correct: "Fresh P1000 tip selected for sterile media; 960 &micro;L completes the 1.00 mL parent stock."
+            incorrect: "Use a fresh P1000 tip for the 960 &micro;L media transfer."
       - target: media_bottle
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: media_bottle
-              state:
-                material_volume: 474.94
+              state: { material_volume: 464.08 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: media
-                held_material_volume: 960
+              target: p1000_micropipette
+              state: { held_material_name: media, held_material_volume: 960 }
       - target: microtube_15ml_intermediate
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: microtube_15ml_intermediate
-              state:
-                material_volume: 1.0
+              state: { material_name: carboplatin_400umol, material_volume: 1 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: empty
-                held_material_volume: 0
+              target: p1000_micropipette
+              state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
       - target: vortex
         gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
-      - target: microtube_15ml_intermediate
-        gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: TimedWait
               target: vortex
               duration_min: 0.05
               display: vortexing
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
+            - type: SceneChange
+              to_scene: dilution_calculation_500
+          feedback:
+            correct: "The labeled 400 &micro;M parent stock is mixed and ready as the single source for the carboplatin series."
+            incorrect: "Mix the completed parent stock before preparing its dilutions."
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
     next_step: prepare_carb_working_200um
   - step_name: prepare_carb_working_200um
-    prompt:
-      "Prepare the 200 &micro;M carboplatin working stock from the 400 &micro;M
-      parent stock. Calculate using C1V1 = C2V2: 400 &micro;M x V1 = 200 &micro;M x
-      1000 &micro;L, so V1 = 500 &micro;L. Aspirate 500 &micro;L from the parent stock
-      and dispense into a dilution rack tube, then add 500 &micro;L of media to reach
-      1000 &micro;L total."
+    prompt: >
+      Work one complete example: make 1.00 mL of labeled 200 &micro;M carboplatin from
+      the 400 &micro;M parent. Calculate the parent-stock volume, transfer it with a
+      fresh P1000 tip into rack tube G, then use another fresh P1000 tip to add
+      sterile media. Mix the labeled tube.
     sequence:
-      - target: micropipette
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
-      - target: micropipette
-        gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 500
+      - target: calculation_500_ul
+        gesture: select
+        validator: { preset: correct_choice }
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                set_volume: 500
+              target: calculation_pad
+              state: { entered_value: 500 }
+            - type: SceneChange
+              to_scene: dilution_workspace
+          feedback:
+            correct: "Correct: a twofold dilution uses 500 &micro;L parent stock and 500 &micro;L media."
+            incorrect: "Calculate V1 from 400 &micro;M x V1 = 200 &micro;M x 1000 &micro;L."
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: p1000_micropipette
+              state: { tip_status: fresh }
+          feedback:
+            correct: "Fit a fresh P1000 tip before drawing the 400 &micro;M parent stock."
+            incorrect: "Select a sterile P1000 tip before entering the carboplatin parent tube."
+      - target: p1000_micropipette
+        gesture: adjust
+        validator: { preset: target_with_value, value: { set_volume: 500 } }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: p1000_micropipette
+              state: { set_volume: 500 }
       - target: microtube_15ml_intermediate
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: microtube_15ml_intermediate
-              state:
-                material_volume: 0.5
+              state: { material_volume: 0.5 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: carboplatin
-                held_material_volume: 500
+              target: p1000_micropipette
+              state: { held_material_name: carboplatin_400umol, held_material_volume: 500 }
       - target: dilution_tube_rack_8
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: dilution_tube_rack_8.tube_G
-              state:
-                material_name: carboplatin
-                material_volume: 500
+              state: { material_name: carboplatin_400umol, material_volume: 500 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: empty
-                held_material_volume: 0
-      - target: micropipette
-        gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 500
+              target: p1000_micropipette
+              state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                set_volume: 500
+              target: p1000_micropipette
+              state: { tip_status: fresh }
+          feedback:
+            correct: "Change to a fresh P1000 tip before drawing sterile media."
+            incorrect: "Select a new sterile P1000 tip for the media complement."
+      - target: p1000_micropipette
+        gesture: adjust
+        validator: { preset: target_with_value, value: { set_volume: 500 } }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: p1000_micropipette
+              state: { set_volume: 500 }
+          feedback:
+            correct: "Use a fresh tip before entering sterile media."
+            incorrect: "Set a fresh P1000 tip to the calculated media volume."
       - target: media_bottle
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: media_bottle
-              state:
-                material_volume: 474.44
+              state: { material_volume: 463.58 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: media
-                held_material_volume: 500
+              target: p1000_micropipette
+              state: { held_material_name: media, held_material_volume: 500 }
       - target: dilution_tube_rack_8
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: dilution_tube_rack_8.tube_G
-              state:
-                material_volume: 1000
+              state: { material_name: carboplatin_200umol, material_volume: 1000 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: empty
-                held_material_volume: 0
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: prepare_carb_working_80um
-  - step_name: prepare_carb_working_80um
-    prompt:
-      "Prepare the 80 &micro;M carboplatin working stock from the 400 &micro;M
-      parent stock. Calculate using C1V1 = C2V2: 400 &micro;M x V1 = 80 &micro;M x 1000
-      &micro;L, so V1 = 200 &micro;L. Aspirate 200 &micro;L from the parent stock and
-      dispense into a dilution rack tube, then add 800 &micro;L of media to reach 1000
-      &micro;L total."
+              target: p1000_micropipette
+              state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
+            - type: SceneChange
+              to_scene: dilution_calculation_200
+          feedback:
+            correct: "Tube G is visibly filled and labeled 200 &micro;M: the worked example establishes the single-source rule."
+            incorrect: "Add the media to the same labeled tube that received parent stock."
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
+    next_step: prepare_carb_working_mid_series
+  - step_name: prepare_carb_working_mid_series
+    prompt: >
+      Continue the 1-2-5 series from the same 400 &micro;M parent. First calculate and
+      prepare 1.00 mL of 80 &micro;M in tube F, then prepare 40 &micro;M in tube E. Select
+      the P200 for each parent-stock transfer and a fresh P1000 tip for each
+      media transfer; the completed tubes make the series progress visible.
     sequence:
-      - target: micropipette
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
-      - target: micropipette
-        gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 200
+      - target: calculation_200_ul
+        gesture: select
+        validator: { preset: correct_choice }
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                set_volume: 200
+              target: calculation_pad
+              state: { entered_value: 200 }
+            - type: SceneChange
+              to_scene: dilution_workspace
+          feedback:
+            correct: "80 &micro;M requires 200 &micro;L parent stock; apply the same equation to derive the 40 &micro;M transfer."
+            incorrect: "Calculate V1 for 400 &micro;M parent stock diluted to 80 &micro;M in 1000 &micro;L."
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }]
+          feedback: { correct: "Fit a fresh P200 tip before drawing parent stock for tube F.", incorrect: "Select a new P200 tip before entering the parent-stock tube." }
+      - target: p200_micropipette
+        gesture: adjust
+        validator: { preset: target_with_value, value: { set_volume: 200 } }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: p200_micropipette
+              state: { set_volume: 200 }
       - target: microtube_15ml_intermediate
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: microtube_15ml_intermediate
-              state:
-                material_volume: 0.3
+              state: { material_volume: 0.3 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: carboplatin
-                held_material_volume: 200
+              target: p200_micropipette
+              state: { held_material_name: carboplatin_400umol, held_material_volume: 200 }
       - target: dilution_tube_rack_8
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: dilution_tube_rack_8.tube_F
-              state:
-                material_name: carboplatin
-                material_volume: 200
+              state: { material_name: carboplatin_400umol, material_volume: 200 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: empty
-                held_material_volume: 0
-      - target: micropipette
+              target: p200_micropipette
+              state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations: [{ type: ObjectStateChange, target: p1000_micropipette, state: { tip_status: fresh } }]
+          feedback: { correct: "Fit a fresh P1000 tip before drawing media for tube F.", incorrect: "Select a new P1000 tip before entering sterile media." }
+      - target: p1000_micropipette
         gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 800
+        validator: { preset: target_with_value, value: { set_volume: 800 } }
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                set_volume: 800
+              target: p1000_micropipette
+              state: { set_volume: 800 }
+          feedback:
+            correct: "Fresh P1000 tip selected for the 800 &micro;L media complement."
+            incorrect: "Use a fresh P1000 tip for the 800 &micro;L media complement."
       - target: media_bottle
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: media_bottle
-              state:
-                material_volume: 473.64
+              state: { material_volume: 462.78 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: media
-                held_material_volume: 800
+              target: p1000_micropipette
+              state: { held_material_name: media, held_material_volume: 800 }
       - target: dilution_tube_rack_8
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: dilution_tube_rack_8.tube_F
-              state:
-                material_volume: 1000
+              state: { material_name: carboplatin_80umol, material_volume: 1000 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: empty
-                held_material_volume: 0
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: prepare_carb_working_40um
-  - step_name: prepare_carb_working_40um
-    prompt:
-      "Prepare the 40 &micro;M carboplatin working stock from the 400 &micro;M
-      parent stock. Calculate using C1V1 = C2V2: 400 &micro;M x V1 = 40 &micro;M x 1000
-      &micro;L, so V1 = 100 &micro;L. Aspirate 100 &micro;L from the parent stock and
-      dispense into a dilution rack tube, then add 900 &micro;L of media to reach 1000
-      &micro;L total."
-    sequence:
-      - target: micropipette
+              target: p1000_micropipette
+              state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
+      - target: micropipette_tip_box
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
-          scene_operations: []
-      - target: micropipette
+          scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }]
+          feedback: { correct: "Fit a fresh P200 tip before drawing parent stock for tube E.", incorrect: "Select a new P200 tip before entering the parent-stock tube." }
+      - target: p200_micropipette
         gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 100
+        validator: { preset: target_with_value, value: { set_volume: 100 } }
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                set_volume: 100
+              target: p200_micropipette
+              state: { set_volume: 100 }
       - target: microtube_15ml_intermediate
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: microtube_15ml_intermediate
-              state:
-                material_volume: 0.2
+              state: { material_volume: 0.2 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: carboplatin
-                held_material_volume: 100
+              target: p200_micropipette
+              state: { held_material_name: carboplatin_400umol, held_material_volume: 100 }
       - target: dilution_tube_rack_8
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: dilution_tube_rack_8.tube_E
-              state:
-                material_name: carboplatin
-                material_volume: 100
+              state: { material_name: carboplatin_400umol, material_volume: 100 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: empty
-                held_material_volume: 0
-      - target: micropipette
+              target: p200_micropipette
+              state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations: [{ type: ObjectStateChange, target: p1000_micropipette, state: { tip_status: fresh } }]
+          feedback: { correct: "Fit a fresh P1000 tip before drawing media for tube E.", incorrect: "Select a new P1000 tip before entering sterile media." }
+      - target: p1000_micropipette
         gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 900
+        validator: { preset: target_with_value, value: { set_volume: 900 } }
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                set_volume: 900
+              target: p1000_micropipette
+              state: { set_volume: 900 }
       - target: media_bottle
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: media_bottle
-              state:
-                material_volume: 472.74
+              state: { material_volume: 461.88 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: media
-                held_material_volume: 900
+              target: p1000_micropipette
+              state: { held_material_name: media, held_material_volume: 900 }
       - target: dilution_tube_rack_8
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: dilution_tube_rack_8.tube_E
-              state:
-                material_volume: 1000
+              state: { material_name: carboplatin_40umol, material_volume: 1000 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: empty
-                held_material_volume: 0
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: prepare_carb_working_20um
-  - step_name: prepare_carb_working_20um
-    prompt:
-      "Prepare the 20 &micro;M carboplatin working stock from the 400 &micro;M
-      parent stock. Calculate using C1V1 = C2V2: 400 &micro;M x V1 = 20 &micro;M x 1000
-      &micro;L, so V1 = 50 &micro;L. Aspirate 50 &micro;L from the parent stock and
-      dispense into a dilution rack tube, then add 950 &micro;L of media to reach 1000
-      &micro;L total."
+              target: p1000_micropipette
+              state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
+            - type: SceneChange
+              to_scene: dilution_calculation_50
+          feedback:
+            correct: "The 80 and 40 &micro;M tubes are complete; their labeled endpoints document the middle of the series."
+            incorrect: "Complete tube E with its media complement."
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
+    next_step: prepare_carb_working_low_series
+  - step_name: prepare_carb_working_low_series
+    prompt: >
+      Complete the low end of the single-source series: 20 &micro;M in tube D, 8 &micro;M in
+      tube C, and 4 &micro;M in tube B. Calculate the first parent-stock transfer,
+      then use the P200, P20, and P1000 only within their marked ranges. Each
+      switch from drug stock to media requires a fresh tip.
     sequence:
-      - target: micropipette
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
-      - target: micropipette
-        gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 50
+      - target: calculation_50_ul
+        gesture: select
+        validator: { preset: correct_choice }
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                set_volume: 50
+              target: calculation_pad
+              state: { entered_value: 50 }
+            - type: SceneChange
+              to_scene: dilution_workspace
+          feedback:
+            correct: "20 &micro;M requires 50 &micro;L parent stock. Derive the 8 and 4 &micro;M volumes from the same parent."
+            incorrect: "Calculate the parent-stock volume for 20 &micro;M in a 1000 &micro;L final volume."
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }]
+          feedback: { correct: "Fit a fresh P200 tip before drawing parent stock for tube D.", incorrect: "Select a new P200 tip before entering the parent-stock tube." }
+      - target: p200_micropipette
+        gesture: adjust
+        validator: { preset: target_with_value, value: { set_volume: 50 } }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: p200_micropipette
+              state: { set_volume: 50 }
       - target: microtube_15ml_intermediate
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: microtube_15ml_intermediate
-              state:
-                material_volume: 0.15
+              state: { material_volume: 0.15 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: carboplatin
-                held_material_volume: 50
+              target: p200_micropipette
+              state: { held_material_name: carboplatin_400umol, held_material_volume: 50 }
       - target: dilution_tube_rack_8
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: dilution_tube_rack_8.tube_D
-              state:
-                material_name: carboplatin
-                material_volume: 50
+              state: { material_name: carboplatin_400umol, material_volume: 50 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: empty
-                held_material_volume: 0
-      - target: micropipette
+              target: p200_micropipette
+              state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations: [{ type: ObjectStateChange, target: p1000_micropipette, state: { tip_status: fresh } }]
+          feedback: { correct: "Fit a fresh P1000 tip before drawing media for tube D.", incorrect: "Select a new P1000 tip before entering sterile media." }
+      - target: p1000_micropipette
         gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 950
+        validator: { preset: target_with_value, value: { set_volume: 950 } }
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                set_volume: 950
+              target: p1000_micropipette
+              state: { set_volume: 950 }
       - target: media_bottle
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: media_bottle
-              state:
-                material_volume: 471.79
+              state: { material_volume: 460.93 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: media
-                held_material_volume: 950
+              target: p1000_micropipette
+              state: { held_material_name: media, held_material_volume: 950 }
       - target: dilution_tube_rack_8
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: dilution_tube_rack_8.tube_D
-              state:
-                material_volume: 1000
+              state: { material_name: carboplatin_20umol, material_volume: 1000 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: empty
-                held_material_volume: 0
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: prepare_carb_working_8um
-  - step_name: prepare_carb_working_8um
-    prompt:
-      "Prepare the 8 &micro;M carboplatin working stock from the 400 &micro;M
-      parent stock. Calculate using C1V1 = C2V2: 400 &micro;M x V1 = 8 &micro;M x 1000
-      &micro;L, so V1 = 20 &micro;L. Aspirate 20 &micro;L from the parent stock and
-      dispense into a dilution rack tube, then add 980 &micro;L of media to reach 1000
-      &micro;L total."
-    sequence:
-      - target: micropipette
+              target: p1000_micropipette
+              state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
+      - target: micropipette_tip_box
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
-          scene_operations: []
-      - target: micropipette
+          scene_operations: [{ type: ObjectStateChange, target: p20_micropipette, state: { tip_status: fresh } }]
+          feedback: { correct: "Fit a fresh P20 tip before drawing parent stock for tube C.", incorrect: "Select a new P20 tip before entering the parent-stock tube." }
+      - target: p20_micropipette
         gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 20
+        validator: { preset: target_with_value, value: { set_volume: 20 } }
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                set_volume: 20
+              target: p20_micropipette
+              state: { set_volume: 20 }
+          feedback:
+            correct: "The P20 is the accurate choice for the 20 &micro;L parent-stock transfer."
+            incorrect: "Use the P20 for the 20 &micro;L transfer."
       - target: microtube_15ml_intermediate
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: microtube_15ml_intermediate
-              state:
-                material_volume: 0.13
+              state: { material_volume: 0.13 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: carboplatin
-                held_material_volume: 20
+              target: p20_micropipette
+              state: { held_material_name: carboplatin_400umol, held_material_volume: 20 }
       - target: dilution_tube_rack_8
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: dilution_tube_rack_8.tube_C
-              state:
-                material_name: carboplatin
-                material_volume: 20
+              state: { material_name: carboplatin_400umol, material_volume: 20 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: empty
-                held_material_volume: 0
-      - target: micropipette
+              target: p20_micropipette
+              state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations: [{ type: ObjectStateChange, target: p1000_micropipette, state: { tip_status: fresh } }]
+          feedback: { correct: "Fit a fresh P1000 tip before drawing media for tube C.", incorrect: "Select a new P1000 tip before entering sterile media." }
+      - target: p1000_micropipette
         gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 980
+        validator: { preset: target_with_value, value: { set_volume: 980 } }
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                set_volume: 980
+              target: p1000_micropipette
+              state: { set_volume: 980 }
       - target: media_bottle
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: media_bottle
-              state:
-                material_volume: 470.81
+              state: { material_volume: 459.95 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: media
-                held_material_volume: 980
+              target: p1000_micropipette
+              state: { held_material_name: media, held_material_volume: 980 }
       - target: dilution_tube_rack_8
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: dilution_tube_rack_8.tube_C
-              state:
-                material_volume: 1000
+              state: { material_name: carboplatin_8umol, material_volume: 1000 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: empty
-                held_material_volume: 0
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: prepare_carb_working_4um
-  - step_name: prepare_carb_working_4um
-    prompt:
-      "Prepare the 4 &micro;M carboplatin working stock from the 400 &micro;M
-      parent stock. Calculate using C1V1 = C2V2: 400 &micro;M x V1 = 4 &micro;M x 1000
-      &micro;L, so V1 = 10 &micro;L. Aspirate 10 &micro;L from the parent stock and
-      dispense into a dilution rack tube, then add 990 &micro;L of media to reach 1000
-      &micro;L total."
-    sequence:
-      - target: micropipette
+              target: p1000_micropipette
+              state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
+      - target: micropipette_tip_box
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
-          scene_operations: []
-      - target: micropipette
+          scene_operations: [{ type: ObjectStateChange, target: p20_micropipette, state: { tip_status: fresh } }]
+          feedback: { correct: "Fit a fresh P20 tip before drawing parent stock for tube B.", incorrect: "Select a new P20 tip before entering the parent-stock tube." }
+      - target: p20_micropipette
         gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 10
+        validator: { preset: target_with_value, value: { set_volume: 10 } }
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                set_volume: 10
+              target: p20_micropipette
+              state: { set_volume: 10 }
       - target: microtube_15ml_intermediate
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: microtube_15ml_intermediate
-              state:
-                material_volume: 0.12
+              state: { material_volume: 0.12 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: carboplatin
-                held_material_volume: 10
+              target: p20_micropipette
+              state: { held_material_name: carboplatin_400umol, held_material_volume: 10 }
       - target: dilution_tube_rack_8
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: dilution_tube_rack_8.tube_B
-              state:
-                material_name: carboplatin
-                material_volume: 10
+              state: { material_name: carboplatin_400umol, material_volume: 10 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: empty
-                held_material_volume: 0
-      - target: micropipette
+              target: p20_micropipette
+              state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations: [{ type: ObjectStateChange, target: p1000_micropipette, state: { tip_status: fresh } }]
+          feedback: { correct: "Fit a fresh P1000 tip before drawing media for tube B.", incorrect: "Select a new P1000 tip before entering sterile media." }
+      - target: p1000_micropipette
         gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 990
+        validator: { preset: target_with_value, value: { set_volume: 990 } }
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                set_volume: 990
+              target: p1000_micropipette
+              state: { set_volume: 990 }
       - target: media_bottle
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: media_bottle
-              state:
-                material_volume: 469.82
+              state: { material_volume: 458.96 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: media
-                held_material_volume: 990
+              target: p1000_micropipette
+              state: { held_material_name: media, held_material_volume: 990 }
       - target: dilution_tube_rack_8
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: dilution_tube_rack_8.tube_B
-              state:
-                material_volume: 1000
+              state: { material_name: carboplatin_4umol, material_volume: 1000 }
             - type: ObjectStateChange
-              target: micropipette
+              target: dilution_tube_rack_8
               state:
-                held_material_name: empty
-                held_material_volume: 0
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
+                concentration_label: "B: 4 &micro;M; C: 8 &micro;M; D: 20 &micro;M; E: 40 &micro;M; F: 80 &micro;M; G: 200 &micro;M; 400 &micro;M parent: separate tube"
+            - type: ObjectStateChange
+              target: p1000_micropipette
+              state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
+            - type: SceneChange
+              to_scene: dilution_calculation_60
+          feedback:
+            correct: "All six visibly labeled carboplatin working stocks are ready from the one 400 &micro;M parent."
+            incorrect: "Complete the 4 &micro;M tube with its 990 &micro;L media complement."
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
     next_step: prepare_metformin_200mm
   - step_name: prepare_metformin_200mm
-    prompt:
-      "Prepare the 200 mM metformin working stock from the 1 M master stock. Calculate
-      using C1V1 = C2V2: 1 M x V1 = 200 mM x 300 &micro;L, so V1 = 60 &micro;L. Aspirate
-      60 &micro;L from master stock, dispense into the working tube, add 240 &micro;L
-      media to reach 300 &micro;L total, and vortex to ensure complete mixing. This
-      working stock is used directly for dosing (5 &micro;L into 200 &micro;L well =
-      5 mM final). Prepare 300 &micro;L to cover 48 wells x 5 &micro;L per well = 240
-      &micro;L dosing draw, plus &sim;60 &micro;L dead volume / measurement slack."
+    prompt: >
+      Make 300 &micro;L of labeled 200 mM metformin working stock from 1 M master stock.
+      Calculate the master-stock volume, load it with a P200, then switch to a
+      fresh P1000 tip for the media complement. Mix the 300 &micro;L endpoint. This is
+      enough for 48 x 5 &micro;L doses plus approximately 60 &micro;L dead volume.
     sequence:
-      - target: micropipette
-        gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
-      - target: micropipette
-        gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 60
+      - target: calculation_60_ul
+        gesture: select
+        validator: { preset: correct_choice }
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                set_volume: 60
+              target: calculation_pad
+              state: { entered_value: 60 }
+            - type: SceneChange
+              to_scene: dilution_workspace
+          feedback:
+            correct: "60 &micro;L of 1 M metformin plus 240 &micro;L media makes 300 &micro;L of 200 mM stock."
+            incorrect: "Use C1V1 = C2V2 with 1 M, 200 mM, and a 300 &micro;L final volume."
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }]
+          feedback: { correct: "Fit a fresh P200 tip before drawing 1 M metformin.", incorrect: "Select a new P200 tip before entering the metformin master-stock tube." }
+      - target: p200_micropipette
+        gesture: adjust
+        validator: { preset: target_with_value, value: { set_volume: 60 } }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: p200_micropipette
+              state: { set_volume: 60 }
       - target: metformin_stock_tube
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: metformin_stock_tube
-              state:
-                material_volume: 49.94
+              state: { material_volume: 49.94 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: metformin
-                held_material_volume: 60
+              target: p200_micropipette
+              state: { held_material_name: metformin_1mol, held_material_volume: 60 }
       - target: metformin_working_tube
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: metformin_working_tube
-              state:
-                material_name: metformin
-                material_volume: 60
+              state: { material_name: metformin_1mol, material_volume: 60 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: empty
-                held_material_volume: 0
-      - target: micropipette
+              target: p200_micropipette
+              state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
+      - target: micropipette_tip_box
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations: [{ type: ObjectStateChange, target: p1000_micropipette, state: { tip_status: fresh } }]
+          feedback: { correct: "Fit a fresh P1000 tip before drawing sterile media.", incorrect: "Select a new P1000 tip before entering sterile media." }
+      - target: p1000_micropipette
         gesture: adjust
-        validator:
-          preset: target_with_value
-          value:
-            set_volume: 240
+        validator: { preset: target_with_value, value: { set_volume: 240 } }
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                set_volume: 240
+              target: p1000_micropipette
+              state: { set_volume: 240 }
+          feedback:
+            correct: "Fresh P1000 tip selected for the 240 &micro;L sterile-media transfer."
+            incorrect: "Use a fresh P1000 tip set to 240 &micro;L for the media complement."
       - target: media_bottle
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: media_bottle
-              state:
-                material_volume: 469.58
+              state: { material_volume: 458.72 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: media
-                held_material_volume: 240
+              target: p1000_micropipette
+              state: { held_material_name: media, held_material_volume: 240 }
       - target: metformin_working_tube
         gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: ObjectStateChange
               target: metformin_working_tube
-              state:
-                material_volume: 300
+              state: { material_name: metformin_200mmol, material_volume: 300 }
             - type: ObjectStateChange
-              target: micropipette
-              state:
-                held_material_name: empty
-                held_material_volume: 0
+              target: p1000_micropipette
+              state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
       - target: vortex
         gesture: click
-        validator:
-          preset: correct_target
-        response:
-          scene_operations: []
-      - target: metformin_working_tube
-        gesture: click
-        validator:
-          preset: correct_target
+        validator: { preset: correct_target }
         response:
           scene_operations:
             - type: TimedWait
               target: vortex
               duration_min: 0.05
               display: vortexing
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
+            - type: SceneChange
+              to_scene: dilution_volume_review
+          feedback:
+            correct: "The labeled 200 mM metformin stock is mixed; its 300 &micro;L fill visibly covers dosing and dead-volume allowance."
+            incorrect: "Mix the complete metformin working stock before its quality check."
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
     next_step: verify_metformin_volume
-  # Gesture rubric note: this step is a single directed confirm-click, not a
-  # set-point. The target_with_value validator asserts the tube's pre-existing
-  # material_volume (300 uL, set by the prior dilution steps); the student reads
-  # and confirms that state rather than dialing or typing a value, so click is
-  # correct here and this is not the value-on-a-click anti-pattern.
   - step_name: verify_metformin_volume
-    prompt:
-      Verify that you have prepared sufficient metformin working stock. You need
-      at least 300 &micro;L total - 240 &micro;L for dosing 48 wells (48 x 5 &micro;L),
-      plus dead volume. Confirm the current volume in the metformin tube is adequate.
+    prompt: >
+      Inspect the graduated, labeled metformin tube. Does its 300 &micro;L endpoint
+      cover 240 &micro;L needed for 48 wells plus 60 &micro;L of dead-volume allowance?
+      Choose the visible decision card that matches the calculation.
     sequence:
-      - target: metformin_working_tube
-        gesture: click
-        validator:
-          preset: target_with_value
-          value:
-            material_volume: 300
+      - target: volume_decision_sufficient
+        gesture: select
+        validator: { preset: correct_choice }
         response:
           scene_operations: []
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
+          feedback:
+            correct: "Release approved: 300 &micro;L equals 240 &micro;L dosing volume plus 60 &micro;L dead-volume allowance."
+            incorrect: "Compare the readable tube volume with the stated 240 &micro;L dosing requirement and 60 &micro;L allowance before choosing."
+    step_validator: { preset: sequence_complete }
+    outcome: { on_success: complete, on_failure: retry }
     next_step: null

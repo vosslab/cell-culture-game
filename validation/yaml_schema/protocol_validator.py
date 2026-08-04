@@ -531,6 +531,8 @@ class ProtocolValidator:
 					step_names.add(step_name)
 
 			findings.extend(self._validate_sequence(step, step_path))
+			findings.extend(self._validate_loading_terminology(step, step_path))
+			findings.extend(self._validate_pipette_authenticity(step, step_path))
 
 			# Validate step_validator field shape
 			step_validator = step.get('step_validator')
@@ -583,6 +585,110 @@ class ProtocolValidator:
 				message=f"must have exactly one terminal step, found {terminal_count}",
 			))
 
+		return findings
+
+	def _validate_loading_terminology(self, step: dict, step_path: str) -> list:
+		"""Keep vacuum removal distinct from loading a dispensing pipette.
+
+		In this curriculum, ``aspirate`` names removal by the dedicated vacuum
+		aspirating pipette.  Using that word for drawing liquid into a dispensing
+		pipette hides the different physical action students must learn.  The
+		check applies only to the learner-facing step prompt.  A vacuum-removal
+		step may use the word, but that exemption does not cover a step that also
+		uses a dispensing pipette: the prompt would otherwise leave it ambiguous
+		which physical action ``aspirate`` describes.
+		"""
+		prompt = step.get('prompt')
+		if not isinstance(prompt, str) or 'aspirat' not in prompt.lower():
+			return []
+
+		sequence = step.get('sequence')
+		if not isinstance(sequence, list):
+			return []
+		targets = {
+			interaction.get('target')
+			for interaction in sequence
+			if isinstance(interaction, dict) and isinstance(interaction.get('target'), str)
+		}
+		uses_vacuum_aspirator = 'aspirating_pipette' in targets
+		uses_dispensing_pipette = bool(targets & {
+			'micropipette',
+			'p10_micropipette',
+			'p20_micropipette',
+			'p200_micropipette',
+			'p1000_micropipette',
+			'multichannel_pipette',
+			'serological_pipette',
+			'repeat_dispenser',
+		})
+		if uses_vacuum_aspirator and not uses_dispensing_pipette:
+			return []
+
+		return [Finding(
+			path=f"{step_path}.prompt",
+			lineno=None,
+			severity=Severity.ERROR,
+			message=(
+				"use 'draw', 'load', or 'pipette up' for dispensing-pipette uptake; "
+				"'aspirate' is reserved here for vacuum removal with aspirating_pipette"
+			),
+			tag='loading_aspirate_wording',
+			code='scientific-terminology',
+		)]
+
+	def _validate_pipette_authenticity(self, step: dict, step_path: str) -> list:
+		"""Reject universal pipettes and invented serological-pipette dials."""
+		sequence = step.get('sequence')
+		if not isinstance(sequence, list):
+			return []
+
+		findings = []
+		for index, interaction in enumerate(sequence):
+			if not isinstance(interaction, dict):
+				continue
+			interaction_path = f"{step_path}.sequence[{index}]"
+			target = interaction.get('target')
+			if target == 'micropipette':
+				findings.append(Finding(
+					path=f"{interaction_path}.target",
+					lineno=None,
+					severity=Severity.ERROR,
+					message=(
+						"generic micropipette is not a scientifically valid selectable tool; "
+						"use a declared range-specific pipette or repeating dispenser"
+					),
+					tag='generic_micropipette',
+					code='scientific-tool-selection',
+				))
+			if target == 'serological_pipette' and interaction.get('gesture') == 'adjust':
+				findings.append(Finding(
+					path=f"{interaction_path}.gesture",
+					lineno=None,
+					severity=Severity.ERROR,
+					message=(
+						"serological pipettes are graduation-read disposable transfer pipettes; "
+						"do not model their volume as a digital adjust setpoint"
+					),
+					tag='serological_setpoint',
+					code='scientific-tool-selection',
+				))
+			for operation in (interaction.get('response') or {}).get('scene_operations', []):
+				if not isinstance(operation, dict):
+					continue
+				if operation.get('type') != 'ObjectStateChange' or operation.get('target') != 'serological_pipette':
+					continue
+				if 'set_volume' in (operation.get('state') or {}):
+					findings.append(Finding(
+						path=f"{interaction_path}.response.scene_operations",
+						lineno=None,
+						severity=Severity.ERROR,
+						message=(
+							"serological pipettes are graduation-read disposable transfer pipettes; "
+							"do not write a digital set_volume state"
+						),
+						tag='serological_setpoint',
+						code='scientific-tool-selection',
+					))
 		return findings
 
 	def _validate_sequence(self, step: dict, step_path: str) -> list:

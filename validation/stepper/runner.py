@@ -25,6 +25,29 @@ def _try_construct_scene_path(
 		return None
 
 
+def _activate_declared_scene(
+	tree: validation.stepper.loader.LoadedContentTree,
+	protocol_name: str,
+	step: dict,
+	state_map: validation.stepper.state.StateMap,
+) -> bool:
+	"""Activate a step's declared scene using the same entry rule as runtime."""
+	scene_name = step.get("scene")
+	if not isinstance(scene_name, str) or not scene_name:
+		return False
+	if scene_name in tree.base_scenes:
+		state_map.set_active_scene(scene_name, f"content/base_scenes/{scene_name}.yaml")
+		return True
+	protocol_local_scenes = tree.protocol_local_scenes.get(protocol_name, {})
+	if scene_name not in protocol_local_scenes:
+		return False
+	scene_path = _try_construct_scene_path(tree, protocol_name, scene_name)
+	if scene_path is None:
+		return False
+	state_map.set_active_scene(scene_name, scene_path)
+	return True
+
+
 def _check_flow_integrity_mini(
 	protocol: dict,
 	protocol_path: str,
@@ -166,6 +189,7 @@ def walk_protocol(
 		if step_name not in visited_steps:
 			visited_steps.add(step_name)
 			step_count += 1
+			_activate_declared_scene(tree, protocol_name, step, state_map)
 			emitter.emit_step_transition(step_name)
 
 		interaction_count += 1
@@ -236,12 +260,13 @@ def _seed_initial_active_scene(
 	Seed the initial active scene for a protocol.
 
 	Strategy:
-	  1. Scan the first SceneChange operation in the protocol to find an explicit scene.
-	  2. If no explicit SceneChange, try protocol-local scenes:
+	  1. Use the entry step's declared scene, matching browser runtime entry.
+	  2. Otherwise scan the first SceneChange operation for an explicit scene.
+	  3. If no explicit SceneChange, try protocol-local scenes:
 	     a. If protocol has exactly one local scene, use it.
 	     b. If protocol has multiple local scenes, try to find one that contains targets from the first step.
-	  3. Fall back to the first base scene.
-	  4. If no scene found, emit a WARNING but leave active_scene unset
+	  4. Fall back to the first base scene.
+	  5. If no scene found, emit a WARNING but leave active_scene unset
 	     (subsequent target resolutions will emit errors).
 
 	Args:
@@ -254,8 +279,15 @@ def _seed_initial_active_scene(
 	if not protocol:
 		return
 
-	# Strategy 1: Look for the first SceneChange in the protocol
 	steps = protocol.get("steps", [])
+	entry_step_name = protocol.get("entry_step")
+	for step in steps:
+		if isinstance(step, dict) and step.get("step_name") == entry_step_name:
+			if _activate_declared_scene(tree, protocol_name, step, state_map):
+				return
+			break
+
+	# Strategy 2: Look for the first SceneChange in the protocol
 	for step in steps:
 		if not isinstance(step, dict):
 			continue
@@ -289,7 +321,7 @@ def _seed_initial_active_scene(
 									state_map.set_active_scene(to_scene, scene_path)
 									return
 
-	# Strategy 2: Check protocol-local scenes
+	# Strategy 3: Check protocol-local scenes
 	protocol_local_scenes = tree.protocol_local_scenes.get(protocol_name, {})
 	if protocol_local_scenes:
 		# If exactly one local scene, use it
@@ -303,7 +335,6 @@ def _seed_initial_active_scene(
 		# If multiple local scenes, try to find one with targets from the first step
 		if len(protocol_local_scenes) > 1:
 			# Collect targets from the first step
-			entry_step_name = protocol.get("entry_step")
 			first_targets = set()
 			for step in steps:
 				if isinstance(step, dict) and step.get("step_name") == entry_step_name:
@@ -343,7 +374,7 @@ def _seed_initial_active_scene(
 				state_map.set_active_scene(scene_name, scene_path)
 				return
 
-	# Strategy 3: Use the first base scene
+	# Strategy 4: Use the first base scene
 	if tree.base_scenes:
 		first_scene_name = sorted(tree.base_scenes.keys())[0]
 		state_map.set_active_scene(first_scene_name, f"content/base_scenes/{first_scene_name}.yaml")
@@ -567,6 +598,7 @@ def walk_sequence_runner(
 			if step_name not in visited_steps:
 				visited_steps.add(step_name)
 				step_count += 1
+				_activate_declared_scene(tree, mini_name, step, state_map)
 				emitter.emit_step_transition(step_name)
 
 			interaction_count += 1

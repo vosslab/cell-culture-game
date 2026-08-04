@@ -16,6 +16,36 @@ state_fields:
     max: 250
     default: 0
     description: Volume of used Coomassie stain collected for reuse, in milliliters.
+  - field_name: label_status
+    type: enum
+    allowed: [unlabeled, coomassie_recycle_complete]
+    default: unlabeled
+    description: Whether the fixed-course recovery label is complete.
+  - field_name: stain_identity_status
+    type: enum
+    allowed: [unrecorded, used_coomassie_stain]
+    default: unrecorded
+    description: Whether the recovery label identifies the liquid as used Coomassie stain.
+  - field_name: date_status
+    type: enum
+    allowed: [not_recorded, date_recorded]
+    default: not_recorded
+    description: Whether the recovery label records the laboratory date without inventing a calendar value.
+  - field_name: course_batch_status
+    type: enum
+    allowed: [not_recorded, course_batch_recorded]
+    default: not_recorded
+    description: Whether the recovery label records the fixed-course batch context.
+  - field_name: cap_status
+    type: enum
+    allowed: [open, closed]
+    default: open
+    description: Whether the recycle bottle is capped after recovery.
+  - field_name: storage_status
+    type: enum
+    allowed: [unassigned, designated_stain_storage]
+    default: unassigned
+    description: Whether the capped bottle has been moved to designated Coomassie-stain storage.
 visual_states:
   material_name:
     kind: svg
@@ -32,6 +62,24 @@ visual_states:
     target: anchor_liquid_bounds
     clip: anchor_liquid_clip
     capacity_ml: 250
+  label_status:
+    kind: overlay
+    formula: 'label(state(label_status), format="Bottle label: {value}")'
+  stain_identity_status:
+    kind: overlay
+    formula: 'label(state(stain_identity_status), format="Identity: {value}")'
+  date_status:
+    kind: overlay
+    formula: 'label(state(date_status), format="Date: {value}")'
+  course_batch_status:
+    kind: overlay
+    formula: 'label(state(course_batch_status), format="Course/batch: {value}")'
+  cap_status:
+    kind: overlay
+    formula: 'label(state(cap_status), format="Cap: {value}")'
+  storage_status:
+    kind: overlay
+    formula: 'label(state(storage_status), format="Storage: {value}")'
 capabilities:
   - clickable
   - material_container

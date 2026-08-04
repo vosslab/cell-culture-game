@@ -3,6 +3,14 @@ kind: equipment
 label: Centrifuge
 
 state_fields:
+  - field_name: set_rcf
+    type: float
+    unit: xg
+    min: 0
+    max: 4000
+    step: 10
+    default: 200
+    description: Relative centrifugal force setting in times gravity.
   - field_name: set_rpm
     type: float
     unit: rpm
@@ -25,6 +33,9 @@ state_fields:
     description: Whether the centrifuge is currently running.
 
 visual_states:
+  set_rcf:
+    kind: overlay
+    formula: label(state(set_rcf), format="{value} xg")
   set_rpm:
     kind: overlay
     formula: label(state(set_rpm), format="{value} rpm")

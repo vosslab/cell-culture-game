@@ -17,7 +17,6 @@ remove_placements:
   - mid_p10_tip_box
   - mid_microtube_sample
   - front_microtube_rack
-  - front_micropipette
   - right_tool_area_tip_box
 
 add_placements:

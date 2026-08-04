@@ -1,0 +1,25 @@
+object_name: hemocytometer_observation_display
+kind: equipment
+label: Magnified hemocytometer field
+
+state_fields:
+  - field_name: visible
+    type: bool
+    default: true
+    description: Whether the fixed representative four-quadrant observation is visible.
+
+visual_states:
+  visible:
+    kind: svg
+    cases:
+      - when: true
+        output: { asset_name: hemocytometer_observation_display }
+      - when: false
+        output: { asset_name: hemocytometer_observation_display }
+
+capabilities: [decoration_only]
+
+layout:
+  default_width: 52
+  display_width_cm: 60
+  label_width: 24

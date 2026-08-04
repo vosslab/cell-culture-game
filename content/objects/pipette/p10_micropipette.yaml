@@ -11,6 +11,11 @@ state_fields:
     step: 0.5
     default: 5
     description: Volume the pipette is set to dispense.
+  - field_name: tip_status
+    type: enum
+    allowed: [none, fresh, used]
+    default: none
+    description: Disposable tip state before and after liquid handling.
   - field_name: held_material_name
     type: enum
     allowed:
@@ -24,7 +29,7 @@ state_fields:
         ddh2o,
       ]
     default: empty
-    description: Contents currently aspirated in the pipette tip.
+    description: Contents currently loaded in the pipette tip.
   - field_name: held_material_volume
     type: float
     unit: ul
@@ -37,6 +42,9 @@ visual_states:
   set_volume:
     kind: overlay
     formula: label(state(set_volume), format="{value} ul")
+  tip_status:
+    kind: overlay
+    formula: 'label(state(tip_status), format="Tip: {value}")'
   held_material_name:
     kind: svg
     cases:

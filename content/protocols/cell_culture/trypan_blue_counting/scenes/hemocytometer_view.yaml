@@ -12,11 +12,6 @@ remove_placements:
   - right_microtube
 
 add_placements:
-  - placement_name: prepared_hemocytometer
-    object_name: hemocytometer_slide
-    zone: instrument_area
-    depth_tier: 2
-
   # Trypan blue staining bottle moved off the microscope (was instrument_area
   # depth_tier 0, sitting on the microscope base as art-on-art) onto the rear
   # right shelf where it reads as a staging reagent with a clear label and
@@ -28,7 +23,8 @@ add_placements:
     align_stop: right
 
   # Hemocytometer slide pushed to the far-right of the right bench, clear of
-  # the microscope base on the left edge of the zone.
+  # the microscope base on the left edge of the zone. It is the sole slide
+  # placement so a manual-observation choice resolves to one visible target.
   - placement_name: right_hemocytometer_slide_clear
     object_name: hemocytometer_slide
     zone: right_bench

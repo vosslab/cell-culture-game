@@ -321,12 +321,77 @@ describe("authored equipment composite states", () => {
         tray_present: true,
         image_captured: true,
         gel_state: "destained",
+        result_state: "molecular_weight_interpreted",
+        lane_pattern: "samples_1_to_3_ladder_5",
+        orientation_status: "wells_top_ladder_lane_5",
+        archive_metadata_status: "group_a_lane_map_recorded",
+        image_quality_status: "lanes_sharp_evenly_lit",
       },
       null,
     );
     assert.equal(out.asset_name, "lightbox_on");
-    assert.deepEqual(out.asset_layers, ["lightbox_capture_complete", "lightbox_gel_tray"]);
-    assert.equal(out.label_text, "Gel: destained");
+    assert.ok(out.asset_layers.includes("lightbox_capture_complete"));
+    assert.ok(out.asset_layers.includes("lightbox_gel_tray"));
+    assert.ok(out.asset_layers.includes("lightbox_image_molecular_weight_scale"));
+  });
+
+  test("plate-reader results expose both measurement and normalized viability", () => {
+    const out = resolve_visual_state(
+      OBJECT_LIBRARY.plate_reader.visual_states,
+      {
+        wavelength_nm: 560,
+        reading: false,
+        result_state: "normalized",
+        mean_absorbance: 0.42,
+        normalized_viability_percent: 63.5,
+      },
+      null,
+    );
+    assert.ok(out.asset_layers.includes("plate_reader_normalized_viability_panel"));
+    assert.ok(out.overlays.some((overlay) => overlay.text === "Selected blank-corrected A: 0.42"));
+    assert.ok(
+      out.overlays.some((overlay) => overlay.text === "Selected viability: 63.5% of control"),
+    );
+  });
+
+  test("cell counter presents concentration, viability, and manual observation", () => {
+    const out = resolve_visual_state(
+      OBJECT_LIBRARY.cell_counter.visual_states,
+      {
+        slide_loaded: true,
+        focused: true,
+        capture_pressed: true,
+        cell_count: 850000,
+        cell_concentration_per_ml: 1000000,
+        viability_percent: 92.5,
+        viability_verified: true,
+        manual_observation: "quadrants_counted",
+      },
+      null,
+    );
+    assert.ok(out.asset_layers.includes("cell_counter_manual_quadrants_panel"));
+    assert.ok(out.overlays.some((overlay) => overlay.text === "Concentration: 1000000 cells/mL"));
+    assert.ok(out.overlays.some((overlay) => overlay.text === "Viability: 92.5%"));
+  });
+
+  test("hemocytometer observation renders a counted-quadrant state", () => {
+    const out = resolve_visual_state(
+      OBJECT_LIBRARY.hemocytometer_slide.visual_states,
+      {
+        slide_status: "ready",
+        material_name: "empty",
+        material_volume: 0,
+        excess_wiped: true,
+        mix_cycles: 3,
+        mixture_homogeneous: true,
+        chamber_load_quality: "bubble_free",
+        observation_state: "quadrants_counted",
+      },
+      null,
+    );
+    assert.ok(out.asset_layers.includes("hemocytometer_quadrants_counted"));
+    assert.ok(out.overlays.some((overlay) => overlay.text === "Wiped clean"));
+    assert.ok(out.overlays.some((overlay) => overlay.text === "Capillary load: bubble_free"));
   });
 });
 

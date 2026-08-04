@@ -47,9 +47,29 @@ export function action_progress_copy(
   return `Action ${String(interaction_index + 1)} of ${String(interaction_count)}`;
 }
 
-export function recovery_copy(rejection: LastRejection): string {
+export function recovery_copy(
+  rejection: LastRejection,
+  expected_label: string | null = null,
+  expected_gesture: Gesture | null = null,
+): string {
+  const highlighted = expected_label === null ? "the highlighted item" : expected_label;
   switch (rejection.reason_code) {
     case "wrong_target":
+      if (expected_gesture === "select") {
+        return "That option is not correct. Compare the blue outlined lab items and try again.";
+      }
+      if (expected_gesture === "adjust") {
+        return `That item is not needed yet. Set the requested value for ${highlighted} using the control below.`;
+      }
+      if (expected_gesture === "type") {
+        return `That item is not needed yet. Enter the requested value for ${highlighted} in the field below.`;
+      }
+      if (expected_gesture === "drag") {
+        return `That item is not needed yet. Move ${highlighted} to the indicated destination.`;
+      }
+      if (expected_label !== null) {
+        return `That item is not needed yet. Return to ${highlighted}, the highlighted item, and try again.`;
+      }
       return "That item is not needed yet. Return to the highlighted item and try again.";
     case "wrong_value":
       if (rejection.gesture === "type") {
@@ -66,8 +86,43 @@ export function recovery_copy(rejection: LastRejection): string {
   }
 }
 
+export interface SelectionRecoveryDetails {
+  readonly selected: string;
+  readonly correct: string;
+  readonly why: string;
+}
+
+// A rejected scientific choice is the teaching moment. The runtime projects
+// labels only after rejection, so this panel can repeat the learner's choice
+// and identify the evidence-matching answer without spoiling the decision.
+export function selection_recovery_details(
+  rejection: LastRejection,
+  authored_reason: string | null,
+): SelectionRecoveryDetails | null {
+  if (
+    rejection.reason_code !== "wrong_target" ||
+    rejection.selected_label === null ||
+    rejection.expected_label === null
+  ) {
+    return null;
+  }
+  const why =
+    authored_reason ??
+    "Compare the visible experimental evidence with the available choices before trying again.";
+  return {
+    selected: rejection.selected_label,
+    correct: rejection.expected_label,
+    why,
+  };
+}
+
 export interface GuidanceBarProps {
   snapshot: Accessor<ShellViewSnapshot>;
+}
+
+function authored_incorrect_feedback(snapshot: ShellViewSnapshot): string | null {
+  const feedback = snapshot.last_interaction_feedback;
+  return feedback?.kind === "incorrect" ? feedback.message : null;
 }
 
 export function GuidanceBar(props: GuidanceBarProps): JSXElement {
@@ -83,6 +138,15 @@ export function GuidanceBar(props: GuidanceBarProps): JSXElement {
                 You completed {props.snapshot().progress.completed_step_count} guided steps.
               </strong>
               <p>Choose another lab experience when you are ready.</p>
+              <Show when={props.snapshot().last_interaction_feedback?.kind === "correct"}>
+                <p
+                  class="action-rail-feedback--correct"
+                  data-interaction-feedback="correct"
+                  role="status"
+                >
+                  {props.snapshot().last_interaction_feedback?.message ?? ""}
+                </p>
+              </Show>
             </div>
             <a class="protocol-return-link" href="./index.html">
               Return to lab experiences
@@ -129,12 +193,48 @@ export function GuidanceBar(props: GuidanceBarProps): JSXElement {
                   [OK] Previous step complete. Continue when ready.
                 </p>
               </Show>
+              <Show when={props.snapshot().last_interaction_feedback?.kind === "correct"}>
+                <p
+                  class="action-rail-feedback action-rail-feedback--correct"
+                  data-interaction-feedback="correct"
+                  role="status"
+                >
+                  {props.snapshot().last_interaction_feedback?.message ?? ""}
+                </p>
+              </Show>
               <Show when={props.snapshot().last_rejection}>
-                {(rejection) => (
-                  <p class="action-rail-recovery" data-action-recovery="" role="status">
-                    {recovery_copy(rejection())}
-                  </p>
-                )}
+                {(rejection) => {
+                  const authored_reason = authored_incorrect_feedback(props.snapshot());
+                  return (
+                    <Show
+                      when={selection_recovery_details(rejection(), authored_reason)}
+                      fallback={
+                        <p class="action-rail-recovery" data-action-recovery="" role="status">
+                          {authored_reason ??
+                            recovery_copy(
+                              rejection(),
+                              props.snapshot().active_interaction_label,
+                              props.snapshot().active_interaction_gesture,
+                            )}
+                        </p>
+                      }
+                    >
+                      {(details) => (
+                        <div class="action-rail-recovery" data-action-recovery="" role="status">
+                          <p>
+                            <strong>You chose:</strong> {details().selected}
+                          </p>
+                          <p>
+                            <strong>Correct:</strong> {details().correct}
+                          </p>
+                          <p>
+                            <strong>Why:</strong> {details().why}
+                          </p>
+                        </div>
+                      )}
+                    </Show>
+                  );
+                }}
               </Show>
               <AuthoredTip snapshot={props.snapshot} />
             </div>

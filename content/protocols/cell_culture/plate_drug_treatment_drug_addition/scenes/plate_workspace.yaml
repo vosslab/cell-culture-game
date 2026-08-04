@@ -1,45 +1,34 @@
 scene_name: plate_workspace
 extends: plate_focus_hood
+
 scene_notes: |
-  Hood workspace for drug treatment mini-protocol. Adds carboplatin and
-  metformin working stock rack (rear center zone), seeded well plate
-  (foreground zone), micropipette (right tool area), and a secondary incubator
-  destination (rear-right context). The plate-focused base supplies the readable
-  plate; the additions below are the protocol's visible targets, with the plate
-  remaining the foreground teaching surface.
+  Hood workspace for controlled drug addition. The foreground plate is the
+  dose-response map; the rear stocks identify the next row concentration and
+  the repeating dispenser shows the 5 &micro;L aliquot method. The incubator remains
+  a visible destination so treatment has a biological handoff, not merely a
+  material-state change.
 
 add_placements:
-  # Drug stock tube rack in rear_center (left side)
   - placement_name: rear_center_carb_stocks
     object_name: dilution_tube_rack_8
     zone: rear_center
     depth_tier: 1
     align_stop: left
-
-  # The undiluted 400 uM parent remains the row-H working stock after the
-  # six lower-concentration tubes have been prepared from it.
   - placement_name: rear_center_carb_parent_stock
     object_name: microtube_15ml_intermediate
     zone: rear_center
     depth_tier: 2
     align_stop: center
-
-  # Metformin working tube in rear_center (right side)
   - placement_name: rear_center_metformin_stock
     object_name: metformin_working_tube
     zone: rear_center
     depth_tier: 2
     align_stop: right
-
-  # Micropipette in right tool area
-  - placement_name: right_micropipette
-    object_name: micropipette
+  - placement_name: right_repeat_dispenser
+    object_name: repeat_dispenser
     zone: right_tool_area
-    depth_tier: 2
+    depth_tier: 1
     align_stop: center
-
-  # The incubator is the explicit final destination for the treated foreground
-  # plate. It stays secondary context so the plate remains the teaching focus.
   - placement_name: rear_right_incubator
     object_name: incubator
     zone: rear_right

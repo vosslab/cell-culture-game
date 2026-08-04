@@ -131,7 +131,7 @@ Every `state_field` is a flat primitive. Allowed types are `enum`,
 with a closed `allowed` list) and no composite `material` or `set_point`
 type. Materials and instrument set-points are modeled as multiple
 flat fields per object (for example `material_name` plus `material_volume`
-for a well; `set_volume` for a pipette set-point).
+for a well; `set_volume` for an adjustable-pipette set point).
 The runtime material-state model decomposes across these flat fields.
 
 | Field         | Required | Purpose                                                                                                                                                                                |
@@ -445,10 +445,11 @@ for a list-layout rack via `name_pattern: "slot_{index}"`.
 
 ## Worked example: serological pipette
 
-The serological pipette is the canonical example for flat-primitive
-`state_fields` on a flat object: a numeric set-point and a
-held-liquid pair. The candidate is the `serological_pipette` asset
-observed in the inventory.
+A serological pipette is a single-use, graduated transfer pipette. It is a
+canonical example of a flat material container: the protocol records what was
+drawn and the volume loaded to the graduation, but does not invent a digital
+set point. Adjustable micropipettes and repeating dispensers carry their own
+numeric set-point fields.
 
 ```yaml
 object_name: serological_pipette
@@ -456,31 +457,27 @@ kind: pipette
 label: Serological pipette
 
 state_fields:
-  - field_name: set_volume
-    type: float
-    unit: ml
-    min: 0.1
-    max: 25.0
-    step: 0.1
-    default: 1.0
-    description: Volume the pipette is set to dispense.
   - field_name: held_material_name
     type: enum
-    allowed: [empty, pbs, media, trypsin, dmso]
+    allowed:
+      [empty, media, pbs, trypsin, cells, cell_suspension,
+       running_buffer_10x, running_buffer_1x, ddh2o]
     default: empty
-    description: Material currently aspirated in the pipette barrel.
+    description: Material currently loaded in the pipette barrel.
   - field_name: held_material_volume
     type: float
     unit: ml
     min: 0
     max: 25.0
     default: 0
-    description: Volume of material currently held, in milliliters.
+    description: Volume drawn to the graduation, in milliliters.
+  - field_name: freshness
+    type: enum
+    allowed: [sterile, used]
+    default: sterile
+    description: Whether this disposable pipette has contacted a reagent source.
 
 visual_states:
-  set_volume:
-    kind: overlay
-    formula: label(state(set_volume), format="{value} ml")
   held_material_name:
     kind: svg
     cases:
@@ -492,14 +489,25 @@ visual_states:
         output: { asset_name: serological_pipette }
       - when: trypsin
         output: { asset_name: serological_pipette }
-      - when: dmso
+      - when: cells
+        output: { asset_name: serological_pipette }
+      - when: cell_suspension
+        output: { asset_name: serological_pipette }
+      - when: running_buffer_10x
+        output: { asset_name: serological_pipette }
+      - when: running_buffer_1x
+        output: { asset_name: serological_pipette }
+      - when: ddh2o
         output: { asset_name: serological_pipette }
   held_material_volume:
     kind: composite
     formula: fill_height(state(held_material_volume), capacity_ml=25.0)
+  freshness:
+    kind: overlay
+    formula: 'label(state(freshness), format="Pipette: {value}")'
 
 capabilities:
-  [clickable, material_container, instrument_with_setpoint, cursor_attachable]
+  [clickable, material_container, cursor_attachable]
 
 layout:
   default_width: 3
@@ -508,15 +516,15 @@ layout:
   anchor_y_offset: 0
 ```
 
-Reading: the pipette is a flat object (no `structure` block, no
-subparts). It declares three flat `state_fields`: `set_volume` (a
-`float` set-point), `held_material_name` (an `enum` of which material is
-loaded), and `held_material_volume` (a `float` for the amount held).
-The `visual_states` resolves each independently: the set-point becomes an
-object-level overlay label, the material selects a complete SVG form, and the
-volume becomes a fill-height binding. A material-declared selected form uses
-compiled gravity parts; object YAML does not describe its internals. No SVG
-asset name appears in any `state_field`. The
+Reading: the pipette is a flat object (no `structure` block, no subparts). It
+declares `held_material_name`, `held_material_volume`, and `freshness`.
+Together these show what was drawn, the graduation volume, and whether the
+disposable pipette has contacted a source. The `visual_states` resolves those
+fields independently: the material selects a complete SVG form, the volume
+becomes a fill-height binding, and freshness becomes an object-level overlay
+label. A material-declared selected form uses compiled gravity parts; object
+YAML does not describe its internals. No SVG asset name appears in any
+`state_field`. The
 layout hints (`default_width: 3`, `label_width: 6`, `anchor_y_offset: 0`,
 `anchor_y: tip`) are object-owned; the tip anchor reflects that a
 serological pipette is tip-anchored wherever it is placed.

@@ -20,6 +20,31 @@ state_fields:
     allowed: [empty, separated_unstained, stained, destaining, destained]
     default: empty
     description: Lifecycle state of the gel presented on the lightbox.
+  - field_name: result_state
+    type: enum
+    allowed: [not_interpreted, bands_visible, molecular_weight_interpreted]
+    default: not_interpreted
+    description: Whether the captured gel image has progressed to visible-band or molecular-weight interpretation.
+  - field_name: lane_pattern
+    type: enum
+    allowed: [unassigned, samples_1_to_3_ladder_5]
+    default: unassigned
+    description: Identity of the sample and ladder lanes in the displayed gel image.
+  - field_name: orientation_status
+    type: enum
+    allowed: [not_confirmed, wells_top_ladder_lane_5]
+    default: not_confirmed
+    description: Whether the captured gel preserves its wells-top, lane-5 ladder orientation.
+  - field_name: archive_metadata_status
+    type: enum
+    allowed: [not_recorded, group_a_lane_map_recorded]
+    default: not_recorded
+    description: Whether the fixed-course group and lane assignment were recorded with the image.
+  - field_name: image_quality_status
+    type: enum
+    allowed: [not_checked, lanes_sharp_evenly_lit]
+    default: not_checked
+    description: Whether all assigned lanes are sharp and evenly illuminated in the captured image.
 
 visual_states:
   powered_on:
@@ -48,8 +73,51 @@ visual_states:
           composite:
             - { asset_name: lightbox_capture_complete }
   gel_state:
+    kind: composite
+    cases:
+      - when: empty
+        output: { composite: [] }
+      - when: separated_unstained
+        output:
+          composite:
+            - { asset_name: lightbox_gel_separated_unstained }
+      - when: stained
+        output:
+          composite:
+            - { asset_name: lightbox_gel_stained }
+      - when: destaining
+        output:
+          composite:
+            - { asset_name: lightbox_gel_destaining }
+      - when: destained
+        output:
+          composite:
+            - { asset_name: lightbox_gel_destained }
+  result_state:
+    kind: composite
+    cases:
+      - when: not_interpreted
+        output: { composite: [] }
+      - when: bands_visible
+        output:
+          composite:
+            - { asset_name: lightbox_image_bands_visible }
+      - when: molecular_weight_interpreted
+        output:
+          composite:
+            - { asset_name: lightbox_image_molecular_weight_scale }
+  lane_pattern:
     kind: overlay
-    formula: 'label(state(gel_state), format="Gel: {value}")'
+    formula: 'label(state(lane_pattern), format="Lanes: {value}")'
+  orientation_status:
+    kind: overlay
+    formula: 'label(state(orientation_status), format="Gel orientation: {value}")'
+  archive_metadata_status:
+    kind: overlay
+    formula: 'label(state(archive_metadata_status), format="Archive record: {value}")'
+  image_quality_status:
+    kind: overlay
+    formula: 'label(state(image_quality_status), format="Image quality: {value}")'
 
 capabilities: [clickable]
 

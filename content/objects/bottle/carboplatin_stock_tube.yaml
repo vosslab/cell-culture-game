@@ -5,8 +5,8 @@ label: Carboplatin 10 mM
 state_fields:
   - field_name: material_name
     type: enum
-    allowed: [carboplatin]
-    default: carboplatin
+    allowed: [carboplatin, carboplatin_10mmol]
+    default: carboplatin_10mmol
     description: Contents currently in this bottle.
   - field_name: material_volume
     type: float
@@ -21,6 +21,8 @@ visual_states:
     kind: svg
     cases:
       - when: carboplatin
+        output: { asset_name: falcon_50ml }
+      - when: carboplatin_10mmol
         output: { asset_name: falcon_50ml }
   material_volume:
     applies_to: object

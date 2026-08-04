@@ -2,12 +2,31 @@ protocol_type: sequence_runner
 protocol_name: cell_culture_full
 entry_step: inspect_confluence
 initial_state:
-  # Constituent mini-protocol seeds are intentionally ignored by a runner. This
-  # root PBS seed lets the MTT-prep transfer remain balanced in both modes.
+  # A flattened runner is one continuous session: constituent direct-launch
+  # seeds are deliberately ignored, so every supplied starting reagent and
+  # vessel state lives here.
   - target: pbs_bottle
     state:
       material_name: pbs
       material_volume: 500
+  - target: t75_flask
+    state:
+      material_name: media
+      material_volume: 12
+      cell_state: attached_70_80
+      label_status: identity_complete
+  - target: media_bottle
+    state: { material_name: media, material_volume: 500 }
+  - target: trypsin_bottle
+    state: { material_name: trypsin, material_volume: 500 }
+  - target: sterile_water_bottle
+    state: { material_name: water, material_volume: 500 }
+  - target: trypan_blue_tube
+    state: { material_name: trypan_blue, material_volume: 10 }
+  - target: mtt_powder_container
+    state: { material_name: mtt_powder, material_volume: 20 }
+  - target: dmso_tube
+    state: { material_name: dmso, material_volume: 50 }
 
 learning:
   objectives: "Students completing this protocol will have achieved comprehensive mastery of the OVCAR8 carboplatin and metformin dose-response experimental workflow, from cell preparation through MTT viability readout."

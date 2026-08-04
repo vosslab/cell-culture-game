@@ -1,26 +1,28 @@
 protocol_type: mini_protocol
 protocol_name: sdspage_assemble_electrode_module
-entry_step: open_wing_clamps
+entry_step: seat_cassette_and_buffer_dam
+initial_state:
+  # A lid is intentionally absent while the module is assembled and the tank is
+  # filled.  The lid is attached only after the gel has been loaded.
+  - target: electrophoresis_tank
+    state: { lid_present: false, module_present: false }
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
-    assembling the electrode module -- the mechanical frame that holds the gel cassette
-    and mounts into the electrophoresis tank.
+    assembling one gel cassette and a buffer dam into a Mini-PROTEAN electrode module.
   outcomes:
-    Students completing this mini-protocol will be able to open the module's
-    wing clamps, insert the gel cassette into the module's slot, close the wing clamps
-    to secure the cassette, and lower the assembled module into the electrophoresis
-    tank.
+    Students completing this mini-protocol will be able to orient the cassette's
+    short plate toward the module gasket, pair one cassette with a buffer dam, close
+    the clamping frame to make a leakproof upper chamber, and dock the assembly in its tank.
   goals:
-    Overall, this mini-protocol aims to accomplish mounting the gel cassette
-    into the electrode module and docking the module in the electrophoresis tank --
-    the critical assembly step that establishes the electrical circuit path through
-    the gel.
+    Overall, this mini-protocol aims to accomplish creating one physically coherent,
+    sealed electrophoresis apparatus before buffer filling and sample loading.
 steps:
-  - step_name: open_wing_clamps
+  - step_name: seat_cassette_and_buffer_dam
     prompt:
-      Open the wing clamps on the electrode module. These clamps will hold the
-      gel cassette in place.
+      Open the electrode-module frame, then seat the gel cassette with its short plate
+      facing inward against the gasket. Install the buffer dam in the other position;
+      a one-gel run needs the dam to close the upper buffer chamber.
     sequence:
       - target: electrode_module
         gesture: click
@@ -29,23 +31,12 @@ steps:
         response:
           scene_operations:
             - type: SceneChange
-              to_scene: electrophoresis_bench
+              to_scene: sdspage_assemble_electrode_module_workspace
             - type: ObjectStateChange
               target: electrode_module
               state:
                 wing_clamps_open: true
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: insert_cassette
-  - step_name: insert_cassette
-    prompt:
-      Insert the prepared gel cassette into the module slot. The cassette's short
-      glass plate faces inward toward the module.
-    sequence:
-      - target: electrode_module
+      - target: gel_cassette
         gesture: click
         validator:
           preset: correct_target
@@ -55,16 +46,30 @@ steps:
               target: electrode_module
               state:
                 cassette_mounted: true
+      - target: electrophoresis_buffer_dam
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: electrophoresis_buffer_dam
+              state:
+                seated: true
+          feedback:
+            correct: One cassette and one buffer dam now define the two sides of the upper chamber.
+            incorrect: Install the buffer dam opposite the gel cassette.
     step_validator:
       preset: sequence_complete
     outcome:
       on_success: complete
       on_failure: retry
-    next_step: close_wing_clamps
-  - step_name: close_wing_clamps
+    next_step: close_clamping_frame
+  - step_name: close_clamping_frame
     prompt:
-      Close the wing clamps firmly to secure the gel cassette in the module. The
-      clamps hold the cassette in electrical contact with the electrode leads.
+      Close both wing clamps. The frame presses the cassette short plate and buffer dam
+      against the gasket to make a leakproof upper buffer chamber; it does not make the
+      electrical connection.
     sequence:
       - target: electrode_module
         gesture: click
@@ -76,6 +81,13 @@ steps:
               target: electrode_module
               state:
                 wing_clamps_open: false
+            - type: ObjectStateChange
+              target: gel_cassette
+              state:
+                wing_clamps_locked: true
+          feedback:
+            correct: The gasket seal is ready for the upper-chamber leak check.
+            incorrect: Close the electrode-module wing clamps.
     step_validator:
       preset: sequence_complete
     outcome:
@@ -84,8 +96,8 @@ steps:
     next_step: dock_module_in_tank
   - step_name: dock_module_in_tank
     prompt:
-      Lower the assembled electrode module (with cassette mounted) into the electrophoresis
-      tank. The module slides down into the tank chamber and seats at the bottom.
+      Lower the sealed electrode module into the electrophoresis tank, aligning the
+      banana plugs with the matching tank contacts.
     sequence:
       - target: electrophoresis_tank
         gesture: click
@@ -101,6 +113,10 @@ steps:
               target: electrophoresis_tank
               state:
                 module_present: true
+                lid_present: false
+          feedback:
+            correct: The gel, buffer dam, and electrode module are docked as one apparatus.
+            incorrect: Dock the sealed electrode module in the tank.
     step_validator:
       preset: sequence_complete
     outcome:

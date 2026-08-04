@@ -233,3 +233,111 @@ def test_target_with_value_accepts_in_range_instrument_setpoint() -> None:
 		finding.tag in {"T1_TARGET_WITH_VALUE", "state_value_out_of_range"}
 		for finding in findings
 	)
+
+
+def test_loading_prompt_cannot_call_dispensing_pipette_uptake_aspiration() -> None:
+	"""Prompts distinguish drawing into a pipette from vacuum aspiration."""
+	validator = load_validator()
+	step = {
+		"prompt": "Aspirate 20 uL of sample into the P200.",
+		"sequence": [{
+			"target": "p200_micropipette",
+			"gesture": "click",
+			"validator": {"preset": "correct_target"},
+			"response": {"scene_operations": []},
+		}],
+	}
+	findings = validator._validate_loading_terminology(step, "inline/protocol.yaml.steps[0]")
+	assert [finding.tag for finding in findings] == ["loading_aspirate_wording"]
+
+
+def test_vacuum_removal_prompt_keeps_aspirate_wording() -> None:
+	"""A true aspirating-pipette waste-removal step remains valid."""
+	validator = load_validator()
+	step = {
+		"prompt": "Aspirate spent medium while protecting the cell layer.",
+		"sequence": [{
+			"target": "aspirating_pipette",
+			"gesture": "click",
+			"validator": {"preset": "correct_target"},
+			"response": {"scene_operations": []},
+		}],
+	}
+	assert validator._validate_loading_terminology(step, "inline/protocol.yaml.steps[0]") == []
+
+
+def test_mixed_vacuum_and_dispensing_step_cannot_hide_loading_aspirate_wording() -> None:
+	"""A vacuum target must not excuse ambiguous uptake wording in one step."""
+	validator = load_validator()
+	step = {
+		"prompt": "Aspirate the sample into the P200, then remove the remaining liquid with the vacuum line.",
+		"sequence": [
+			{
+				"target": "p200_micropipette",
+				"gesture": "click",
+				"validator": {"preset": "correct_target"},
+				"response": {"scene_operations": []},
+			},
+			{
+				"target": "aspirating_pipette",
+				"gesture": "click",
+				"validator": {"preset": "correct_target"},
+				"response": {"scene_operations": []},
+			},
+		],
+	}
+	findings = validator._validate_loading_terminology(step, "inline/protocol.yaml.steps[0]")
+	assert [finding.tag for finding in findings] == ["loading_aspirate_wording"]
+
+
+def test_vacuum_removal_with_nonpipette_target_keeps_aspirate_wording() -> None:
+	"""Vacuum removal can include its vessel without becoming a loading step."""
+	validator = load_validator()
+	step = {
+		"prompt": "Aspirate the wash from the flask using the vacuum line.",
+		"sequence": [
+			{
+				"target": "aspirating_pipette",
+				"gesture": "click",
+				"validator": {"preset": "correct_target"},
+				"response": {"scene_operations": []},
+			},
+			{
+				"target": "t75_flask",
+				"gesture": "click",
+				"validator": {"preset": "correct_target"},
+				"response": {"scene_operations": []},
+			},
+		],
+	}
+	assert validator._validate_loading_terminology(step, "inline/protocol.yaml.steps[0]") == []
+
+
+def test_tool_lint_rejects_universal_pipette_and_serological_setpoint() -> None:
+	"""Range-specific tools and graduation-read serological pipettes stay distinct."""
+	validator = load_validator()
+	step = {
+		"sequence": [
+			{
+				"target": "micropipette",
+				"gesture": "click",
+				"response": {"scene_operations": []},
+			},
+			{
+				"target": "serological_pipette",
+				"gesture": "adjust",
+				"response": {
+					"scene_operations": [{
+						"type": "ObjectStateChange",
+						"target": "serological_pipette",
+						"state": {"set_volume": 4},
+					}],
+				},
+			},
+		],
+	}
+	tags = {
+		finding.tag
+		for finding in validator._validate_pipette_authenticity(step, "inline/protocol.yaml.steps[0]")
+	}
+	assert tags == {"generic_micropipette", "serological_setpoint"}

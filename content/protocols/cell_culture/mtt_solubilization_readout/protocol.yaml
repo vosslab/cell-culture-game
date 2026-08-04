@@ -2,10 +2,26 @@ protocol_type: mini_protocol
 protocol_name: mtt_solubilization_readout
 entry_step: add_dmso_to_wells
 initial_state:
-  - target: well_plate_96.all_wells
-    state:
-      material_name: formazan_crystals
-      material_volume: 0
+  # The direct mini starts from the same dry, condition-dependent endpoint
+  # produced by mtt_plate_reaction. A sequence runner preserves that live state
+  # instead of reapplying this direct-entry seed.
+  - { target: well_plate_96, state: { assay_status: dry } }
+  - { target: well_plate_96.block_A_1_6, state: { material_name: formazan_control, material_volume: 0 } }
+  - { target: well_plate_96.block_A_7_12, state: { material_name: formazan_metformin_control, material_volume: 0 } }
+  - { target: well_plate_96.row_B_1_6, state: { material_name: formazan_carboplatin_0_1umol, material_volume: 0 } }
+  - { target: well_plate_96.row_B_7_12, state: { material_name: formazan_carboplatin_0_1umol_metformin_5mmol, material_volume: 0 } }
+  - { target: well_plate_96.row_C_1_6, state: { material_name: formazan_carboplatin_0_2umol, material_volume: 0 } }
+  - { target: well_plate_96.row_C_7_12, state: { material_name: formazan_carboplatin_0_2umol_metformin_5mmol, material_volume: 0 } }
+  - { target: well_plate_96.row_D_1_6, state: { material_name: formazan_carboplatin_0_5umol, material_volume: 0 } }
+  - { target: well_plate_96.row_D_7_12, state: { material_name: formazan_carboplatin_0_5umol_metformin_5mmol, material_volume: 0 } }
+  - { target: well_plate_96.row_E_1_6, state: { material_name: formazan_carboplatin_1umol, material_volume: 0 } }
+  - { target: well_plate_96.row_E_7_12, state: { material_name: formazan_carboplatin_1umol_metformin_5mmol, material_volume: 0 } }
+  - { target: well_plate_96.row_F_1_6, state: { material_name: formazan_carboplatin_2umol, material_volume: 0 } }
+  - { target: well_plate_96.row_F_7_12, state: { material_name: formazan_carboplatin_2umol_metformin_5mmol, material_volume: 0 } }
+  - { target: well_plate_96.row_G_1_6, state: { material_name: formazan_carboplatin_5umol, material_volume: 0 } }
+  - { target: well_plate_96.row_G_7_12, state: { material_name: formazan_carboplatin_5umol_metformin_5mmol, material_volume: 0 } }
+  - { target: well_plate_96.row_H_1_6, state: { material_name: formazan_carboplatin_10umol, material_volume: 0 } }
+  - { target: well_plate_96.row_H_7_12, state: { material_name: formazan_carboplatin_10umol_metformin_5mmol, material_volume: 0 } }
   - target: dmso_tube
     state:
       material_name: dmso
@@ -31,12 +47,9 @@ learning:
 steps:
   - step_name: add_dmso_to_wells
     prompt:
-      "Add 200 microL of DMSO uniformly to every well of the treated plate using
-      the multichannel pipette. Adjust the pipette to 200 microL per channel, draw DMSO
-      from the solvent bottle, and dispense across all 96 wells. In wet-lab practice
-      the 8-channel pipette walks across the 12 columns, but the action is uniform:
-      each well receives the same 200 microL volume. DMSO dissolves the precipitated
-      formazan crystals so absorbance can be read."
+      "Transfer DMSO to the reagent reservoir, then use the multichannel pipette at
+      200 microL per channel to distribute it across the plate. DMSO dissolves the
+      precipitated formazan so absorbance can be measured."
     sequence:
       - target: multichannel_pipette
         gesture: click
@@ -58,6 +71,19 @@ steps:
               target: multichannel_pipette
               state:
                 set_volume: 200
+      - target: micropipette_tip_box
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                tip_status: fresh
+          feedback:
+            correct: "A fresh matched set of eight tips is fitted before the DMSO transfer."
+            incorrect: "Use the visible tip box to fit fresh multichannel tips before handling DMSO."
       - target: dmso_tube
         gesture: click
         validator:
@@ -70,18 +96,33 @@ steps:
                 material_name: dmso
                 material_volume: 30.8
             - type: ObjectStateChange
-              target: multichannel_pipette
+              target: reagent_reservoir
               state:
-                held_material_name: dmso
-                held_material_volume: 200
-      - target: well_plate_96.all_wells
+                material_name: dmso
+                material_volume: 19.2
+      - target: reagent_reservoir
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: well_plate_96.all_wells
+              target: reagent_reservoir
+              state:
+                material_volume: 17.6
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: dmso
+                held_material_volume: 200
+      - target: well_plate_96.col_1
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_1
               state:
                 material_name: formazan_dmso_solution
                 material_volume: 200
@@ -90,6 +131,270 @@ steps:
               state:
                 held_material_name: empty
                 held_material_volume: 0
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 16 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: dmso, held_material_volume: 200 }
+      - target: well_plate_96.col_2
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_2
+              state: { material_name: formazan_dmso_solution, material_volume: 200 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 14.4 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: dmso, held_material_volume: 200 }
+      - target: well_plate_96.col_3
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_3
+              state: { material_name: formazan_dmso_solution, material_volume: 200 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 12.8 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: dmso, held_material_volume: 200 }
+      - target: well_plate_96.col_4
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_4
+              state: { material_name: formazan_dmso_solution, material_volume: 200 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 11.2 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: dmso, held_material_volume: 200 }
+      - target: well_plate_96.col_5
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_5
+              state: { material_name: formazan_dmso_solution, material_volume: 200 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 9.6 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: dmso, held_material_volume: 200 }
+      - target: well_plate_96.col_6
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_6
+              state: { material_name: formazan_dmso_solution, material_volume: 200 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 8 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: dmso, held_material_volume: 200 }
+      - target: well_plate_96.col_7
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_7
+              state: { material_name: formazan_dmso_solution, material_volume: 200 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 6.4 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: dmso, held_material_volume: 200 }
+      - target: well_plate_96.col_8
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_8
+              state: { material_name: formazan_dmso_solution, material_volume: 200 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 4.8 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: dmso, held_material_volume: 200 }
+      - target: well_plate_96.col_9
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_9
+              state: { material_name: formazan_dmso_solution, material_volume: 200 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 3.2 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: dmso, held_material_volume: 200 }
+      - target: well_plate_96.col_10
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_10
+              state: { material_name: formazan_dmso_solution, material_volume: 200 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 1.6 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: dmso, held_material_volume: 200 }
+      - target: well_plate_96.col_11
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_11
+              state: { material_name: formazan_dmso_solution, material_volume: 200 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 0 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: dmso, held_material_volume: 200 }
+      - target: well_plate_96.col_12
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_12
+              state: { material_name: formazan_dmso_solution, material_volume: 200 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { tip_status: used }
+            # The final column completes the physical transfer. These identity-only
+            # writes retain the row-dose and matched-combination pattern without
+            # adding unaccounted liquid to the 96 wells.
+            - { type: ObjectStateChange, target: well_plate_96.block_A_1_6, state: { material_name: formazan_dmso_control } }
+            - { type: ObjectStateChange, target: well_plate_96.block_A_7_12, state: { material_name: formazan_dmso_metformin_control } }
+            - { type: ObjectStateChange, target: well_plate_96.row_B_1_6, state: { material_name: formazan_dmso_carboplatin_0_1umol } }
+            - { type: ObjectStateChange, target: well_plate_96.row_B_7_12, state: { material_name: formazan_dmso_carboplatin_0_1umol_metformin_5mmol } }
+            - { type: ObjectStateChange, target: well_plate_96.row_C_1_6, state: { material_name: formazan_dmso_carboplatin_0_2umol } }
+            - { type: ObjectStateChange, target: well_plate_96.row_C_7_12, state: { material_name: formazan_dmso_carboplatin_0_2umol_metformin_5mmol } }
+            - { type: ObjectStateChange, target: well_plate_96.row_D_1_6, state: { material_name: formazan_dmso_carboplatin_0_5umol } }
+            - { type: ObjectStateChange, target: well_plate_96.row_D_7_12, state: { material_name: formazan_dmso_carboplatin_0_5umol_metformin_5mmol } }
+            - { type: ObjectStateChange, target: well_plate_96.row_E_1_6, state: { material_name: formazan_dmso_carboplatin_1umol } }
+            - { type: ObjectStateChange, target: well_plate_96.row_E_7_12, state: { material_name: formazan_dmso_carboplatin_1umol_metformin_5mmol } }
+            - { type: ObjectStateChange, target: well_plate_96.row_F_1_6, state: { material_name: formazan_dmso_carboplatin_2umol } }
+            - { type: ObjectStateChange, target: well_plate_96.row_F_7_12, state: { material_name: formazan_dmso_carboplatin_2umol_metformin_5mmol } }
+            - { type: ObjectStateChange, target: well_plate_96.row_G_1_6, state: { material_name: formazan_dmso_carboplatin_5umol } }
+            - { type: ObjectStateChange, target: well_plate_96.row_G_7_12, state: { material_name: formazan_dmso_carboplatin_5umol_metformin_5mmol } }
+            - { type: ObjectStateChange, target: well_plate_96.row_H_1_6, state: { material_name: formazan_dmso_carboplatin_10umol } }
+            - { type: ObjectStateChange, target: well_plate_96.row_H_7_12, state: { material_name: formazan_dmso_carboplatin_10umol_metformin_5mmol } }
     step_validator:
       preset: sequence_complete
     outcome:
@@ -120,6 +425,12 @@ steps:
               state:
                 material_volume: 200
               transition: animated
+            - type: ObjectStateChange
+              target: well_plate_96
+              state: { assay_status: dissolved }
+          feedback:
+            correct: "The condition-dependent formazan is fully dissolved, with no visible crystals or bubbles before the optical reading."
+            incorrect: "Triturate gently until the colored solution is uniform and free of visible crystals or bubbles."
     step_validator:
       preset: sequence_complete
     outcome:
@@ -127,11 +438,11 @@ steps:
       on_failure: retry
     next_step: read_absorbance
   - step_name: read_absorbance
-    prompt:
+    prompt: >
       Move to the plate reader workspace and measure absorbance. Access the plate
       reader, set the wavelength to 560 nm, insert the treated plate, and take the measurement.
-      The optical density readings at 560 nm indicate the extent of formazan formation
-      across the dose-response series.
+      The reader will display a representative simulated dataset: inspect its blank,
+      untreated-control reference, and treatment series before drawing a conclusion.
     sequence:
       - target: plate_reader
         gesture: click
@@ -173,8 +484,44 @@ steps:
               target: plate_reader
               state:
                 reading: false
+                result_state: results_ready
+                mean_absorbance: 0.20
+                normalized_viability_percent: 22
+            - type: SceneChange
+              to_scene: mtt_solubilization_readout_result_review
+          feedback:
+            correct: "Representative simulated 560 nm results are displayed. Use the blank-corrected untreated control to interpret the carboplatin dose series and the high-dose combination."
+            incorrect: "Load the plate and take the reading to reveal the representative simulated result panel."
     step_validator:
       preset: sequence_complete
+    outcome:
+      on_success: complete
+      on_failure: retry
+    next_step: interpret_dose_response
+  - step_name: interpret_dose_response
+    prompt: >
+      Review the reader's blank-corrected dose-response display and choose the conclusion
+      supported by the untreated-control and treatment series. These are representative
+      simulated results for interpretation practice, not measurements from a live experiment.
+    sequence:
+      - target: mtt_conclusion_dose_response
+        gesture: select
+        validator:
+          preset: correct_choice
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: plate_reader
+              state:
+                result_state: normalized
+          feedback:
+            correct: "Conclusion recorded. The reduced absorbance at higher dose is consistent with lower viable-cell metabolic activity."
+            incorrect: "Compare the untreated-control reference with the treatment series in the visible normalized-viability display."
+    step_validator:
+      preset: final_state_matches
+      target: plate_reader
+      contains:
+        result_state: normalized
     outcome:
       on_success: complete
       on_failure: retry

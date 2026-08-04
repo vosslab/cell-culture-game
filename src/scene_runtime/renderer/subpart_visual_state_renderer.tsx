@@ -133,6 +133,7 @@ function SubpartShape(props: {
         data-material-field={props.identity_field_name}
         data-material-name={resolved().material_name}
         data-fill-percent={resolved().fill_percent}
+        data-resolver-degraded={resolved().degraded || undefined}
         d={circle_fill_path(geometry, resolved().fill_percent)}
         fill={resolved().fill}
       />
@@ -145,6 +146,7 @@ function SubpartShape(props: {
       data-material-field={props.identity_field_name}
       data-material-name={resolved().material_name}
       data-fill-percent={resolved().fill_percent}
+      data-resolver-degraded={resolved().degraded || undefined}
       x={geometry.x}
       y={geometry.y + geometry.h * (1 - resolved().fill_percent / 100)}
       width={geometry.w}

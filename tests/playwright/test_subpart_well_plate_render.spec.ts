@@ -19,11 +19,11 @@
 // The harness mounts the REAL generated plate_focus_bench scene (which places
 // well_plate_96). The well subpart material_name enum is the closed sentinel
 // FLOOR [empty, mixed]; runtime acceptance is registry-backed (D1, task #26), so
-// the harness store carries a registry that registers carboplatin (#a719db). This
+// the harness store carries a registry that registers 200 microM carboplatin. This
 // test writes:
 //   - mixed       -> the spec-fixed built-in color #686868 (painted)
 //   - empty       -> null color -> fill "transparent" (no fill; base art shows)
-//   - carboplatin -> a REGISTERED drug -> its scalar display_color #a719db, proving
+//   - carboplatin_200umol -> a REGISTERED drug -> its scalar display color, proving
 //     the registry-backed write reaches a well AND renders the registry color, end
 //     to end (this is the #26 drug-color render proof).
 //
@@ -31,9 +31,9 @@
 //   1. exactly 96 [data-subpart-name] shapes render in the plate overlay.
 //   2. BEFORE any write: every well renders fill="transparent" (all unseeded).
 //   3. AFTER writes A1=mixed, A2=empty (explicit), H1=mixed (a second painted
-//      well at a distant position), D6=carboplatin (a registered drug at a third
-//      position): A1 paints #686868, H1 paints #686868, D6 paints #a719db (the
-//      registered carboplatin color), A2 is transparent (explicitly emptied), H12
+//      well at a distant position), D6=carboplatin_200umol (a registered drug at a
+//      third position): A1 paints #686868, H1 paints #686868, D6 paints the
+//      registered carboplatin color, A2 is transparent (explicitly emptied), H12
 //      is transparent (never written). A1 and A2 therefore show DIFFERENT fills;
 //      the painted wells sit at their correct grid positions, the rest transparent.
 //   4. the overlay svg has pointer-events:none (base art stays clickable).
@@ -77,8 +77,7 @@ function readMaterialDisplayColor(protocolName: string, materialName: string): s
   // Registry entries are emitted one protocol per line, so the line end closes the block.
   const lineEnd = src.indexOf("\n", protocolMatch.index);
   const blob = src.slice(protocolMatch.index, lineEnd);
-  // Match the exact material key (word boundary so "carboplatin" does not match
-  // "carboplatin_200umol"), then pull its display_color.
+  // Match the exact material key, then pull its display_color.
   const materialRe = new RegExp(`\\b${materialName}:\\s*\\{[^}]*display_color:\\s*"([^"]+)"`);
   const materialMatch = materialRe.exec(blob);
   if (materialMatch === null || materialMatch[1] === undefined) {
@@ -94,7 +93,7 @@ function readMaterialDisplayColor(protocolName: string, materialName: string): s
 // a well painted this after a registry-backed carboplatin write.
 const CARBOPLATIN_COLOR = readMaterialDisplayColor(
   "plate_drug_treatment_drug_addition",
-  "carboplatin",
+  "carboplatin_200umol",
 );
 
 // A complete, deterministic row-major plate. This is deliberately derived from
@@ -363,44 +362,42 @@ test.describe("subpart well plate render", () => {
         window as unknown as {
           __subpart_harness: {
             seed_subpart: (name: string) => void;
-            write_subpart: (name: string, patch: { material_name: string }) => void;
+            write_subpart: (
+              name: string,
+              patch: { material_name: string; material_volume: number },
+            ) => void;
           };
         }
       ).__subpart_harness;
       // A1: seed then write the `mixed` sentinel (the store accepts it).
       h.seed_subpart("A1");
-      h.write_subpart("A1", { material_name: "mixed" });
+      h.write_subpart("A1", { material_name: "mixed", material_volume: 200 });
       // A2: seed then write `empty` explicitly (a real write to the empty state).
       h.seed_subpart("A2");
-      h.write_subpart("A2", { material_name: "empty" });
+      h.write_subpart("A2", { material_name: "empty", material_volume: 0 });
       // H1: seed then write `mixed` (a second painted well, bottom-left corner).
       h.seed_subpart("H1");
-      h.write_subpart("H1", { material_name: "mixed" });
-      // D6: seed then write `carboplatin`, a REGISTERED drug. This is the #26
+      h.write_subpart("H1", { material_name: "mixed", material_volume: 200 });
+      // D6: seed then write `carboplatin_200umol`, a REGISTERED drug. This is the #26
       // proof: the registry-backed acceptance lets the drug write reach the well,
       // and the renderer paints carboplatin's registered display_color (#a719db).
       h.seed_subpart("D6");
-      h.write_subpart("D6", { material_name: "carboplatin" });
+      h.write_subpart("D6", {
+        material_name: "carboplatin_200umol",
+        material_volume: 200,
+      });
       // H12: intentionally NOT seeded/written -> stays the unseeded transparent
       // control, proving an unwritten well renders no fill.
     });
-    await page.waitForFunction(
-      ({ plate, mixedColor, carboplatinColor }) => {
-        const root = document.getElementById("scene-root");
-        const overlay =
-          root !== null ? root.querySelector(`[data-subpart-overlay='${plate}']`) : null;
-        const fillFor = (subpart: string): string | null =>
-          overlay?.querySelector(`[data-subpart-name='${subpart}']`)?.getAttribute("fill") ?? null;
-        return (
-          fillFor("A1") === mixedColor &&
-          fillFor("A2") === "transparent" &&
-          fillFor("H1") === mixedColor &&
-          fillFor("D6") === carboplatinColor &&
-          fillFor("H12") === "transparent"
-        );
-      },
-      { plate: PLATE, mixedColor: MIXED_COLOR, carboplatinColor: CARBOPLATIN_COLOR },
-    );
+    await expect
+      .poll(() => page.evaluate(readFillPage, [PLATE, "D6"]), {
+        message: "the registered concentration-specific drug write must reach D6",
+      })
+      .toEqual({
+        present: true,
+        fill: CARBOPLATIN_COLOR,
+        material: "carboplatin_200umol",
+      });
 
     const a1 = await page.evaluate(readFillPage, [PLATE, "A1"]);
     const a2 = await page.evaluate(readFillPage, [PLATE, "A2"]);
@@ -423,11 +420,12 @@ test.describe("subpart well plate render", () => {
     // color end to end.
     expect(
       d6.fill,
-      `D6 must paint ${CARBOPLATIN_COLOR} after carboplatin write, got ${d6.fill}`,
+      `D6 must paint ${CARBOPLATIN_COLOR} after carboplatin_200umol write, got ${d6.fill}`,
     ).toBe(CARBOPLATIN_COLOR);
-    expect(d6.material, `D6 data-material-name must be "carboplatin", got ${d6.material}`).toBe(
-      "carboplatin",
-    );
+    expect(
+      d6.material,
+      `D6 data-material-name must be "carboplatin_200umol", got ${d6.material}`,
+    ).toBe("carboplatin_200umol");
     // A2 explicitly written empty -> transparent (different fill from A1).
     expect(a2.fill, `A2 must be transparent after empty write, got ${a2.fill}`).toBe(TRANSPARENT);
     // A1 and A2 must differ (the core "two different fills" proof).
@@ -499,10 +497,10 @@ test.describe("subpart well plate render", () => {
     // not a single shared plate state or an all-wells visual shortcut.
     const patterns = [
       ALL_WELLS.map((_, index) =>
-        index % 3 === 0 ? "mixed" : index % 3 === 1 ? "carboplatin" : "media",
+        index % 3 === 0 ? "mixed" : index % 3 === 1 ? "carboplatin_200umol" : "media",
       ),
       ALL_WELLS.map((_, index) =>
-        index % 3 === 0 ? "media" : index % 3 === 1 ? "mixed" : "carboplatin",
+        index % 3 === 0 ? "media" : index % 3 === 1 ? "mixed" : "carboplatin_200umol",
       ),
     ];
     const warmup = patterns[0];
@@ -516,7 +514,10 @@ test.describe("subpart well plate render", () => {
           const h = (
             window as unknown as {
               __subpart_harness: {
-                write_subpart: (name: string, patch: { material_name: string }) => void;
+                write_subpart: (
+                  name: string,
+                  patch: { material_name: string; material_volume: number },
+                ) => void;
               };
             }
           ).__subpart_harness;
@@ -534,7 +535,7 @@ test.describe("subpart well plate render", () => {
             if (well === undefined || material === undefined) {
               throw new Error("M8 timing: well/material pattern mismatch");
             }
-            h.write_subpart(well, { material_name: material });
+            h.write_subpart(well, { material_name: material, material_volume: 200 });
           }
           await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
           const elapsed_ms = performance.now() - start;

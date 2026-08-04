@@ -19,6 +19,11 @@ state_fields:
     type: bool
     default: false
     description: Whether the microwave is currently running.
+  - field_name: heating_outcome
+    type: enum
+    allowed: [not_run, heated_without_boiling]
+    default: not_run
+    description: Fixed simulated heating result; actual heating limits remain governed by the local SOP.
 
 visual_states:
   set_time_s:
@@ -34,6 +39,9 @@ visual_states:
         output: { asset_name: microwave_closed }
       - when: true
         output: { asset_name: microwave_heating }
+  heating_outcome:
+    kind: overlay
+    formula: 'label(state(heating_outcome), format="Outcome: {value}")'
 
 capabilities: [clickable, instrument_with_setpoint]
 

@@ -15,6 +15,27 @@ state_fields:
     type: bool
     default: false
     description: Whether the plate reader is currently taking a reading.
+  - field_name: result_state
+    type: enum
+    allowed: [not_read, results_ready, normalized]
+    default: not_read
+    description: Whether raw absorbance or normalized viability results are available for interpretation.
+  - field_name: mean_absorbance
+    type: float
+    unit: absorbance_units
+    min: 0
+    max: 5
+    step: 0.001
+    default: 0
+    description: Mean blank-corrected absorbance displayed for the selected condition.
+  - field_name: normalized_viability_percent
+    type: float
+    unit: percent
+    min: 0
+    max: 200
+    step: 0.1
+    default: 0
+    description: Viability normalized to the designated untreated control.
 
 visual_states:
   wavelength_nm:
@@ -27,10 +48,32 @@ visual_states:
         output: { asset_name: plate_reader_idle }
       - when: true
         output: { asset_name: plate_reader_reading }
+  result_state:
+    # The transparent result panels sit over the reader's display while the
+    # numeric overlays supply the exact value.  They make the change from a
+    # measurement to an interpretable dose-response visible at a glance.
+    kind: composite
+    cases:
+      - when: not_read
+        output: { composite: [] }
+      - when: results_ready
+        output:
+          composite:
+            - { asset_name: plate_reader_absorbance_result_panel }
+      - when: normalized
+        output:
+          composite:
+            - { asset_name: plate_reader_normalized_viability_panel }
+  mean_absorbance:
+    kind: overlay
+    formula: 'conditional(state(mean_absorbance), label(state(mean_absorbance), format="Selected blank-corrected A: {value}"), "")'
+  normalized_viability_percent:
+    kind: overlay
+    formula: 'conditional(state(normalized_viability_percent), label(state(normalized_viability_percent), format="Selected viability: {value}% of control"), "")'
 
 capabilities: [clickable]
 
 layout:
-  default_width: 18
-  display_width_cm: 50
-  label_width: 12
+  default_width: 28
+  display_width_cm: 75
+  label_width: 18

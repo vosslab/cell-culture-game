@@ -16,6 +16,42 @@ state_fields:
     max: 1000
     default: 0
     description: Volume of used running buffer collected, in milliliters.
+  - field_name: label_status
+    type: enum
+    allowed: [unlabeled, running_buffer_recycle]
+    default: unlabeled
+    description: Whether the bottle is visibly labeled for used running buffer recycling.
+  - field_name: buffer_identity_status
+    type: enum
+    allowed: [unrecorded, running_buffer_1x]
+    default: unrecorded
+    description: Whether the training label identifies the recovered liquid as 1x running buffer.
+  - field_name: date_status
+    type: enum
+    allowed: [not_recorded, date_recorded]
+    default: not_recorded
+    description: Whether the training label records a date without inventing a calendar value.
+  - field_name: course_batch_status
+    type: enum
+    allowed: [not_recorded, course_batch_recorded]
+    default: not_recorded
+    description: Whether the training label records the course or batch context.
+  - field_name: use_count
+    type: int
+    min: 0
+    max: 10
+    default: 0
+    description: Number of completed simulated reuse cycles recorded on the label.
+  - field_name: cap_status
+    type: enum
+    allowed: [open, closed]
+    default: open
+    description: Whether the recycle bottle is capped after recovery.
+  - field_name: storage_status
+    type: enum
+    allowed: [unassigned, designated_buffer_storage]
+    default: unassigned
+    description: Whether the capped bottle has been assigned to the designated running-buffer storage location.
 visual_states:
   material_name:
     kind: svg
@@ -32,6 +68,27 @@ visual_states:
     target: anchor_liquid_bounds
     clip: anchor_liquid_clip
     capacity_ml: 1000
+  label_status:
+    kind: overlay
+    formula: 'label(state(label_status), format="Bottle label: {value}")'
+  buffer_identity_status:
+    kind: overlay
+    formula: 'label(state(buffer_identity_status), format="Identity: {value}")'
+  date_status:
+    kind: overlay
+    formula: 'label(state(date_status), format="Date: {value}")'
+  course_batch_status:
+    kind: overlay
+    formula: 'label(state(course_batch_status), format="Course/batch: {value}")'
+  use_count:
+    kind: overlay
+    formula: 'label(state(use_count), format="Use count: {value}")'
+  cap_status:
+    kind: overlay
+    formula: 'label(state(cap_status), format="Cap: {value}")'
+  storage_status:
+    kind: overlay
+    formula: 'label(state(storage_status), format="Storage: {value}")'
 capabilities:
   - clickable
   - material_container

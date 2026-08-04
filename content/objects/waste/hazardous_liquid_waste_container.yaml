@@ -1,0 +1,40 @@
+object_name: hazardous_liquid_waste_container
+kind: waste
+label: Hazardous liquid waste
+
+state_fields:
+  - field_name: material_name
+    type: enum
+    allowed: [empty, coomassie_stain_used, destain_used, mixed]
+    default: empty
+    description: Hazardous liquid collected separately from recyclable electrophoresis buffer.
+  - field_name: material_volume
+    type: float
+    unit: ml
+    min: 0
+    max: 1000
+    default: 0
+    description: Volume of hazardous liquid waste collected.
+
+visual_states:
+  material_name:
+    kind: svg
+    cases:
+      - when: empty
+        output: { asset_name: hazardous_liquid_waste_empty }
+      - when: coomassie_stain_used
+        output: { asset_name: hazardous_liquid_waste_filled }
+      - when: destain_used
+        output: { asset_name: hazardous_liquid_waste_filled }
+      - when: mixed
+        output: { asset_name: hazardous_liquid_waste_filled }
+  material_volume:
+    kind: composite
+    composite: []
+
+capabilities: [clickable, material_container]
+
+layout:
+  default_width: 5
+  display_width_cm: 14
+  label_width: 9

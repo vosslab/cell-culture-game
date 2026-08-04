@@ -1,0 +1,35 @@
+object_name: calculation_pad
+kind: equipment
+label: Calculation pad
+
+state_fields:
+  - field_name: pad_status
+    type: enum
+    allowed: [ready]
+    default: ready
+    description: Static calculation-pad form used for the learner's written value.
+  - field_name: entered_value
+    type: float
+    unit: numeric_answer
+    min: 0
+    max: 10000000
+    step: 0.1
+    default: 0
+    description: Learner-entered numeric calculation answer before the physical transfer.
+
+visual_states:
+  pad_status:
+    kind: svg
+    cases:
+      - when: ready
+        output: { asset_name: calculation_pad }
+  entered_value:
+    kind: overlay
+    formula: 'label(state(entered_value), format="Written value: {value}")'
+
+capabilities: [clickable]
+
+layout:
+  default_width: 12
+  display_width_cm: 18
+  label_width: 12

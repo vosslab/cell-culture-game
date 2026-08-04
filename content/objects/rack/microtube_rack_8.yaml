@@ -24,6 +24,18 @@ state_fields:
     default: 0
     applies_to: subpart
     description: Volume currently in this labeled SDS-PAGE tube, in microliters.
+  - field_name: cap_status
+    type: enum
+    allowed: [open, closed]
+    default: open
+    applies_to: subpart
+    description: Whether the tube is capped for heating or storage.
+  - field_name: label_status
+    type: enum
+    allowed: [unlabeled, lane_assigned]
+    default: unlabeled
+    applies_to: subpart
+    description: Whether the tube visibly carries its lane assignment.
 
 visual_states:
   material_name:
@@ -48,6 +60,14 @@ visual_states:
     kind: composite
     applies_to: subpart
     composite: []
+  cap_status:
+    kind: overlay
+    applies_to: subpart
+    formula: 'label(state(cap_status), format="Cap: {value}")'
+  label_status:
+    kind: overlay
+    applies_to: subpart
+    formula: 'label(state(label_status), format="Lane label: {value}")'
 
 capabilities: [clickable, structured_surface, material_container]
 

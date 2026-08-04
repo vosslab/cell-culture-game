@@ -8,6 +8,7 @@ import {
   action_progress_copy,
   gesture_instruction,
   recovery_copy,
+  selection_recovery_details,
 } from "../src/shell/regions/guidance_bar.tsx";
 
 describe("guidance-bar gesture cue", () => {
@@ -68,6 +69,8 @@ describe("guidance-bar value recovery", () => {
       reason_code: "wrong_value",
       target_name: "ignored_internal_target",
       gesture: "type",
+      selected_label: null,
+      expected_label: null,
     });
     assert.match(copy, /correct the entry/);
     assert.doesNotMatch(copy, /ignored_internal_target/);
@@ -78,8 +81,58 @@ describe("guidance-bar value recovery", () => {
       reason_code: "wrong_value",
       target_name: "ignored_internal_target",
       gesture: "adjust",
+      selected_label: null,
+      expected_label: null,
     });
     assert.match(copy, /adjust the value/);
     assert.doesNotMatch(copy, /ignored_internal_target/);
+  });
+
+  test("names the next highlighted physical action without revealing a select answer", () => {
+    assert.match(
+      recovery_copy(
+        {
+          reason_code: "wrong_target",
+          target_name: "wrong",
+          gesture: "click",
+          selected_label: null,
+          expected_label: null,
+        },
+        "PBS bottle",
+        "click",
+      ),
+      /PBS bottle/,
+    );
+    const selectCopy = recovery_copy(
+      {
+        reason_code: "wrong_target",
+        target_name: "wrong",
+        gesture: "select",
+        selected_label: "Wrong answer",
+        expected_label: "Correct answer",
+      },
+      "Correct answer",
+      "select",
+    );
+    assert.match(selectCopy, /blue outlined/);
+    assert.doesNotMatch(selectCopy, /Correct answer/);
+  });
+
+  test("repeats a rejected choice, the correct choice, and the authored reason", () => {
+    const details = selection_recovery_details(
+      {
+        reason_code: "wrong_target",
+        target_name: "wrong",
+        gesture: "select",
+        selected_label: "Continue running",
+        expected_label: "Stop now",
+      },
+      "The dye front is already near the bottom of the gel.",
+    );
+    assert.deepStrictEqual(details, {
+      selected: "Continue running",
+      correct: "Stop now",
+      why: "The dye front is already near the bottom of the gel.",
+    });
   });
 });

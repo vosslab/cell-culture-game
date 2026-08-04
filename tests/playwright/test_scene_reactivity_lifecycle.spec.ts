@@ -50,18 +50,18 @@ const ALT_SCENE_NAME = "dilution_workspace";
 // content/protocols/cell_culture/cell_seeding_plate_setup/scenes/seeding_workspace.yaml)
 // and no longer matches either key correctly:
 //   - data-item-id / data-placement-name are keyed by placement_name
-//     ("rear_left_cell_suspension_tube", src/scene_runtime/renderer/scene_item.tsx).
+//     ("rear_left_cell_suspension_conical", src/scene_runtime/renderer/scene_item.tsx).
 //   - scene_store.set_object_state / seed_from_scene are keyed by object_name
-//     ("cell_suspension_tube", build_seed_list in
+//     ("conical_15ml", build_seed_list in
 //     src/scene_runtime/renderer/scene_view.tsx: "the store is keyed by
 //     object_name, so two placements of the same object share one seed").
 // Conversion-time fix, not a product defect: split into the two real keys.
-const FILL_TARGET_PLACEMENT = "rear_left_cell_suspension_tube";
-const FILL_TARGET_OBJECT = "cell_suspension_tube";
+const FILL_TARGET_PLACEMENT = "rear_left_cell_suspension_conical";
+const FILL_TARGET_OBJECT = "conical_15ml";
 // The selected compiled form owns an opaque reveal handle in the generated
 // liquid-region manifest. The test resolves that handle through the real
 // published manifest instead of depending on authored semantic names.
-const LIQUID_ASSET = "microtube";
+const LIQUID_ASSET = "falcon_15ml";
 const BBOX_TOL_PX = 1.0;
 
 interface Bbox {
@@ -342,15 +342,16 @@ test.describe("scene reactivity + lifecycle", () => {
     // Write a new material_volume to the target via the store (the reactive
     // path the production scene-op layer will drive). A DECLARED enum value
     // ("cell_suspension" is in the tube's material_name allowed set) and a
-    // higher volume proves a genuine reactive fill INCREASE (default
-    // 15/20 -> 18/20), not a degradation drop: an undeclared enum value would
+    // higher volume proves a genuine reactive fill INCREASE (the seeded 6.85 mL
+    // state rises to 12 mL within the conical's 15 mL capacity), not a
+    // degradation drop: an undeclared enum value would
     // make the resolver fail the svg-case match, SceneItem would catch + drop
     // overlays, and the fill would fall to 0 -- a change that passes a "did
     // it change?" assertion for the wrong reason.
     await page.evaluate((target: string) => {
       (window as unknown as HarnessWindow).__harness.set_state(target, {
         material_name: "cell_suspension",
-        material_volume: 18,
+        material_volume: 12,
       });
     }, FILL_TARGET_OBJECT);
     await expect

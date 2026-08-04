@@ -128,13 +128,13 @@ describe("scene_store reconciliation", () => {
 
     store.reconcile_scene([
       { target: "bme_tube", object_name: "bme_tube" },
-      { target: "micropipette", object_name: "micropipette" },
+      { target: "p20_micropipette", object_name: "p20_micropipette" },
     ]);
 
     assert.strictEqual(store.state["bme_tube"].state.material_name, "bme");
     assert.strictEqual(store.state["bme_tube"].state.material_volume, 2.5);
     assert.strictEqual(store.state["bme_tube"].flags.is_selected, false);
-    assert.notStrictEqual(store.state["micropipette"], undefined);
+    assert.notStrictEqual(store.state["p20_micropipette"], undefined);
     assert.strictEqual(store.state["centrifuge"], undefined);
   });
 
@@ -146,14 +146,14 @@ describe("scene_store reconciliation", () => {
       () =>
         store.reconcile_scene([
           { target: "bme_tube", object_name: "bme_tube" },
-          { target: "centrifuge", object_name: "micropipette" },
+          { target: "centrifuge", object_name: "p20_micropipette" },
         ]),
       /does not match declared object_name/,
     );
 
     assert.strictEqual(store.state["centrifuge"].state.running, true);
     assert.notStrictEqual(store.state["conical_15ml_rack.slot_0"], undefined);
-    assert.strictEqual(store.state["micropipette"], undefined);
+    assert.strictEqual(store.state["p20_micropipette"], undefined);
   });
 });
 

@@ -21,6 +21,14 @@ state_fields:
     max: 9999999
     default: 0
     description: Total cell count from the analysis.
+  - field_name: cell_concentration_per_ml
+    type: float
+    unit: cells_per_ml
+    min: 0
+    max: 10000000
+    step: 1000
+    default: 0
+    description: Viable cell concentration reported by the counter in cells per milliliter.
   - field_name: viability_percent
     type: float
     unit: percent
@@ -31,7 +39,12 @@ state_fields:
   - field_name: viability_verified
     type: bool
     default: false
-    description: Whether viability has been confirmed to meet gate (>= 90%).
+    description: Whether viability has been confirmed to clear the strictly greater-than-90% gate.
+  - field_name: manual_observation
+    type: enum
+    allowed: [not_observed, live_dead_cells_visible, quadrants_counted]
+    default: not_observed
+    description: Manual hemocytometer observation completed before automated comparison.
 
 visual_states:
   slide_loaded:
@@ -58,12 +71,31 @@ visual_states:
   cell_count:
     kind: overlay
     formula: 'conditional(state(cell_count), label(state(cell_count), format="Count: {value}"), "")'
+  cell_concentration_per_ml:
+    kind: overlay
+    formula: 'conditional(state(cell_concentration_per_ml), label(state(cell_concentration_per_ml), format="Concentration: {value} cells/mL"), "")'
   viability_percent:
     kind: overlay
     formula: 'conditional(state(viability_percent), label(state(viability_percent), format="Viability: {value}%"), "")'
   viability_verified:
     kind: composite
     composite: []
+  manual_observation:
+    # Keep the microscope observation visible after the student moves to the
+    # counter.  These are transparent full-frame layers, so capture results
+    # and the numeric DOM overlays remain visible underneath.
+    kind: composite
+    cases:
+      - when: not_observed
+        output: { composite: [] }
+      - when: live_dead_cells_visible
+        output:
+          composite:
+            - { asset_name: cell_counter_manual_live_dead_panel }
+      - when: quadrants_counted
+        output:
+          composite:
+            - { asset_name: cell_counter_manual_quadrants_panel }
 
 capabilities: [clickable]
 

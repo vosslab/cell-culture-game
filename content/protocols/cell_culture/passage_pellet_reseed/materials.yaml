@@ -14,3 +14,6 @@ materials:
   fresh_media:
     label: Fresh culture media
     display_color: "#6c6c00"
+  water:
+    label: Sterile water
+    display_color: "#b8e5ff"

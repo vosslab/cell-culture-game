@@ -1,15 +1,25 @@
 protocol_type: sequence_runner
 protocol_name: sdspage_full
-entry_step: dilute_10x_concentrate
+entry_step: combine_concentrate_and_water
 initial_state:
+  # A flattened runner is one continuous session.  These are the only source
+  # reagents; later mini-protocol direct-launch seeds must not reset them.
   - target: running_buffer_preparation_carboy
     state: { material_name: empty, material_volume: 0 }
+  - target: running_buffer_10x_bottle
+    state: { material_name: running_buffer_10x, material_volume: 500 }
+  - target: ddh2o_carboy
+    state: { material_name: ddh2o, material_volume: 1000 }
   - target: laemmli_4x_tube
     state: { material_name: laemmli_4x, material_volume: 1.0 }
   - target: bme_tube
     state: { material_name: bme, material_volume: 1.0 }
   - target: ddh2o_bottle
     state: { material_name: ddh2o, material_volume: 700 }
+  - target: coomassie_stain_bottle
+    state: { material_name: coomassie_stain, material_volume: 250, label_status: coomassie_stock }
+  - target: destain_bottle
+    state: { material_name: destain, material_volume: 250 }
   - target: microtube_rack_8.slot_A1
     state: { material_name: protein_sample_raw, material_volume: 21 }
   - target: microtube_rack_8.slot_A2

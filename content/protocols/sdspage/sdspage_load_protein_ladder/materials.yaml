@@ -1,4 +1,7 @@
 materials:
+  running_buffer_1x:
+    label: Tris/Glycine/SDS 1x running buffer
+    display_color: "#e8dcc0"
   protein_ladder:
     label: Molecular weight ladder
     display_color: "#06b6d4"

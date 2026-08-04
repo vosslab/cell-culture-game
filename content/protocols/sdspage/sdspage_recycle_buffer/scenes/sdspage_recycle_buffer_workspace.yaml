@@ -4,7 +4,9 @@ extends: electrophoresis_bench
 scene_notes: |
   Electrophoresis bench workspace for buffer recycling. The whole tank remains
   rear context while enlarged foreground chamber views make each used-buffer
-  transfer and the accumulating recycle-bottle volume visible.
+  transfer and the accumulating recycle-bottle volume visible. A wide-mouth
+  funnel remains at the recycle bottle so the grouped apparatus drainage is a
+  physically plausible laboratory action rather than an abstract bottle click.
 
 remove_placements:
   # The tank, chamber close-ups, and recycle bottle are the complete transfer
@@ -25,6 +27,18 @@ remove_placements:
   - front_right_gel_comb
 
 add_placements:
+  - placement_name: rear_left_recycle_buffer_funnel
+    object_name: recycle_buffer_funnel
+    zone: rear_left
+    depth_tier: 2
+    align_stop: center
+    layout:
+      label_placement: bottom
+  - placement_name: front_center_hazardous_liquid_waste
+    object_name: hazardous_liquid_waste_container
+    zone: rear_right
+    depth_tier: 2
+    align_stop: center
   - placement_name: front_left_electrophoresis_inner_chamber
     object_name: electrophoresis_inner_chamber
     zone: front_left

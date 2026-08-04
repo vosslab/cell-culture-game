@@ -5,7 +5,7 @@ label: Conical 15 ml tube (for dilution)
 state_fields:
   - field_name: material_name
     type: enum
-    allowed: [empty, cell_suspension, fresh_media]
+    allowed: [empty, media, cell_suspension, fresh_media]
     default: empty
     description: Contents of the tube during seeding suspension preparation.
   - field_name: material_volume
@@ -23,6 +23,8 @@ visual_states:
       - when: empty
         output: { asset_name: falcon_15ml }
       - when: cell_suspension
+        output: { asset_name: falcon_15ml }
+      - when: media
         output: { asset_name: falcon_15ml }
       - when: fresh_media
         output: { asset_name: falcon_15ml }

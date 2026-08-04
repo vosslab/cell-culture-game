@@ -1,6 +1,6 @@
 object_name: mtt_solution_tube
 kind: bottle
-label: MTT solution tube
+label: Graduated MTT solution tube
 
 state_fields:
   - field_name: material_name
@@ -12,26 +12,43 @@ state_fields:
     type: float
     unit: ml
     min: 0
-    max: 5
+    max: 15
     default: 0
     description: Volume of solution in milliliters.
+  - field_name: pbs_added
+    type: bool
+    default: false
+    description: Whether the visible 4 mL PBS aliquot has been transferred into this tube.
+  - field_name: mtt_dissolved
+    type: bool
+    default: false
+    description: Whether the 20 mg MTT powder has dissolved into a homogeneous 12 mM solution.
 
 visual_states:
   material_name:
     kind: svg
     cases:
       - when: mtt_solution_12mm
-        output: { asset_name: mtt_vial }
+        output: { asset_name: falcon_15ml }
       - when: pbs
-        output: { asset_name: mtt_vial }
+        output: { asset_name: falcon_15ml }
       - when: empty
-        output: { asset_name: mtt_vial }
+        output: { asset_name: falcon_15ml }
   material_volume:
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ml: 15
+  pbs_added:
+    kind: composite
+    composite: []
+  mtt_dissolved:
     kind: composite
     composite: []
 capabilities: [clickable, material_container, cursor_attachable]
 
 layout:
-  default_width: 2
-  display_width_cm: 4
-  label_width: 5
+  default_width: 5
+  display_width_cm: 8
+  label_width: 10

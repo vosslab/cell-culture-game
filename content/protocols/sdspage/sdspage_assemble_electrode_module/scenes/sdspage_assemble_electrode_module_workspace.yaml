@@ -1,0 +1,39 @@
+scene_name: sdspage_assemble_electrode_module_workspace
+extends: electrophoresis_bench
+
+scene_notes: |
+  Assembly view keeps one cassette, its buffer dam, and the electrode module in a
+  central working group. The empty tank remains behind the group as the next physical
+  destination, rather than competing with reagents or loading tools.
+
+remove_placements:
+  - rear_left_running_buffer_10x
+  - rear_right_power_supply
+  - center_running_buffer_1x_carboy
+  - center_ddh2o_bottle
+  - center_electrode_module
+  - center_serological_pipette
+  - center_p200_micropipette
+  - right_tool_area_p10_gel_loading_tip_box
+  - rear_left_protein_ladder_tube
+  - rear_left_recycle_buffer_bottle
+  - rear_right_gel_opening_tool
+  - front_left_mini_protean_gel
+  - front_center_gel_cassette
+  - front_center_waste_container
+  - front_right_gel_comb
+
+add_placements:
+  - placement_name: center_assembly_electrode_module
+    object_name: electrode_module
+    zone: center
+    depth_tier: 1
+    align_stop: center
+  - placement_name: front_left_gel_cassette
+    object_name: gel_cassette
+    zone: front_left
+    depth_tier: 1
+  - placement_name: front_right_electrophoresis_buffer_dam
+    object_name: electrophoresis_buffer_dam
+    zone: front_right
+    depth_tier: 1

@@ -149,10 +149,16 @@ describe("flatten_sequence_runner - strict constituent shape", () => {
     // The constituent requested `running: true`, but it never crosses the
     // runner flatten/session boundary. The root value is the live projection.
     assert.strictEqual(store.state.centrifuge.state.running, false);
-    // Snapshot the final archive rather than inspecting only the flatten result:
-    // exact defaults plus root override prove no constituent entry leaked in.
+    // The session retains the root override and also hydrates every declared
+    // centrifuge control from its schema default.  This checks the runner
+    // boundary without freezing the set of controls an instrument may expose.
     assert.deepStrictEqual(store.snapshot_declared_state(), {
-      centrifuge: { running: false, set_rpm: 1200, set_time_min: 5 },
+      centrifuge: {
+        running: false,
+        set_rcf: 200,
+        set_rpm: 1200,
+        set_time_min: 5,
+      },
     });
   });
 });

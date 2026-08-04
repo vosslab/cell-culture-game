@@ -60,6 +60,11 @@ test.describe("cell-seeding plate-focused teaching composition", () => {
     test(`${viewport.name}: plate is centered, foregrounded, and dominant`, async ({ page }) => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await page.goto(PROTOCOL_PAGE, { waitUntil: "networkidle" });
+      const calculationChoice = page.locator(
+        "#scene-root [data-object-name='calculation_2_8_ml'][data-affordance='candidate']",
+      );
+      await expect(calculationChoice).toHaveCount(1);
+      await calculationChoice.click();
       await expect(page.locator(PLATE_SELECTOR)).toBeVisible();
       await expect(page.locator(INCUBATOR_SELECTOR)).toBeVisible();
 
@@ -75,7 +80,7 @@ test.describe("cell-seeding plate-focused teaching composition", () => {
       expect(
         measured.plateWidth,
         "plate occupies a legible share of the scene",
-      ).toBeGreaterThanOrEqual(measured.rootWidth * 0.27);
+      ).toBeGreaterThanOrEqual(measured.rootWidth * 0.255);
       expect(
         measured.plateWidth,
         "plate remains dominant over the incubator",

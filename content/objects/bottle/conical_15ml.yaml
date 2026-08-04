@@ -21,6 +21,11 @@ state_fields:
     max: 15
     default: 0
     description: Volume of contents in the tube, in milliliters.
+  - field_name: label_status
+    type: enum
+    allowed: [unlabeled, sample_identity_complete]
+    default: unlabeled
+    description: Whether the fixed sample, concentration, date, course, and use-count label is complete.
 visual_states:
   material_name:
     kind: svg
@@ -52,6 +57,9 @@ visual_states:
     target: anchor_liquid_bounds
     clip: anchor_liquid_clip
     capacity_ml: 15
+  label_status:
+    kind: overlay
+    formula: 'label(state(label_status), format="Tube label: {value}")'
 capabilities:
   - clickable
   - material_container

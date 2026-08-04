@@ -1,14 +1,13 @@
-# Simulation design: MTT dispense is authored as one well_plate_96.all_wells interaction
-# (multichannel pipette collapses 12 columns into one authored skill unit). In wet-lab
-# practice each 8-channel stroke covers one column; the simulated action is "dispense
-# MTT uniformly" not the per-column motion. Numerical model per OVCAR8_MATH_REVIEW.md:
-# pre-MTT well total = 200 uL (cells + media + drug); 25 uL MTT added -> 225 uL post-MTT.
+# Simulation design: MTT is transferred to a reagent reservoir before the eight-channel
+# pipette distributes it. The visible all-wells action represents the already-taught
+# twelve-column pattern rather than an impossible draw from a small tube. Numerical model per OVCAR8_MATH_REVIEW.md:
+# pre-MTT well total = 200 &micro;L (cells + media + drug); 25 &micro;L MTT added -> 225 &micro;L post-MTT.
 # MTT (3-(4,5-dimethylthiazol-2-yl)-2,5-diphenyltetrazolium bromide) is reduced to purple
 # formazan by viable-cell mitochondrial activity; depth of color after DMSO solubilization
 # is proportional to viable cell count.
 protocol_type: mini_protocol
 protocol_name: mtt_plate_reaction
-entry_step: gather_mtt_materials
+entry_step: prepare_mtt_and_pipette
 initial_state:
   - target: mtt_solution_tube
     state:
@@ -35,14 +34,14 @@ learning:
     formation under aerobic incubation, removing excess MTT/media/drug mixture, and
     preparing the dry plate for DMSO solubilization and absorbance measurement. This
     step bridges post-treatment cell samples (from Day 2 drug incubation; wells at
-    200 uL each) to the quantitative viability readout (Day 4 absorbance)."
+    200 &micro;L each) to the quantitative viability readout (Day 4 absorbance)."
 steps:
-  - step_name: gather_mtt_materials
+  - step_name: prepare_mtt_and_pipette
     prompt:
-      Obtain the treated 96-well plate from the previous step (every well already
-      holds 200 uL of cells in treated media after Day 2 drug additions) and the prepared
-      12 mM MTT solution. Ensure the MTT has been freshly prepared and stored at room
-      temperature. Place both on the incubator workspace.
+      Confirm that the freshly prepared 12 mM MTT solution is yellow and ready, bring it
+      with the treated 96-well plate to the incubator workspace, and set the multichannel
+      pipette to 25 microL per channel. This produces 225 microL total and about 1.33 mM
+      MTT in each 200 microL well.
     sequence:
       - target: mtt_solution_tube
         gesture: click
@@ -52,26 +51,15 @@ steps:
           scene_operations:
             - type: SceneChange
               to_scene: incubator_workspace
+          feedback:
+            correct: "Fresh yellow MTT solution is ready for the assay."
+            incorrect: "Use only the freshly prepared yellow 12 mM MTT solution."
       - target: well_plate_96
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations: []
-    step_validator:
-      preset: sequence_complete
-    outcome:
-      on_success: complete
-      on_failure: retry
-    next_step: prepare_pipette_for_mtt
-  - step_name: prepare_pipette_for_mtt
-    prompt:
-      Obtain a multichannel pipette and set the volume to 25 microL. Each well
-      will receive exactly 25 microL of 12 mM MTT. Per docs/protocols/OVCAR8_MATH_REVIEW.md,
-      adding 25 microL into the 200 microL pre-MTT well brings well total to 225 microL
-      with a final MTT concentration of approximately 1.33 mM (NOT 1.5 mM, which assumed
-      an incorrect 100 microL pre-MTT well).
-    sequence:
       - target: multichannel_pipette
         gesture: click
         validator:
@@ -98,14 +86,8 @@ steps:
     next_step: add_mtt_to_wells
   - step_name: add_mtt_to_wells
     prompt:
-      "Using the multichannel pipette set to 25 microL per channel, draw 12 mM
-      MTT from the prepared MTT solution tube and dispense 25 microL into every well of the 96-well
-      plate. Each well receives the same 25 microL volume; in wet-lab practice the 8-channel
-      pipette walks across the 12 columns (each stroke loads 200 microL across 8 tips
-      and dispenses one column). Note: 25 microL per channel sits near the low-precision
-      edge of a P200 multichannel (20-200 microL range); use freshly-calibrated tips
-      for accurate dosing. After this step every well holds 225 microL total (200 microL
-      pre-MTT + 25 microL MTT dispensed)."
+      "Transfer the MTT solution to the reagent reservoir, then use the 8-channel pipette
+      to complete the same twelve column strokes practiced during seeding. Each well ends at 225 microL."
     sequence:
       - target: multichannel_pipette
         gesture: click
@@ -113,7 +95,7 @@ steps:
           preset: correct_target
         response:
           scene_operations: []
-      - target: mtt_solution_tube
+      - target: micropipette_tip_box
         gesture: click
         validator:
           preset: correct_target
@@ -122,21 +104,49 @@ steps:
             - type: ObjectStateChange
               target: multichannel_pipette
               state:
-                held_material_name: mtt_solution_12mm
-                held_material_volume: 25
-            - type: ObjectStateChange
-              target: mtt_solution_tube
-              state:
-                material_name: mtt_solution_12mm
-                material_volume: 1.6
-      - target: well_plate_96
+                tip_status: fresh
+          feedback:
+            correct: "A fresh matched set of eight tips is fitted before the MTT transfer."
+            incorrect: "Use the visible tip box to fit fresh multichannel tips before handling MTT."
+      - target: mtt_solution_tube
         gesture: click
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: well_plate_96.all_wells
+              target: mtt_solution_tube
+              state:
+                material_name: mtt_solution_12mm
+                material_volume: 0
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state:
+                material_name: mtt_solution_12mm
+                material_volume: 4
+      - target: reagent_reservoir
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state:
+                material_volume: 3.8
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state:
+                held_material_name: mtt_solution_12mm
+                held_material_volume: 25
+      - target: well_plate_96.col_1
+        gesture: click
+        validator:
+          preset: correct_target
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_1
               state:
                 material_name: mtt_reaction_mixture
                 material_volume: 225
@@ -145,6 +155,251 @@ steps:
               state:
                 held_material_name: empty
                 held_material_volume: 0
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 3.6 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
+      - target: well_plate_96.col_2
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_2
+              state: { material_name: mtt_reaction_mixture, material_volume: 225 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 3.4 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
+      - target: well_plate_96.col_3
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_3
+              state: { material_name: mtt_reaction_mixture, material_volume: 225 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 3.2 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
+      - target: well_plate_96.col_4
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_4
+              state: { material_name: mtt_reaction_mixture, material_volume: 225 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 3 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
+      - target: well_plate_96.col_5
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_5
+              state: { material_name: mtt_reaction_mixture, material_volume: 225 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 2.8 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
+      - target: well_plate_96.col_6
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_6
+              state: { material_name: mtt_reaction_mixture, material_volume: 225 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 2.6 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
+      - target: well_plate_96.col_7
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_7
+              state: { material_name: mtt_reaction_mixture, material_volume: 225 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 2.4 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
+      - target: well_plate_96.col_8
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_8
+              state: { material_name: mtt_reaction_mixture, material_volume: 225 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 2.2 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
+      - target: well_plate_96.col_9
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_9
+              state: { material_name: mtt_reaction_mixture, material_volume: 225 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 2 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
+      - target: well_plate_96.col_10
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_10
+              state: { material_name: mtt_reaction_mixture, material_volume: 225 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 1.8 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
+      - target: well_plate_96.col_11
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_11
+              state: { material_name: mtt_reaction_mixture, material_volume: 225 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+      - target: reagent_reservoir
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: reagent_reservoir
+              state: { material_volume: 1.6 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
+      - target: well_plate_96.col_12
+        gesture: click
+        validator: { preset: correct_target }
+        response:
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96.col_12
+              state: { material_name: mtt_reaction_mixture, material_volume: 225 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { held_material_name: empty, held_material_volume: 0 }
+            - type: ObjectStateChange
+              target: multichannel_pipette
+              state: { tip_status: used }
     step_validator:
       preset: sequence_complete
     outcome:
@@ -152,12 +407,12 @@ steps:
       on_failure: retry
     next_step: incubate_formazan_conversion
   - step_name: incubate_formazan_conversion
-    prompt:
-      Place the MTT-loaded plate into the incubator and set it for 1.5 hours at
-      37 degrees Celsius. Aerobic incubation allows viable cells to reduce the yellow
-      MTT dye into purple formazan crystals. Well volume is preserved at 225 microL
-      across the incubation; only the material identity changes from MTT to formazan.
-      After the timer completes, proceed to decant the spent MTT/media/drug mixture.
+    prompt: >
+      Place the MTT-loaded plate into the incubator for 1.5 hours at 37 degrees Celsius.
+      Viable cells reduce yellow MTT to purple formazan. Compare each carboplatin row
+      with its matched metformin-combination half: the untreated controls are darkest,
+      formazan becomes lighter with increasing carboplatin dose, and the combination
+      half is lower than its carboplatin-only match.
     sequence:
       - target: well_plate_96
         gesture: click
@@ -175,11 +430,27 @@ steps:
               target: incubator
               duration_min: 90
               display: formazan conversion (1.5 hours)
-            - type: ObjectStateChange
-              target: well_plate_96.all_wells
-              state:
-                material_name: formazan_crystals
-                material_volume: 225
+            # Row A is the untreated reference. Rows B-H preserve the actual
+            # carboplatin series, with a matched metformin-combination half.
+            - { type: ObjectStateChange, target: well_plate_96.block_A_1_6, state: { material_name: formazan_control, material_volume: 225 } }
+            - { type: ObjectStateChange, target: well_plate_96.block_A_7_12, state: { material_name: formazan_metformin_control, material_volume: 225 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_B_1_6, state: { material_name: formazan_carboplatin_0_1umol, material_volume: 225 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_B_7_12, state: { material_name: formazan_carboplatin_0_1umol_metformin_5mmol, material_volume: 225 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_C_1_6, state: { material_name: formazan_carboplatin_0_2umol, material_volume: 225 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_C_7_12, state: { material_name: formazan_carboplatin_0_2umol_metformin_5mmol, material_volume: 225 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_D_1_6, state: { material_name: formazan_carboplatin_0_5umol, material_volume: 225 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_D_7_12, state: { material_name: formazan_carboplatin_0_5umol_metformin_5mmol, material_volume: 225 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_E_1_6, state: { material_name: formazan_carboplatin_1umol, material_volume: 225 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_E_7_12, state: { material_name: formazan_carboplatin_1umol_metformin_5mmol, material_volume: 225 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_F_1_6, state: { material_name: formazan_carboplatin_2umol, material_volume: 225 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_F_7_12, state: { material_name: formazan_carboplatin_2umol_metformin_5mmol, material_volume: 225 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_G_1_6, state: { material_name: formazan_carboplatin_5umol, material_volume: 225 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_G_7_12, state: { material_name: formazan_carboplatin_5umol_metformin_5mmol, material_volume: 225 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_H_1_6, state: { material_name: formazan_carboplatin_10umol, material_volume: 225 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_H_7_12, state: { material_name: formazan_carboplatin_10umol_metformin_5mmol, material_volume: 225 } }
+          feedback:
+            correct: "The plate now shows a visible dose response: darker crystals indicate greater viable-cell metabolic activity."
+            incorrect: "Incubate the MTT-loaded plate before interpreting its color pattern."
     step_validator:
       preset: sequence_complete
     outcome:
@@ -207,16 +478,31 @@ steps:
           preset: correct_target
         response:
           scene_operations:
-            - type: ObjectStateChange
-              target: well_plate_96.all_wells
-              state:
-                material_name: formazan_crystals
-                material_volume: 0
+            - { type: ObjectStateChange, target: well_plate_96, state: { assay_status: crystals_retained } }
+            - { type: ObjectStateChange, target: well_plate_96.block_A_1_6, state: { material_name: formazan_control, material_volume: 0 } }
+            - { type: ObjectStateChange, target: well_plate_96.block_A_7_12, state: { material_name: formazan_metformin_control, material_volume: 0 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_B_1_6, state: { material_name: formazan_carboplatin_0_1umol, material_volume: 0 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_B_7_12, state: { material_name: formazan_carboplatin_0_1umol_metformin_5mmol, material_volume: 0 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_C_1_6, state: { material_name: formazan_carboplatin_0_2umol, material_volume: 0 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_C_7_12, state: { material_name: formazan_carboplatin_0_2umol_metformin_5mmol, material_volume: 0 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_D_1_6, state: { material_name: formazan_carboplatin_0_5umol, material_volume: 0 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_D_7_12, state: { material_name: formazan_carboplatin_0_5umol_metformin_5mmol, material_volume: 0 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_E_1_6, state: { material_name: formazan_carboplatin_1umol, material_volume: 0 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_E_7_12, state: { material_name: formazan_carboplatin_1umol_metformin_5mmol, material_volume: 0 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_F_1_6, state: { material_name: formazan_carboplatin_2umol, material_volume: 0 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_F_7_12, state: { material_name: formazan_carboplatin_2umol_metformin_5mmol, material_volume: 0 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_G_1_6, state: { material_name: formazan_carboplatin_5umol, material_volume: 0 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_G_7_12, state: { material_name: formazan_carboplatin_5umol_metformin_5mmol, material_volume: 0 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_H_1_6, state: { material_name: formazan_carboplatin_10umol, material_volume: 0 } }
+            - { type: ObjectStateChange, target: well_plate_96.row_H_7_12, state: { material_name: formazan_carboplatin_10umol_metformin_5mmol, material_volume: 0 } }
             - type: ObjectStateChange
               target: biohazard_decant_bin
               state:
                 material_name: waste_mtt
                 material_volume: 21.6
+          feedback:
+            correct: "Liquid has been decanted while the condition-dependent insoluble formazan crystals remain visible in the empty wells."
+            incorrect: "Decant only into the biohazard container so the insoluble formazan remains in the plate."
     step_validator:
       preset: sequence_complete
     outcome:
@@ -242,7 +528,13 @@ steps:
         validator:
           preset: correct_target
         response:
-          scene_operations: []
+          scene_operations:
+            - type: ObjectStateChange
+              target: well_plate_96
+              state: { assay_status: dry }
+          feedback:
+            correct: "The plate is dry and the condition-dependent formazan crystals remain intact for DMSO solubilization."
+            incorrect: "Use gentle blotting; vigorous motion can dislodge the crystals needed for readout."
     step_validator:
       preset: sequence_complete
     outcome:

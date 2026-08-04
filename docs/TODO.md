@@ -1,110 +1,31 @@
 # TODO
 
+## Current protocol-quality status
 
-Immediate follow-ups from Solid shell vertical slice
+The protocol-pedagogy implementation and visible-UI proof are complete. The
+`docs/active_plans/reports/protocol_pedagogy_visual_resolution.md` ledger records
+the repository-supported outcomes, the full 31-page browser walkthrough, and
+the remaining evidence or contract boundaries.
 
-The Solid shell vertical slice is green for sdspage_heat_denature_samples, but the product is not complete. The following items should not be forgotten.
+Current follow-ups:
 
-Protocol interaction support
-
-* Add a visible DOM affordance for the adjust gesture.
-    * Required for protocols that set values such as pipette volume, temperature, time, RPM, voltage, or other continuous / set-point actions.
-    * Must emit a typed runtime event with target, gesture, and value.
-    * Must validate through the existing validator path, not shell-local logic.
-    * First target protocol: mtt_reagent_prep.
-* Confirm the walker can complete an adjust protocol through visible UI.
-    * No hidden step advance.
-    * No brute-force clicking.
-    * Screenshots before and after meaningful interactions.
-
-Shell UI completion
-
-* Build the inventory / tool tray UI.
-    * Use data-tray-tool-id.
-* Build modal UI for choice and direct-tool interactions.
-    * Escape cancels without advancing protocol state.
-* Build feedback toast UI.
-    * Success and retry states.
-* Build professor / help overlay.
-    * No protocol mutation from help UI.
-
-Note: keyboard navigation, ARIA roles, focus traps, and screen-reader support for shell
-controls are out of current scope. See the "Accessibility scope" subsection in
-[PRIMARY_DESIGN.md](PRIMARY_DESIGN.md) for the rationale and reversal path.
-* Add basic visual styling for the shell.
-    * Keep shell CSS scoped to shell selectors only.
-    * Do not target scene internals, SVG elements, [data-item-id], or renderer-owned classes.
-
-Walker and visible UI proof
-
-* Revisit direct DOM click in the walker.
-    * Current walker uses page.evaluate(el.click()).
-    * Determine whether Playwright actionability failed because of a real student-clickability issue or because of SVG / injected DOM structure.
-    * If student-clickability is weak, fix rendered hit targets.
-    * If only Playwright actionability is brittle, document the reason and keep direct DOM click.
-* Add a second green pilot protocol.
-    * Prefer a protocol that exercises tray, modal, feedback, or adjust.
-    * Do not count two HUD-only protocols as sufficient shell coverage.
-
-Scene and rendering follow-ups
-
-* Replace neutral background placeholder rendering with real asset background rendering.
-    * Current placeholder uses neutral fill and data-bg-asset-pending.
-* [resolved 2026-06-08] Fix layout drift in flagged scenes.
-    * electrophoresis_bench: resolved (compile-time layout engine, M7).
-    * heat_block_bench: resolved (compile-time layout engine, M7).
-    * passage_hood_detachment_microscope_view: resolved (compile-time layout engine, M7).
-    * All three now converge clean with zero Error diagnostics at 16:9; see
-      docs/active_plans/reports/m7_wp_valid1_evidence_table.md.
-* Add scene lint coverage for untested scene YAML.
-    * Confirm per-protocol scene YAML is indexed and rendered.
-    * Catch layout drift before Playwright walker runs.
-
-Content and protocol cleanup
-
-* Resolve 6 unresolved protocol targets from protocol_object_xref.md.
-    * passage_hood_detachment.incubator
-    * passage_pellet_reseed.biohazard_decant
-    * trypan_blue_counting.cell_suspension_tube
-    * sdspage_image_gel.waste_container x2
-    * well_plate_96_zoom_check.well_plate_96.E7
-* Review 75 ambiguous target mappings.
-    * Decide which are acceptable fanouts and which need YAML cleanup.
-* Review 156 fanout targets.
-    * Confirm these are intentional and walker-safe.
-
-Pipeline cleanup
-
-* Human: archive the 4 pipeline scripts marked SAFE_TO_ARCHIVE in codegen_consolidation_plan.md.
-    * Use git mv.
-    * Do not let agents perform git operations.
-* Decide UNCLEAR-1: build_new_scene_data.py.
-    * Determine whether inheritance behavior is still needed.
-    * Keep until replacement coverage exists.
-* Decide UNCLEAR-2: build_protocol_html.py.
-    * Keep until the new protocol host path fully replaces it.
-
-Documentation
-
-* Update docs/CHANGELOG.md with the Solid shell vertical slice.
-* Update docs/CODE_ARCHITECTURE.md with:
-    * src/shell/
-    * src/launcher/
-    * src/protocol_host.tsx
-    * src/scene_runtime/protocol/
-    * tools/build_main_bundle.mjs
-* Document that sdspage_heat_denature_samples is the first green visible-UI pilot.
-* Document that mtt_reagent_prep is blocked on adjust affordance.
-
-Triage backlog for issues surfaced but not fixed during recent work. See the
-active plans under `~/.claude/plans/` or [ROADMAP.md](ROADMAP.md) for queued
-work.
+- Obtain faculty-owned inputs for blockers B1-B4 before replacing the fixed,
+  internally coherent teaching scenarios.
+- Obtain approval for conditional step graphs before implementing B5.
+- Decide whether to ratify a closed choice-role capability for B6. Current
+  `select` semantics intentionally offer every clickable scene item; a semantic
+  choice role would let calculation and interpretation scenes retain visible
+  experimental context without presenting that context as an answer.
+- Reduce private-YAML snapshot assertions where the same learner-visible
+  behavior is already protected by stepper and browser tests. Preserve exact
+  quantities only when they are approved scientific invariants.
+- Rerun the optional SVG text-outline E2E with a working Inkscape installation.
 
 ## On hold: scene runtime activation
 
 Big scene-runtime activation plan paused as of 2026-05-17. Gated on the focused
 row-based base_scene layout plan. See
-active_plans/scene_runtime_activation_on_hold.md
+[archived scene-runtime activation record](archive/plan-reset-2026-05-22/scene_runtime_activation_on_hold.md)
 for state at hold and resumption criteria.
 
 ## Stepper and validator follow-ups from 96-well spike
@@ -112,33 +33,11 @@ for state at hold and resumption criteria.
 Surfaced by the 96-well authoring shape semantics spike. See
 `96_well_authoring_shape_finding.md` (archived) for measured evidence.
 
-### Add per-cell state tracking to protocol_stepper
+### Per-cell state tracking in the protocol stepper (RESOLVED)
 
-`validation/stepper/state.py` (`StateMap`) does not currently track per-cell
-state for `well_plate_96` subparts. The current subpart-cascade path
-in `validation/stepper/scene_ops.py` writes every cell mutation to the
-placement's flat state dict (last-write-wins). This is invisible for
-uniform actions but breaks the dose-variation case completely: only
-the final column's value is observable.
-
-The spike's per-well comparison method sidesteps this by deriving
-final state from YAML directly. Any production validation of region
-semantics or dose-response correctness needs real per-cell tracking
-inside the stepper.
-
-Acceptance criteria:
-
-- `StateMap` tracks per-cell `material_name` and `material_volume`
-  for `well_plate_96` placements.
-- `validation/stepper/step_check.py` can emit a per-cell snapshot for any
-  placement with subparts, suitable for byte-for-byte snapshot
-  comparison.
-- A dose-response protocol with explicit per-column drug concentrations
-  reports 12 distinct `material_volume` values from the stepper's observed
-  state, not from YAML derivation.
-- The 12 currently shipped protocols continue to step cleanly.
-
-Estimated scope: 50-150 lines, contained within `validation/stepper/`.
+`validation/stepper/state.py` now stores independent subpart records, validates
+subpart-scoped fields, and preserves per-well material identity and volume. The
+cell-culture runner and per-well browser tests exercise the implemented path.
 
 ### Optional named-region syntax with members: all shorthand
 
@@ -167,25 +66,16 @@ Reserve for meaningful subsets, not aliases for the whole plate.
 
 ## Follow-ups from 96-well enumeration audit
 
-Surfaced by WP-AUDIT-1 of the active 96-well cleanup plan. See
-`96_well_enumeration_audit.md` (archived) for full evidence.
+Surfaced by WP-AUDIT-1 of the 96-well cleanup plan. See the
+[archived enumeration audit](archive/plan-reset-2026-05-22/workstreams/96_well_enumeration_audit.md)
+for full evidence.
 
-### Third 96-well over-enumeration site: plate_drug_treatment_drug_addition
+### Drug-addition enumeration audit (RESOLVED)
 
-`content/protocols/plate_drug_treatment_drug_addition/protocol.yaml`
-carries 252 enumerated `well_plate_96.*` hits (more than either
-of the two protocols handled by `serene-stargazing-moore.md`) and
-zero `all_wells` hits. Likely case 3 (dose / drug variation IS the
-skill) but not classified site-by-site yet.
-
-Acceptance criteria:
-
-- Audit the protocol step by step using the same
-  `## Audit site definition` rule.
-- Decide per-site whether collapse uses existing row / column
-  groups, the block groups added by WP-WELLPLATE-OBJVOCAB-1 (if
-  they land), or stays per-well by design.
-- Open a new plan if the cleanup is non-trivial.
+The treatment protocol now groups learner actions around meaningful row and
+half-plate dosing skills while retaining per-well state writes needed for the
+four experimental condition classes. Browser coverage verifies the visible
+condition transitions without requiring per-well endurance clicks.
 
 ### Author docs/GLOSSARY.md (REPO-WIDE, all labs)
 
@@ -210,34 +100,19 @@ sweep).
 ### Vocabulary: "aspirate" reserved for vacuum removal to waste
 
 Lab convention: "aspirate" means vacuum-line removal to waste (e.g.,
-"aspirate spent media from the plate"). Pipette loading from a
-source uses "draw" or "pipette up", not "aspirate". The renderer
-(`validation.manual` line 910) now emits "draw N uL from
-{source}" in dispense bullets, but authored prompts in 8 of the 11
-protocols that mention "aspirate" still use it loosely in pipette-
-loading contexts.
+"aspirate spent media from the plate"). Pipette loading from a source uses
+"draw," "load," or "pipette up," not "aspirate." The manual renderer uses
+"draw" for dispensing-pipette uptake, and the protocol validator protects the
+same distinction in learner-facing prompts.
 
-This is now an active validation gate: the manual-lint pass emits
-the `l-aspirate` code (WARNING severity) for every misuse, so the
-protocols listed below surface automatically in
-`source source_me.sh && python3 validation/validate.py -q` (and in
-the per-stage `python3 validation/manual/protocol_manual.py --validate
---all`) output until each protocol is cleaned up. Hunt-and-find by
-hand is no longer required; the list below is the remediation
-backlog. MTT trio + PDTMA fixed; remaining:
+This is an active schema-validation gate. The protocol validator rejects a
+learner-facing prompt that uses "aspirate" unless the step uses the dedicated
+`aspirating_pipette` for vacuum removal. The current protocol corpus is clean:
+remaining occurrences describe removal to waste rather than loading a
+dispensing pipette.
 
-- `cell_seeding_plate_setup/protocol.yaml`
-- `drug_dilution_setup/protocol.yaml`
-- `passage_hood_detachment/protocol.yaml`
-- `passage_pellet_reseed/protocol.yaml`
-- `plate_drug_treatment_drug_addition/protocol.yaml`
-- `sdspage_load_protein_ladder/protocol.yaml`
-- `sdspage_load_sample_single_lane/protocol.yaml`
-- `sdspage_prepare_running_buffer/protocol.yaml`
-
-Action: per-protocol review; replace "aspirate" with "draw" or
-"pipette up" in pipette-loading contexts; keep "aspirate" only in
-vacuum-removal-to-waste contexts.
+Action for new content: use "draw," "load," or "pipette up" for
+dispensing-pipette uptake. Reserve "aspirate" for vacuum removal to waste.
 
 ### Pipette accuracy: MTT 25 uL near low edge of P200 multichannel
 
@@ -270,16 +145,11 @@ renderer should special-case region / block groups to read
 "every well of the 96-well plate" or similar natural phrasing.
 Scope: `validation/manual/protocol_manual.py`.
 
-### Content: mtt_solubilization_readout prompts still describe per-column walk
+### MTT solubilization action wording (RESOLVED 2026-08-03)
 
-Step 1 and Step 2 prompts in
-`content/protocols/mtt_solubilization_readout/protocol.yaml`
-still say "columns 1 through 12 sequentially" even though the
-YAML now targets `well_plate_96.all_wells`. Violates the
-prompt-teaches-action rule from
-`docs/active_plans/96_well_enumeration_audit.md`. Small content
-cleanup: rewrite both prompts to describe the uniform whole-plate
-dispense in pedagogy terms.
+The current protocol models twelve visible multichannel column strokes and
+describes the repeated whole-plate distribution skill consistently. The stale
+whole-plate `all_wells` wording mismatch no longer applies.
 
 ## Rendering and content display
 
@@ -392,15 +262,10 @@ on introduction rather than drift the floor.
   ships, remove the object-level `material_name`/`material_volume`/`material_container`
   placeholders from `content/objects/plate/well_plate_96.yaml`.
 
-- (#28) [EXPERT_CODER] Wire visible `adjust` gesture affordance. This is a SEPARATE
-  web_ui gesture task, out of scope for the material plan and not a material-rendering
-  defect. Required before per-well protocols (e.g., `plate_drug_treatment_drug_addition`)
-  can complete through visible UI. Until this lands, the contract-item-4 visible-UI
-  per-well-protocol walkthrough cannot complete. The walkthrough spec lives at
-  `tests/playwright/test_per_well_drug_walkthrough.mjs` and honestly reports the blocker.
-  Wire `adjust` in the same web_ui gesture family as the landed `select` and `type`
-  gestures (WS-M5-ST). Blocked on design decision for the visible affordance UI (slider,
-  text input, dial, stepper?).
+- (RESOLVED 2026-08-03) Visible `adjust` uses the in-flow set-point editor and
+  completes through the same runtime-authoritative validator path as other
+  gestures. Per-well protocols and all 31 generated protocol pages now complete
+  through the visible Playwright walker.
 
 - (#27, FUTURE, not this plan) Declared registry-backed field affordance: retire the
   `[empty, mixed]` syntactic seam in `well_plate_96.yaml`. Currently the runtime accepts
