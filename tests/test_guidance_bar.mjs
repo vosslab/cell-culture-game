@@ -6,47 +6,123 @@ import assert from "node:assert/strict";
 
 import {
   action_progress_copy,
-  gesture_instruction,
   recovery_copy,
   selection_recovery_details,
 } from "../src/shell/regions/guidance_bar.tsx";
+import { resolve_active_interaction_action } from "../src/scene_runtime/protocol/active_interaction_view.ts";
 
-describe("guidance-bar gesture cue", () => {
-  const learner_actions = [
-    ["click", /Click PBS/],
-    ["drag", /Move PBS/],
-    ["adjust", /Set.*PBS/],
-    ["type", /Enter.*PBS/],
-  ];
+const resolvers = {
+  to_placement: (target) => `placement_${target}`,
+  to_label: (target) => target,
+};
 
-  for (const [gesture, expected_copy] of learner_actions) {
-    test(`${gesture} gives a visible learner-facing action`, () => {
-      assert.match(gesture_instruction(gesture, "PBS"), expected_copy);
-    });
-  }
+function action_for(
+  gesture,
+  target = "PBS",
+  validator = { preset: "correct_target" },
+  instruction = `Use the highlighted ${target} for this procedure step.`,
+  hint = `The highlighted ${target} is ready for the next action.`,
+) {
+  return resolve_active_interaction_action(
+    {
+      target,
+      gesture,
+      instruction,
+      hint,
+      validator,
+      response: { scene_operations: [] },
+    },
+    resolvers,
+  );
+}
 
-  test("adjust gives the exact requested numeric value to the learner", () => {
+describe("guidance-bar authored action cue", () => {
+  test("uses the authored instruction and hint together", () => {
     assert.strictEqual(
-      gesture_instruction("adjust", "P200 micropipette", 25),
-      "Set P200 micropipette to 25 using the control below.",
+      action_for(
+        "adjust",
+        "P200 micropipette",
+        { preset: "target_with_value", value: { set_volume: 25 } },
+        "Set the P200 micropipette to 25 using the control below.",
+        "Set the volume before continuing with the transfer.",
+      ).instruction,
+      "Set the P200 micropipette to 25 using the control below.",
     );
   });
 
   test("select identifies the candidate set without revealing the correct target", () => {
-    const copy = gesture_instruction("select", "Correct answer", 25);
-    assert.match(copy, /blue outlined/);
+    const copy = action_for(
+      "select",
+      "Correct answer",
+      { preset: "correct_choice" },
+      "Choose the option that matches the procedure.",
+      "Compare the blue outlined options with the step goal before choosing.",
+    ).instruction;
+    assert.match(copy, /Choose/);
     assert.doesNotMatch(copy, /Correct answer/);
     assert.doesNotMatch(copy, /25/);
   });
 
   test("type does not reveal its validator answer", () => {
-    const copy = gesture_instruction("type", "cell count", 12345);
-    assert.match(copy, /Enter/);
+    const copy = action_for(
+      "type",
+      "cell count",
+      { preset: "target_with_value", value: { reported_count: 12345 } },
+      "Record the observation in the visible field.",
+      "Use the measurement you observed in the preceding step.",
+    ).instruction;
+    assert.match(copy, /Record/);
     assert.doesNotMatch(copy, /12345/);
   });
 
-  test("uses a generic highlighted-action cue while no interaction is active", () => {
-    assert.match(gesture_instruction(null, null), /highlighted next action/);
+  test("select hint stays generic and does not reveal the target label or value", () => {
+    const hint = action_for(
+      "select",
+      "Correct answer",
+      { preset: "correct_choice" },
+      "Choose the option that matches the procedure.",
+      "Compare the blue outlined options with the step goal before choosing.",
+    ).hint;
+    assert.match(hint, /blue outlined|available choices|compare/i);
+    assert.doesNotMatch(hint, /Correct answer/);
+    assert.doesNotMatch(hint, /25/);
+  });
+
+  test("type hint does not reveal the validator answer", () => {
+    const hint = action_for(
+      "type",
+      "cell count",
+      { preset: "target_with_value", value: { reported_count: 12345 } },
+      "Record the observation in the visible field.",
+      "Use the measurement you observed in the preceding step.",
+    ).hint;
+    assert.match(hint, /measurement|preceding step/i);
+    assert.doesNotMatch(hint, /12345/);
+  });
+
+  test("adjust hint may expose the requested value", () => {
+    const hint = action_for(
+      "adjust",
+      "P200 micropipette",
+      { preset: "target_with_value", value: { set_volume: 25 } },
+      "Set the P200 micropipette to 25 using the control below.",
+      "Set the value to 25 before continuing with the transfer.",
+    ).hint;
+    assert.match(hint, /25/);
+    assert.match(hint, /control|value|setting/i);
+  });
+
+  test("click hint gives positive authored guidance", () => {
+    assert.strictEqual(
+      action_for(
+        "click",
+        "PBS bottle",
+        { preset: "correct_target" },
+        "Open the PBS bottle.",
+        "Use the highlighted bottle in the lab scene.",
+      ).hint,
+      "Use the highlighted bottle in the lab scene.",
+    );
   });
 });
 
@@ -64,6 +140,55 @@ describe("guidance-bar action progress", () => {
 });
 
 describe("guidance-bar value recovery", () => {
+  test("default recovery leads with a positive next action", () => {
+    const cases = [
+      {
+        rejection: {
+          reason_code: "wrong_target",
+          target_name: "wrong",
+          gesture: "click",
+          selected_label: null,
+          expected_label: null,
+        },
+        expected_label: "PBS bottle",
+        expected_gesture: "click",
+      },
+      {
+        rejection: {
+          reason_code: "wrong_value",
+          target_name: "micropipette",
+          gesture: "adjust",
+          selected_label: null,
+          expected_label: null,
+        },
+        expected_label: "P200 micropipette",
+        expected_gesture: "adjust",
+      },
+      {
+        rejection: {
+          reason_code: "out_of_order",
+          target_name: "wrong",
+          gesture: "click",
+          selected_label: null,
+          expected_label: null,
+        },
+        expected_label: null,
+        expected_gesture: null,
+      },
+    ];
+
+    for (const { rejection, expected_label, expected_gesture } of cases) {
+      const copy = recovery_copy(rejection, expected_label, expected_gesture);
+      const first_sentence = copy.split(/[.!?]/u, 1)[0] ?? "";
+      assert.match(
+        first_sentence,
+        /^(?:Target|Next|Use|Set|Enter|Move|Choose|Select|Complete|Try|Check)\b/i,
+        `recovery must lead with its next action: ${copy}`,
+      );
+      assert.doesNotMatch(first_sentence, /\b(?:not|wrong|doesn't|does not)\b/i);
+    }
+  });
+
   test("tells a typed-value learner to correct the entry", () => {
     const copy = recovery_copy({
       reason_code: "wrong_value",

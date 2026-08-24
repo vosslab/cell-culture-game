@@ -85,7 +85,7 @@ export function attach_click_resolver(root: HTMLElement, on_click: ClickCallback
     // Route the DOM read-back through the target adapter: it owns the DOM click
     // key name (TARGET_DOM_SELECTOR) and reads it back (placement_name_from_element),
     // so the click resolver has no hard-coded attribute string. The value read
-    // is the unique per-placement placement_name (M8 target identity), which is
+    // is the unique per-placement placement_name, which is
     // the same key the walker clicks and the step machine equality normalizes to.
     const element = target.closest(TARGET_DOM_SELECTOR);
     if (element instanceof Element) {
@@ -94,7 +94,7 @@ export function attach_click_resolver(root: HTMLElement, on_click: ClickCallback
         // The resolver always emits a bare "click"; the composition layer
         // (protocol_host.tsx) decides what that click counts as. It promotes a
         // bare click ONLY to `select`; a bare click never satisfies an
-        // `adjust`/`drag` interaction (TEMPORARY M2 guard, removed by M13).
+        // `adjust`/`drag` interaction.
         on_click(placementName, "click");
       }
     }

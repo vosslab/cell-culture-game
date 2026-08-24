@@ -29,6 +29,7 @@ import path from "node:path";
 import { test, expect } from "@playwright/test";
 
 import { REPO_ROOT } from "../repo_root.mjs";
+import { PROTOCOLS } from "../../../generated/protocols.js";
 import { discoverProtocolIds } from "./helper_protocol_discovery.mjs";
 import { runProtocolWalk } from "./helper_walker.mjs";
 
@@ -58,11 +59,16 @@ test.describe("walker sweep", () => {
   for (const protocol of PROTOCOL_IDS) {
     test(`walks ${protocol} to completion through visible UI`, async ({ page, baseURL }) => {
       expect(baseURL, "config must provide a baseURL (webServer)").toBeTruthy();
+      const authoredProtocol = PROTOCOLS[protocol];
+      if (authoredProtocol === undefined) {
+        throw new Error(`discovered protocol '${protocol}' is missing from generated/protocols.ts`);
+      }
 
       const outcome = await runProtocolWalk(page, {
         protocol,
         baseUrl: baseURL as string,
         resultsDir: resultsDirFor(protocol),
+        authoredProtocol,
       });
 
       // Honest acceptance: the protocol must complete through visible clicks.
@@ -104,12 +110,19 @@ test.describe("walker wrong-order negative", () => {
     baseURL,
   }) => {
     expect(baseURL, "config must provide a baseURL (webServer)").toBeTruthy();
+    const authoredProtocol = PROTOCOLS[WRONG_ORDER_PROTOCOL];
+    if (authoredProtocol === undefined) {
+      throw new Error(
+        `wrong-order protocol '${WRONG_ORDER_PROTOCOL}' is missing from generated data`,
+      );
+    }
 
     const outcome = await runProtocolWalk(page, {
       protocol: WRONG_ORDER_PROTOCOL,
       baseUrl: baseURL as string,
       wrongOrder: true,
       resultsDir: path.join(REPO_ROOT, "test-results", "walker", "wrong_order"),
+      authoredProtocol,
     });
 
     expect(

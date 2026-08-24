@@ -1,8 +1,8 @@
 // src/scene_runtime/protocol/target_adapter.ts
 //
-// The single protocol-target-to-DOM identity adapter (milestone M8).
+// The single protocol-target-to-DOM identity adapter.
 //
-// Identity contract (docs/archive/decisions/target_identity.md, M7):
+// Identity contract (docs/archive/decisions/target_identity.md):
 //   - placement_name is the DOM and target key. It is unique per placement
 //     within a scene, so it is the only key that stays unambiguous when a scene
 //     places the same object more than once.
@@ -13,7 +13,7 @@
 //     to exactly one object_name (for the state store / object library side).
 //
 // This module is the ONLY place that resolution happens. The step machine
-// (equality + state reads), the snapshot reducer (active_interaction_target),
+// (equality + state reads), the snapshot reducer (active interaction action),
 // and the click resolver (DOM read-back) all route through an adapter built
 // here from the current scene's placements. Building it per scene keeps the
 // resolution scene-scoped: the same authored target resolves against whatever
@@ -55,7 +55,7 @@ export const TARGET_DOM_ATTR = "data-item-id";
 // ".<subpart>" suffix, resolving only the prefix. has_target reports whether
 // the target's prefix (placement_name or object_name) is known to the
 // currently mounted scene at all -- the load-time target-existence invariant
-// (M16-D, target_existence_check.ts) is the sole consumer.
+// (target_existence_check.ts) is the sole consumer.
 export interface TargetAdapter {
   resolve_to_placement(target: string): string;
   resolve_to_object(target: string): string;

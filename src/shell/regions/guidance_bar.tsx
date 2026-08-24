@@ -4,35 +4,6 @@ import { Show } from "solid-js";
 import type { Gesture, LastRejection, ShellViewSnapshot } from "../adapter/types";
 import { AuthoredTip } from "./authored_tip.js";
 
-// Pair the gesture with the generated object label so the learner can connect
-// the action rail to the highlighted scene object without decoding a placement
-// identifier. Select deliberately omits the correct target label: every blue
-// candidate must remain an equal visual choice.
-export function gesture_instruction(
-  gesture: Gesture | null,
-  target_label: string | null,
-  requested_value: string | number | boolean | null = null,
-): string {
-  const label = target_label ?? "the highlighted lab item";
-  switch (gesture) {
-    case "adjust":
-      if (requested_value !== null) {
-        return `Set ${label} to ${String(requested_value)} using the control below.`;
-      }
-      return `Set the requested value for ${label} using the control below.`;
-    case "type":
-      return `Enter the requested value for ${label} in the field below.`;
-    case "select":
-      return "Choose from the blue outlined lab items.";
-    case "drag":
-      return `Move ${label} to the indicated destination.`;
-    case "click":
-      return `Click ${label}.`;
-    default:
-      return "Follow the highlighted next action in the scene.";
-  }
-}
-
 // Keep action-level progress separate from the guided-step counter: an ordered
 // sequence can have several concrete learner actions while still representing
 // one pedagogical step. Null prevents a stale ordinal from rendering during
@@ -56,33 +27,33 @@ export function recovery_copy(
   switch (rejection.reason_code) {
     case "wrong_target":
       if (expected_gesture === "select") {
-        return "That option is not correct. Compare the blue outlined lab items and try again.";
+        return "Compare the blue outlined lab items with the step goal, then choose the best match.";
       }
       if (expected_gesture === "adjust") {
-        return `That item is not needed yet. Set the requested value for ${highlighted} using the control below.`;
+        return `Use the control below to set the requested value for ${highlighted}.`;
       }
       if (expected_gesture === "type") {
-        return `That item is not needed yet. Enter the requested value for ${highlighted} in the field below.`;
+        return `Enter the requested value for ${highlighted} in the field below.`;
       }
       if (expected_gesture === "drag") {
-        return `That item is not needed yet. Move ${highlighted} to the indicated destination.`;
+        return `Move ${highlighted} to the indicated destination.`;
       }
       if (expected_label !== null) {
-        return `That item is not needed yet. Return to ${highlighted}, the highlighted item, and try again.`;
+        return `Select the highlighted item labeled ${highlighted}.`;
       }
-      return "That item is not needed yet. Return to the highlighted item and try again.";
+      return "Select the highlighted item to continue.";
     case "wrong_value":
       if (rejection.gesture === "type") {
-        return "That entry does not match this step. Check the prompt, correct the entry, and try again.";
+        return "Check the step goal, correct the entry, then commit it.";
       }
       if (rejection.gesture === "adjust") {
-        return "That value does not match this step. Check the prompt, adjust the value, and try again.";
+        return "Check the step goal, adjust the value, then commit it.";
       }
-      return "That value does not match this step. Check the prompt and try again.";
+      return "Check the step goal, then make the highlighted action again.";
     case "out_of_order":
-      return "That action is not available yet. Complete the highlighted action first.";
+      return "Complete the highlighted action first, then return to this action.";
     case "no_active_step":
-      return "This protocol is not accepting another action right now.";
+      return "Wait for the next lab action to appear.";
   }
 }
 
@@ -118,6 +89,8 @@ export function selection_recovery_details(
 
 export interface GuidanceBarProps {
   snapshot: Accessor<ShellViewSnapshot>;
+  action_hint_open: Accessor<boolean>;
+  on_action_hint_toggle(open: boolean): void;
 }
 
 function authored_incorrect_feedback(snapshot: ShellViewSnapshot): string | null {
@@ -160,33 +133,67 @@ export function GuidanceBar(props: GuidanceBarProps): JSXElement {
             <div
               class="action-rail"
               data-current-action=""
-              data-action-target={props.snapshot().active_interaction_target ?? undefined}
-              data-action-label={props.snapshot().active_interaction_label ?? undefined}
-              data-action-gesture={props.snapshot().active_interaction_gesture ?? undefined}
-              data-action-value={props.snapshot().active_interaction_value ?? undefined}
+              data-action-target={
+                props.snapshot().active_interaction?.action?.gesture === "select"
+                  ? undefined
+                  : (props.snapshot().active_interaction?.action?.placement_name ?? undefined)
+              }
+              data-action-label={
+                props.snapshot().active_interaction?.action?.gesture === "select"
+                  ? undefined
+                  : (props.snapshot().active_interaction?.action?.label ?? undefined)
+              }
+              data-action-gesture={
+                props.snapshot().active_interaction?.action?.gesture ?? undefined
+              }
+              data-action-value={
+                props.snapshot().active_interaction?.action?.requested_adjustment_value ?? undefined
+              }
             >
               <p class="protocol-kicker">Do this next</p>
-              <Show
-                when={action_progress_copy(
-                  props.snapshot().current_interaction_index,
-                  props.snapshot().current_interaction_count,
-                )}
+              <div
+                class="action-rail__instruction"
+                data-current-action-instruction=""
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
               >
-                {(progress_copy) => (
-                  <p class="action-rail-progress" data-current-action-progress="">
-                    {progress_copy()}
-                  </p>
-                )}
-              </Show>
-              <strong id="guidance-text" class="action-rail-prompt">
+                <Show
+                  when={action_progress_copy(
+                    props.snapshot().active_interaction?.index ?? -1,
+                    props.snapshot().active_interaction?.count ?? 0,
+                  )}
+                >
+                  {(progress_copy) => (
+                    <p class="action-rail-progress" data-current-action-progress="">
+                      {progress_copy()}
+                    </p>
+                  )}
+                </Show>
+                <Show
+                  when={
+                    props.snapshot().active_interaction?.action?.gesture === "select"
+                      ? null
+                      : (props.snapshot().active_interaction?.action ?? null)
+                  }
+                >
+                  {(action) => (
+                    <p class="action-rail__target" data-current-action-target-label="">
+                      <span>Target:</span> {action().label}
+                    </p>
+                  )}
+                </Show>
+                {/* ASVS 2.3.1: guidance reflects runtime-owned sequential
+                    progression and cannot advance it; JSX text stays escaped
+                    with no innerHTML. */}
+                <p id="guidance-text" class="action-rail__primary">
+                  {props.snapshot().active_interaction?.action?.instruction ??
+                    "Preparing your next lab action..."}
+                </p>
+              </div>
+              <p class="action-rail__goal" data-current-step-goal="">
+                <span class="action-rail__goal-label">Step goal:</span>{" "}
                 {props.snapshot().current_prompt ?? "Preparing your lab scene..."}
-              </strong>
-              <p class="action-rail-cue">
-                {gesture_instruction(
-                  props.snapshot().active_interaction_gesture,
-                  props.snapshot().active_interaction_label,
-                  props.snapshot().active_interaction_value,
-                )}
               </p>
               <Show when={props.snapshot().last_outcome?.resolution === "complete"}>
                 <p class="action-rail-acknowledgement" data-action-acknowledgement="">
@@ -213,8 +220,8 @@ export function GuidanceBar(props: GuidanceBarProps): JSXElement {
                           {authored_reason ??
                             recovery_copy(
                               rejection(),
-                              props.snapshot().active_interaction_label,
-                              props.snapshot().active_interaction_gesture,
+                              props.snapshot().active_interaction?.action?.label ?? null,
+                              props.snapshot().active_interaction?.action?.gesture ?? null,
                             )}
                         </p>
                       }
@@ -236,18 +243,39 @@ export function GuidanceBar(props: GuidanceBarProps): JSXElement {
                   );
                 }}
               </Show>
+              <details
+                class="action-rail__hint"
+                data-action-hint=""
+                open={props.action_hint_open()}
+                onToggle={(event) => props.on_action_hint_toggle(event.currentTarget.open)}
+              >
+                <summary>Need a hint?</summary>
+                <p data-action-hint-text="">
+                  {props.snapshot().active_interaction?.action?.hint ??
+                    "The next action will appear when the current lab process is ready."}
+                </p>
+              </details>
               <AuthoredTip snapshot={props.snapshot} />
             </div>
           }
         >
           {(wait) => (
-            <div class="action-rail action-rail--waiting" data-timed-wait-status="" role="status">
+            <div
+              class="action-rail action-rail--waiting"
+              data-timed-wait-status=""
+              role="status"
+              aria-atomic="true"
+            >
               <p class="protocol-kicker">Lab process running</p>
-              <strong id="guidance-text" class="action-rail-prompt">
+              <strong id="guidance-text" class="action-rail__wait-primary">
                 Waiting: {wait().display ?? "Timed lab process"}
               </strong>
-              <p class="action-rail-cue">
+              <p class="action-rail__wait-copy">
                 The next highlighted action will appear automatically when this finishes.
+              </p>
+              <p class="action-rail__wait-duration" data-timed-wait-duration="">
+                Simulated lab duration: {String(wait().duration_min)} minutes. This virtual lab
+                compresses the wait rather than showing a real-time countdown.
               </p>
             </div>
           )}

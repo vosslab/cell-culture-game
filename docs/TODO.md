@@ -19,7 +19,9 @@ Current follow-ups:
 - Reduce private-YAML snapshot assertions where the same learner-visible
   behavior is already protected by stepper and browser tests. Preserve exact
   quantities only when they are approved scientific invariants.
-- Rerun the optional SVG text-outline E2E with a working Inkscape installation.
+- Turn the
+  [SVG interface scope audit](active_plans/audits/svg_embedded_interface_scope.md)
+  into an approved migration plan before changing the object or protocol schema.
 
 ## On hold: scene runtime activation
 

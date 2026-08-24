@@ -118,6 +118,30 @@ export interface PendingTimedWait {
   readonly duration_min: number;
 }
 
+export type ActiveInteractionAvailability = "actionable" | "transition" | "timed_wait";
+
+// The runtime resolves an authored interaction into this adapter-normalized
+// action. The shell displays it, but never reconstructs it from protocol data.
+export interface ActiveInteractionAction {
+  readonly placement_name: string;
+  readonly label: string;
+  readonly gesture: Gesture;
+  // Only an explicit adjust set point is safe to disclose before validation.
+  readonly requested_adjustment_value: string | number | boolean | null;
+  readonly instruction: string;
+  readonly hint: string;
+}
+
+// One atomic learner-facing cursor. A non-actionable view deliberately retains
+// its cursor while response operations finish, preventing stale actions and
+// allowing a timed wait to resume at the authoritative protocol position.
+export interface ActiveInteractionView {
+  readonly index: number;
+  readonly count: number;
+  readonly availability: ActiveInteractionAvailability;
+  readonly action: ActiveInteractionAction | null;
+}
+
 // The single readonly object the shell components consume. Every Solid
 // signal in the shell maps to a property here.
 export interface ShellViewSnapshot {
@@ -126,11 +150,7 @@ export interface ShellViewSnapshot {
   readonly current_prompt: string | null;
   // Professor-tip for the current step. Null when the step has no tip or no step is active.
   readonly current_tip: string | null;
-  readonly current_interaction_index: number;
-  // Total ordered interactions in the active pedagogical step. This lets the
-  // learner-facing action rail distinguish action-level progress from the
-  // guided-step completion count.
-  readonly current_interaction_count: number;
+  readonly active_interaction: ActiveInteractionView | null;
   readonly progress: ProgressTuple;
   readonly last_outcome: LastOutcome | null;
   readonly last_rejection: LastRejection | null;
@@ -141,13 +161,6 @@ export interface ShellViewSnapshot {
   readonly tray: TrayState;
   readonly active_scene_name: string | null;
   readonly is_complete: boolean;
-  readonly active_interaction_target: string | null;
-  readonly active_interaction_label: string | null;
-  readonly active_interaction_gesture: Gesture | null;
-  // The one authored target_with_value value for an active adjust gesture.
-  // This is a learner-facing projection, never a validation backchannel:
-  // click, drag, select, and type interactions always expose null.
-  readonly active_interaction_value: string | number | boolean | null;
   readonly pending_timed_wait: PendingTimedWait | null;
 }
 
@@ -167,6 +180,27 @@ export interface ProtocolLoadedEvent {
 export interface ProtocolCompletedEvent {
   readonly kind: "protocol_completed";
   readonly protocol_name: string;
+}
+
+// A validated browser session resumed from the persisted checkpoint. The
+// runtime publishes the exact restored cursor so the shell and read-only
+// walker projection do not reconstruct progress from storage themselves.
+export interface SessionRestoredEvent {
+  readonly kind: "session_restored";
+  readonly step_name: string | null;
+  readonly prompt: string | null;
+  readonly interaction_index: number;
+  readonly interaction_count: number;
+  readonly completed_step_names: ReadonlyArray<string>;
+  readonly active_scene_name: string | null;
+  readonly is_complete: boolean;
+  readonly pending_timed_wait: PendingTimedWait | null;
+}
+
+// Emitted only after one accepted interaction (including any synchronous
+// response operations and step transition) reaches a stable checkpoint.
+export interface SessionCheckpointChangedEvent {
+  readonly kind: "session_checkpoint_changed";
 }
 
 // Step machine.
@@ -272,6 +306,8 @@ export interface TrayChangedEvent {
 export type ProtocolShellEvent =
   | ProtocolLoadedEvent
   | ProtocolCompletedEvent
+  | SessionRestoredEvent
+  | SessionCheckpointChangedEvent
   | StepStartedEvent
   | StepCompletedEvent
   | InteractionValidatedEvent
@@ -426,6 +462,10 @@ export interface InteractionResponse {
 export interface Interaction {
   readonly target: string;
   readonly gesture: Gesture;
+  // Every interaction owns its pre-action learner guidance. The generator and
+  // validator reject missing or blank values at the authored-content boundary.
+  readonly instruction: string;
+  readonly hint: string;
   readonly validator: ValidatorReference;
   readonly response: InteractionResponse;
 }

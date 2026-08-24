@@ -19,6 +19,8 @@ steps:
     sequence:
       - target: mini_protean_gel
         gesture: click
+        instruction: Open the Mini-PROTEAN gel package.
+        hint: Expose the cassette so it can be placed on the bench.
         validator:
           preset: correct_target
         response:
@@ -44,6 +46,8 @@ steps:
     sequence:
       - target: gel_cassette
         gesture: click
+        instruction: Remove the protective tape from the cassette bottom.
+        hint: Strip the tape before mounting the cassette in the electrode module.
         validator:
           preset: correct_target
         response:
@@ -68,6 +72,8 @@ steps:
     sequence:
       - target: gel_comb
         gesture: click
+        instruction: Pull the gel comb straight upward.
+        hint: Expose the wells without tilting or damaging the cassette.
         validator:
           preset: correct_target
         response:

@@ -221,19 +221,19 @@ describe("M2 integration - scenario 1: happy path", () => {
 
     let snap = emitter.get_snapshot();
     assert.strictEqual(snap.current_step_name, "s1");
-    assert.strictEqual(snap.current_interaction_index, 0);
+    assert.strictEqual(snap.active_interaction.index, 0);
     assert.strictEqual(snap.progress.completed_step_count, 0);
     assert.strictEqual(snap.progress.total_step_count, 2);
 
     machine.handle_click("t1", "click");
     snap = emitter.get_snapshot();
-    assert.strictEqual(snap.current_interaction_index, 1);
+    assert.strictEqual(snap.active_interaction.index, 1);
     assert.strictEqual(snap.progress.completed_step_count, 0);
 
     machine.handle_click("t2", "click");
     snap = emitter.get_snapshot();
     assert.strictEqual(snap.current_step_name, "s2");
-    assert.strictEqual(snap.current_interaction_index, 0);
+    assert.strictEqual(snap.active_interaction.index, 0);
     assert.strictEqual(snap.progress.completed_step_count, 1);
 
     machine.handle_click("t3", "click");
@@ -257,7 +257,7 @@ describe("M2 integration - scenario 2: wrong-target rejection", () => {
     const rejected = events.find((e) => e.kind === "interaction_rejected");
     assert.ok(rejected);
     assert.strictEqual(rejected.reason_code, "wrong_target");
-    assert.strictEqual(emitter.get_snapshot().current_interaction_index, 0);
+    assert.strictEqual(emitter.get_snapshot().active_interaction.index, 0);
 
     const validated_count = events.filter((e) => e.kind === "interaction_validated").length;
     assert.strictEqual(validated_count, 0);
@@ -276,7 +276,7 @@ describe("M2 integration - scenario 2: wrong-target rejection", () => {
     const validated = events.find((e) => e.kind === "interaction_validated");
     assert.ok(validated);
     assert.strictEqual(validated.interaction_index, 0);
-    assert.strictEqual(emitter.get_snapshot().current_interaction_index, 1);
+    assert.strictEqual(emitter.get_snapshot().active_interaction.index, 1);
   });
 
   test("clicking while protocol is complete emits no_active_step rejection", () => {
@@ -317,7 +317,7 @@ describe("M2 integration - scenario 3: retry on step validator failure", () => {
     assert.ok(re_entries.length >= 2, "step should re-enter after retry");
 
     const snap = emitter.get_snapshot();
-    assert.strictEqual(snap.current_interaction_index, 0);
+    assert.strictEqual(snap.active_interaction.index, 0);
     assert.strictEqual(snap.current_step_name, "s1");
   });
 
@@ -430,7 +430,7 @@ describe("M2 integration - scenario 5: select validation", () => {
     const rejected = events.find((e) => e.kind === "interaction_rejected");
     assert.ok(rejected);
     assert.strictEqual(rejected.reason_code, "wrong_target");
-    assert.strictEqual(emitter.get_snapshot().current_interaction_index, 0);
+    assert.strictEqual(emitter.get_snapshot().active_interaction.index, 0);
 
     const protocol_done = events.find((e) => e.kind === "protocol_completed");
     assert.ok(!protocol_done);

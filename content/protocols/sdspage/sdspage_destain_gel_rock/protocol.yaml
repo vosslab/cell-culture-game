@@ -26,6 +26,8 @@ steps:
     sequence:
       - target: rocking_shaker
         gesture: click
+        instruction: Open the rocking shaker workspace.
+        hint: Use this first click to bring the shaker controls into view.
         validator:
           preset: correct_target
         response:
@@ -34,6 +36,8 @@ steps:
               to_scene: sdspage_destain_gel_rock_workspace
       - target: rocking_shaker
         gesture: adjust
+        instruction: Set the rocking shaker timer to 10 minutes.
+        hint: Use the 10-minute interval to provide gentle agitation for destain penetration.
         validator:
           preset: target_with_value
           value:
@@ -46,6 +50,8 @@ steps:
                 set_time_min: 10
       - target: rocking_shaker
         gesture: click
+        instruction: Start the 10-minute rocking cycle.
+        hint: The timer is set; click the shaker again to begin gentle agitation.
         validator:
           preset: correct_target
         response:
@@ -70,11 +76,13 @@ steps:
     next_step: judge_destain_endpoint
   - step_name: judge_destain_endpoint
     prompt: >-
-      Select the visible conclusion supported by this simulated gel: its background is
-      clear and its bands are distinct after destaining.
+      Inspect the visible gel after rocking. Select the conclusion supported by the
+      background clarity and band separation.
     sequence:
       - target: destain_decision_ready
         gesture: select
+        instruction: Select the conclusion supported by the visible gel background and bands.
+        hint: Compare background clarity and band separation with the endpoint criteria before choosing.
         validator: { preset: correct_choice }
         response:
           scene_operations: []
@@ -93,12 +101,16 @@ steps:
     sequence:
       - target: staining_tray
         gesture: click
+        instruction: Inspect the destained gel in the staining tray.
+        hint: Confirm the background is clear and the bands are distinct before disposal.
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: destain_waste_bottle
         gesture: click
+        instruction: Transfer the used destain into the stain-waste bottle.
+        hint: Use the designated hazardous stain-waste route rather than recycling it.
         validator:
           preset: correct_target
         response:

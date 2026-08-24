@@ -32,6 +32,8 @@ steps:
     sequence:
       - target: staining_tray
         gesture: click
+        instruction: Open the staining-bench workspace with the gel tray.
+        hint: Keep the gel flat while preparing its water rinse.
         validator:
           preset: correct_target
         response:
@@ -40,6 +42,8 @@ steps:
               to_scene: sdspage_stain_gel_workspace
       - target: ddh2o_bottle
         gesture: click
+        instruction: Add water around the gel for the rinse.
+        hint: Pour around the flat gel rather than directly onto it.
         validator:
           preset: correct_target
         response:
@@ -56,6 +60,8 @@ steps:
                 material_volume: 500
       - target: waste_container
         gesture: click
+        instruction: Discard the water rinse in the waste container.
+        hint: Remove only the rinse and keep the gel flat in its tray.
         validator:
           preset: correct_target
         response:
@@ -81,6 +87,8 @@ steps:
     sequence:
       - target: coomassie_stain_bottle
         gesture: click
+        instruction: Pour Coomassie stain into the staining tray.
+        hint: Add enough solution to cover the gel by about 1.5 cm.
         validator:
           preset: correct_target
         response:
@@ -115,6 +123,8 @@ steps:
     sequence:
       - target: microwave
         gesture: click
+        instruction: Place the staining tray inside the microwave.
+        hint: Start by seating the covered tray before setting the timer.
         validator:
           preset: correct_target
         response:
@@ -125,6 +135,8 @@ steps:
                 set_time_s: 50
       - target: microwave
         gesture: click
+        instruction: Start the microwave heating cycle.
+        hint: The tray is loaded and the timer is set; begin the short heating interval.
         validator:
           preset: correct_target
         response:
@@ -135,6 +147,8 @@ steps:
                 running: true
       - target: microwave
         gesture: click
+        instruction: Wait for the 50-second stain-heating interval to finish.
+        hint: The heating cycle is running; wait for its fixed endpoint before rocking.
         validator:
           preset: correct_target
         response:
@@ -163,6 +177,8 @@ steps:
     sequence:
       - target: staining_tray
         gesture: click
+        instruction: Transfer the stained tray to the rocking shaker.
+        hint: Move the covered gel to the shaker before setting the rocking timer.
         validator:
           preset: correct_target
         response:
@@ -173,6 +189,8 @@ steps:
                 tray_present: true
       - target: rocking_shaker
         gesture: click
+        instruction: Set the rocking shaker to 7 minutes.
+        hint: The tray is in place; enter the fixed gentle-rocking duration.
         validator:
           preset: correct_target
         response:
@@ -183,6 +201,8 @@ steps:
                 set_time_min: 7
       - target: rocking_shaker
         gesture: click
+        instruction: Start gentle rocking.
+        hint: The timer is set; begin agitation at the configured speed.
         validator:
           preset: correct_target
         response:
@@ -193,6 +213,8 @@ steps:
                 running: true
       - target: rocking_shaker
         gesture: click
+        instruction: Wait for the 7-minute rocking cycle to finish.
+        hint: The shaker is running; let the timed incubation complete.
         validator:
           preset: correct_target
         response:
@@ -223,6 +245,8 @@ steps:
     sequence:
       - target: coomassie_recycle_bottle
         gesture: click
+        instruction: Recover the used Coomassie stain in its recycle bottle.
+        hint: Verify the fixed-course label, closed cap, and designated storage state.
         validator:
           preset: correct_target
         response:

@@ -28,6 +28,11 @@ export type { UniformRescaleResult } from "./vertical_layout.js";
 export { layoutLabels, resolveLabelCollisions } from "./layout_labels.js";
 export { clampSceneBounds } from "./clamp_scene_bounds.js";
 export { runPipeline } from "./run_pipeline.js";
+export {
+  assert_valid_scene_interaction_geometry,
+  derive_scene_interaction_geometry,
+  INTERACTION_HIT_CORE_PX,
+} from "./interaction_geometry.js";
 export { wrapLabel } from "./wrap_label.js";
 // verticalFootprintFor exported for the vertical-footprint unit test
 // (side-independence of the combined extent). VerticalFootprint type re-exported

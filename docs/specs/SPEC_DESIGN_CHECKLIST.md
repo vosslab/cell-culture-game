@@ -31,7 +31,12 @@ sweeps and spec edits obey these rules.
    - Step handle is `step_name`.
    - Object identity handle is `object_name` (instruments included; the object is the instrument).
    - Object state-field handle is `field_name`.
-     Ordinary prose may still use the English word "name"; the ban is only on YAML fields and schema field-name cells. `entry_step` and `next_step` reference a `step_name` value. Any "the name of X" schema wording becomes "the `X_name`" when X is a YAML handle.
+   Ordinary prose may still use the English word "name"; the ban is only on YAML fields and schema field-name cells. `entry_step` and `next_step` reference a `step_name` value. Any "the name of X" schema wording becomes "the `X_name`" when X is a YAML handle.
+9. Every protocol interaction requires non-empty plain-string `instruction` and
+   `hint` guidance. The pair is authored per interaction, remains distinct for
+   repeated exact `(target, gesture)` substeps, and stays answer-safe before
+   select or type attempts. Runtime gesture defaults and generic fallbacks are
+   not authoring vocabulary; the shell renders the runtime projection only.
 
 ### Object identity
 

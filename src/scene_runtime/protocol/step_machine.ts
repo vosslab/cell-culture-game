@@ -20,6 +20,7 @@
 // - src/scene_runtime/protocol/validators.ts (validator dispatch)
 
 import type {
+  ActiveInteractionView,
   Gesture,
   InteractionRejectReason,
   InteractionValidatorPreset,
@@ -75,9 +76,13 @@ import {
 // Target-identity adapter seam. The step machine names the resolver shape
 // but never builds it: the construction layer (protocol_host.tsx) supplies a
 // scene-scoped adapter, so authored targets normalize to the unique DOM
-// placement_name (equality, active_interaction_target) and back to the object
+// placement_name (equality, active_interaction.action.placement_name) and back to the object
 // store key (state reads). IDENTITY_TARGET_ADAPTER is the adapter-less default.
 import { IDENTITY_TARGET_ADAPTER, type TargetAdapter } from "./target_adapter";
+import {
+  actionable_active_interaction_view,
+  unavailable_active_interaction_view,
+} from "./active_interaction_view";
 
 //============================================
 // Public types
@@ -86,8 +91,31 @@ import { IDENTITY_TARGET_ADAPTER, type TargetAdapter } from "./target_adapter";
 // SceneOpHandler re-exported from its canonical home (scene_operations.ts).
 export type { SceneOpHandler };
 
+export interface PendingTimedWaitCheckpoint {
+  readonly step_name: string;
+  readonly interaction_index: number;
+  readonly target: string;
+  readonly next_operation_index: number;
+}
+
+interface PendingTimedWaitState extends PendingTimedWaitCheckpoint {
+  readonly operations: ReadonlyArray<SceneOperation>;
+}
+
+// Serializable domain checkpoint. The save-file boundary validates this shape
+// again before handing it back to the step machine.
+export interface StepMachineCheckpoint {
+  readonly active_step_name: string | null;
+  readonly interaction_index: number;
+  readonly completed_step_names: ReadonlyArray<string>;
+  readonly current_scene: string | null;
+  readonly is_complete: boolean;
+  readonly pending_timed_wait: PendingTimedWaitCheckpoint | null;
+}
+
 export interface StepMachineHandle {
   start(): void;
+  get_checkpoint(): StepMachineCheckpoint;
   handle_click(target: string, gesture: Gesture): void;
   handle_modal_close(committed: boolean, choice_id: string | null): void;
   handle_timer_elapsed(equipment_name: string): void;
@@ -124,6 +152,91 @@ export interface StepMachineHandle {
   handle_drag_commit(target: string, destination_placement: string): boolean;
 }
 
+function reachable_step_names(config: ProtocolConfig): string[] {
+  const steps_by_name = new Map<string, ProtocolStep>();
+  for (const step of config.steps ?? []) {
+    steps_by_name.set(step.step_name, step);
+  }
+  const names: string[] = [];
+  const seen = new Set<string>();
+  let cursor: string | null = config.entry_step;
+  while (cursor !== null && !seen.has(cursor)) {
+    const step = steps_by_name.get(cursor);
+    if (step === undefined) {
+      throw new Error(`Unknown reachable step_name in protocol: ${cursor}`);
+    }
+    seen.add(cursor);
+    names.push(cursor);
+    cursor = step.next_step;
+  }
+  return names;
+}
+
+export function validate_step_machine_checkpoint(
+  config: ProtocolConfig,
+  checkpoint: StepMachineCheckpoint,
+): void {
+  const steps_by_name = new Map<string, ProtocolStep>();
+  for (const step of config.steps ?? []) {
+    steps_by_name.set(step.step_name, step);
+  }
+  const ordered_step_names = reachable_step_names(config);
+  const unique_completed = new Set(checkpoint.completed_step_names);
+  if (unique_completed.size !== checkpoint.completed_step_names.length) {
+    throw new Error("step_machine: restored completed_step_names contains duplicates");
+  }
+  if (checkpoint.is_complete) {
+    const exact_completion =
+      checkpoint.active_step_name === null &&
+      checkpoint.interaction_index === 0 &&
+      checkpoint.pending_timed_wait === null &&
+      checkpoint.completed_step_names.length === ordered_step_names.length &&
+      checkpoint.completed_step_names.every((name, index) => name === ordered_step_names[index]);
+    if (!exact_completion) {
+      throw new Error("step_machine: completed restore checkpoint does not match protocol flow");
+    }
+    return;
+  }
+  const active_name = checkpoint.active_step_name;
+  if (active_name === null) {
+    throw new Error("step_machine: incomplete restore checkpoint has no active step");
+  }
+  const active_position = ordered_step_names.indexOf(active_name);
+  const active_step = steps_by_name.get(active_name);
+  if (active_position < 0 || active_step === undefined) {
+    throw new Error(`step_machine: restored active step "${active_name}" is not reachable`);
+  }
+  const exact_prefix =
+    checkpoint.completed_step_names.length === active_position &&
+    checkpoint.completed_step_names.every((name, index) => name === ordered_step_names[index]);
+  if (!exact_prefix) {
+    throw new Error("step_machine: restored completed steps are not the active step prefix");
+  }
+  if (
+    !Number.isSafeInteger(checkpoint.interaction_index) ||
+    checkpoint.interaction_index < 0 ||
+    checkpoint.interaction_index >= active_step.sequence.length
+  ) {
+    throw new Error("step_machine: restored interaction index is outside the active step");
+  }
+  const pending = checkpoint.pending_timed_wait;
+  if (pending === null) {
+    return;
+  }
+  const interaction = active_step.sequence[checkpoint.interaction_index];
+  const operations = interaction?.response.scene_operations;
+  const wait_operation = operations?.[pending.next_operation_index - 1];
+  if (
+    pending.step_name !== active_name ||
+    pending.interaction_index !== checkpoint.interaction_index ||
+    pending.next_operation_index < 1 ||
+    wait_operation?.type !== "TimedWait" ||
+    wait_operation.target !== pending.target
+  ) {
+    throw new Error("step_machine: restored timed wait does not match the active response");
+  }
+}
+
 //============================================
 // Snapshot reducer (exported for emitter wiring)
 //============================================
@@ -136,8 +249,7 @@ export function initial_snapshot(protocol_name: string): ShellViewSnapshot {
     current_prompt: null,
     // No step is active yet; tip is null until step_started fires.
     current_tip: null,
-    current_interaction_index: 0,
-    current_interaction_count: 0,
+    active_interaction: null,
     progress: { completed_step_count: 0, total_step_count: 0 },
     last_outcome: null,
     last_rejection: null,
@@ -154,65 +266,33 @@ export function initial_snapshot(protocol_name: string): ShellViewSnapshot {
     tray: { items: [] },
     active_scene_name: null,
     is_complete: false,
-    active_interaction_target: null,
-    active_interaction_label: null,
-    active_interaction_gesture: null,
-    active_interaction_value: null,
     pending_timed_wait: null,
   };
   return snapshot;
-}
-
-// Helper to look up the current interaction's target and gesture
-// from the config, given the step name and interaction index.
-type ActiveInteraction = {
-  target: string | null;
-  gesture: Gesture | null;
-  value: string | number | boolean | null;
-};
-
-// Only numeric adjustment controls get the requested authored value. Type
-// answers and select choices deliberately remain undisclosed, and the shell
-// receives a presentation value rather than any validator API.
-function get_requested_adjustment_value(
-  interaction: Interaction,
-): string | number | boolean | null {
-  if (interaction.gesture !== "adjust" || interaction.validator.preset !== "target_with_value") {
-    return null;
-  }
-  const values = Object.values(interaction.validator.value ?? {});
-  if (values.length !== 1) {
-    return null;
-  }
-  return values[0] ?? null;
 }
 
 function get_active_interaction(
   config: ProtocolConfig,
   step_name: string | null,
   index: number,
-): ActiveInteraction {
+): Interaction | null {
   if (!step_name) {
-    return { target: null, gesture: null, value: null };
+    return null;
   }
   // sequence_runner protocols have no steps list; this helper is mini_protocol only.
   const steps = config.steps ?? [];
   const step = steps.find((s) => s.step_name === step_name);
   if (!step) {
-    return { target: null, gesture: null, value: null };
+    return null;
   }
   if (index < 0 || index >= step.sequence.length) {
-    return { target: null, gesture: null, value: null };
+    return null;
   }
   const interaction = step.sequence[index];
   if (!interaction) {
-    return { target: null, gesture: null, value: null };
+    return null;
   }
-  return {
-    target: interaction.target,
-    gesture: interaction.gesture,
-    value: get_requested_adjustment_value(interaction),
-  };
+  return interaction;
 }
 
 // Pure reducer mapping each ProtocolShellEvent to the next snapshot.
@@ -221,7 +301,7 @@ function get_active_interaction(
 //
 // resolve_target_to_placement normalizes the active interaction's authored
 // target to the unique DOM placement_name before it enters the snapshot, so
-// every consumer of active_interaction_target -- the walker's activeTarget
+// every consumer of active_interaction.action.placement_name -- the walker's activeTarget
 // projection, the select-promotion equality in protocol_host, and the scene
 // item's affordance highlight -- sees the same placement_name the DOM stamps as
 // data-item-id. Optional and defaulting to identity: pure unit tests and the
@@ -232,21 +312,19 @@ function create_snapshot_reducer(
   resolve_target_to_placement: (target: string) => string = (target) => target,
   resolve_target_label: (target: string) => string = (target) => target,
 ): SnapshotReducer {
-  // Resolve an active target to its placement_name, passing through null.
-  function to_active_placement(target: string | null): string | null {
-    if (target === null) {
-      return null;
-    }
-    return resolve_target_to_placement(target);
-  }
-  // Resolve an authored target to the object library's learner-facing label,
-  // passing through null. The host supplies the generated-label resolver;
-  // adapter-less unit tests use the identity default.
-  function to_active_label(target: string | null): string | null {
-    if (target === null) {
-      return null;
-    }
-    return resolve_target_label(target);
+  const resolvers = {
+    to_placement: resolve_target_to_placement,
+    to_label: resolve_target_label,
+  };
+  function resolve_view(
+    step_name: string | null,
+    index: number,
+    count: number,
+  ): ActiveInteractionView {
+    const interaction = get_active_interaction(config, step_name, index);
+    return interaction === null
+      ? unavailable_active_interaction_view(index, count, "transition")
+      : actionable_active_interaction_view(index, count, interaction, resolvers);
   }
   return (prev, event) => {
     switch (event.kind) {
@@ -259,19 +337,51 @@ function create_snapshot_reducer(
             total_step_count: event.total_step_count,
           },
           is_complete: false,
-          current_interaction_count: 0,
+          active_interaction: null,
           last_rejection: null,
           last_interaction_feedback: null,
-          active_interaction_target: null,
-          active_interaction_label: null,
-          active_interaction_gesture: null,
-          active_interaction_value: null,
           pending_timed_wait: null,
         };
         return next;
       }
+      case "session_restored": {
+        const restored_step =
+          event.step_name === null
+            ? null
+            : (config.steps ?? []).find((step) => step.step_name === event.step_name);
+        const restored_tip = restored_step?.tip ?? null;
+        const restored_view = event.is_complete
+          ? null
+          : event.pending_timed_wait === null
+            ? resolve_view(event.step_name, event.interaction_index, event.interaction_count)
+            : unavailable_active_interaction_view(
+                event.interaction_index + 1,
+                event.interaction_count,
+                "timed_wait",
+              );
+        const next: ShellViewSnapshot = {
+          ...prev,
+          current_step_name: event.step_name,
+          current_prompt: event.prompt,
+          current_tip: restored_tip,
+          active_interaction: restored_view,
+          progress: {
+            completed_step_count: event.completed_step_names.length,
+            total_step_count: prev.progress.total_step_count,
+          },
+          last_outcome: null,
+          last_rejection: null,
+          last_interaction_feedback: null,
+          pending_validator_kind: null,
+          active_scene_name: event.active_scene_name,
+          is_complete: event.is_complete,
+          pending_timed_wait: event.pending_timed_wait,
+        };
+        return next;
+      }
+      case "session_checkpoint_changed":
+        return prev;
       case "step_started": {
-        const active = get_active_interaction(config, event.step_name, 0);
         // Resolve the step's tip from config; null when absent.
         // sequence_runner protocols have no steps list; this path is mini_protocol only.
         const steps = config.steps ?? [];
@@ -282,45 +392,36 @@ function create_snapshot_reducer(
           current_step_name: event.step_name,
           current_prompt: event.prompt,
           current_tip: step_tip,
-          current_interaction_index: 0,
-          current_interaction_count: event.interaction_count,
+          active_interaction: resolve_view(event.step_name, 0, event.interaction_count),
           // A completed-step acknowledgement is useful only during the
           // transition itself. Once the next step becomes actionable, leave
           // the student with one unambiguous next action rather than a stale
           // success message from the preceding step.
           last_outcome: null,
           last_rejection: null,
-          active_interaction_target: to_active_placement(active.target),
-          active_interaction_label: to_active_label(active.target),
-          active_interaction_gesture: active.gesture,
-          active_interaction_value: active.value,
           pending_timed_wait: null,
         };
         return next;
       }
       case "interaction_validated": {
         const next_index = event.interaction_index + 1;
-        const active = get_active_interaction(config, event.step_name, next_index);
+        const count = prev.active_interaction?.count ?? next_index;
         const next: ShellViewSnapshot = {
           ...prev,
-          current_interaction_index: next_index,
+          active_interaction: resolve_view(event.step_name, next_index, count),
           pending_validator_kind: event.validator_preset,
           last_rejection: null,
           last_interaction_feedback:
             event.feedback === null || event.feedback === undefined
               ? null
               : { kind: "correct", message: event.feedback },
-          active_interaction_target: to_active_placement(active.target),
-          active_interaction_label: to_active_label(active.target),
-          active_interaction_gesture: active.gesture,
-          active_interaction_value: active.value,
         };
         return next;
       }
       case "interaction_rejected": {
         const active = get_active_interaction(config, event.step_name, event.interaction_index);
         const is_rejected_choice =
-          event.reason_code === "wrong_target" && active.gesture === "select";
+          event.reason_code === "wrong_target" && active?.gesture === "select";
         const next: ShellViewSnapshot = {
           ...prev,
           pending_validator_kind: event.validator_preset,
@@ -328,8 +429,9 @@ function create_snapshot_reducer(
             reason_code: event.reason_code,
             target_name: event.target_name,
             gesture: event.gesture,
-            selected_label: is_rejected_choice ? to_active_label(event.target_name) : null,
-            expected_label: is_rejected_choice ? to_active_label(active.target) : null,
+            selected_label: is_rejected_choice ? resolve_target_label(event.target_name) : null,
+            expected_label:
+              is_rejected_choice && active ? resolve_target_label(active.target) : null,
           },
           last_interaction_feedback:
             event.feedback === null || event.feedback === undefined
@@ -351,12 +453,7 @@ function create_snapshot_reducer(
             resolution: event.resolution,
             retry_count: 0,
           },
-          current_interaction_index: 0,
-          current_interaction_count: 0,
-          active_interaction_target: null,
-          active_interaction_label: null,
-          active_interaction_gesture: null,
-          active_interaction_value: null,
+          active_interaction: null,
           pending_timed_wait: null,
         };
         return next;
@@ -367,13 +464,9 @@ function create_snapshot_reducer(
           current_step_name: null,
           current_prompt: null,
           current_tip: null,
-          current_interaction_count: 0,
+          active_interaction: null,
           last_rejection: null,
           is_complete: true,
-          active_interaction_target: null,
-          active_interaction_label: null,
-          active_interaction_gesture: null,
-          active_interaction_value: null,
           pending_timed_wait: null,
         };
         return next;
@@ -381,7 +474,7 @@ function create_snapshot_reducer(
       case "scene_changed": {
         // Re-resolve the active interaction's target against the newly-mounted
         // scene. A same-step SceneChange (authored in an interaction response)
-        // swaps the live scene adapter; the active_interaction_target computed by
+        // swaps the live scene adapter; the active interaction action computed by
         // the preceding interaction_validated (or step_started) event was resolved
         // against the OLD scene's adapter and is now stale. By the time this event
         // fires, the scene-op handler has already rebound the adapter, so re-running
@@ -395,18 +488,14 @@ function create_snapshot_reducer(
         // boundary) also emits scene_changed, but the step_started that immediately
         // follows recomputes these fields for the new step, so this recompute is a
         // harmless transient there and the authoritative fix for a mid-step change.
-        const active = get_active_interaction(
-          config,
-          prev.current_step_name,
-          prev.current_interaction_index,
-        );
+        const active = prev.active_interaction;
         const next: ShellViewSnapshot = {
           ...prev,
           active_scene_name: event.to_scene,
-          active_interaction_target: to_active_placement(active.target),
-          active_interaction_label: to_active_label(active.target),
-          active_interaction_gesture: active.gesture,
-          active_interaction_value: active.value,
+          active_interaction:
+            active?.availability === "actionable"
+              ? resolve_view(prev.current_step_name, active.index, active.count)
+              : active,
         };
         return next;
       }
@@ -416,10 +505,14 @@ function create_snapshot_reducer(
       case "timed_wait_started": {
         const next: ShellViewSnapshot = {
           ...prev,
-          active_interaction_target: null,
-          active_interaction_label: null,
-          active_interaction_gesture: null,
-          active_interaction_value: null,
+          active_interaction:
+            prev.active_interaction === null
+              ? null
+              : unavailable_active_interaction_view(
+                  prev.active_interaction.index,
+                  prev.active_interaction.count,
+                  "timed_wait",
+                ),
           pending_timed_wait: {
             target_name: event.target_name,
             display: event.display,
@@ -429,17 +522,13 @@ function create_snapshot_reducer(
         return next;
       }
       case "timed_wait_elapsed": {
-        const active = get_active_interaction(
-          config,
-          prev.current_step_name,
-          prev.current_interaction_index,
-        );
+        const active = prev.active_interaction;
         const next: ShellViewSnapshot = {
           ...prev,
-          active_interaction_target: to_active_placement(active.target),
-          active_interaction_label: to_active_label(active.target),
-          active_interaction_gesture: active.gesture,
-          active_interaction_value: active.value,
+          active_interaction:
+            active === null
+              ? null
+              : resolve_view(prev.current_step_name, active.index, active.count),
           pending_timed_wait: null,
         };
         return next;
@@ -501,7 +590,7 @@ function create_snapshot_reducer(
 }
 
 // Export a default reducer for use in tests or contexts without config access.
-// This version cannot populate active_interaction_* fields, so those remain null.
+// This version has no active interaction until a step-start event is reduced.
 // For full functionality, use create_snapshot_reducer with config.
 const default_snapshot_reducer: SnapshotReducer = create_snapshot_reducer({
   protocol_name: "",
@@ -751,6 +840,9 @@ export interface StepMachineOptions {
   // sequence_runner mini-protocol boundaries (each mini's flattened entry step
   // declares its resolved entry scene; entering it renders that scene).
   initial_scene?: string;
+  // Optional validated browser-session checkpoint. The machine checks it
+  // against the current reachable flow before any event or scene operation.
+  restore_checkpoint?: StepMachineCheckpoint;
 }
 
 // Read-only observed object-state reader. See StepMachineOptions.read_object_state.
@@ -855,26 +947,46 @@ export function create_step_machine(
   // store instead of the authored expected values.
   const read_object_state: ObjectStateReader = options.read_object_state;
 
+  const ordered_step_names = reachable_step_names(config);
+
+  const restore_checkpoint = options.restore_checkpoint ?? null;
+  if (restore_checkpoint !== null) {
+    validate_step_machine_checkpoint(config, restore_checkpoint);
+  }
+
   // Mutable machine state.
-  let active_step_name: string | null = null;
-  let interaction_index = 0;
+  let active_step_name: string | null = restore_checkpoint?.active_step_name ?? null;
+  let interaction_index = restore_checkpoint?.interaction_index ?? 0;
   let started = false;
-  let completed = false;
+  let completed = restore_checkpoint?.is_complete ?? false;
+  const completed_step_names = new Set<string>(restore_checkpoint?.completed_step_names ?? []);
   // A validated interaction pauses at its first TimedWait operation. Operations
   // after the wait remain queued so authored response order is preserved; the
   // timer callback resumes from next_operation_index without validating the
   // interaction a second time.
-  let pending_timed_wait: {
-    readonly step_name: string;
-    readonly interaction_index: number;
-    readonly target: string;
-    readonly operations: ReadonlyArray<SceneOperation>;
-    readonly next_operation_index: number;
-  } | null = null;
+  let pending_timed_wait: PendingTimedWaitState | null = ((): PendingTimedWaitState | null => {
+    const pending = restore_checkpoint?.pending_timed_wait;
+    if (pending === null || pending === undefined) {
+      return null;
+    }
+    const step = steps_by_name.get(pending.step_name);
+    const interaction = step?.sequence[pending.interaction_index];
+    if (interaction === undefined) {
+      throw new Error("step_machine: restored timed wait interaction is missing");
+    }
+    return {
+      step_name: pending.step_name,
+      interaction_index: pending.interaction_index,
+      target: pending.target,
+      operations: interaction.response.scene_operations,
+      next_operation_index: pending.next_operation_index,
+    };
+  })();
   // Current rendered scene, tracked so the step-entry scene render fires only on
   // an actual change. Seeded from the initially-mounted scene and updated by both
   // the step-entry render and every authored SceneChange scene_operation.
-  let current_scene: string | null = options.initial_scene ?? null;
+  let current_scene: string | null =
+    restore_checkpoint?.current_scene ?? options.initial_scene ?? null;
 
   function current_step(): ProtocolStep | null {
     if (active_step_name === null) {
@@ -1020,6 +1132,7 @@ export function create_step_machine(
       object_state_snapshot,
     );
     if (passed) {
+      completed_step_names.add(step.step_name);
       const completed_event: ProtocolShellEvent = {
         kind: "step_completed",
         step_name: step.step_name,
@@ -1104,9 +1217,11 @@ export function create_step_machine(
     // Apply scene operations for the validated interaction.
     if (interaction) {
       apply_response_scene_ops_from(step, interaction.response.scene_operations, 0);
-      return;
+    } else {
+      finish_validated_interaction(step);
     }
-    finish_validated_interaction(step);
+    const checkpoint_changed: ProtocolShellEvent = { kind: "session_checkpoint_changed" };
+    emitter.emit(checkpoint_changed);
   }
 
   //============================================
@@ -1126,7 +1241,61 @@ export function create_step_machine(
       total_step_count: total,
     };
     emitter.emit(loaded);
+    if (restore_checkpoint !== null) {
+      const restored_step =
+        restore_checkpoint.active_step_name === null
+          ? null
+          : (steps_by_name.get(restore_checkpoint.active_step_name) ?? null);
+      const pending = pending_timed_wait;
+      let pending_view = null;
+      if (pending !== null) {
+        const wait_operation = pending.operations[pending.next_operation_index - 1];
+        if (wait_operation === undefined || wait_operation.type !== "TimedWait") {
+          throw new Error("step_machine: restored timed wait operation is missing");
+        }
+        scene_op_handler(wait_operation);
+        pending_view = {
+          target_name: wait_operation.target,
+          display: wait_operation.display ?? null,
+          duration_min: wait_operation.duration_min,
+        };
+      }
+      const restored_event: ProtocolShellEvent = {
+        kind: "session_restored",
+        step_name: restore_checkpoint.active_step_name,
+        prompt: restored_step?.prompt ?? null,
+        interaction_index: restore_checkpoint.interaction_index,
+        interaction_count: restored_step?.sequence.length ?? 0,
+        completed_step_names: restore_checkpoint.completed_step_names,
+        active_scene_name: current_scene,
+        is_complete: restore_checkpoint.is_complete,
+        pending_timed_wait: pending_view,
+      };
+      emitter.emit(restored_event);
+      return;
+    }
     enter_step(config.entry_step);
+  }
+
+  function get_checkpoint(): StepMachineCheckpoint {
+    const pending =
+      pending_timed_wait === null
+        ? null
+        : {
+            step_name: pending_timed_wait.step_name,
+            interaction_index: pending_timed_wait.interaction_index,
+            target: pending_timed_wait.target,
+            next_operation_index: pending_timed_wait.next_operation_index,
+          };
+    const completed_names = ordered_step_names.filter((name) => completed_step_names.has(name));
+    return {
+      active_step_name,
+      interaction_index: completed ? 0 : interaction_index,
+      completed_step_names: completed_names,
+      current_scene,
+      is_complete: completed,
+      pending_timed_wait: pending,
+    };
   }
 
   function handle_click(target: string, gesture: Gesture): void {
@@ -1350,6 +1519,8 @@ export function create_step_machine(
     };
     emitter.emit(wait_elapsed);
     apply_response_scene_ops_from(step, pending.operations, pending.next_operation_index);
+    const checkpoint_changed: ProtocolShellEvent = { kind: "session_checkpoint_changed" };
+    emitter.emit(checkpoint_changed);
   }
 
   function handle_type_commit(target: string, typed_text: string): boolean {
@@ -1378,7 +1549,7 @@ export function create_step_machine(
     const preset = narrow_interaction_preset(interaction.validator.preset);
     // A type commit only applies to the active `type` interaction on its target.
     // The committed `target` is the type-input's active target, sourced from the
-    // snapshot's active_interaction_target, which is now the adapter-resolved
+    // snapshot's active interaction placement_name, which is adapter-resolved
     // placement_name. Normalize BOTH sides to placement_name so the authored
     // interaction.target (a semantic/object name) matches it.
     const resolved_type_interaction_target = target_adapter.resolve_to_placement(
@@ -1462,7 +1633,7 @@ export function create_step_machine(
     const preset = narrow_interaction_preset(interaction.validator.preset);
     // A set-point commit only applies to the active `adjust` interaction on its
     // target. The committed `target` is the set-point editor's active target,
-    // sourced from the snapshot's active_interaction_target (the adapter-resolved
+    // sourced from the snapshot's active interaction placement_name (the adapter-resolved
     // placement_name. Normalize BOTH sides to placement_name so the authored
     // interaction.target (a semantic/object name) matches it, mirroring
     // handle_type_commit.
@@ -1611,6 +1782,7 @@ export function create_step_machine(
 
   const handle: StepMachineHandle = {
     start,
+    get_checkpoint,
     handle_click,
     handle_modal_close,
     handle_timer_elapsed,

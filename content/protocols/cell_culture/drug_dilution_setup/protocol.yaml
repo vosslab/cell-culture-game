@@ -37,6 +37,8 @@ steps:
     sequence:
       - target: calculation_40_ul
         gesture: select
+        instruction: "Choose the calculation card that matches the C1V1 = C2V2 master-stock volume."
+        hint: "Compare the visible 10 mM stock, 400 microM target, and 1.00 mL final volume with each card before choosing."
         validator: { preset: correct_choice }
         response:
           scene_operations:
@@ -50,6 +52,8 @@ steps:
             incorrect: "Use C1V1 = C2V2 with 10 mM, 400 &micro;M, and 1000 &micro;L; record the master-stock volume."
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the p200 micropipette for the parent-stock transfer."
+        hint: "Use the tip box before touching the carboplatin stock tube for this parent-stock transfer; keep the transfer sterile."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -61,6 +65,8 @@ steps:
             incorrect: "Select a sterile P200 tip before entering the carboplatin stock tube."
       - target: p200_micropipette
         gesture: adjust
+        instruction: "Set the p200 micropipette to 40 microL for the carboplatin master-stock transfer."
+        hint: "This set point matches the calculated stock volume and keeps the transfer within the P200's accurate working range."
         validator: { preset: target_with_value, value: { set_volume: 40 } }
         response:
           scene_operations:
@@ -69,6 +75,8 @@ steps:
               state: { set_volume: 40 }
       - target: carboplatin_stock_tube
         gesture: click
+        instruction: "Draw 40 microL of carboplatin master stock from the stock tube."
+        hint: "Use the calculated master-stock volume before transferring into the labeled intermediate tube."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -83,6 +91,8 @@ steps:
             incorrect: "Load the calculated master-stock volume from the carboplatin tube."
       - target: microtube_15ml_intermediate
         gesture: click
+        instruction: "Use the microtube 15ml intermediate for repeated action 1."
+        hint: "Complete repeated action 1 on the microtube 15ml intermediate before continuing."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -94,6 +104,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the p1000 micropipette for the media transfer."
+        hint: "Use the tip box before touching the media bottle for this media transfer; keep the transfer sterile."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -105,6 +117,8 @@ steps:
             incorrect: "Select a new sterile P1000 tip for the media complement."
       - target: p1000_micropipette
         gesture: adjust
+        instruction: "Set the p1000 micropipette to 960 microL for the sterile-media complement."
+        hint: "The 960 microL set point supplies the volume needed to bring the 40 microL stock transfer to a 1.00 mL parent preparation."
         validator: { preset: target_with_value, value: { set_volume: 960 } }
         response:
           scene_operations:
@@ -116,6 +130,8 @@ steps:
             incorrect: "Use a fresh P1000 tip for the 960 &micro;L media transfer."
       - target: media_bottle
         gesture: click
+        instruction: "Draw 960 microL of media from the bottle."
+        hint: "Use the measured media load for the receiving tube, flask, or reservoir in the next action."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -127,6 +143,8 @@ steps:
               state: { held_material_name: media, held_material_volume: 960 }
       - target: microtube_15ml_intermediate
         gesture: click
+        instruction: "Use the microtube 15ml intermediate for repeated action 2."
+        hint: "Complete repeated action 2 on the microtube 15ml intermediate before continuing."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -138,6 +156,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
       - target: vortex
         gesture: click
+        instruction: "Start vortex mixing for vortexing."
+        hint: "Keep the tube on the vortexer until the timed mixing step completes."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -162,6 +182,8 @@ steps:
     sequence:
       - target: calculation_500_ul
         gesture: select
+        instruction: "Choose the calculation card that matches the parent-stock volume for this working dilution."
+        hint: "Use the visible 400 microM parent, 200 microM target, and 1.00 mL final volume to compare the cards."
         validator: { preset: correct_choice }
         response:
           scene_operations:
@@ -175,6 +197,8 @@ steps:
             incorrect: "Calculate V1 from 400 &micro;M x V1 = 200 &micro;M x 1000 &micro;L."
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the p1000 micropipette for the media transfer for the microtube 15ml intermediate."
+        hint: "Use the tip box before touching the microtube 15ml intermediate for this media transfer; keep the transfer sterile."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -186,6 +210,8 @@ steps:
             incorrect: "Select a sterile P1000 tip before entering the carboplatin parent tube."
       - target: p1000_micropipette
         gesture: adjust
+        instruction: "Set the p1000 micropipette to 500 microL for the parent-stock transfer."
+        hint: "Use this set point for the microtube 15ml intermediate during this parent-stock transfer; keep the selected value unchanged."
         validator: { preset: target_with_value, value: { set_volume: 500 } }
         response:
           scene_operations:
@@ -194,6 +220,8 @@ steps:
               state: { set_volume: 500 }
       - target: microtube_15ml_intermediate
         gesture: click
+        instruction: "Draw 500 microL of carboplatin 400umol from the microtube 15ml intermediate."
+        hint: "Use the microtube 15ml intermediate as the source, then carry this measured load to dilution tube rack 8."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -205,6 +233,8 @@ steps:
               state: { held_material_name: carboplatin_400umol, held_material_volume: 500 }
       - target: dilution_tube_rack_8
         gesture: click
+        instruction: "Deliver 500 microL of carboplatin 400 microM into tube G."
+        hint: "Place the loaded pipette over tube G; this addition advances the dilution series for this 500 microL addition."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -216,6 +246,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the p1000 micropipette for the media transfer for the media bottle."
+        hint: "Use the tip box before touching the media bottle for this media transfer; keep the transfer sterile."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -227,6 +259,8 @@ steps:
             incorrect: "Select a new sterile P1000 tip for the media complement."
       - target: p1000_micropipette
         gesture: adjust
+        instruction: "Set the p1000 micropipette to 500 microL for the sterile media transfer."
+        hint: "Use this set point for the media bottle during this sterile media transfer; keep the selected value unchanged."
         validator: { preset: target_with_value, value: { set_volume: 500 } }
         response:
           scene_operations:
@@ -238,6 +272,8 @@ steps:
             incorrect: "Set a fresh P1000 tip to the calculated media volume."
       - target: media_bottle
         gesture: click
+        instruction: "Draw 500 microL of media from the bottle."
+        hint: "Use the measured media load for the receiving tube, flask, or reservoir in the next action."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -249,6 +285,8 @@ steps:
               state: { held_material_name: media, held_material_volume: 500 }
       - target: dilution_tube_rack_8
         gesture: click
+        instruction: "Deliver 1000 microL of carboplatin 200 microM into tube G."
+        hint: "Place the loaded pipette over tube G; this addition advances the dilution series for this 1000 microL addition."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -275,6 +313,8 @@ steps:
     sequence:
       - target: calculation_200_ul
         gesture: select
+        instruction: "Choose the calculation card that matches the parent-stock volume for the 80 microM preparation."
+        hint: "Compare the displayed 400 microM parent, 80 microM target, and 1.00 mL final volume with the visible choices."
         validator: { preset: correct_choice }
         response:
           scene_operations:
@@ -288,12 +328,16 @@ steps:
             incorrect: "Calculate V1 for 400 &micro;M parent stock diluted to 80 &micro;M in 1000 &micro;L."
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the p200 micropipette for the parent-stock transfer for the microtube 15ml intermediate (substep 1 of 2)."
+        hint: "Use the tip box before touching the microtube 15ml intermediate for this parent-stock transfer; keep the transfer sterile for the microtube 15ml intermediate (substep 1 of 2)."
         validator: { preset: correct_target }
         response:
           scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }]
           feedback: { correct: "Fit a fresh P200 tip before drawing parent stock for tube F.", incorrect: "Select a new P200 tip before entering the parent-stock tube." }
       - target: p200_micropipette
         gesture: adjust
+        instruction: "Set the p200 micropipette to 200 microL for the parent-stock transfer."
+        hint: "Use this set point for the microtube 15ml intermediate during this parent-stock transfer; keep the selected value unchanged for the 200 microL set point."
         validator: { preset: target_with_value, value: { set_volume: 200 } }
         response:
           scene_operations:
@@ -302,6 +346,8 @@ steps:
               state: { set_volume: 200 }
       - target: microtube_15ml_intermediate
         gesture: click
+        instruction: "Draw 200 microL of carboplatin 400 microM for dilution tube rack 8 tube F."
+        hint: "Use the microtube 15ml intermediate as the source, then transfer this measured load to dilution tube rack 8 tube F."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -313,6 +359,8 @@ steps:
               state: { held_material_name: carboplatin_400umol, held_material_volume: 200 }
       - target: dilution_tube_rack_8
         gesture: click
+        instruction: "Deliver 200 microL of carboplatin 400 microM into tube F."
+        hint: "Place the loaded pipette over tube F; this addition advances the dilution series for this 200 microL addition."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -324,12 +372,16 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the p1000 micropipette for the media transfer for the media bottle (substep 1 of 2)."
+        hint: "Use the tip box before touching the media bottle for this media transfer; keep the transfer sterile for the media bottle (substep 1 of 2)."
         validator: { preset: correct_target }
         response:
           scene_operations: [{ type: ObjectStateChange, target: p1000_micropipette, state: { tip_status: fresh } }]
           feedback: { correct: "Fit a fresh P1000 tip before drawing media for tube F.", incorrect: "Select a new P1000 tip before entering sterile media." }
       - target: p1000_micropipette
         gesture: adjust
+        instruction: "Set the p1000 micropipette to 800 microL for the sterile media transfer."
+        hint: "Use this set point for the media bottle during this sterile media transfer; keep the selected value unchanged for the 800 microL set point."
         validator: { preset: target_with_value, value: { set_volume: 800 } }
         response:
           scene_operations:
@@ -341,6 +393,8 @@ steps:
             incorrect: "Use a fresh P1000 tip for the 800 &micro;L media complement."
       - target: media_bottle
         gesture: click
+        instruction: "Draw 800 microL of media for dilution tube rack 8 tube F."
+        hint: "Use the media bottle as the source, then deliver this load into dilution tube rack 8 tube F."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -352,6 +406,8 @@ steps:
               state: { held_material_name: media, held_material_volume: 800 }
       - target: dilution_tube_rack_8
         gesture: click
+        instruction: "Deliver 1000 microL of carboplatin 80 microM into tube F."
+        hint: "Place the loaded pipette over tube F; this addition advances the dilution series for this 1000 microL addition."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -363,12 +419,16 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the p200 micropipette for the parent-stock transfer for the microtube 15ml intermediate (substep 2 of 2)."
+        hint: "Use the tip box before touching the microtube 15ml intermediate for this parent-stock transfer; keep the transfer sterile for the microtube 15ml intermediate (substep 2 of 2)."
         validator: { preset: correct_target }
         response:
           scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }]
           feedback: { correct: "Fit a fresh P200 tip before drawing parent stock for tube E.", incorrect: "Select a new P200 tip before entering the parent-stock tube." }
       - target: p200_micropipette
         gesture: adjust
+        instruction: "Set the p200 micropipette to 100 microL for the parent-stock transfer."
+        hint: "Use this set point for the microtube 15ml intermediate during this parent-stock transfer; keep the selected value unchanged for the 100 microL set point."
         validator: { preset: target_with_value, value: { set_volume: 100 } }
         response:
           scene_operations:
@@ -377,6 +437,8 @@ steps:
               state: { set_volume: 100 }
       - target: microtube_15ml_intermediate
         gesture: click
+        instruction: "Draw 100 microL of carboplatin 400 microM for dilution tube rack 8 tube E."
+        hint: "Use the microtube 15ml intermediate as the source, then transfer this measured load to dilution tube rack 8 tube E."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -388,6 +450,8 @@ steps:
               state: { held_material_name: carboplatin_400umol, held_material_volume: 100 }
       - target: dilution_tube_rack_8
         gesture: click
+        instruction: "Deliver 100 microL of carboplatin 400 microM into tube E."
+        hint: "Place the loaded pipette over tube E; this addition advances the dilution series for this 100 microL addition."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -399,12 +463,16 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the p1000 micropipette for the media transfer for the media bottle (substep 2 of 2)."
+        hint: "Use the tip box before touching the media bottle for this media transfer; keep the transfer sterile for the media bottle (substep 2 of 2)."
         validator: { preset: correct_target }
         response:
           scene_operations: [{ type: ObjectStateChange, target: p1000_micropipette, state: { tip_status: fresh } }]
           feedback: { correct: "Fit a fresh P1000 tip before drawing media for tube E.", incorrect: "Select a new P1000 tip before entering sterile media." }
       - target: p1000_micropipette
         gesture: adjust
+        instruction: "Set the p1000 micropipette to 900 microL for the sterile media transfer."
+        hint: "Use this set point for the media bottle during this sterile media transfer; keep the selected value unchanged for the 900 microL set point."
         validator: { preset: target_with_value, value: { set_volume: 900 } }
         response:
           scene_operations:
@@ -413,6 +481,8 @@ steps:
               state: { set_volume: 900 }
       - target: media_bottle
         gesture: click
+        instruction: "Draw 900 microL of media for dilution tube rack 8 tube E."
+        hint: "Use the media bottle as the source, then deliver this load into dilution tube rack 8 tube E."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -424,6 +494,8 @@ steps:
               state: { held_material_name: media, held_material_volume: 900 }
       - target: dilution_tube_rack_8
         gesture: click
+        instruction: "Deliver 1000 microL of carboplatin 40 microM into tube E."
+        hint: "Place the loaded pipette over tube E; this addition advances the dilution series for this 1000 microL addition."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -450,6 +522,8 @@ steps:
     sequence:
       - target: calculation_50_ul
         gesture: select
+        instruction: "Choose the calculation card that matches the first low-series parent-stock volume."
+        hint: "Use C1V1 = C2V2 with the visible 400 microM parent, 20 microM target, and 1.00 mL final volume."
         validator: { preset: correct_choice }
         response:
           scene_operations:
@@ -463,12 +537,16 @@ steps:
             incorrect: "Calculate the parent-stock volume for 20 &micro;M in a 1000 &micro;L final volume."
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the p200 micropipette for the parent-stock transfer."
+        hint: "Use the tip box before touching the microtube 15ml intermediate for this parent-stock transfer; keep the transfer sterile."
         validator: { preset: correct_target }
         response:
           scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }]
           feedback: { correct: "Fit a fresh P200 tip before drawing parent stock for tube D.", incorrect: "Select a new P200 tip before entering the parent-stock tube." }
       - target: p200_micropipette
         gesture: adjust
+        instruction: "Set the p200 micropipette to 50 microL for the first low-series parent-stock transfer."
+        hint: "This set point matches the calculated volume for the 20 microM tube and stays within the P200's accurate range."
         validator: { preset: target_with_value, value: { set_volume: 50 } }
         response:
           scene_operations:
@@ -477,6 +555,8 @@ steps:
               state: { set_volume: 50 }
       - target: microtube_15ml_intermediate
         gesture: click
+        instruction: "Draw 50 microL of carboplatin 400 microM for dilution tube rack 8 tube D."
+        hint: "Use the microtube 15ml intermediate as the source, then transfer this measured load to dilution tube rack 8 tube D."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -488,6 +568,8 @@ steps:
               state: { held_material_name: carboplatin_400umol, held_material_volume: 50 }
       - target: dilution_tube_rack_8
         gesture: click
+        instruction: "Deliver 50 microL of carboplatin 400 microM into tube D."
+        hint: "Place the loaded pipette over tube D; this addition advances the dilution series for this 50 microL addition."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -499,12 +581,16 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the p1000 micropipette for the media transfer for the media bottle (substep 1 of 3)."
+        hint: "Use the tip box before touching the media bottle for this media transfer; keep the transfer sterile for the media bottle (substep 1 of 3)."
         validator: { preset: correct_target }
         response:
           scene_operations: [{ type: ObjectStateChange, target: p1000_micropipette, state: { tip_status: fresh } }]
           feedback: { correct: "Fit a fresh P1000 tip before drawing media for tube D.", incorrect: "Select a new P1000 tip before entering sterile media." }
       - target: p1000_micropipette
         gesture: adjust
+        instruction: "Set the p1000 micropipette to 950 microL for the sterile media transfer."
+        hint: "Use this set point for the media bottle during this sterile media transfer; keep the selected value unchanged for the 950 microL set point."
         validator: { preset: target_with_value, value: { set_volume: 950 } }
         response:
           scene_operations:
@@ -513,6 +599,8 @@ steps:
               state: { set_volume: 950 }
       - target: media_bottle
         gesture: click
+        instruction: "Draw 950 microL of media for dilution tube rack 8 tube D."
+        hint: "Use the media bottle as the source, then deliver this load into dilution tube rack 8 tube D."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -524,6 +612,8 @@ steps:
               state: { held_material_name: media, held_material_volume: 950 }
       - target: dilution_tube_rack_8
         gesture: click
+        instruction: "Deliver 1000 microL of carboplatin 20 microM into tube D."
+        hint: "Place the loaded pipette over tube D; this addition advances the dilution series for this 1000 microL addition."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -535,12 +625,16 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the p20 micropipette for the media transfer for the microtube 15ml intermediate (substep 1 of 2)."
+        hint: "Use the tip box before touching the microtube 15ml intermediate for this media transfer; keep the transfer sterile for the microtube 15ml intermediate (substep 1 of 2)."
         validator: { preset: correct_target }
         response:
           scene_operations: [{ type: ObjectStateChange, target: p20_micropipette, state: { tip_status: fresh } }]
           feedback: { correct: "Fit a fresh P20 tip before drawing parent stock for tube C.", incorrect: "Select a new P20 tip before entering the parent-stock tube." }
       - target: p20_micropipette
         gesture: adjust
+        instruction: "Set the p20 micropipette to 20 microL for the parent-stock transfer."
+        hint: "Use this set point for the microtube 15ml intermediate during this parent-stock transfer; keep the selected value unchanged for the 20 microL set point."
         validator: { preset: target_with_value, value: { set_volume: 20 } }
         response:
           scene_operations:
@@ -552,6 +646,8 @@ steps:
             incorrect: "Use the P20 for the 20 &micro;L transfer."
       - target: microtube_15ml_intermediate
         gesture: click
+        instruction: "Draw 20 microL of carboplatin 400 microM for dilution tube rack 8 tube C."
+        hint: "Use the microtube 15ml intermediate as the source, then transfer this measured load to dilution tube rack 8 tube C."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -563,6 +659,8 @@ steps:
               state: { held_material_name: carboplatin_400umol, held_material_volume: 20 }
       - target: dilution_tube_rack_8
         gesture: click
+        instruction: "Deliver 20 microL of carboplatin 400 microM into tube C."
+        hint: "Place the loaded pipette over tube C; this addition advances the dilution series for this 20 microL addition."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -574,12 +672,16 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the p1000 micropipette for the media transfer for the media bottle (substep 2 of 3)."
+        hint: "Use the tip box before touching the media bottle for this media transfer; keep the transfer sterile for the media bottle (substep 2 of 3)."
         validator: { preset: correct_target }
         response:
           scene_operations: [{ type: ObjectStateChange, target: p1000_micropipette, state: { tip_status: fresh } }]
           feedback: { correct: "Fit a fresh P1000 tip before drawing media for tube C.", incorrect: "Select a new P1000 tip before entering sterile media." }
       - target: p1000_micropipette
         gesture: adjust
+        instruction: "Set the p1000 micropipette to 980 microL for the sterile media transfer."
+        hint: "Use this set point for the media bottle during this sterile media transfer; keep the selected value unchanged for the 980 microL set point."
         validator: { preset: target_with_value, value: { set_volume: 980 } }
         response:
           scene_operations:
@@ -588,6 +690,8 @@ steps:
               state: { set_volume: 980 }
       - target: media_bottle
         gesture: click
+        instruction: "Draw 980 microL of media for dilution tube rack 8 tube C."
+        hint: "Use the media bottle as the source, then deliver this load into dilution tube rack 8 tube C."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -599,6 +703,8 @@ steps:
               state: { held_material_name: media, held_material_volume: 980 }
       - target: dilution_tube_rack_8
         gesture: click
+        instruction: "Deliver 1000 microL of carboplatin 8 microM into tube C."
+        hint: "Place the loaded pipette over tube C; this addition advances the dilution series for this 1000 microL addition."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -610,12 +716,16 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the p20 micropipette for the media transfer for the microtube 15ml intermediate (substep 2 of 2)."
+        hint: "Use the tip box before touching the microtube 15ml intermediate for this media transfer; keep the transfer sterile for the microtube 15ml intermediate (substep 2 of 2)."
         validator: { preset: correct_target }
         response:
           scene_operations: [{ type: ObjectStateChange, target: p20_micropipette, state: { tip_status: fresh } }]
           feedback: { correct: "Fit a fresh P20 tip before drawing parent stock for tube B.", incorrect: "Select a new P20 tip before entering the parent-stock tube." }
       - target: p20_micropipette
         gesture: adjust
+        instruction: "Set the p20 micropipette to 10 microL for the parent-stock transfer."
+        hint: "Use this set point for the microtube 15ml intermediate during this parent-stock transfer; keep the selected value unchanged for the 10 microL set point."
         validator: { preset: target_with_value, value: { set_volume: 10 } }
         response:
           scene_operations:
@@ -624,6 +734,8 @@ steps:
               state: { set_volume: 10 }
       - target: microtube_15ml_intermediate
         gesture: click
+        instruction: "Draw 10 microL of carboplatin 400 microM for dilution tube rack 8 tube B."
+        hint: "Use the microtube 15ml intermediate as the source, then transfer this measured load to dilution tube rack 8 tube B."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -635,6 +747,8 @@ steps:
               state: { held_material_name: carboplatin_400umol, held_material_volume: 10 }
       - target: dilution_tube_rack_8
         gesture: click
+        instruction: "Deliver 10 microL of carboplatin 400 microM into tube B."
+        hint: "Place the loaded pipette over tube B; this addition advances the dilution series for this 10 microL addition."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -646,12 +760,16 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the p1000 micropipette for the media transfer for the media bottle (substep 3 of 3)."
+        hint: "Use the tip box before touching the media bottle for this media transfer; keep the transfer sterile for the media bottle (substep 3 of 3)."
         validator: { preset: correct_target }
         response:
           scene_operations: [{ type: ObjectStateChange, target: p1000_micropipette, state: { tip_status: fresh } }]
           feedback: { correct: "Fit a fresh P1000 tip before drawing media for tube B.", incorrect: "Select a new P1000 tip before entering sterile media." }
       - target: p1000_micropipette
         gesture: adjust
+        instruction: "Set the p1000 micropipette to 990 microL for the sterile media transfer."
+        hint: "Use this set point for the media bottle during this sterile media transfer; keep the selected value unchanged for the 990 microL set point."
         validator: { preset: target_with_value, value: { set_volume: 990 } }
         response:
           scene_operations:
@@ -660,6 +778,8 @@ steps:
               state: { set_volume: 990 }
       - target: media_bottle
         gesture: click
+        instruction: "Draw 990 microL of media for dilution tube rack 8 tube B."
+        hint: "Use the media bottle as the source, then deliver this load into dilution tube rack 8 tube B."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -671,6 +791,8 @@ steps:
               state: { held_material_name: media, held_material_volume: 990 }
       - target: dilution_tube_rack_8
         gesture: click
+        instruction: "Deliver 1000 microL of carboplatin 4 microM into tube B."
+        hint: "Place the loaded pipette over tube B; this addition advances the dilution series for this 1000 microL addition."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -701,6 +823,8 @@ steps:
     sequence:
       - target: calculation_60_ul
         gesture: select
+        instruction: "Choose the calculation card that matches the metformin master-stock volume."
+        hint: "Compare the visible 1 M stock, 200 mM target, and 300 microL final volume with the card values."
         validator: { preset: correct_choice }
         response:
           scene_operations:
@@ -714,12 +838,16 @@ steps:
             incorrect: "Use C1V1 = C2V2 with 1 M, 200 mM, and a 300 &micro;L final volume."
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the p200 micropipette for the parent-stock transfer."
+        hint: "Use the tip box before touching the metformin stock tube for this parent-stock transfer; keep the transfer sterile."
         validator: { preset: correct_target }
         response:
           scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }]
           feedback: { correct: "Fit a fresh P200 tip before drawing 1 M metformin.", incorrect: "Select a new P200 tip before entering the metformin master-stock tube." }
       - target: p200_micropipette
         gesture: adjust
+        instruction: "Set the p200 micropipette to 60 microL for the metformin master-stock transfer."
+        hint: "The 60 microL set point is the calculated stock volume needed to prepare the 300 microL working stock."
         validator: { preset: target_with_value, value: { set_volume: 60 } }
         response:
           scene_operations:
@@ -728,6 +856,8 @@ steps:
               state: { set_volume: 60 }
       - target: metformin_stock_tube
         gesture: click
+        instruction: "Draw 60 microL of metformin master stock from the stock tube."
+        hint: "Use the calculated master-stock volume before adding sterile media to the working tube."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -739,6 +869,8 @@ steps:
               state: { held_material_name: metformin_1mol, held_material_volume: 60 }
       - target: metformin_working_tube
         gesture: click
+        instruction: "Use the metformin working tube for repeated action 1."
+        hint: "Complete repeated action 1 on the metformin working tube before continuing."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -750,12 +882,16 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the p1000 micropipette for the media transfer."
+        hint: "Use the tip box before touching the media bottle for this media transfer; keep the transfer sterile."
         validator: { preset: correct_target }
         response:
           scene_operations: [{ type: ObjectStateChange, target: p1000_micropipette, state: { tip_status: fresh } }]
           feedback: { correct: "Fit a fresh P1000 tip before drawing sterile media.", incorrect: "Select a new P1000 tip before entering sterile media." }
       - target: p1000_micropipette
         gesture: adjust
+        instruction: "Set the p1000 micropipette to 240 microL for the sterile-media complement."
+        hint: "Adding 240 microL media to the 60 microL master stock reaches the 300 microL endpoint needed for dosing and dead volume."
         validator: { preset: target_with_value, value: { set_volume: 240 } }
         response:
           scene_operations:
@@ -767,6 +903,8 @@ steps:
             incorrect: "Use a fresh P1000 tip set to 240 &micro;L for the media complement."
       - target: media_bottle
         gesture: click
+        instruction: "Draw 240 microL of media from the bottle."
+        hint: "Use the measured media load for the receiving tube, flask, or reservoir in the next action."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -778,6 +916,8 @@ steps:
               state: { held_material_name: media, held_material_volume: 240 }
       - target: metformin_working_tube
         gesture: click
+        instruction: "Use the metformin working tube for repeated action 2."
+        hint: "Complete repeated action 2 on the metformin working tube before continuing."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -789,6 +929,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0, tip_status: used }
       - target: vortex
         gesture: click
+        instruction: "Start vortex mixing for vortexing."
+        hint: "Keep the tube on the vortexer until the timed mixing step completes."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -812,6 +954,8 @@ steps:
     sequence:
       - target: volume_decision_sufficient
         gesture: select
+        instruction: "Choose the decision card supported by the visible tube volume and the stated dosing requirement."
+        hint: "Check whether the readable endpoint covers all 48 doses and the stated dead-volume allowance before selecting."
         validator: { preset: correct_choice }
         response:
           scene_operations: []

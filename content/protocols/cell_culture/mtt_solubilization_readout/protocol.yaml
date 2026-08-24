@@ -53,6 +53,8 @@ steps:
     sequence:
       - target: multichannel_pipette
         gesture: click
+        instruction: "Attach the multichannel pipette for the next transfer."
+        hint: "Use the attached tool to perform the following source draw or dispense."
         validator:
           preset: correct_target
         response:
@@ -61,6 +63,8 @@ steps:
               to_scene: mtt_solubilization_readout_bench_workspace
       - target: multichannel_pipette
         gesture: adjust
+        instruction: "Set the multichannel pipette to 200 microL per channel for DMSO addition."
+        hint: "The 200 microL set point fills each well with enough DMSO to dissolve the formazan before absorbance measurement."
         validator:
           preset: target_with_value
           value:
@@ -73,6 +77,8 @@ steps:
                 set_volume: 200
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the multichannel pipette."
+        hint: "Use the fresh tip before touching the next source or receiving vessel."
         validator:
           preset: correct_target
         response:
@@ -86,6 +92,8 @@ steps:
             incorrect: "Use the visible tip box to fit fresh multichannel tips before handling DMSO."
       - target: dmso_tube
         gesture: click
+        instruction: "Transfer 19.2 mL of dmso into the reagent reservoir."
+        hint: "Move the prepared solution from this tube into the reservoir before loading the multichannel pipette."
         validator:
           preset: correct_target
         response:
@@ -102,6 +110,8 @@ steps:
                 material_volume: 19.2
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 200 microL of dmso for plate column 1."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 1."
         validator:
           preset: correct_target
         response:
@@ -117,6 +127,8 @@ steps:
                 held_material_volume: 200
       - target: well_plate_96.col_1
         gesture: click
+        instruction: "Dispense 200 microL of DMSO into plate column 1."
+        hint: "Use the DMSO load to cover column 1 evenly and dissolve its formazan."
         validator:
           preset: correct_target
         response:
@@ -133,6 +145,8 @@ steps:
                 held_material_volume: 0
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 200 microL of dmso for plate column 2."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 2."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -144,6 +158,8 @@ steps:
               state: { held_material_name: dmso, held_material_volume: 200 }
       - target: well_plate_96.col_2
         gesture: click
+        instruction: "Dispense 200 microL of DMSO into plate column 2."
+        hint: "Use the DMSO load to cover column 2 evenly and dissolve its formazan."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -155,6 +171,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 200 microL of dmso for plate column 3."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 3."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -166,6 +184,8 @@ steps:
               state: { held_material_name: dmso, held_material_volume: 200 }
       - target: well_plate_96.col_3
         gesture: click
+        instruction: "Dispense 200 microL of DMSO into plate column 3."
+        hint: "Use the DMSO load to cover column 3 evenly and dissolve its formazan."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -177,6 +197,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 200 microL of dmso for plate column 4."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 4."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -188,6 +210,8 @@ steps:
               state: { held_material_name: dmso, held_material_volume: 200 }
       - target: well_plate_96.col_4
         gesture: click
+        instruction: "Dispense 200 microL of DMSO into plate column 4."
+        hint: "Use the DMSO load to cover column 4 evenly and dissolve its formazan."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -199,6 +223,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 200 microL of dmso for plate column 5."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 5."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -210,6 +236,8 @@ steps:
               state: { held_material_name: dmso, held_material_volume: 200 }
       - target: well_plate_96.col_5
         gesture: click
+        instruction: "Dispense 200 microL of DMSO into plate column 5."
+        hint: "Use the DMSO load to cover column 5 evenly and dissolve its formazan."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -221,6 +249,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 200 microL of dmso for plate column 6."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 6."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -232,6 +262,8 @@ steps:
               state: { held_material_name: dmso, held_material_volume: 200 }
       - target: well_plate_96.col_6
         gesture: click
+        instruction: "Dispense 200 microL of DMSO into plate column 6."
+        hint: "Use the DMSO load to cover column 6 evenly and dissolve its formazan."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -243,6 +275,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 200 microL of dmso for plate column 7."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 7."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -254,6 +288,8 @@ steps:
               state: { held_material_name: dmso, held_material_volume: 200 }
       - target: well_plate_96.col_7
         gesture: click
+        instruction: "Dispense 200 microL of DMSO into plate column 7."
+        hint: "Use the DMSO load to cover column 7 evenly and dissolve its formazan."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -265,6 +301,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 200 microL of dmso for plate column 8."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 8."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -276,6 +314,8 @@ steps:
               state: { held_material_name: dmso, held_material_volume: 200 }
       - target: well_plate_96.col_8
         gesture: click
+        instruction: "Dispense 200 microL of DMSO into plate column 8."
+        hint: "Use the DMSO load to cover column 8 evenly and dissolve its formazan."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -287,6 +327,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 200 microL of dmso for plate column 9."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 9."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -298,6 +340,8 @@ steps:
               state: { held_material_name: dmso, held_material_volume: 200 }
       - target: well_plate_96.col_9
         gesture: click
+        instruction: "Dispense 200 microL of DMSO into plate column 9."
+        hint: "Use the DMSO load to cover column 9 evenly and dissolve its formazan."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -309,6 +353,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 200 microL of dmso for plate column 10."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 10."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -320,6 +366,8 @@ steps:
               state: { held_material_name: dmso, held_material_volume: 200 }
       - target: well_plate_96.col_10
         gesture: click
+        instruction: "Dispense 200 microL of DMSO into plate column 10."
+        hint: "Use the DMSO load to cover column 10 evenly and dissolve its formazan."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -331,6 +379,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 200 microL of dmso for plate column 11."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 11."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -342,6 +392,8 @@ steps:
               state: { held_material_name: dmso, held_material_volume: 200 }
       - target: well_plate_96.col_11
         gesture: click
+        instruction: "Dispense 200 microL of DMSO into plate column 11."
+        hint: "Use the DMSO load to cover column 11 evenly and dissolve its formazan."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -353,6 +405,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 200 microL of dmso for plate column 12."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 12."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -364,6 +418,8 @@ steps:
               state: { held_material_name: dmso, held_material_volume: 200 }
       - target: well_plate_96.col_12
         gesture: click
+        instruction: "Dispense 200 microL of DMSO into plate column 12."
+        hint: "Use the DMSO load to cover column 12 evenly and dissolve its formazan."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -410,12 +466,16 @@ steps:
     sequence:
       - target: multichannel_pipette
         gesture: click
+        instruction: "Attach the multichannel pipette for the next transfer."
+        hint: "Use the attached tool to perform the following source draw or dispense."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: well_plate_96.all_wells
         gesture: click
+        instruction: "Pipette across all wells to dissolve the formazan."
+        hint: "Move the multichannel pipette through every well so the DMSO dissolves the precipitate uniformly."
         validator:
           preset: correct_target
         response:
@@ -446,6 +506,8 @@ steps:
     sequence:
       - target: plate_reader
         gesture: click
+        instruction: "Open the plate-reader workspace for the loaded assay plate."
+        hint: "The reader workspace is where you load the plate before taking its absorbance reading."
         validator:
           preset: correct_target
         response:
@@ -454,6 +516,8 @@ steps:
               to_scene: mtt_solubilization_readout_plate_reader_workspace
       - target: plate_reader
         gesture: adjust
+        instruction: "Set the plate reader wavelength to 560 nm for the absorbance measurement."
+        hint: "Use 560 nm so the reader records the formazan signal after DMSO has dissolved the crystals."
         validator:
           preset: target_with_value
           value:
@@ -466,6 +530,8 @@ steps:
                 wavelength_nm: 560
       - target: well_plate_96
         gesture: click
+        instruction: "Move the plate into the plate-reader workspace."
+        hint: "Carry the dissolved plate to the reader so absorbance can be measured."
         validator:
           preset: correct_target
         response:
@@ -476,6 +542,8 @@ steps:
                 reading: true
       - target: plate_reader
         gesture: click
+        instruction: "Take the 560 nm absorbance reading."
+        hint: "The plate is loaded; start the reader to reveal the simulated result panel."
         validator:
           preset: correct_target
         response:
@@ -506,6 +574,8 @@ steps:
     sequence:
       - target: mtt_conclusion_dose_response
         gesture: select
+        instruction: "Choose the conclusion card supported by the visible blank-corrected control and treatment series."
+        hint: "Compare treatment values with the untreated-control reference and follow the displayed dose-response trend."
         validator:
           preset: correct_choice
         response:

@@ -28,7 +28,8 @@ function createFixtureSnapshot() {
     protocol_name: "test_protocol",
     current_step_name: null,
     current_prompt: null,
-    current_interaction_index: 0,
+    active_interaction: null,
+    current_tip: null,
     progress: {
       completed_step_count: 0,
       total_step_count: 3,
@@ -51,6 +52,7 @@ function createFixtureSnapshot() {
     },
     active_scene_name: null,
     is_complete: false,
+    pending_timed_wait: null,
   };
 }
 

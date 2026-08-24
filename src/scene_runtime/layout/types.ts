@@ -344,6 +344,41 @@ export interface ComputedItem extends ScaledPlacement {
   _clamped?: boolean;
 }
 
+// Build-time interaction geometry is deliberately separate from the visual
+// box. The visual box remains the layout engine's scientific-art geometry;
+// this companion record describes the transparent learner hit envelope that
+// the renderer may place around a clickable top-level placement.
+export interface InteractionEnvelopeGeometry {
+  placement_name: string;
+  center_x_percent: number;
+  center_y_percent: number;
+  visual_width_percent: number;
+  visual_height_percent: number;
+}
+
+export interface MinimumInteractionFrame {
+  hit_core_px: number;
+  width_px: number;
+  height_px: number;
+}
+
+export interface InteractionGeometryIssue {
+  kind: "no_valid_frame";
+  placements: string[];
+}
+
+export type SceneInteractionGeometry =
+  | {
+      valid: true;
+      minimum_frame: MinimumInteractionFrame;
+      envelopes: Record<string, InteractionEnvelopeGeometry>;
+    }
+  | {
+      valid: false;
+      envelopes: Record<string, InteractionEnvelopeGeometry>;
+      issues: InteractionGeometryIssue[];
+    };
+
 // One depth tier inside a computed zone band, produced by the reflow-zones stage.
 // A tier is the set of items in a zone sharing the same depth_tier; the horizontal
 // stage already spread them side-by-side, so a tier renders as one vertical ROW.
@@ -474,6 +509,10 @@ export interface PipelineResult {
   identityDiagCount: number;
   stages: PipelineStages;
   final: ComputedItem[];
+  // Derived from final layout geometry by runPipeline. Precompute serializes the
+  // same layout-owned metadata; production rendering consumes it verbatim and
+  // never rederives envelope or frame geometry.
+  interactionGeometry: SceneInteractionGeometry;
   // Per-scene decision metadata, kept SEPARATE from the diagnostics array (see
   // diagnostics/decision_metadata.ts). The scorecard and AI reviewer read this;
   // diagnostics stay the severity-graded problem stream. Type-only import keeps
@@ -494,7 +533,7 @@ export interface PipelineResult {
   // baseline read it. Empty when every item sits inside scene_bounds. Not
   // serialized into the precompute (the artifact serializes only `final`).
   offCanvasDiagnostics: OffCanvasDiagnostic[];
-  // Unified diagnostics stream (M17): the four parallel streams above
+  // Unified diagnostics stream: the four parallel streams above
   // (`diagnostics`, `passes[].diagnostics`, `severityDiagnostics`,
   // `offCanvasDiagnostics`) folded into one flat, normalized array. This is the
   // long-term single source of truth for report tooling, which reads it instead

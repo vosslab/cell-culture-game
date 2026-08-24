@@ -32,6 +32,8 @@ steps:
     sequence:
       - target: gel_loading_tip_box
         gesture: click
+        instruction: Fit a fresh gel-loading tip for the well rinse.
+        hint: Use a new tip before drawing running buffer from the inner chamber.
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -46,10 +48,14 @@ steps:
             incorrect: "Fit a fresh gel-loading tip before rinsing the exposed wells."
       - target: electrophoresis_inner_chamber
         gesture: click
+        instruction: Draw running buffer from the filled inner chamber.
+        hint: Use the buffer-contact tip to rinse the exposed gel wells once.
         validator: { preset: correct_target }
         response: { scene_operations: [] }
       - target: gel_cassette
         gesture: click
+        instruction: Rinse the gel wells with the drawn running buffer.
+        hint: Release the rinse into the wells, then discard the used tip before loading ladder.
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -78,6 +84,8 @@ steps:
     sequence:
       - target: gel_loading_tip_box
         gesture: click
+        instruction: Fit a fresh gel-loading tip for the ladder transfer.
+        hint: Start the lane-5 load with a clean tip after the well rinse.
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -89,11 +97,15 @@ steps:
               state: { tip_status: fresh }
       - target: p200_micropipette
         gesture: adjust
+        instruction: Set the P200 to 20 &micro;L for the ladder input.
+        hint: Use the fixed simulated ladder volume before drawing from slot B4.
         validator: { preset: target_with_value, value: { set_volume: 20 } }
         response:
           scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { set_volume: 20 } }]
       - target: microtube_rack_8.slot_B4
         gesture: click
+        instruction: Draw the denatured ladder from rack slot B4.
+        hint: The P200 is set; draw the fixed ladder aliquot for lane 5.
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -105,6 +117,8 @@ steps:
               state: { material_name: empty, material_volume: 0 }
       - target: gel_cassette.lane_5
         gesture: click
+        instruction: Dispense the ladder slowly into lane 5.
+        hint: Enter through the lane-5 well mouth without pressing the tip against the bottom.
         validator: { preset: correct_target }
         response:
           scene_operations:

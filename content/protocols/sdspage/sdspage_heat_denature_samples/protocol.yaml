@@ -29,6 +29,8 @@ steps:
     sequence:
       - target: heat_block
         gesture: click
+        instruction: Open the heat-block lid to prepare for loading.
+        hint: The block is pre-set; open it before placing the rack.
         validator:
           preset: correct_target
         response:
@@ -41,6 +43,8 @@ steps:
                 lid_open: true
       - target: microtube_rack_8
         gesture: click
+        instruction: Place the prepared tube rack inside the heat block.
+        hint: Load samples B1-B3 and ladder B4 together before closing the lid.
         validator:
           preset: correct_target
         response:
@@ -51,6 +55,8 @@ steps:
                 rack_present: true
       - target: heat_block
         gesture: click
+        instruction: Close the heat-block lid to start the 5-minute denaturation.
+        hint: The rack is inside; closing the lid begins the timed incubation.
         validator:
           preset: correct_target
         response:
@@ -89,6 +95,8 @@ steps:
     sequence:
       - target: heat_block
         gesture: click
+        instruction: Open the heat-block lid after incubation.
+        hint: The 5-minute timed denaturation is complete; expose the rack for retrieval.
         validator:
           preset: correct_target
         response:
@@ -99,6 +107,8 @@ steps:
                 lid_open: true
       - target: microtube_rack_8
         gesture: click
+        instruction: Retrieve the denatured tube rack from the heat block.
+        hint: Keep the labeled tubes together so their lane identities remain paired.
         validator:
           preset: correct_target
         response:

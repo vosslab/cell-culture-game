@@ -20,11 +20,13 @@ import {
   adjustCommitAndWaitProgress,
   clickTargetAndWaitProgress,
   readGameState,
+  waitForVisibleTimedWait,
 } from "./e2e/walker_helpers.mjs";
 
 interface WalkReport {
   summary: { totalClicks: number };
   info: (message: string) => void;
+  addEntry: (level: string, message: string, details: Record<string, unknown>) => void;
 }
 
 interface ReadonlyWalkerWindow {
@@ -38,6 +40,7 @@ function walkReport(): WalkReport {
   return {
     summary: { totalClicks: 0 },
     info: () => undefined,
+    addEntry: () => undefined,
   };
 }
 
@@ -47,6 +50,18 @@ async function visibleActionValue(page: Page): Promise<string> {
   const value = await action.getAttribute("data-action-value");
   expect(value, "an adjust action must expose its required visible value").not.toBeNull();
   return value!;
+}
+
+// The action rail names the learner-visible placed target, which may be more
+// specific than an abstract authored object name. Read it, then delegate the
+// real scene click and progress wait to the shared walker helper.
+async function clickVisibleActionAndWaitProgress(page: Page, report: WalkReport): Promise<string> {
+  const action = page.locator("[data-current-action]").first();
+  await expect(action).toBeVisible();
+  const target = await action.getAttribute("data-action-target");
+  expect(target, "the visible action must name its scene target").not.toBeNull();
+  await clickTargetAndWaitProgress(page, target!, report);
+  return target!;
 }
 
 // Drive only by the current learner-visible action. gameState is read-only
@@ -113,14 +128,81 @@ test("incorrect Trypan Blue viability choice gives specific visible recovery fee
   await expect(
     page.locator("#scene-root [data-placement-name='main_viability_results_display'] img"),
   ).toBeVisible();
-  const candidates = page.locator("#scene-root [data-affordance='candidate']:visible");
+  const actionHint = page.locator("[data-action-hint]");
+  const hintSummary = actionHint.locator("summary");
+  const hintText = actionHint.locator("[data-action-hint-text]");
+  await hintSummary.click();
+  await expect(actionHint).toHaveAttribute("open", "");
+  await expect(hintText).toBeVisible();
+  await expect(hintText).toContainText(/visible percentage|threshold|evidence/i);
+  await expect(hintText).not.toContainText("Proceed: viability above 90%");
+  await expect(hintText).not.toContainText("Stop and recount");
+  await expect(hintText).not.toContainText("92.5%");
+  await expect(page.locator("[data-current-action-instruction]")).not.toContainText(
+    "Proceed: viability above 90%",
+  );
+  await expect(page.locator("[data-current-action-target-label]")).toHaveCount(0);
+  const candidates = page.locator(
+    "#scene-root [data-interaction-envelope][data-interaction-envelope-kind='candidate']:visible",
+  );
   expect(
     await candidates.count(),
     "both scientific choices must be visibly offered",
   ).toBeGreaterThanOrEqual(2);
-  await expect(page.locator("[data-current-action]")).toContainText(
-    "Choose from the blue outlined lab items.",
+  const candidateGeometry = await candidates.evaluateAll((elements) =>
+    elements.map((element) => {
+      const box = element.getBoundingClientRect();
+      const topmost = document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+      return {
+        target: element.getAttribute("data-item-id"),
+        width: box.width,
+        height: box.height,
+        centerTarget: topmost?.closest("[data-item-id]")?.getAttribute("data-item-id") ?? null,
+        left: box.left,
+        right: box.right,
+        top: box.top,
+        bottom: box.bottom,
+      };
+    }),
   );
+  for (const candidate of candidateGeometry) {
+    expect(
+      candidate.width,
+      `${candidate.target} preserves the shared 44px hit baseline`,
+    ).toBeGreaterThanOrEqual(44);
+    expect(
+      candidate.height,
+      `${candidate.target} preserves the shared 44px hit baseline`,
+    ).toBeGreaterThanOrEqual(44);
+    expect(candidate.centerTarget, `${candidate.target} owns its visible click center`).toBe(
+      candidate.target,
+    );
+  }
+  for (let index = 0; index < candidateGeometry.length; index += 1) {
+    for (let other = index + 1; other < candidateGeometry.length; other += 1) {
+      const first = candidateGeometry[index]!;
+      const second = candidateGeometry[other]!;
+      const overlap =
+        first.left < second.right &&
+        second.left < first.right &&
+        first.top < second.bottom &&
+        second.top < first.bottom;
+      expect(
+        overlap,
+        `${first.target} and ${second.target} remain distinct candidate actions`,
+      ).toBe(false);
+    }
+  }
+  await expect(page.locator("[data-current-action-instruction]")).toContainText(
+    "Compare the displayed viability percentage with the stated downstream gate and choose the matching decision.",
+  );
+  await expect(hintText).toHaveText(
+    "Use the counter's visible percentage and the threshold shown in the review screen as your evidence.",
+  );
+  await expect(page.locator("[data-current-action-instruction]")).not.toContainText(
+    "Choose one blue outlined lab item.",
+  );
+  await expect(hintText).not.toContainText("Choose one blue outlined lab item.");
 
   // The displayed 92.5% viability clears the stated gate, so Recount is the
   // scientifically wrong visible alternative. This is a real click, not a
@@ -139,6 +221,122 @@ test("incorrect Trypan Blue viability choice gives specific visible recovery fee
   await expect(page.locator("[data-interaction-feedback='correct']")).toContainText(
     "The displayed viability clears the stated gate",
   );
+});
+
+test("cell-seeding select guidance is authored and advances after the real card click", async ({
+  page,
+}) => {
+  await page.goto("/cell_seeding_plate_setup.html", { waitUntil: "networkidle" });
+
+  const action = page.locator("[data-current-action]");
+  const instruction = action.locator("[data-current-action-instruction]");
+  const actionMessage = page.locator("[data-current-action-instruction] #guidance-text");
+  const actionHint = page.locator("[data-action-hint]");
+  const hintText = actionHint.locator("[data-action-hint-text]");
+
+  await expect(action).toHaveAttribute("data-action-gesture", "select");
+  await expect(action).not.toHaveAttribute("data-action-target");
+  await expect(instruction).toContainText(
+    "Choose the calculation card that matches the displayed dilution equation and target volume.",
+  );
+  await actionHint.locator("summary").click();
+  await expect(actionHint).toHaveAttribute("open", "");
+  await expect(hintText).toHaveText(
+    "Use the visible stock concentration, target concentration, and 12 mL final volume to identify the card whose V1 is in milliliters.",
+  );
+  await expect(actionMessage).not.toContainText("calculation_2_8_ml");
+  await expect(hintText).not.toContainText("2.8 mL");
+  await expect(page.locator("[data-current-action-target-label]")).toHaveCount(0);
+
+  await page.locator("#scene-root [data-placement-name='calculation_2_8_choice']").click();
+
+  await expect(action).toHaveAttribute(
+    "data-action-target",
+    "right_sterile_serological_pipette_pack",
+  );
+  await expect(action).toHaveAttribute("data-action-gesture", "click");
+  await expect(instruction).toContainText(
+    "Fit a fresh serological pipette for the media transfer.",
+  );
+  await expect(actionHint).toHaveAttribute("open", "");
+  await expect(hintText).toHaveText(
+    "Use a sterile graduated pipette to draw the measured media first.",
+  );
+  await expect(actionMessage).toContainText(
+    "Fit a fresh serological pipette for the media transfer.",
+  );
+});
+
+test("an open hint follows each authored repeated mixing action", async ({ page }) => {
+  await walkToStep(page, "trypan_blue_counting", "mix_by_pipetting");
+
+  const actionHint = page.locator("[data-action-hint]");
+  const hintSummary = actionHint.locator("summary");
+  const hintText = actionHint.locator("[data-action-hint-text]");
+  await hintSummary.click();
+  await expect(actionHint).toHaveAttribute("open", "");
+
+  const report = walkReport();
+  await clickVisibleActionAndWaitProgress(page, report);
+  const action = page.locator("[data-current-action]");
+  const instruction = action.locator("[data-current-action-instruction]");
+  await expect(action).toHaveAttribute("data-action-target", "right_hemocytometer_slide.diamond");
+  await expect(action).toHaveAttribute("data-action-gesture", "click");
+  await expect(actionHint).toHaveAttribute("open", "");
+  await expect(instruction).toContainText("Complete mixing cycle 1 in the central diamond.");
+  await expect(hintText).toHaveText(
+    "Pipette the mixture gently up and down once; stop after cycle 1.",
+  );
+
+  await clickVisibleActionAndWaitProgress(page, report);
+  await expect(actionHint).toHaveAttribute("open", "");
+  await expect(instruction).toContainText("Complete mixing cycle 2 in the central diamond.");
+  await expect(hintText).toHaveText(
+    "Pipette the mixture gently up and down once; stop after cycle 2.",
+  );
+
+  await clickVisibleActionAndWaitProgress(page, report);
+  await expect(actionHint).toHaveAttribute("open", "");
+  await expect(instruction).toContainText("Complete mixing cycle 3 in the central diamond.");
+  await expect(hintText).toHaveText(
+    "Pipette the mixture gently up and down once; stop after cycle 3.",
+  );
+});
+
+test("timed wait retains the protocol cursor and restores the next action", async ({ page }) => {
+  await walkToStep(page, "sdspage_run_electrophoresis", "run_to_tracking_dye_endpoint");
+
+  const report = walkReport();
+  const cursorBeforeWait = await readGameState(page);
+  await expect(page.locator("[data-current-action]")).toHaveAttribute(
+    "data-action-label",
+    "Power Supply",
+  );
+  await clickVisibleActionAndWaitProgress(page, report);
+  await expect(page.locator('[data-timed-wait="active"]:visible')).toBeVisible();
+  const timedWaitStatus = page.locator("[data-timed-wait-status]");
+  await expect(timedWaitStatus).toContainText("next highlighted action");
+  await expect(timedWaitStatus).toContainText(
+    /30\s*(?:minutes?|min).*(?:simulated|compressed)|(?:simulated|compressed).*30\s*(?:minutes?|min)/i,
+  );
+  await expect(page.locator("[data-current-action]")).toHaveCount(0);
+  const cursorDuringWait = await readGameState(page);
+  expect(cursorDuringWait.activeStepId).toBe(cursorBeforeWait.activeStepId);
+  expect(cursorDuringWait.interactionIndex).toBe(cursorBeforeWait.interactionIndex + 1);
+  expect(cursorDuringWait.activeTarget).toBeNull();
+  expect(cursorDuringWait.activeGesture).toBeNull();
+
+  await waitForVisibleTimedWait(
+    page,
+    "run_to_tracking_dye_endpoint",
+    "test-results/guidance_timed_wait",
+    report,
+  );
+  const restoredAction = page.locator("[data-current-action]");
+  await expect(restoredAction).toBeVisible();
+  await expect(restoredAction).toHaveAttribute("data-action-gesture", "select");
+  await expect(restoredAction).not.toHaveAttribute("data-action-target");
+  await expect(restoredAction).not.toHaveAttribute("data-action-label");
 });
 
 test("SDS-PAGE endpoint requires a stop decision before switching the supply off", async ({
@@ -172,7 +370,11 @@ test("SDS-PAGE endpoint requires a stop decision before switching the supply off
   await expect(page.locator("[data-protocol-complete]")).toHaveCount(0);
 
   await page.locator("#scene-root [data-placement-name='front_left_endpoint_stop_now']").click();
-  await expect(page.locator("[data-current-action]")).toContainText("Power Supply");
+  const powerSupplyAction = page.locator("[data-current-action]");
+  await expect(powerSupplyAction).toHaveAttribute("data-action-label", "Power Supply");
+  await expect(powerSupplyAction.locator("[data-current-action-instruction]")).toContainText(
+    "Turn off the power supply at the tracking-dye endpoint.",
+  );
   await page.locator("#scene-root [data-placement-name='rear_right_power_supply']").click();
   await expect(page.locator("[data-protocol-complete]")).toBeVisible();
   await expect(page.locator("[data-interaction-feedback='correct']")).toContainText(
@@ -213,7 +415,11 @@ test("MTT reader shows a blank-corrected result before the dose-response conclus
     "blank-corrected dose-response display",
   );
   expect(
-    await page.locator("#scene-root [data-affordance='candidate']:visible").count(),
+    await page
+      .locator(
+        "#scene-root [data-interaction-envelope][data-interaction-envelope-kind='candidate']:visible",
+      )
+      .count(),
     "the displayed MTT result must be followed by visible interpretation choices",
   ).toBeGreaterThanOrEqual(2);
   await expect(page.locator("[data-protocol-complete]")).toHaveCount(0);
@@ -239,12 +445,48 @@ test("SDS image exposes lane identity, capture metadata, and quality before inte
   await expect(lightbox.locator("[data-overlay-field='image_quality_status']")).toHaveText(
     "Image quality: lanes_sharp_evenly_lit",
   );
-  await expect(page.locator("[data-current-action]")).toContainText(
-    "24-28 kDa miraculin monomer band",
+  await expect(page.locator("[data-current-step-goal]")).toContainText(
+    "Review the visible captured image with the ladder",
+  );
+  await expect(page.locator("[data-current-action-instruction]")).toContainText(
+    "Select the conclusion supported by the visible ladder and lane-resolved bands.",
+  );
+  const actionHint = page.locator("[data-action-hint]");
+  await actionHint.locator("summary").click();
+  await expect(actionHint).toHaveAttribute("open", "");
+  await expect(actionHint.locator("[data-action-hint-text]")).toHaveText(
+    "Compare sample-band positions with the molecular-weight reference and check for extra bands.",
+  );
+  await expect(page.locator("[data-current-step-goal]")).not.toContainText(
+    /24-28 kDa|expected[- ]size|monomer band/i,
+  );
+  await expect(page.locator("[data-current-action-instruction]")).not.toContainText(
+    /24-28 kDa|expected[- ]size|monomer band/i,
+  );
+  await expect(page.locator("[data-current-action-instruction]")).not.toContainText(
+    /24-28 kDa|expected[- ]size|monomer band/i,
+  );
+  await expect(page.locator("[data-action-hint-text]")).not.toContainText(
+    /24-28 kDa|expected[- ]size|monomer band/i,
   );
   expect(
-    await page.locator("#scene-root [data-affordance='candidate']:visible").count(),
+    await page
+      .locator(
+        "#scene-root [data-interaction-envelope][data-interaction-envelope-kind='candidate']:visible",
+      )
+      .count(),
     "the lane-resolved image must be followed by visible interpretation choices",
   ).toBeGreaterThanOrEqual(2);
   await expect(page.locator("[data-protocol-complete]")).toHaveCount(0);
+
+  await page
+    .locator("#scene-root [data-placement-name='front_left_gel_conclusion_expected_band']")
+    .click();
+  await expect(page.locator("[data-interaction-feedback='correct']")).toContainText(
+    "lanes 1-3 show the expected 24-28 kDa monomer band",
+  );
+  await expect(
+    lightbox.locator("[data-asset-layer='lightbox_image_molecular_weight_scale']"),
+  ).toBeVisible();
+  await expect(page.locator("[data-protocol-complete]")).toBeVisible();
 });

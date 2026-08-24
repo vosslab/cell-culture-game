@@ -35,7 +35,7 @@ import type { ShellViewSnapshot } from "../adapter/types";
 
 export interface TypeInputProps {
   // Live read-only protocol snapshot. The input shows only when
-  // active_interaction_gesture === "type".
+  // active_interaction.action.gesture === "type".
   snapshot: Accessor<ShellViewSnapshot>;
   // Commit handler. Receives the active target and the raw typed text. Wired
   // by protocol_host.tsx to step_machine.handle_type_commit. Returns true when
@@ -57,10 +57,12 @@ export function TypeInput(props: TypeInputProps): JSXElement {
   const [rejected, set_rejected] = createSignal(false);
 
   // Whether the active interaction is a `type` gesture.
-  const is_type_active = (): boolean => props.snapshot().active_interaction_gesture === "type";
+  const is_type_active = (): boolean =>
+    props.snapshot().active_interaction?.action?.gesture === "type";
 
   // The active target for the current type interaction (null when not typing).
-  const active_target = (): string | null => props.snapshot().active_interaction_target;
+  const active_target = (): string | null =>
+    props.snapshot().active_interaction?.action?.placement_name ?? null;
 
   // Reset the draft and clear any rejection feedback when the active target
   // changes (new interaction or step started).
@@ -98,7 +100,8 @@ export function TypeInput(props: TypeInputProps): JSXElement {
     <Show when={is_type_active()}>
       <div data-type-input-panel="" class="value-entry-panel">
         <label data-type-input-label="" for="protocol-type-input" class="value-entry-label">
-          Enter value for {props.snapshot().active_interaction_label ?? "the highlighted item"}:
+          Enter value for{" "}
+          {props.snapshot().active_interaction?.action?.label ?? "the highlighted item"}:
         </label>
         <input
           id="protocol-type-input"

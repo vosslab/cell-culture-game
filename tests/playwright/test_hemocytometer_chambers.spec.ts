@@ -6,7 +6,7 @@ import { test, expect, type Locator, type Page } from "@playwright/test";
 function activeTarget(page: Page): Locator {
   return page.locator(
     [
-      "#scene-root [data-item-id][data-affordance='active']",
+      "#scene-root [data-interaction-envelope][data-interaction-envelope-kind='active']",
       "#scene-root [data-item-id][data-subpart-affordance='active']",
     ].join(", "),
   );

@@ -40,7 +40,7 @@
 // remounts the scene.
 
 import type { JSXElement } from "solid-js";
-import { For, onMount, createSignal, createEffect } from "solid-js";
+import { For, onMount, createMemo, createSignal, createEffect } from "solid-js";
 
 import type { ComputedItem, PipelineResult } from "../layout/types.js";
 import type { SceneStore, TargetSeed } from "../state/scene_store.js";
@@ -171,7 +171,108 @@ export function SceneView(props: {
   candidateTargets?: ReadonlySet<string> | undefined;
 }): JSXElement {
   const result = props.result;
+  if (!result.interactionGeometry.valid) {
+    throw new Error(
+      `scene_view: invalid interaction geometry (${result.interactionGeometry.issues
+        .map((issue) => issue.kind)
+        .join(", ")})`,
+    );
+  }
   const root = props.root;
+
+  // The active interaction supplies a placement-normalized target. Select is
+  // deliberately excluded: moving the scrollport to the correct candidate
+  // would disclose an answer before the learner chooses. The memo preserves
+  // equality across unrelated snapshot updates, so feedback/recovery changes
+  // do not restart scene motion.
+  const visible_action_target = createMemo<string | null>(() => {
+    const affordance = props.activeAffordance?.();
+    if (affordance?.active_gesture === "select") {
+      return null;
+    }
+    return affordance?.active_target ?? null;
+  });
+
+  // Bring every exact active interaction surface into the nearest scene-owned
+  // scrollport. Whole-object envelopes and exact/group subpart hits all expose
+  // the same data-item-id contract, so measuring their union guarantees the
+  // usable 44px interaction surface is visible rather than merely its artwork.
+  // This writes only the scrollport's scroll position; it never calls
+  // Element.scrollIntoView(), which could also move the document viewport.
+  function reveal_active_target(target: string): void {
+    const scrollport = root.closest(".scene-panel");
+    if (!(scrollport instanceof HTMLElement)) {
+      return;
+    }
+    const target_elements = Array.from(root.querySelectorAll("[data-item-id]")).filter(
+      (element) => element.getAttribute("data-item-id") === target,
+    );
+    if (target_elements.length === 0) {
+      return;
+    }
+    const target_rects = target_elements
+      .map((element) => element.getBoundingClientRect())
+      .filter((rect) => rect.width > 0 && rect.height > 0);
+    if (target_rects.length === 0) {
+      return;
+    }
+    const target_left = Math.min(...target_rects.map((rect) => rect.left));
+    const target_right = Math.max(...target_rects.map((rect) => rect.right));
+    const target_top = Math.min(...target_rects.map((rect) => rect.top));
+    const target_bottom = Math.max(...target_rects.map((rect) => rect.bottom));
+    const port_rect = scrollport.getBoundingClientRect();
+    const inset = 12;
+    function reveal_axis(
+      target_start: number,
+      target_end: number,
+      port_start: number,
+      port_end: number,
+    ): number {
+      const usable_start = port_start + inset;
+      const usable_end = port_end - inset;
+      if (target_end - target_start > usable_end - usable_start) {
+        // A group can be taller/wider than the panel. There is no scroll
+        // position that fully contains it, so put its midpoint at the
+        // viewport midpoint deterministically rather than favoring an edge.
+        return (target_start + target_end - port_start - port_end) / 2;
+      }
+      if (target_start < usable_start) {
+        return target_start - usable_start;
+      }
+      if (target_end > usable_end) {
+        return target_end - usable_end;
+      }
+      return 0;
+    }
+    const left = reveal_axis(target_left, target_right, port_rect.left, port_rect.right);
+    const top = reveal_axis(target_top, target_bottom, port_rect.top, port_rect.bottom);
+    if (left === 0 && top === 0) {
+      return;
+    }
+    if (typeof scrollport.scrollBy === "function") {
+      // This reflects a protocol state transition, not decorative movement.
+      // `auto` makes the target available before the next learner action or
+      // assistive-technology query, and is also motion-safe by construction.
+      scrollport.scrollBy({ left, top, behavior: "auto" });
+      return;
+    }
+    // Older embedded browsers can still reveal the target without touching
+    // window scroll. Direct assignments are intentionally immediate.
+    scrollport.scrollLeft += left;
+    scrollport.scrollTop += top;
+  }
+
+  createEffect(() => {
+    const target = visible_action_target();
+    if (target === null) {
+      return;
+    }
+    // createEffect runs after Solid commits this render pass, so exact/group
+    // hit surfaces are already present. Keep alignment in this same reactive
+    // turn: a later microtask leaves a visible but not-yet-reachable target
+    // between the runtime action update and the scrollport update.
+    reveal_active_target(target);
+  });
 
   // Structural classification in report mode (never throws). Most violations
   // degrade, never blank, the scene -- same policy as render_scene.ts. This
@@ -274,6 +375,7 @@ export function SceneView(props: {
             onDegrade={onDegrade}
             activeAffordance={props.activeAffordance}
             candidateTargets={props.candidateTargets}
+            interactionGeometry={result.interactionGeometry.envelopes[item.placement_name]}
           />
           <SceneLabel item={item} fontSize={label_font_size} />
         </>

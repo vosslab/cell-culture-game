@@ -1,4 +1,4 @@
-// Unified layout diagnostics stream (M17).
+// Unified layout diagnostics stream.
 //
 // PipelineResult historically carried four inconsistent diagnostic streams:
 //   - `diagnostics`        : the legacy closed-kind Diagnostic[] (identity + placement)

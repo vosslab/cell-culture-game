@@ -3,9 +3,10 @@
 ## Overview
 
 The layout engine places scene objects (bottles, pipettes, instruments, etc.)
-into horizontally-zoned rows and emits positioned `ComputedItem` records. It
-does not know lab biology, protocol meaning, click behavior, or scene-specific
-rendering.
+into horizontally-zoned rows and emits positioned `ComputedItem` records. From
+the final geometry it also derives generic interaction geometry for clickable
+placements. It remains agnostic about lab biology, protocol meaning, gesture
+semantics, and scene-specific rendering.
 
 The engine runs at BUILD TIME only. `pipeline/precompute_layout.mjs` runs
 `runPipeline` over every scene at canonical 16:9 (1920x1080) and emits
@@ -39,7 +40,9 @@ pipeline/precompute_layout.mjs
   (imports SCENES, OBJECT_LIBRARY, ASSET_SPECS; runs runPipeline per scene)
   |
   v
-generated/precomputed_layout.ts  (PRECOMPUTED_LAYOUT: per-scene { final: ComputedItem[] })
+generated/precomputed_layout.ts  (PRECOMPUTED_LAYOUT: per-scene final items,
+                                  resolved scene, zone bands, diagnostics,
+                                  interaction geometry)
   |
   v
 production browser: resolvePrecomputedResult(scene_name, scene)
@@ -56,9 +59,27 @@ const result = resolvePrecomputedResult(scene_name, scene);
 renderScene(root, result);
 ```
 
-`resolvePrecomputedResult` loads `PRECOMPUTED_LAYOUT[scene_name].final`, wraps
-it in a `PipelineResult`, and passes it to the renderer. A missing entry throws.
-No `runPipeline` call path ships in the production bundle.
+`resolvePrecomputedResult` loads the complete
+`PRECOMPUTED_LAYOUT[scene_name]` entry, including final items, resolved scene
+geometry, zone bands, diagnostics, and interaction geometry, then wraps it in a
+`PipelineResult` for the renderer. A missing entry throws. No `runPipeline` call
+path ships in the production bundle.
+
+## Interaction geometry
+
+Interaction geometry is a generic layout output, not a protocol or biology
+model. After placement and reflow, `interaction_geometry.ts` derives one
+transparent placement envelope for each clickable top-level item. Each envelope
+records its scene-percent center and visual extents; the renderer uses that
+record to provide a learner hit area with a 44 CSS-pixel core while leaving the
+scientific artwork at its visual geometry.
+
+The same derived envelopes are checked against the smallest valid 16:9 frame
+available up to the canonical height. The serialized `minimum_frame` contains
+the exact integer frame width and height plus the hit-core size. Envelopes must
+remain inside that frame and must not positively overlap. An unresolvable scene
+is represented as invalid interaction geometry so precompute and production
+rendering fail loudly instead of silently producing ambiguous targets.
 
 ## Source module seams
 
@@ -568,11 +589,14 @@ Current model:
 
 - Compile-time layout. `pipeline/precompute_layout.mjs` runs the engine over every
   scene at a canonical 16:9 viewport (1920x1080) and emits
-  `generated/precomputed_layout.ts` (one `ComputedItem[]` per scene). The production
-  browser path loads those precomputed positions and renders them inside an exact 16:9
-  letterbox; resizing the window changes only the letterbox bars and the uniform scale
-  factor, never the scene-internal composition. 16:9 is the single compiled contract; an
-  alternate aspect ships as a separate authored scene variant, not as per-viewport reflow.
+  `generated/precomputed_layout.ts`. Each scene entry contains the final
+  `ComputedItem[]`, resolved scene and zone geometry, existing diagnostics, and
+  serialized interaction envelopes with a minimum valid 16:9 frame. The production
+  browser consumes those records verbatim; the scene composition stays fixed while
+  the host applies uniform scaling and can scroll when the emitted minimum frame is
+  larger than the available panel. 16:9 remains the single compiled composition
+  contract; an alternate aspect ships as a separate authored scene variant, not as
+  per-viewport reflow.
 - Pure 2D geometry core. `src/scene_runtime/layout/geometry/` provides immutable
   `Vector` and `Aabb` value types plus an AABB collision detector that returns a rich
   `Collision` fact and a `ResolutionCandidate` (cheaper-axis correction, x-first tie-break).

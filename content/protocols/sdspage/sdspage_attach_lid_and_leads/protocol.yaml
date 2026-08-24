@@ -36,6 +36,8 @@ steps:
     sequence:
       - target: electrophoresis_tank
         gesture: click
+        instruction: Seat the lid on the assembled electrophoresis tank.
+        hint: Keep the power supply off before making either electrical connection.
         validator:
           preset: correct_target
         response:
@@ -61,6 +63,8 @@ steps:
     sequence:
       - target: electrophoresis_black_lead
         gesture: click
+        instruction: Connect the black lead to the negative cathode connection.
+        hint: Attach the black lead only after the lid is seated and power is off.
         validator:
           preset: correct_target
         response:
@@ -89,6 +93,8 @@ steps:
     sequence:
       - target: electrophoresis_red_lead
         gesture: click
+        instruction: Connect the red lead to the positive anode connection.
+        hint: Both leads must be seated before setting the voltage.
         validator:
           preset: correct_target
         response:

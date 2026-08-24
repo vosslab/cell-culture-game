@@ -1,6 +1,6 @@
 // src/scene_runtime/protocol/target_existence_check.ts
 //
-// Load-time target-existence invariant (M16-D).
+// Load-time target-existence invariant.
 //
 // This pass runs once at protocol load, inside create_step_machine, BESIDE
 // validate_protocol_presets, validate_authored_validator_values, and
@@ -45,7 +45,7 @@
 //
 // References:
 //   - docs/PRIMARY_SPEC.md (targets and the scene boundary)
-//   - docs/archive/decisions/target_identity.md (M7/M8 placement_name /
+//   - docs/archive/decisions/target_identity.md (placement_name /
 //     object_name split this check reads through)
 //   - src/scene_runtime/protocol/target_adapter.ts (TargetAdapter.has_target)
 //   - src/scene_runtime/protocol/step_machine.ts (enter_step /

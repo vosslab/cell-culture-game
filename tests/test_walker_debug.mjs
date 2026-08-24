@@ -78,7 +78,7 @@ function make_emitter(config) {
     current_step_name: null,
     current_prompt: null,
     current_tip: null,
-    current_interaction_index: 0,
+    active_interaction: null,
     progress: { completed_step_count: 0, total_step_count: 2 },
     last_outcome: null,
     pending_validator_kind: null,
@@ -87,8 +87,7 @@ function make_emitter(config) {
     tray: { items: [] },
     active_scene_name: null,
     is_complete: false,
-    active_interaction_target: null,
-    active_interaction_gesture: null,
+    pending_timed_wait: null,
   };
   return createProtocolShellEmitter(initial, reducer);
 }
@@ -161,7 +160,7 @@ describe("walker_debug gameState", () => {
       prompt: "Click the centrifuge.",
       interaction_count: 1,
     });
-    // The reducer fills active_interaction_target/gesture from config[step_one][0].
+    // The reducer fills active_interaction.action from config[step_one][0].
     assert.strictEqual(window.gameState.activeTarget, "centrifuge");
     assert.strictEqual(window.gameState.activeGesture, "click");
     dispose();

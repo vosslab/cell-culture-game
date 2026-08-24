@@ -18,7 +18,8 @@ Validation:
 - steps array is present for mini_protocol
 - sequence array is present for sequence_runner
 - every step carries step_name, prompt, sequence, step_validator, outcome, next_step
-- every interaction carries target, gesture, validator, response
+- every interaction carries target, gesture, instruction, hint, validator, and
+  response; guidance is non-empty authored learner-facing copy
 - gesture is one of: click, drag, adjust, select, type
 - validator preset is one of: correct_target, correct_choice, target_with_value,
   sequence_complete, final_state_matches
@@ -53,6 +54,10 @@ import yaml
 import pipeline.entity_decode
 import validation.yaml_schema.protocol_validator
 from validation.yaml_schema.database import ContentDatabase
+from validation.yaml_schema.constants import (
+	INTERACTION_ALL_KEYS,
+	INTERACTION_REQUIRED_KEYS,
+)
 
 #============================================
 
@@ -163,13 +168,26 @@ def validate_scene_operation(op: dict, protocol_name: str) -> None:
 
 
 def validate_interaction(interaction: dict, protocol_name: str) -> None:
-	"""Validate an interaction has all four required slots."""
-	required_slots = {"target", "gesture", "validator", "response"}
-	missing = required_slots - set(interaction.keys())
+	"""Validate the closed interaction schema and required authored guidance."""
+	unknown = set(interaction.keys()) - INTERACTION_ALL_KEYS
+	if unknown:
+		raise ValueError(
+			f"Protocol {protocol_name}: interaction has unknown keys: {sorted(unknown)}; "
+			f"allowed: {sorted(INTERACTION_ALL_KEYS)}"
+		)
+
+	missing = INTERACTION_REQUIRED_KEYS - set(interaction.keys())
 	if missing:
 		raise ValueError(
 			f"Protocol {protocol_name}: interaction missing slots: {missing}"
 		)
+
+	for guidance_key in ("instruction", "hint"):
+		guidance_value = interaction[guidance_key]
+		if not isinstance(guidance_value, str) or not guidance_value.strip():
+			raise ValueError(
+				f"Protocol {protocol_name}: interaction {guidance_key} must be a non-empty plain string"
+			)
 
 	validate_gesture(interaction["gesture"])
 
@@ -202,7 +220,39 @@ def validate_interaction(interaction: dict, protocol_name: str) -> None:
 		validate_scene_operation(op, protocol_name)
 
 
-def validate_step(step: dict, protocol_name: str, all_step_names: set) -> None:
+def validate_repeated_interaction_guidance(
+	sequence: list, protocol_name: str, step_name: str,
+) -> None:
+	"""Require distinct guidance for repeated target-and-gesture actions."""
+	groups: dict[tuple[str, str], list[tuple[int, dict]]] = {}
+	for index, interaction in enumerate(sequence):
+		if not isinstance(interaction, dict):
+			continue
+		target = interaction.get("target")
+		gesture = interaction.get("gesture")
+		if isinstance(target, str) and isinstance(gesture, str):
+			groups.setdefault((target, gesture), []).append((index, interaction))
+
+	for (target, gesture), entries in groups.items():
+		if len(entries) < 2:
+			continue
+		for guidance_key in ("instruction", "hint"):
+			normalized = [
+				str(interaction[guidance_key]).strip().casefold()
+				for _index, interaction in entries
+			]
+			if len(set(normalized)) != len(normalized):
+				raise ValueError(
+					f"Protocol {protocol_name}: step {step_name} repeats target {target!r} "
+					f"with gesture {gesture!r}; every repeated interaction needs a "
+					f"distinct {guidance_key} after trim/case normalization"
+				)
+
+
+def validate_step(
+	step: dict, protocol_name: str, all_step_names: set,
+	db: ContentDatabase | None = None,
+) -> None:
 	"""Validate a step has all six required slots."""
 	required_slots = {
 		"step_name",
@@ -228,6 +278,18 @@ def validate_step(step: dict, protocol_name: str, all_step_names: set) -> None:
 		)
 	for interaction in sequence:
 		validate_interaction(interaction, protocol_name)
+	validate_repeated_interaction_guidance(sequence, protocol_name, step_name)
+	if db is not None:
+		guidance_validator = validation.yaml_schema.protocol_validator.ProtocolValidator(db=db)
+		guidance_findings = []
+		for index, interaction in enumerate(sequence):
+			guidance_findings.extend(guidance_validator._validate_interaction_guidance(
+				interaction,
+				f"step {step_name} interaction {index}",
+			))
+		if guidance_findings:
+			messages = "; ".join(finding.format() for finding in guidance_findings)
+			raise ValueError(f"Protocol {protocol_name}: interaction guidance violation: {messages}")
 
 	step_validator = step["step_validator"]
 	if not isinstance(step_validator, dict):
@@ -332,7 +394,7 @@ def validate_protocol(
 			)
 		all_step_names = set()
 		for step in steps:
-			validate_step(step, protocol_name, all_step_names)
+			validate_step(step, protocol_name, all_step_names, db)
 
 		# Validate entry_step names a declared step
 		if entry_step not in all_step_names:

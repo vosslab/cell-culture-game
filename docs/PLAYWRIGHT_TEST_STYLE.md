@@ -105,10 +105,19 @@ Assert visible behavior and app state, and signal pass or fail one way per file.
   non-zero exit.
 - Keep one signaling style within a file or workflow so a failure reads clearly.
 
+For a persisted user workflow, prove the complete connected behavior in one
+browser journey: act through visible controls, observe the production record,
+reload, assert the restored UI, and continue. Do not replace the product's
+persistence path with test-only storage mutations or a parallel mock. Capture
+the workflow's screenshots from this same journey after fonts and browser paint
+have settled.
+
 ## Setup idioms
 
-- Seed pre-boot state with `page.addInitScript(...)`: clear autosave, stub
-  `navigator.clipboard`, or set a `localStorage` theme before the app loads.
+- Seed pre-boot state with `page.addInitScript(...)` only for a narrow boundary
+  test, such as stubbing `navigator.clipboard` or setting a theme before load.
+  User-journey and persistence acceptance starts with an isolated browser
+  context and changes storage through visible product controls.
 - Capture diagnostics by subscribing to `page.on("console", ...)` and
   `page.on("pageerror", ...)` so console errors surface in the test output.
 - Share setup through plain exported helper functions. These tests are small and

@@ -43,6 +43,8 @@ steps:
     sequence:
       - target: calculation_2_8_ml
         gesture: select
+        instruction: "Choose the calculation card that matches the displayed dilution equation and target volume."
+        hint: "Use the visible stock concentration, target concentration, and 12 mL final volume to identify the card whose V1 is in milliliters."
         validator:
           preset: correct_choice
         response:
@@ -71,6 +73,8 @@ steps:
     sequence:
       - target: serological_pipette_pack
         gesture: click
+        instruction: "Fit a fresh serological pipette for the media transfer."
+        hint: "Use a sterile graduated pipette to draw the measured media first."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -79,12 +83,16 @@ steps:
               state: { freshness: sterile }
       - target: serological_pipette
         gesture: click
+        instruction: "Attach the serological pipette for the next transfer."
+        hint: "Use the attached tool to perform the following source draw or dispense."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: media_bottle
         gesture: click
+        instruction: "Draw 9.2 mL of media from the bottle."
+        hint: "Use the measured media load for the receiving tube, flask, or reservoir in the next action."
         validator:
           preset: correct_target
         response:
@@ -100,6 +108,8 @@ steps:
                 held_material_volume: 9.2
       - target: conical_tube_for_dilution
         gesture: click
+        instruction: "Deliver 9.2 mL complete media into the dilution tube."
+        hint: "Use the fresh pipette to receive the measured media before adding cells."
         validator:
           preset: correct_target
         response:
@@ -117,6 +127,8 @@ steps:
                 freshness: used
       - target: serological_pipette_pack
         gesture: click
+        instruction: "Fit a new serological pipette for the cell-suspension transfer."
+        hint: "Switch to a fresh sterile pipette before drawing the calculated stock-cell volume."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -125,6 +137,8 @@ steps:
               state: { freshness: sterile }
       - target: conical_15ml
         gesture: click
+        instruction: "Draw 2.8 mL of cell suspension from the conical 15ml."
+        hint: "Use the conical 15ml as the source, then carry this measured load to conical tube for dilution."
         validator:
           preset: correct_target
         response:
@@ -140,6 +154,8 @@ steps:
                 held_material_volume: 2.8
       - target: conical_tube_for_dilution
         gesture: click
+        instruction: "Deliver the calculated 2.8 mL cell suspension into the dilution tube."
+        hint: "Add the stock-cell volume to the media already in the tube."
         validator:
           preset: correct_target
         response:
@@ -157,6 +173,8 @@ steps:
                 freshness: used
       - target: conical_tube_for_dilution
         gesture: click
+        instruction: "Gently invert the 12 mL dilution tube to mix the suspension."
+        hint: "The media and cells are combined; invert without creating bubbles."
         validator:
           preset: correct_target
         response:
@@ -181,12 +199,16 @@ steps:
     sequence:
       - target: multichannel_pipette
         gesture: click
+        instruction: "Attach the multichannel pipette for the next transfer."
+        hint: "Use the attached tool to perform the following source draw or dispense."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the multichannel pipette."
+        hint: "Use the fresh tip before touching the next source or receiving vessel."
         validator:
           preset: correct_target
         response:
@@ -197,6 +219,8 @@ steps:
                 tip_status: fresh
       - target: multichannel_pipette
         gesture: adjust
+        instruction: "Set the multichannel pipette to 100 microL per channel for each plate column."
+        hint: "The 100 microL set point delivers the required volume to every well in one 8-well column and keeps the seeding concentration consistent."
         validator:
           preset: target_with_value
           value:
@@ -209,6 +233,8 @@ steps:
                 set_volume: 100
       - target: conical_tube_for_dilution
         gesture: click
+        instruction: "Transfer the prepared cell suspension into the reagent reservoir."
+        hint: "Empty the dilution tube completely so the reservoir can supply each plate column."
         validator:
           preset: correct_target
         response:
@@ -225,6 +251,8 @@ steps:
                 material_volume: 12
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 100 microL of cell suspension for plate column 1."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 1."
         validator:
           preset: correct_target
         response:
@@ -240,6 +268,8 @@ steps:
                 held_material_volume: 100
       - target: well_plate_96.col_1
         gesture: click
+        instruction: "Dispense 100 microL of cell suspension into plate column 1."
+        hint: "Align all eight tips with column 1; empty the loaded cell suspension into the wells."
         validator:
           preset: correct_target
         response:
@@ -256,6 +286,8 @@ steps:
                 held_material_volume: 0
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 100 microL of cell suspension for plate column 2."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 2."
         validator:
           preset: correct_target
         response:
@@ -271,6 +303,8 @@ steps:
                 held_material_volume: 100
       - target: well_plate_96.col_2
         gesture: click
+        instruction: "Dispense 100 microL of cell suspension into plate column 2."
+        hint: "Align all eight tips with column 2; empty the loaded cell suspension into the wells."
         validator:
           preset: correct_target
         response:
@@ -287,6 +321,8 @@ steps:
                 held_material_volume: 0
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 100 microL of cell suspension for plate column 3."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 3."
         validator:
           preset: correct_target
         response:
@@ -302,6 +338,8 @@ steps:
                 held_material_volume: 100
       - target: well_plate_96.col_3
         gesture: click
+        instruction: "Dispense 100 microL of cell suspension into plate column 3."
+        hint: "Align all eight tips with column 3; empty the loaded cell suspension into the wells."
         validator:
           preset: correct_target
         response:
@@ -318,6 +356,8 @@ steps:
                 held_material_volume: 0
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 100 microL of cell suspension for plate column 4."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 4."
         validator:
           preset: correct_target
         response:
@@ -333,6 +373,8 @@ steps:
                 held_material_volume: 100
       - target: well_plate_96.col_4
         gesture: click
+        instruction: "Dispense 100 microL of cell suspension into plate column 4."
+        hint: "Align all eight tips with column 4; empty the loaded cell suspension into the wells."
         validator:
           preset: correct_target
         response:
@@ -349,6 +391,8 @@ steps:
                 held_material_volume: 0
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 100 microL of cell suspension for plate column 5."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 5."
         validator:
           preset: correct_target
         response:
@@ -364,6 +408,8 @@ steps:
                 held_material_volume: 100
       - target: well_plate_96.col_5
         gesture: click
+        instruction: "Dispense 100 microL of cell suspension into plate column 5."
+        hint: "Align all eight tips with column 5; empty the loaded cell suspension into the wells."
         validator:
           preset: correct_target
         response:
@@ -380,6 +426,8 @@ steps:
                 held_material_volume: 0
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 100 microL of cell suspension for plate column 6."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 6."
         validator:
           preset: correct_target
         response:
@@ -395,6 +443,8 @@ steps:
                 held_material_volume: 100
       - target: well_plate_96.col_6
         gesture: click
+        instruction: "Dispense 100 microL of cell suspension into plate column 6."
+        hint: "Align all eight tips with column 6; empty the loaded cell suspension into the wells."
         validator:
           preset: correct_target
         response:
@@ -411,6 +461,8 @@ steps:
                 held_material_volume: 0
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 100 microL of cell suspension for plate column 7."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 7."
         validator:
           preset: correct_target
         response:
@@ -426,6 +478,8 @@ steps:
                 held_material_volume: 100
       - target: well_plate_96.col_7
         gesture: click
+        instruction: "Dispense 100 microL of cell suspension into plate column 7."
+        hint: "Align all eight tips with column 7; empty the loaded cell suspension into the wells."
         validator:
           preset: correct_target
         response:
@@ -442,6 +496,8 @@ steps:
                 held_material_volume: 0
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 100 microL of cell suspension for plate column 8."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 8."
         validator:
           preset: correct_target
         response:
@@ -457,6 +513,8 @@ steps:
                 held_material_volume: 100
       - target: well_plate_96.col_8
         gesture: click
+        instruction: "Dispense 100 microL of cell suspension into plate column 8."
+        hint: "Align all eight tips with column 8; empty the loaded cell suspension into the wells."
         validator:
           preset: correct_target
         response:
@@ -473,6 +531,8 @@ steps:
                 held_material_volume: 0
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 100 microL of cell suspension for plate column 9."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 9."
         validator:
           preset: correct_target
         response:
@@ -488,6 +548,8 @@ steps:
                 held_material_volume: 100
       - target: well_plate_96.col_9
         gesture: click
+        instruction: "Dispense 100 microL of cell suspension into plate column 9."
+        hint: "Align all eight tips with column 9; empty the loaded cell suspension into the wells."
         validator:
           preset: correct_target
         response:
@@ -504,6 +566,8 @@ steps:
                 held_material_volume: 0
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 100 microL of cell suspension for plate column 10."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 10."
         validator:
           preset: correct_target
         response:
@@ -519,6 +583,8 @@ steps:
                 held_material_volume: 100
       - target: well_plate_96.col_10
         gesture: click
+        instruction: "Dispense 100 microL of cell suspension into plate column 10."
+        hint: "Align all eight tips with column 10; empty the loaded cell suspension into the wells."
         validator:
           preset: correct_target
         response:
@@ -535,6 +601,8 @@ steps:
                 held_material_volume: 0
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 100 microL of cell suspension for plate column 11."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 11."
         validator:
           preset: correct_target
         response:
@@ -550,6 +618,8 @@ steps:
                 held_material_volume: 100
       - target: well_plate_96.col_11
         gesture: click
+        instruction: "Dispense 100 microL of cell suspension into plate column 11."
+        hint: "Align all eight tips with column 11; empty the loaded cell suspension into the wells."
         validator:
           preset: correct_target
         response:
@@ -566,6 +636,8 @@ steps:
                 held_material_volume: 0
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 100 microL of cell suspension for plate column 12."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 12."
         validator:
           preset: correct_target
         response:
@@ -581,6 +653,8 @@ steps:
                 held_material_volume: 100
       - target: well_plate_96.col_12
         gesture: click
+        instruction: "Dispense 100 microL of cell suspension into plate column 12."
+        hint: "Align all eight tips with column 12; empty the loaded cell suspension into the wells."
         validator:
           preset: correct_target
         response:
@@ -610,12 +684,16 @@ steps:
     sequence:
       - target: well_plate_96
         gesture: click
+        instruction: "Pick up the completed plate for incubation."
+        hint: "Keep the treatment map level while moving the plate into the incubator."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: incubator
         gesture: click
+        instruction: "Place the prepared vessel in the incubator and start the overnight incubation (24 hours)."
+        hint: "Allow the authored overnight incubation (24 hours) to complete before continuing the culture workflow."
         validator:
           preset: correct_target
         response:

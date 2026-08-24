@@ -8,15 +8,21 @@
 
 import type { Accessor, JSXElement } from "solid-js";
 import type { ProtocolStep, ShellViewSnapshot } from "../adapter/types";
+import type { SessionSaveStatus } from "../../scene_runtime/protocol/session_persistence.js";
 import { GuidanceBar } from "../regions/guidance_bar.js";
 import { StepCounter } from "../regions/step_counter.js";
 import { StepOutline } from "../regions/step_outline.js";
+import { SessionControls } from "./session_controls.js";
 
 export interface ProtocolHudProps {
   snapshot: Accessor<ShellViewSnapshot>;
   steps?: ReadonlyArray<ProtocolStep>;
   entry_step: string;
   display_title: string;
+  session_status: Accessor<SessionSaveStatus>;
+  action_hint_open: Accessor<boolean>;
+  on_action_hint_toggle(open: boolean): void;
+  on_start_over(): void;
 }
 
 export function ProtocolHud(props: ProtocolHudProps): JSXElement {
@@ -34,7 +40,13 @@ export function ProtocolHud(props: ProtocolHudProps): JSXElement {
         <p class="protocol-display-title" data-protocol-display-title="">
           {props.display_title}
         </p>
-        <StepCounter snapshot={props.snapshot} />
+        <div class="protocol-header-statuses">
+          <SessionControls
+            status={props.session_status}
+            on_start_over={() => props.on_start_over()}
+          />
+          <StepCounter snapshot={props.snapshot} />
+        </div>
         <div class="protocol-hud" aria-hidden="true">
           <span data-hud-step>{props.snapshot().current_step_name ?? ""}</span>
           <span data-hud-prompt>{props.snapshot().current_prompt ?? ""}</span>
@@ -46,7 +58,11 @@ export function ProtocolHud(props: ProtocolHudProps): JSXElement {
       </header>
 
       <StepOutline steps={steps} entry_step={props.entry_step} snapshot={props.snapshot} />
-      <GuidanceBar snapshot={props.snapshot} />
+      <GuidanceBar
+        snapshot={props.snapshot}
+        action_hint_open={props.action_hint_open}
+        on_action_hint_toggle={(open: boolean) => props.on_action_hint_toggle(open)}
+      />
     </div>
   );
 }

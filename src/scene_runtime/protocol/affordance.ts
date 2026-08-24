@@ -38,7 +38,7 @@ export type AffordanceKind = "active" | "candidate" | "none";
 
 // The gesture of the active interaction, or null when no interaction is active.
 // Reuses the canonical Gesture union plus the no-active-interaction null case
-// carried in the ShellViewSnapshot (active_interaction_gesture: Gesture | null),
+// carried in ShellViewSnapshot.active_interaction.action (Gesture | null),
 // so there is no parallel gesture vocabulary to drift from the canonical one.
 export type AffordanceGesture = Gesture | null;
 

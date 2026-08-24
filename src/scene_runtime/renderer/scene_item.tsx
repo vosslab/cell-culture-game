@@ -30,7 +30,7 @@
 // is owned reactively by SceneView, which this item notifies via the onDegrade
 // callback. SceneView stamps data-scene-root + data-scene-degraded (see
 // scene_view.tsx).
-// Actionability gate (M6 "Enforce capabilities in renderer and candidate
+// Actionability gate ("Enforce capabilities in renderer and candidate
 // enumeration"): data-item-id is stamped ONLY when the item's declared
 // ObjectDef.capabilities includes "clickable" (item.capabilities, bound
 // verbatim onto the ComputedItem by the layout pipeline). A decoration_only
@@ -54,7 +54,12 @@ import {
   onCleanup,
 } from "solid-js";
 
-import type { ComputedItem, ObjectVisualStates, SubpartGeometry } from "../layout/types.js";
+import type {
+  ComputedItem,
+  InteractionEnvelopeGeometry,
+  ObjectVisualStates,
+  SubpartGeometry,
+} from "../layout/types.js";
 import type { SceneStore } from "../state/scene_store.js";
 import { type ActiveAffordanceAccessor, compute_affordance_kind } from "../protocol/affordance.js";
 import {
@@ -506,6 +511,9 @@ export function SceneItem(props: {
   // scene mount and passed by reference. The affordance memo calls .has(item_target)
   // (O(1)) and must NOT rebuild the set. Optional alongside activeAffordance.
   candidateTargets?: ReadonlySet<string> | undefined;
+  // Serialized precompute metadata; this component consumes it verbatim and
+  // never reconstructs a hit envelope from visual layout coordinates.
+  interactionGeometry: InteractionEnvelopeGeometry | undefined;
 }): JSXElement {
   const item = props.item;
   // object_name is the STATE-store / object-library lookup key (the store is
@@ -513,9 +521,9 @@ export function SceneItem(props: {
   // OBJECT_LIBRARY, read_object_state, read_flags, and the degrade channel.
   const target = item.object_name;
   // placement_name is the unique per-placement DOM / click / highlight key
-  // (target-identity decision M7). It is what the click resolver reads back as
+  // (target-identity contract). It is what the click resolver reads back as
   // data-item-id, what the walker clicks, and what the affordance memo compares
-  // against the resolved active_interaction_target. object_name would collapse
+  // against the resolved active interaction placement name. object_name would collapse
   // two placements of one object into one DOM key; placement_name keeps them
   // distinct.
   const placement_target = item.placement_name;
@@ -530,6 +538,11 @@ export function SceneItem(props: {
   // so they render with no data-item-id and are invisible to the delegated
   // click_resolver and to enumerate_candidate_targets.
   const is_clickable = item.capabilities.includes("clickable");
+  if (is_clickable && props.interactionGeometry === undefined) {
+    throw new Error(
+      `scene_item: clickable placement "${placement_target}" lacks derived interaction geometry`,
+    );
+  }
 
   // Resolve the object's authored visual_states map (empty when the object is
   // not in the library, e.g. a missing-object placeholder), filtered to the
@@ -667,78 +680,6 @@ export function SceneItem(props: {
     set_item_measurement_revision((revision) => revision + 1);
   }
 
-  // Directed whole-object actions get the same learner-first guarantee as
-  // dotted targets: the real rendered object has a 24px visible core and lies
-  // within the browser viewport. This applies to every directed gesture, never
-  // `select`, so a multiple-choice answer is not secretly singled out.
-  const active_directed_top_level = createMemo<boolean>(() => {
-    const affordance = props.activeAffordance?.();
-    return (
-      active_exact_subpart() === null &&
-      affordance?.active_target === placement_target &&
-      affordance.active_gesture !== null &&
-      affordance.active_gesture !== "select"
-    );
-  });
-  const top_level_focus_style = createMemo<Record<string, string>>(() => {
-    // Read the full affordance snapshot as well as the derived boolean. A
-    // click -> adjust transition keeps the boolean true, so depending only on
-    // that memo would suppress the update even though the shell geometry
-    // changed around the scene.
-    props.activeAffordance?.();
-    item_measurement_revision();
-    if (!active_directed_top_level()) {
-      return {};
-    }
-    const minimum_core = {
-      "min-width": "24px",
-      "min-height": "24px",
-      "z-index": "4",
-    };
-    if (item_element === undefined) {
-      return minimum_core;
-    }
-    // offsetWidth/offsetHeight round fractional layout pixels to integers. At
-    // small scales that rounding can turn a mathematically 24px focus into a
-    // real 23.46px hit box. Computed width/height retain the browser's
-    // fractional untransformed box, so the rendered guarantee is truly >=24px.
-    const computed_style = window.getComputedStyle(item_element);
-    const raw_width = Number.parseFloat(computed_style.width);
-    const raw_height = Number.parseFloat(computed_style.height);
-    if (raw_width <= 0 || raw_height <= 0) {
-      return minimum_core;
-    }
-    const scale = Math.max(1, 24 / raw_width, 24 / raw_height);
-    const bounds = item_element.getBoundingClientRect();
-    const focused_width = bounds.width * scale;
-    const focused_height = bounds.height * scale;
-    const original_center_x = bounds.left + bounds.width / 2;
-    const original_center_y = bounds.top + bounds.height / 2;
-    const desired_center_x =
-      focused_width <= window.innerWidth
-        ? Math.min(
-            Math.max(original_center_x, focused_width / 2),
-            window.innerWidth - focused_width / 2,
-          )
-        : window.innerWidth / 2;
-    const desired_center_y =
-      focused_height <= window.innerHeight
-        ? Math.min(
-            Math.max(original_center_y, focused_height / 2),
-            window.innerHeight - focused_height / 2,
-          )
-        : window.innerHeight / 2;
-    const delta_x = desired_center_x - original_center_x;
-    const delta_y = desired_center_y - original_center_y;
-    if (scale <= 1 && delta_x === 0 && delta_y === 0) {
-      return minimum_core;
-    }
-    return {
-      ...minimum_core,
-      transform: `translate(${delta_x}px, ${delta_y}px) scale(${scale})`,
-      "transform-origin": "center",
-    };
-  });
   // Whether this object declares any visual_states. When it does not, there is
   // no reactive artwork to derive: we render the item's bound asset directly
   // (the asset chosen at bind time by the layout pipeline), preserving static
@@ -859,7 +800,6 @@ export function SceneItem(props: {
     ...base_style,
     ...highlight_style(),
     ...exact_subpart_focus_style(),
-    ...top_level_focus_style(),
   }));
 
   // Derived affordance kind for this item (the affordance memo). The accessor is read as a
@@ -883,6 +823,13 @@ export function SceneItem(props: {
       item_target: placement_target,
       candidate_targets,
     });
+  });
+
+  // Whole-object actions use an independent transparent hit envelope. Exact
+  // dotted subpart actions retain their declaration-owned SVG surfaces, so the
+  // envelope never overlays a subpart and cannot collapse sibling addressability.
+  const show_interaction_envelope = createMemo<boolean>(() => {
+    return is_clickable && active_exact_subpart() === null;
   });
 
   // data-asset reflects the currently rendered asset so stats tooling reads
@@ -911,10 +858,8 @@ export function SceneItem(props: {
         data-zone={item.zone}
         data-kind={item.kind}
         data-depth={item.depth ?? undefined}
-        data-item-id={is_clickable ? placement_target : undefined}
         data-asset={item.asset}
         data-exact-subpart-target={active_exact_subpart() ?? undefined}
-        data-affordance={affordance_kind()}
         data-missing-svg="true"
         data-placeholder-kind={placeholder_kind}
         style={{
@@ -929,6 +874,13 @@ export function SceneItem(props: {
         }}
       >
         <PlaceholderBody item={item} />
+        <Show when={show_interaction_envelope()}>
+          <div
+            data-interaction-envelope="true"
+            data-interaction-envelope-kind={affordance_kind()}
+            data-item-id={placement_target}
+          />
+        </Show>
       </div>
     );
   }
@@ -941,12 +893,10 @@ export function SceneItem(props: {
       data-zone={item.zone}
       data-kind={item.kind}
       data-depth={item.depth ?? undefined}
-      data-item-id={is_clickable ? placement_target : undefined}
       data-asset={asset_name()}
       data-exact-subpart-target={active_exact_subpart() ?? undefined}
       data-material={resolved()?.data_attrs["data-material"]}
       data-resolver-degraded={degradationMessage().length > 0 ? degradationMessage() : undefined}
-      data-affordance={affordance_kind()}
       data-timed-wait={flags().timed_wait_active ? "active" : undefined}
       style={rendered_item_style()}
     >
@@ -961,6 +911,13 @@ export function SceneItem(props: {
             onDomSvgHostReady={setDomSvgHost}
           />
         )}
+      </Show>
+      <Show when={show_interaction_envelope()}>
+        <div
+          data-interaction-envelope="true"
+          data-interaction-envelope-kind={affordance_kind()}
+          data-item-id={placement_target}
+        />
       </Show>
       <For each={asset_layers()}>
         {(asset) => (

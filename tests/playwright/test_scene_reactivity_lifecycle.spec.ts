@@ -243,7 +243,7 @@ test.describe("scene reactivity + lifecycle", () => {
       (window as unknown as HarnessWindow).__harness.mount(scene);
     }, SCENE_NAME);
     await page
-      .locator(`#scene-root [data-item-id="${FILL_TARGET_PLACEMENT}"]`)
+      .locator(`#scene-root [data-placement-name="${FILL_TARGET_PLACEMENT}"]`)
       .waitFor({ state: "attached" });
     await page.waitForFunction(
       async ({ target, asset }) => {
@@ -251,7 +251,7 @@ test.describe("scene reactivity + lifecycle", () => {
           r.json(),
         )) as Record<string, { reveal_handle: string }>;
         const handle = manifest[asset]?.reveal_handle;
-        const item = document.querySelector(`#scene-root [data-item-id="${target}"]`);
+        const item = document.querySelector(`#scene-root [data-placement-name="${target}"]`);
         return (
           handle !== undefined &&
           Array.from(item?.querySelectorAll("rect") ?? []).some(
@@ -270,7 +270,7 @@ test.describe("scene reactivity + lifecycle", () => {
 
   test("SVG-injection safety: no authored label text leaks into injected SVG markup", async () => {
     const injection: InjectionReport = await page.evaluate(() => {
-      const items = Array.from(document.querySelectorAll("#scene-root [data-item-id]"));
+      const items = Array.from(document.querySelectorAll("#scene-root [data-placement-name]"));
       const labels = Array.from(document.querySelectorAll("#scene-root [data-label]")).map(
         (l) => l.textContent || "",
       );
@@ -278,7 +278,7 @@ test.describe("scene reactivity + lifecycle", () => {
       for (const it of items) {
         const svg = it.querySelector("svg");
         out.push({
-          itemId: it.getAttribute("data-item-id"),
+          itemId: it.getAttribute("data-placement-name"),
           hasSvg: svg !== null,
           // Authored object-name strings must not appear as injected SVG text
           // content (the asset markup is generated, not authored YAML).
@@ -308,7 +308,7 @@ test.describe("scene reactivity + lifecycle", () => {
       async (args: { target: string; asset: string }) => {
         const root = document.getElementById("scene-root")!;
         root.setAttribute("data-test-root-token", "root-1");
-        const item = root.querySelector(`[data-item-id="${args.target}"]`)!;
+        const item = root.querySelector(`[data-placement-name="${args.target}"]`)!;
         item.setAttribute("data-test-item-token", "item-1");
         const r = item.getBoundingClientRect();
         const manifest = (await fetch("/assets/liquid_regions.json").then((r) =>
@@ -323,8 +323,8 @@ test.describe("scene reactivity + lifecycle", () => {
         }
         const fillH = Number(reveal.getAttribute("height"));
         // Pick an unaffected sibling item.
-        const others = Array.from(root.querySelectorAll("[data-item-id]")).filter(
-          (el) => el.getAttribute("data-item-id") !== args.target,
+        const others = Array.from(root.querySelectorAll("[data-placement-name]")).filter(
+          (el) => el.getAttribute("data-placement-name") !== args.target,
         );
         const other = others[0]!;
         other.setAttribute("data-test-other-token", "other-1");
@@ -332,7 +332,7 @@ test.describe("scene reactivity + lifecycle", () => {
         return {
           bbox: { x: r.x, y: r.y, w: r.width, h: r.height },
           fillH,
-          otherId: other.getAttribute("data-item-id"),
+          otherId: other.getAttribute("data-placement-name"),
           otherBbox: { x: or.x, y: or.y, w: or.width, h: or.height },
         };
       },
@@ -362,7 +362,7 @@ test.describe("scene reactivity + lifecycle", () => {
               r.json(),
             )) as Record<string, { reveal_handle: string }>;
             const handle = manifest[asset]?.reveal_handle;
-            const item = document.querySelector(`#scene-root [data-item-id="${target}"]`);
+            const item = document.querySelector(`#scene-root [data-placement-name="${target}"]`);
             const reveal = Array.from(item?.querySelectorAll("rect") ?? []).find((rect) =>
               rect.id.endsWith(`__${String(handle)}`),
             );
@@ -376,7 +376,7 @@ test.describe("scene reactivity + lifecycle", () => {
     const after: AfterState = await page.evaluate(
       async (args: { target: string; asset: string }) => {
         const root = document.getElementById("scene-root")!;
-        const item = root.querySelector(`[data-item-id="${args.target}"]`)!;
+        const item = root.querySelector(`[data-placement-name="${args.target}"]`)!;
         const r = item.getBoundingClientRect();
         const manifest = (await fetch("/assets/liquid_regions.json").then((r) =>
           r.json(),
@@ -399,7 +399,7 @@ test.describe("scene reactivity + lifecycle", () => {
           otherStillTagged: other !== null,
           bbox: { x: r.x, y: r.y, w: r.width, h: r.height },
           fillH,
-          itemId: item.getAttribute("data-item-id"),
+          itemId: item.getAttribute("data-placement-name"),
           otherBbox: or ? { x: or.x, y: or.y, w: or.width, h: or.height } : null,
         };
       },
@@ -408,7 +408,7 @@ test.describe("scene reactivity + lifecycle", () => {
 
     expect(after.rootToken, "scene root must NOT remount on ObjectStateChange").toBe("root-1");
     expect(after.itemToken, "affected item must be the SAME node (no remount)").toBe("item-1");
-    expect(after.itemId, "affected item keeps its data-item-id").toBe(FILL_TARGET_PLACEMENT);
+    expect(after.itemId, "affected item keeps its placement identity").toBe(FILL_TARGET_PLACEMENT);
     expect(
       bboxClose(before.bbox, after.bbox),
       `affected item bbox must be stable: before=${JSON.stringify(before.bbox)} after=${JSON.stringify(after.bbox)}`,
@@ -437,11 +437,11 @@ test.describe("scene reactivity + lifecycle", () => {
       (window as unknown as HarnessWindow).__harness.remount(scene);
     }, ALT_SCENE_NAME);
     await expect(page.locator("#scene-root [data-test-item-token='item-1']")).toHaveCount(0);
-    await page.locator("#scene-root [data-item-id]").first().waitFor({ state: "attached" });
+    await page.locator("#scene-root [data-placement-name]").first().waitFor({ state: "attached" });
     const afterRemount: AfterRemountState = await page.evaluate(() => {
       const root = document.getElementById("scene-root")!;
       const oldItem = root.querySelector("[data-test-item-token='item-1']");
-      const itemCount = root.querySelectorAll("[data-item-id]").length;
+      const itemCount = root.querySelectorAll("[data-placement-name]").length;
       return { oldItemGone: oldItem === null, itemCount };
     });
     expect(afterRemount.oldItemGone, "SceneChange must dispose prior root (old item gone)").toBe(
@@ -452,11 +452,11 @@ test.describe("scene reactivity + lifecycle", () => {
     await page.evaluate(() => {
       (window as unknown as HarnessWindow).__harness.dispose();
     });
-    await expect(page.locator("#scene-root [data-item-id]")).toHaveCount(0);
+    await expect(page.locator("#scene-root [data-placement-name]")).toHaveCount(0);
     const afterDispose: AfterDisposeState = await page.evaluate(() => {
       const root = document.getElementById("scene-root")!;
       return {
-        itemCount: root.querySelectorAll("[data-item-id]").length,
+        itemCount: root.querySelectorAll("[data-placement-name]").length,
         degraded: root.hasAttribute("data-scene-degraded"),
       };
     });

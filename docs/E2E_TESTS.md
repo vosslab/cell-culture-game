@@ -66,6 +66,14 @@ ungraceful termination leaves `.super_all_tests.lock`, verify the process
 identity and confirm that no exhaustive suite is active before removing the
 stale lock directory. The lock artifact is ignored by Git.
 
+The exhaustive runner gives every non-browser E2E a default five-minute
+process-group boundary through `tools/run_with_timeout.py`, then executes
+connected Playwright acceptance before shell E2Es. This preserves rendered
+statistics for their Python/Node consumers and prevents an external-tool
+regression from hiding the user workflow result. Set `E2E_TIMEOUT_SECONDS` when a
+deliberately longer E2E is required. A timeout or other nonzero exit is reported
+as a normal failed gate and the summary still completes.
+
 ## Naming conventions test
 
 File naming conventions are enforced by `templates/typescript/tests/test_test_naming_conventions.py`

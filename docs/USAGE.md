@@ -102,23 +102,19 @@ belong in layout-manager DOM labels or object data, not in SVG artwork. Sparse
 intrinsic markings such as units, symbols, graduations, polarity, and plate
 coordinates may remain.
 
-When an approved intrinsic marking needs outlining, prepare a separate output,
-then normalize it for ingestion:
+When a rare approved intrinsic marking arrives as live SVG text, prefer
+`rsvg-convert` from librsvg to prepare a separate path-only output, then run the
+repository normalizer:
 
 ```bash
-tools/outline_svg_text.sh raw.svg outlined.svg
+rsvg-convert --format svg --output outlined.svg raw.svg
 source source_me.sh && python3 tools/normalize_svg_v3.py -i outlined.svg -o assets/equipment/static/
 ```
 
-The outline helper does not replace files by default. Use explicit in-place
-mode only when the source file is the intended target:
-
-```bash
-tools/outline_svg_text.sh --in-place assets/equipment/static/my_asset.svg
-source source_me.sh && python3 tools/normalize_svg_v3.py --in-place assets/equipment/static/my_asset.svg
-```
-
 `normalize_svg_v3.py -o` takes an output directory, not an output filename.
+The repository has no desktop-editor adapter. Neither librsvg nor the
+normalizer authorizes prose inside SVG art; learner-facing text belongs in
+accessible, localizable DOM or object data.
 
 ## Variable-volume contact sheet
 

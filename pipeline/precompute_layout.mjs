@@ -28,6 +28,7 @@ import path from "node:path";
 import { execFileSync } from "node:child_process";
 
 import { runPipeline } from "../src/scene_runtime/layout/index.ts";
+import { assert_valid_scene_interaction_geometry } from "../src/scene_runtime/layout/interaction_geometry.ts";
 import {
   countBuildFailures,
   isBuildGateExemptScene,
@@ -102,7 +103,7 @@ function build_artifact(layout_by_scene) {
   body += "// UnifiedDiagnostic[] }.\n";
   body += "\n";
   body +=
-    "import type { ComputedItem, ComputedZoneBand, ResolvedScene } from '../src/scene_runtime/layout/types.js';\n";
+    "import type { ComputedItem, ComputedZoneBand, ResolvedScene, SceneInteractionGeometry } from '../src/scene_runtime/layout/types.js';\n";
   body +=
     "import type { UnifiedDiagnostic } " +
     "from '../src/scene_runtime/layout/diagnostics/unified.js';\n";
@@ -112,6 +113,7 @@ function build_artifact(layout_by_scene) {
   body += "\tscene: ResolvedScene;\n";
   body += "\tzoneBands: ComputedZoneBand[];\n";
   body += "\tunifiedDiagnostics: UnifiedDiagnostic[];\n";
+  body += "\tinteractionGeometry: SceneInteractionGeometry;\n";
   body += "}\n";
   body += "\n";
   body += "export const PRECOMPUTED_LAYOUT: Record<string, PrecomputedSceneLayout> = ";
@@ -124,6 +126,7 @@ function build_artifact(layout_by_scene) {
       scene: layout_by_scene[name].scene,
       zoneBands: layout_by_scene[name].zoneBands,
       unifiedDiagnostics: layout_by_scene[name].unifiedDiagnostics,
+      interactionGeometry: layout_by_scene[name].interactionGeometry,
     };
   }
   body += JSON.stringify(ordered, null, "\t");
@@ -183,6 +186,7 @@ function main() {
   for (const name of scene_names) {
     const scene = SCENES[name];
     const result = run_scene(scene);
+    assert_valid_scene_interaction_geometry(result.interactionGeometry);
     // Carry the laid-out items (sorted for determinism), the report diagnostics
     // stream serialized into the artifact, and the severity-graded stream the
     // build gate reads. severityDiagnostics is the gate's source of truth; it is
@@ -193,6 +197,7 @@ function main() {
       scene: result.scene,
       zoneBands: [...result.zoneBands.values()].sort((a, b) => a.id.localeCompare(b.id)),
       unifiedDiagnostics: result.unifiedDiagnostics,
+      interactionGeometry: result.interactionGeometry,
       severityDiagnostics: result.severityDiagnostics,
     };
   }

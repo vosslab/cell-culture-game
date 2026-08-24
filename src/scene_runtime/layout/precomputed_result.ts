@@ -28,6 +28,7 @@ import type {
   PipelineResult,
   ResolvedScene,
   SceneA,
+  SceneInteractionGeometry,
 } from "./types.js";
 
 //============================================
@@ -47,6 +48,7 @@ export function makePrecomputedResult(
   zoneBands: ComputedZoneBand[],
   unifiedDiagnostics: UnifiedDiagnostic[],
   resolvedScene: ResolvedScene,
+  interactionGeometry: SceneInteractionGeometry,
 ): PipelineResult {
   const result: PipelineResult = {
     scene: resolvedScene,
@@ -67,6 +69,7 @@ export function makePrecomputedResult(
       clamped: new Map(),
     },
     final,
+    interactionGeometry,
     decisionMetadata: buildDecisionMetadata(scene.scene_name, []),
     severityDiagnostics: [],
     // The renderer reads only `final` and `scene`; the off-canvas report is a
@@ -122,6 +125,7 @@ export function resolvePrecomputedResult(scene_name: string, scene: SceneA): Pip
     precomputed.zoneBands,
     precomputed.unifiedDiagnostics,
     resolvedScene,
+    precomputed.interactionGeometry,
   );
   return result;
 }

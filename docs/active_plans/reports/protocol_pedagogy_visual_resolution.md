@@ -1,9 +1,9 @@
 # Protocol pedagogy resolution ledger
 
-Date: 2026-08-03
+Date: 2026-08-23
 
 Status: implemented; scientific, repository, and full visible-UI validation
-passed; exhaustive wrapper has the external-tool blocker documented below
+passed; later SVG asset-ownership work is scoped separately
 
 ## Purpose
 
@@ -97,39 +97,39 @@ the audited approximately 3 mL course scenario is now explicit, physically
 visible, and internally conserved. A different local course recipe can be a
 future content variation without invalidating the implemented scenario.
 
-## Validation environment blocker
+## External editor removal
 
-The optional Inkscape text-outline E2E is blocked by the installed Inkscape
-1.4.4 CLI. It reproducibly exports the tiny test SVG and then never exits when
-invoked by the exhaustive suite; after interruption, the same binary aborts
-with status 134 on a direct one-file export. The repository wrapper was
-restored unchanged after bounded experiments, so no unverified process-killing
-workaround was retained. This authoring-tool E2E is independent of protocol
-generation, simulation runtime, scientific state, and visible browser
-completion; rerun it on a working Inkscape installation.
+The desktop-editor adapter and its dedicated tests were removed after this
+ledger's original validation run. They were optional authoring infrastructure,
+not part of protocol generation, simulation, scientific state, or visible
+browser completion. The repository-native normalizer remains authoritative;
+optional librsvg preparation serves rare intrinsic SVG marks. The broader
+learner-interface ownership issue is recorded in the
+[SVG interface scope audit](../audits/svg_embedded_interface_scope.md).
 
 ## Verification record
 
 - Generated output: 131 objects, 73 asset specifications, and 57 scenes
   including 46 per-protocol scenes.
-- Full visible-browser suite: 105 tests passed, including visible completion of
-  all 31 generated protocol pages. `cell_culture_full` completed 53/53 steps
-  with 401 visible clicks and 61 rejected wrong-sibling probes;
-  `sdspage_full` completed 46/46 steps with 159 visible clicks and 20 rejected
-  wrong-sibling probes; `routine_passage` completed 17/17 steps with 58 visible
-  clicks.
-- Repository gates passed: generated 131 objects, 73 asset specifications, and
-  57 scenes; 658 Node tests; 5,821 Python tests; protocol validation and direct
-  stepping; scene metrics; protocol/scene generation E2Es; SVG normalization,
-  gradient, visual-regression, layout, and generalization E2Es.
+- Full visible-browser suite: 115 tests passed. The exhaustive connected
+  protocol walkthrough completed 32/32 walkthrough tests: 31 normal protocol
+  completions plus one wrong-order acceptance path, covering 499/499 authored
+  interaction checkpoints across the generated protocol pages and runners.
+- Every walkthrough checkpoint proves the mandatory non-empty authored
+  `instruction` and `hint`; opening the native hint proves the open-hint text
+  advances with the visible next-action message after each accepted action.
+- Repository gates passed: `source source_me.sh && pytest tests/` reported
+  6,261 passed, and final `source source_me.sh && ./super_all_tests.sh` reached
+  21/21 categories. Protocol validation and direct stepping; scene metrics;
+  protocol/scene generation E2Es; SVG normalization, gradient,
+  visual-regression, layout, and generalization E2Es also passed.
 - Material rendering passed against a reviewed 795-surface baseline with zero
   regressions, new surfaces, or missing surfaces. The MTT readout visibly
   preserves treatment-dependent dry formazan crystals at zero liquid volume
   before DMSO dissolution.
-- `./super_all_tests.sh` reaches the optional Inkscape text-outline E2E with
-  every preceding category passing, then stalls in the external binary as
-  documented above. The complete Playwright suite was therefore rerun directly
-  through `./run_playwright_tests.sh` and passed 105/105.
+- The recorded pre-removal `source source_me.sh && ./super_all_tests.sh` run
+  passed all 21/21 categories. The complete Playwright suite passed 115/115.
+  Current post-removal validation is recorded in the scope audit.
 
 No item is marked resolved solely because YAML validates. The permanent tests
 assert pedagogical outcomes at the visible/runtime boundary: meaningful choice,

@@ -11,7 +11,9 @@ const PROTOCOL = "trypan_blue_counting";
 const TEACHING_SET_POINT = "10";
 
 async function openFirstAdjustControl(page: Page): Promise<void> {
-  const activeTarget = page.locator("#scene-root [data-item-id][data-affordance='active']");
+  const activeTarget = page.locator(
+    "#scene-root [data-interaction-envelope][data-interaction-envelope-kind='active']",
+  );
   await expect(activeTarget).toHaveCount(1);
   await activeTarget.click();
   await expect(activeTarget).toHaveCount(1);

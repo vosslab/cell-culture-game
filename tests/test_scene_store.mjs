@@ -116,6 +116,54 @@ describe("scene_store seeding", () => {
   });
 });
 
+describe("scene_store browser-session restore", () => {
+  test("restores declared state, cursor state, and diagnostic revision atomically", () => {
+    const source = seeded_store();
+    source.set_object_state("centrifuge", { running: true, set_rpm: 1200 });
+    source.set_cursor("centrifuge", {
+      attach: true,
+      held_material_name: "mixed",
+      held_material_volume: 2,
+    });
+
+    const restored = create_scene_store(FIXTURE_REGISTRY);
+    restored.restore_session(
+      [
+        { target: "centrifuge", object_name: "centrifuge" },
+        { target: "bme_tube", object_name: "bme_tube" },
+        { target: "conical_15ml_rack.slot_0", object_name: "conical_15ml_rack" },
+      ],
+      source.snapshot_declared_state(),
+      source.snapshot_cursor_state(),
+      source.state_revision,
+    );
+
+    assert.strictEqual(restored.state.centrifuge.state.running, true);
+    assert.strictEqual(restored.state.centrifuge.state.set_rpm, 1200);
+    assert.strictEqual(restored.state.centrifuge.flags.cursor_attached, true);
+    assert.strictEqual(restored.state.centrifuge.flags.held_material_name, "mixed");
+    assert.strictEqual(restored.state_revision, source.state_revision);
+  });
+
+  test("rejects an incomplete target snapshot without changing live state", () => {
+    const store = seeded_store();
+    const before = store.snapshot_declared_state();
+    const incomplete = { ...before, centrifuge: { running: true } };
+
+    assert.throws(
+      () =>
+        store.restore_session(
+          [{ target: "centrifuge", object_name: "centrifuge" }],
+          incomplete,
+          [],
+          3,
+        ),
+      /does not match its state schema/,
+    );
+    assert.deepStrictEqual(store.snapshot_declared_state(), before);
+  });
+});
+
 //============================================
 // Scene reconciliation
 //============================================

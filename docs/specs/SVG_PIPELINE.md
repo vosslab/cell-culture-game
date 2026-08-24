@@ -37,14 +37,13 @@ blind-recognition assessment with embedded prose.
 Sparse, approved physically intrinsic markings may remain when they are part
 of an instrument: numbers, scientific units or symbols, polarity, graduations,
 and plate row or column coordinates. Use them sparingly. The SVG normalization
-gate does not accept live `text`, `tspan`, or `textPath` elements, so an
-approved intrinsic marking may be outlined with the optional
-`tools/outline_svg_text.sh` authoring helper before normalization, including
-during legacy/import preparation. Legacy or imported provenance is never an
-exception for prose. Inkscape is an optional, on-demand development/authoring
-tool, not a Brewfile entry, required installation, runtime, or build
-dependency; the helper reports how to install it only when an author invokes
-it.
+gate does not accept live `text`, `tspan`, or `textPath` elements. Prefer
+authored path geometry for the few approved intrinsic markings that remain. If
+an imported intrinsic marking arrives as live SVG text, prefer
+`rsvg-convert --format svg` to prepare a separate path-only SVG before running
+the repository normalizer. The repository does not integrate a desktop SVG
+editor. Legacy or imported provenance is never an exception for prose. Librsvg
+is not a runtime or build dependency.
 
 Blind recognition is diagnostic evidence for instrument identity, not a
 universal perfection gate. Improve ambiguous assets where the evidence reveals

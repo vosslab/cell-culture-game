@@ -39,6 +39,8 @@ steps:
     sequence:
       - target: serological_pipette_pack
         gesture: click
+        instruction: "Fit a fresh sterile pipette from the pack."
+        hint: "Use the sterile graduated pipette for the measured transfer that follows."
         validator:
           preset: correct_target
         response:
@@ -52,6 +54,8 @@ steps:
             incorrect: "Take a fresh serological pipette from the sterile pack before contacting PBS."
       - target: serological_pipette
         gesture: click
+        instruction: "Attach the serological pipette for the next transfer."
+        hint: "Use the attached tool to perform the following source draw or dispense."
         validator:
           preset: correct_target
         response:
@@ -64,6 +68,8 @@ steps:
       # object_name, matching the PRIMARY_SPEC target vocabulary.
       - target: pbs_bottle
         gesture: click
+        instruction: "Draw 4.0 mL of PBS from the bottle."
+        hint: "Measure the PBS at the pipette graduations before rinsing or filling the solution tube."
         validator:
           preset: correct_target
         response:
@@ -81,6 +87,8 @@ steps:
                 freshness: used
       - target: mtt_solution_tube
         gesture: click
+        instruction: "Deliver the measured PBS into the MTT solution tube."
+        hint: "Use the empty graduated tube as the receiving vessel before adding MTT powder."
         validator:
           preset: correct_target
         response:
@@ -110,6 +118,8 @@ steps:
     sequence:
       - target: mtt_powder_container
         gesture: click
+        instruction: "Tap the MTT powder vial over the solution tube."
+        hint: "Transfer the full 20 mg powder into the PBS-filled tube before vortexing."
         validator:
           preset: correct_target
         response:
@@ -121,6 +131,8 @@ steps:
                 material_volume: 0
       - target: mtt_solution_tube
         gesture: click
+        instruction: "Tap the MTT vial over the solution tube to transfer the powder."
+        hint: "The PBS-filled tube is the receiving vessel; tap in the powder before vortexing."
         validator:
           preset: correct_target
         response:
@@ -131,12 +143,16 @@ steps:
                 material_volume: 4.0
       - target: vortex
         gesture: click
+        instruction: "Place the completed tube on the vortex mixer."
+        hint: "The next timed action mixes the stock until it is homogeneous."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: mtt_solution_tube
         gesture: click
+        instruction: "Vortex the tube until the MTT is fully dissolved."
+        hint: "The timed dissolve step completes the homogeneous 12 mM solution."
         validator:
           preset: correct_target
         response:
@@ -164,6 +180,8 @@ steps:
     sequence:
       - target: volume_decision_sufficient
         gesture: select
+        instruction: "Choose the decision card supported by the visible solution volume and appearance."
+        hint: "Inspect the graduated tube for the required endpoint volume and homogeneous yellow solution before selecting."
         validator:
           preset: correct_choice
         response:

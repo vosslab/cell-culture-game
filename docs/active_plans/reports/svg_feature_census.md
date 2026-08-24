@@ -171,4 +171,3 @@ Verdict among transform-bearing files:
 | UNRESOLVED_REFERENCE | 5 |
 | EXTERNAL_RESOURCE_UNSUPPORTED | 2 |
 | PATTERN_UNSUPPORTED | 1 |
-

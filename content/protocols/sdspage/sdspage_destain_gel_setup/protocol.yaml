@@ -31,6 +31,8 @@ steps:
     sequence:
       - target: staining_tray
         gesture: click
+        instruction: Open the staining-tray workspace for the two rinses.
+        hint: Keep the gel flat and oriented in the tray throughout both rinse cycles.
         validator:
           preset: correct_target
         response:
@@ -39,6 +41,8 @@ steps:
               to_scene: sdspage_destain_gel_setup_workspace
       - target: ddh2o_bottle
         gesture: click
+        instruction: Add water around the gel for rinse 1.
+        hint: Keep the gel flat in the tray and draw the first rinse from ddH2O.
         validator:
           preset: correct_target
         response:
@@ -55,6 +59,8 @@ steps:
                 material_volume: 300
       - target: waste_container
         gesture: click
+        instruction: Discard rinse 1 in the waste container.
+        hint: Empty only the water around the gel; leave the gel flat in the tray.
         validator:
           preset: correct_target
         response:
@@ -72,6 +78,8 @@ steps:
                 material_volume: 200
       - target: ddh2o_bottle
         gesture: click
+        instruction: Add water around the gel for rinse 2.
+        hint: The first rinse is discarded; repeat with fresh ddH2O.
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -83,6 +91,8 @@ steps:
               state: { material_name: ddh2o, material_volume: 100 }
       - target: waste_container
         gesture: click
+        instruction: Discard rinse 2 in the waste container.
+        hint: Empty the second rinse while keeping the gel oriented in the tray.
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -106,6 +116,8 @@ steps:
     sequence:
       - target: destain_bottle
         gesture: click
+        instruction: Pour destain solution into the staining tray.
+        hint: Cover the flat gel with the prepared destain solution.
         validator:
           preset: correct_target
         response:
@@ -136,6 +148,8 @@ steps:
     sequence:
       - target: kimwipe_pad
         gesture: click
+        instruction: Place four loosely knotted Kimwipes in the staining tray.
+        hint: Keep the Kimwipes beside the gel rather than directly on its surface.
         validator:
           preset: correct_target
         response:
@@ -159,6 +173,8 @@ steps:
     sequence:
       - target: microwave
         gesture: adjust
+        instruction: Set the microwave timer to 50 seconds.
+        hint: Use the fixed 50-second interval to heat the covered destain without boiling.
         validator:
           preset: target_with_value
           value:
@@ -171,6 +187,8 @@ steps:
                 set_time_s: 50
       - target: microwave
         gesture: click
+        instruction: Start the 50-second microwave heating cycle.
+        hint: The timer is set; begin heating the covered destain tray.
         validator:
           preset: correct_target
         response:
@@ -202,6 +220,8 @@ steps:
     sequence:
       - target: kimwipe_pad
         gesture: click
+        instruction: Remove and discard the Kimwipes after microwave heating.
+        hint: Clear the tray before transferring it to the rocking shaker.
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -219,6 +239,8 @@ steps:
     sequence:
       - target: staining_tray
         gesture: click
+        instruction: Transfer the staining tray to the rocking shaker.
+        hint: Move the heated destain tray for continued gentle agitation.
         validator:
           preset: correct_target
         response:

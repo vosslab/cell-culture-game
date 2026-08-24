@@ -37,7 +37,7 @@ async function mount_bench(root: HTMLElement): Promise<void> {
 //============================================
 
 async function mount_protocol_host(): Promise<void> {
-  // The host module wires every M2 runtime + M3 shell binding. Its
+  // The host module wires the runtime and shell bindings. Its
   // top-level call site mounts on import, so a dynamic import is enough.
   await import("./protocol_host.js");
 }

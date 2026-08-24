@@ -24,6 +24,8 @@ steps:
     sequence:
       - target: well_plate
         gesture: click
+        instruction: "Open the well plate workspace."
+        hint: "Choose the well plate's visible click target."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -40,7 +42,9 @@ A `protocol` carries `protocol_name`, `entry_step`, and either `steps` or
 `mini_protocols`; it may also carry a root `initial_state` session seed. Each
 `step` carries `step_name`, `prompt`, `sequence`, `step_validator`, `outcome`,
 and `next_step`. Each `interaction` in a `sequence` carries `target`,
-`gesture`, `validator`, and `response`. Flow is `entry_step` plus `next_step`;
+`gesture`, `instruction`, `hint`, `validator`, and `response`; the guidance
+fields are required non-empty plain strings.
+Flow is `entry_step` plus `next_step`;
 YAML `steps` list order is reading convenience only and never controls flow.
 Sequence runners list constituent mini-protocols rather than authored steps;
 see Sequence runners below. Step count is determined by pedagogy. Each step is
@@ -94,7 +98,58 @@ A step is one pedagogical unit. Its structure is the same for every step; there 
 - `outcome`: the `{on_success, on_failure}` mapping that says how the step resolves.
 - `next_step`: names the next step by its `step_name`, or `null` for a terminal step.
 
-Each `interaction` in a `sequence` carries exactly four slots: `target` (the semantic scene object or control acted on), `gesture` (how the student acts on it), `validator` (a named preset checking that one gesture on that one target), and `response` (the post-validation system behavior). The task semantics of an interaction come from the target's `kind` plus the `gesture`; the schema has no separate task-type or completion-path discriminator. What were the legacy `interactionSequence`, `directTool`, `modal`, and `multipleChoice` kinds are all just steps: an ordered `click` sequence, a one-interaction `sequence`, an interaction whose `response` carries a `SceneChange` or `feedback`-only payload, and a `select`-gesture interaction validated by `correct_choice`.
+Each `interaction` in a `sequence` has six required slots: `target` (the
+semantic scene object or control acted on), `gesture` (how the student acts on
+it), `instruction` and `hint` (non-empty plain-string pre-action guidance),
+`validator` (a named preset checking that one gesture on that one target), and
+`response` (the post-validation system behavior). The task semantics of an
+interaction come from the target's `kind` plus the `gesture`; the schema has no
+separate task-type or completion-path discriminator. What were the legacy
+`interactionSequence`, `directTool`, `modal`, and `multipleChoice` kinds are
+all just steps: an ordered `click` sequence, a one-interaction `sequence`, an
+interaction whose `response` carries a `SceneChange` or `feedback`-only
+payload, and a `select`-gesture interaction validated by `correct_choice`.
+
+Within one step, every repeated exact `(target, gesture)` pair must author
+guidance whose normalized `instruction` values are distinct, and whose
+normalized `hint` values must be distinct, so the live next-action message and
+an already-open hint both change between materially different substeps. A
+`select` pair must not name the correct target, placement identity, or learner
+label before a rejection; a `type` pair must not reveal a literal expected
+value. The content validator enforces these literal identity checks using the
+available object and placement registry. It does not claim to recognize every
+scientific synonym, so author review remains responsible for pedagogical
+quality.
+
+Guidance progression follows reachable flow. After every accepted interaction
+that has a successor, the runtime advances the visible `instruction` and any
+already-open `hint` together to the next authored pair. Therefore adjacent
+authored interactions in reachable flow use distinct normalized `instruction`
+and `hint` text, including the boundary from the final interaction in one step
+to the first interaction in `next_step`. This adjacency rule compares flow
+neighbors regardless of target or gesture. The within-step repeated exact
+`(target, gesture)` rule above is stricter: every occurrence of that pair uses
+distinct normalized instruction and hint values, even when occurrences are
+separated by another interaction.
+
+The generator preserves the required authored guidance in the generated
+interaction data. The protocol runtime projects that pair into the active
+interaction view with the current ordinal, resolved placement, learner label,
+gesture, and any safe adjustment value. The shell renders that projection only
+and does not infer or supply a next action from response state or object-field
+names.
+
+This is a breaking pre-production migration: existing authored interactions
+without both guidance fields must be updated before validation; no compatibility
+default or generic runtime fallback exists.
+
+For every clickable placement, build-time layout emits a derived interaction
+envelope and validates it at the scene's derived minimum 16:9 frame. The frame
+guarantees a 44 CSS-pixel hit core, envelope containment, and no positive-area
+overlap between clickable envelopes. The generated frame and envelopes are the
+runtime source of truth: the host reserves the frame and the renderer exposes
+the transparent delegated envelope without resizing scientific artwork. This
+does not add authored YAML fields or alter the closed interaction vocabulary.
 
 ### Gestures
 
@@ -238,18 +293,18 @@ Curriculum content lives under `content/protocols/<cluster>/<protocol_name>/`.
 
 Mini-protocol HTML output uses the `<protocol_name>.html` convention. Example: `passage_hood_detachment.html`, `trypan_blue_counting.html`, `cell_culture_full.html`.
 
-## No schema version
+## Persistence schema version
 
-This repo has exactly one schema surface (the closed YAML vocabularies for protocol, scene, object, and material). It does not carry, and must not introduce, a separate schema-version number.
+The browser now persists student progress across page loads. This is the first downstream consumer whose stored shape can drift from current source, so the repo has exactly one persistence schema version.
 
 Rules:
 
 - No `schema_version`, `spec_version`, or equivalent field in any authored YAML file.
-- No per-surface version constants in code (no `OBJECT_SCHEMA_VERSION`, `PROTOCOL_SCHEMA_VERSION`, `SCENE_SCHEMA_VERSION`).
+- `src/schema_version.ts` owns the sole repo-wide `SCHEMA_VERSION` constant. There are no per-surface constants such as `OBJECT_SCHEMA_VERSION`, `PROTOCOL_SCHEMA_VERSION`, or `SCENE_SCHEMA_VERSION`.
 - No version tokens in test, validator, or generator filenames (no `_v3_`, `_v5_`, `_v7_`). Tests are named for the behavior under test, not for the spec revision that introduced it.
-- The unified version anchor is the repo `VERSION` file (CalVer `0Y.0M.PATCH`, currently `26.07`). A schema change ships as a normal repo version bump plus a `docs/CHANGELOG.md` entry; consumers track the repo version, not a per-surface counter.
-- `generated/` is rebuilt from current source on every run. There is no persisted artifact whose schema can drift from the source, so no cache-invalidation handle is needed.
-
-Trigger for revisiting this rule: the first time a downstream consumer persists built artifacts across runs (TS runtime snapshot, student-progress store keyed by protocol shape, CDN-served bundle). At that point, introduce exactly one repo-wide `SCHEMA_VERSION` constant; never per-surface counters. Until that trigger fires, the repo `VERSION` is the schema version.
-
-This rule may be promoted to `docs/PRIMARY_CONTRACT.md` once a persistent consumer exists. While it lives here, it is still binding: a patch that adds per-surface schema versioning or version tokens to filenames is rejected at review.
+- The repo `VERSION` remains the release identifier. A breaking persistence-shape change increments `SCHEMA_VERSION` and is recorded in `docs/CHANGELOG.md`; it does not add another version domain.
+- All protocol sessions live under the one `virtual_lab.protocol_sessions` localStorage root. The root carries `schema_version`; entries are keyed by protocol name rather than spread across independently versioned keys.
+- Every saved session carries a fingerprint of the flattened protocol's reachable step and interaction shape. A schema mismatch or fingerprint mismatch invalidates that session rather than restoring progress against different content.
+- Persisted JSON is untrusted input. The loader validates the root, machine checkpoint, declared object state, cursor state, revisions, and exact reachable flow before restoration. Any invalid record is discarded cleanly and the protocol starts fresh.
+- A save is written only at a stable step-machine checkpoint after an accepted interaction's synchronous response operations and transition have settled. A reload therefore restores the same next action and scientific state the student last saw.
+- `generated/` remains rebuilt from source and carries no independent version counter.

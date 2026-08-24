@@ -22,7 +22,7 @@ import { is_interactable_subpart_geometry } from "./subpart_hit_surface.js";
 // walking up via closest("[data-item-id]") and accepting the matched element's
 // data-item-id value. The renderer (scene_item.tsx) stamps
 // data-item-id={item.placement_name} ONLY when item.capabilities includes
-// "clickable" (M6 capability gate + M8 target-identity: the DOM key is the
+// "clickable" (the capability gate and target identity contract: the DOM key is the
 // unique per-placement placement_name, not the non-unique object_name), and the
 // rendered item list is exactly PipelineResult.final (scene_view.tsx renders one
 // SceneItem per result.final entry). So the set of resolver-accepted top-level
@@ -32,7 +32,7 @@ import { is_interactable_subpart_geometry } from "./subpart_hit_surface.js";
 // capability gate, so the candidate set cannot drift from what the resolver
 // would accept; it is not a parallel approximation. The set is placement_name
 // keyed to match the affordance memo (item_target = placement_name) and the
-// resolved active_interaction_target the select-highlight compares against.
+// resolved active interaction placement name the select-highlight compares against.
 //
 // A clickable structured object contributes a dotted target only when its real
 // generated ObjectDef declares an interactable geometry entry. The same

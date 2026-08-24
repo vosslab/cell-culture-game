@@ -1,4 +1,4 @@
-// Promotions from report-only signals to severity-graded diagnostics (M17).
+// Promotions from report-only signals to severity-graded diagnostics.
 //
 // Two promotions live here, both turning an existing report-only observation into
 // a graded SeverityDiagnostic the severity stream (and, later, the build gate)

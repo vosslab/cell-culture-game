@@ -56,6 +56,6 @@ export default [
     // this tree via tsconfig.json; only ESLint's source-style rules are skipped.
     // The canonical eslint.config.js already ignores dist/** (another
     // machine-generated build-output tree); this mirrors that for generated/**.
-    ignores: ["generated/**"],
+    ignores: ["generated/**", "test-results/**"],
   },
 ];

@@ -26,6 +26,8 @@ steps:
   sequence:
   - target: multichannel_pipette
     gesture: click
+    instruction: "Attach the multichannel pipette for media balancing."
+    hint: "Use the eight-channel tool for the complete-column volume adjustment."
     validator:
       preset: correct_target
     response:
@@ -37,6 +39,8 @@ steps:
         incorrect: Choose the eight-channel pipette for complete-column filling.
   - target: micropipette_tip_box
     gesture: click
+    instruction: "Fit a fresh matched tip set from the tip box."
+    hint: "Use the new tips before drawing media for the balanced plate."
     validator:
       preset: correct_target
     response:
@@ -50,6 +54,8 @@ steps:
         incorrect: Click the visible tip box to fit fresh multichannel tips.
   - target: media_bottle
     gesture: click
+    instruction: "Draw the measured media load for the reagent reservoir."
+    hint: "Transfer the complete media volume into the reservoir before filling plate columns."
     validator:
       preset: correct_target
     response:
@@ -68,6 +74,8 @@ steps:
         incorrect: Transfer the measured media from the bottle to the sterile reservoir.
   - target: multichannel_pipette
     gesture: adjust
+    instruction: "Set the multichannel pipette to 95 microL per channel for columns 1-6."
+    hint: "Use 95 microL in each of the eight tips so columns 1-6 reach their planned volume class."
     validator:
       preset: target_with_value
       value:
@@ -83,6 +91,8 @@ steps:
         incorrect: Set the eight-channel pipette to 95 &micro;L for columns 1-6.
   - target: reagent_reservoir
     gesture: click
+    instruction: "Draw 95 microL of media from the reservoir for the complete eight-well plate column 1."
+    hint: "Load all eight tips for column 1, then dispense this media into that same plate column."
     validator:
       preset: correct_target
     response:
@@ -98,6 +108,8 @@ steps:
           held_material_volume: 95
   - target: well_plate_96.col_1
     gesture: click
+    instruction: "Dispense 95 microL of media into plate column 1."
+    hint: "Keep the eight tips aligned over column 1; this 95 microL load sets its pre-drug volume."
     validator:
       preset: correct_target
     response:
@@ -114,6 +126,8 @@ steps:
           held_material_volume: 0
   - target: reagent_reservoir
     gesture: click
+    instruction: "Draw 95 microL of media from the reservoir for the complete eight-well plate column 2."
+    hint: "Load all eight tips for column 2, then dispense this media into that same plate column."
     validator:
       preset: correct_target
     response:
@@ -129,6 +143,8 @@ steps:
           held_material_volume: 95
   - target: well_plate_96.col_2
     gesture: click
+    instruction: "Dispense 95 microL of media into plate column 2."
+    hint: "Keep the eight tips aligned over column 2; this 95 microL load sets its pre-drug volume."
     validator:
       preset: correct_target
     response:
@@ -145,6 +161,8 @@ steps:
           held_material_volume: 0
   - target: reagent_reservoir
     gesture: click
+    instruction: "Draw 95 microL of media from the reservoir for the complete eight-well plate column 3."
+    hint: "Load all eight tips for column 3, then dispense this media into that same plate column."
     validator:
       preset: correct_target
     response:
@@ -160,6 +178,8 @@ steps:
           held_material_volume: 95
   - target: well_plate_96.col_3
     gesture: click
+    instruction: "Dispense 95 microL of media into plate column 3."
+    hint: "Keep the eight tips aligned over column 3; this 95 microL load sets its pre-drug volume."
     validator:
       preset: correct_target
     response:
@@ -176,6 +196,8 @@ steps:
           held_material_volume: 0
   - target: reagent_reservoir
     gesture: click
+    instruction: "Draw 95 microL of media from the reservoir for the complete eight-well plate column 4."
+    hint: "Load all eight tips for column 4, then dispense this media into that same plate column."
     validator:
       preset: correct_target
     response:
@@ -191,6 +213,8 @@ steps:
           held_material_volume: 95
   - target: well_plate_96.col_4
     gesture: click
+    instruction: "Dispense 95 microL of media into plate column 4."
+    hint: "Keep the eight tips aligned over column 4; this 95 microL load sets its pre-drug volume."
     validator:
       preset: correct_target
     response:
@@ -207,6 +231,8 @@ steps:
           held_material_volume: 0
   - target: reagent_reservoir
     gesture: click
+    instruction: "Draw 95 microL of media from the reservoir for the complete eight-well plate column 5."
+    hint: "Load all eight tips for column 5, then dispense this media into that same plate column."
     validator:
       preset: correct_target
     response:
@@ -222,6 +248,8 @@ steps:
           held_material_volume: 95
   - target: well_plate_96.col_5
     gesture: click
+    instruction: "Dispense 95 microL of media into plate column 5."
+    hint: "Keep the eight tips aligned over column 5; this 95 microL load sets its pre-drug volume."
     validator:
       preset: correct_target
     response:
@@ -238,6 +266,8 @@ steps:
           held_material_volume: 0
   - target: reagent_reservoir
     gesture: click
+    instruction: "Draw 95 microL of media from the reservoir for the complete eight-well plate column 6."
+    hint: "Load all eight tips for column 6, then dispense this media into that same plate column."
     validator:
       preset: correct_target
     response:
@@ -253,6 +283,8 @@ steps:
           held_material_volume: 95
   - target: well_plate_96.col_6
     gesture: click
+    instruction: "Dispense 95 microL of media into plate column 6."
+    hint: "Keep the eight tips aligned over column 6; this 95 microL load sets its pre-drug volume."
     validator:
       preset: correct_target
     response:
@@ -272,6 +304,8 @@ steps:
         incorrect: Complete the next full eight-well column.
   - target: multichannel_pipette
     gesture: adjust
+    instruction: "Set the multichannel pipette to 90 microL per channel for columns 7-12."
+    hint: "Use 90 microL in each of the eight tips so columns 7-12 reach their planned volume class."
     validator:
       preset: target_with_value
       value:
@@ -287,6 +321,8 @@ steps:
         incorrect: Set the eight-channel pipette to 90 &micro;L for columns 7-12.
   - target: reagent_reservoir
     gesture: click
+    instruction: "Draw 90 microL of media from the reservoir for the complete eight-well plate column 7."
+    hint: "Load all eight tips for column 7, then dispense this media into that same plate column."
     validator:
       preset: correct_target
     response:
@@ -302,6 +338,8 @@ steps:
           held_material_volume: 90
   - target: well_plate_96.col_7
     gesture: click
+    instruction: "Dispense 90 microL of media into plate column 7."
+    hint: "Keep the eight tips aligned over column 7; this 90 microL load sets its pre-drug volume."
     validator:
       preset: correct_target
     response:
@@ -318,6 +356,8 @@ steps:
           held_material_volume: 0
   - target: reagent_reservoir
     gesture: click
+    instruction: "Draw 90 microL of media from the reservoir for the complete eight-well plate column 8."
+    hint: "Load all eight tips for column 8, then dispense this media into that same plate column."
     validator:
       preset: correct_target
     response:
@@ -333,6 +373,8 @@ steps:
           held_material_volume: 90
   - target: well_plate_96.col_8
     gesture: click
+    instruction: "Dispense 90 microL of media into plate column 8."
+    hint: "Keep the eight tips aligned over column 8; this 90 microL load sets its pre-drug volume."
     validator:
       preset: correct_target
     response:
@@ -349,6 +391,8 @@ steps:
           held_material_volume: 0
   - target: reagent_reservoir
     gesture: click
+    instruction: "Draw 90 microL of media from the reservoir for the complete eight-well plate column 9."
+    hint: "Load all eight tips for column 9, then dispense this media into that same plate column."
     validator:
       preset: correct_target
     response:
@@ -364,6 +408,8 @@ steps:
           held_material_volume: 90
   - target: well_plate_96.col_9
     gesture: click
+    instruction: "Dispense 90 microL of media into plate column 9."
+    hint: "Keep the eight tips aligned over column 9; this 90 microL load sets its pre-drug volume."
     validator:
       preset: correct_target
     response:
@@ -380,6 +426,8 @@ steps:
           held_material_volume: 0
   - target: reagent_reservoir
     gesture: click
+    instruction: "Draw 90 microL of media from the reservoir for the complete eight-well plate column 10."
+    hint: "Load all eight tips for column 10, then dispense this media into that same plate column."
     validator:
       preset: correct_target
     response:
@@ -395,6 +443,8 @@ steps:
           held_material_volume: 90
   - target: well_plate_96.col_10
     gesture: click
+    instruction: "Dispense 90 microL of media into plate column 10."
+    hint: "Keep the eight tips aligned over column 10; this 90 microL load sets its pre-drug volume."
     validator:
       preset: correct_target
     response:
@@ -411,6 +461,8 @@ steps:
           held_material_volume: 0
   - target: reagent_reservoir
     gesture: click
+    instruction: "Draw 90 microL of media from the reservoir for the complete eight-well plate column 11."
+    hint: "Load all eight tips for column 11, then dispense this media into that same plate column."
     validator:
       preset: correct_target
     response:
@@ -426,6 +478,8 @@ steps:
           held_material_volume: 90
   - target: well_plate_96.col_11
     gesture: click
+    instruction: "Dispense 90 microL of media into plate column 11."
+    hint: "Keep the eight tips aligned over column 11; this 90 microL load sets its pre-drug volume."
     validator:
       preset: correct_target
     response:
@@ -442,6 +496,8 @@ steps:
           held_material_volume: 0
   - target: reagent_reservoir
     gesture: click
+    instruction: "Draw 90 microL of media from the reservoir for the complete eight-well plate column 12."
+    hint: "Load all eight tips for column 12, then dispense this media into that same plate column."
     validator:
       preset: correct_target
     response:
@@ -457,6 +513,8 @@ steps:
           held_material_volume: 90
   - target: well_plate_96.col_12
     gesture: click
+    instruction: "Dispense 90 microL of media into plate column 12."
+    hint: "Keep the eight tips aligned over column 12; this 90 microL load sets its pre-drug volume."
     validator:
       preset: correct_target
     response:
@@ -477,6 +535,8 @@ steps:
         incorrect: Complete the next full eight-well column.
   - target: repeat_dispenser
     gesture: click
+    instruction: "Fit a fresh repeating dispenser for the row-A media controls."
+    hint: "Use a separate fresh tip before loading the repeating dispenser with control media."
     validator:
       preset: correct_target
     response:
@@ -490,6 +550,8 @@ steps:
         incorrect: Use the repeating dispenser for the row-A 5 &micro;L series.
   - target: repeat_dispenser
     gesture: adjust
+    instruction: "Set the repeating dispenser to 5 &micro;L per dispense for the row-A control series."
+    hint: "The 5 &micro;L set point makes each control addition consistent and leaves the wells at the intended final treatment volume."
     validator:
       preset: target_with_value
       value:
@@ -502,6 +564,8 @@ steps:
           set_dispense_volume: 5
   - target: reagent_reservoir
     gesture: click
+    instruction: "Draw 60 microL of media for row A, columns 1-12."
+    hint: "Use the reservoir as the source, then deliver this load into row A, columns 1-12."
     validator:
       preset: correct_target
     response:
@@ -517,6 +581,8 @@ steps:
           held_material_volume: 60
   - target: well_plate_96
     gesture: click
+    instruction: "Dispense the row-A control media series across the plate."
+    hint: "Apply the repeating-dispenser load to the six row-A control wells."
     validator:
       preset: correct_target
     response:
@@ -603,6 +669,8 @@ steps:
   sequence:
   - target: plate_map_decision_correct
     gesture: select
+    instruction: "Compare the visible plate volume classes with the available final-volume decisions and choose the matching assessment."
+    hint: "Use the displayed well volumes and treatment layout as evidence for whether the plate is balanced before drug addition."
     validator:
       preset: correct_choice
     response:

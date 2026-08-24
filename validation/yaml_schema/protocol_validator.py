@@ -1,6 +1,7 @@
 """ProtocolValidator: validates protocol YAML per PRIMARY_SPEC.md with Tier 1 cross-file checks."""
 
 import math
+import re
 
 from validation.yaml_schema.constants import (
 	PROTOCOL_TYPES,
@@ -9,6 +10,8 @@ from validation.yaml_schema.constants import (
 	VALID_GESTURES,
 	VALID_SCENE_OPERATIONS,
 	INTERACTION_VALIDATOR_PRESETS,
+	INTERACTION_ALL_KEYS,
+	INTERACTION_REQUIRED_KEYS,
 	LEARNING_MINI_PROTOCOL_PREFIXES,
 	LEARNING_SEQUENCE_RUNNER_PREFIXES,
 	SCENE_OPERATION_SCHEMA,
@@ -716,8 +719,20 @@ class ProtocolValidator:
 				))
 				continue
 
-			required = ['target', 'gesture', 'validator', 'response']
-			for key in required:
+			unknown = set(interaction) - INTERACTION_ALL_KEYS
+			if unknown:
+				findings.append(Finding(
+					path=interaction_path,
+					lineno=None,
+					severity=Severity.ERROR,
+					message=(
+						f"[CLOSURE] unknown interaction key(s) {sorted(unknown)} "
+						f"(allowed: {sorted(INTERACTION_ALL_KEYS)})"
+					),
+					tag="CLOSURE",
+				))
+
+			for key in INTERACTION_REQUIRED_KEYS:
 				if key not in interaction:
 					findings.append(Finding(
 						path=interaction_path,
@@ -725,6 +740,10 @@ class ProtocolValidator:
 						severity=Severity.ERROR,
 						message=f"missing required key '{key}'",
 					))
+
+			findings.extend(self._validate_interaction_guidance(
+				interaction, interaction_path
+			))
 
 			gesture = interaction.get('gesture')
 			if gesture and gesture not in VALID_GESTURES:
@@ -909,6 +928,164 @@ class ProtocolValidator:
 															tag="T1_MATERIAL_REF",
 														))
 
+		findings.extend(self._validate_repeated_interaction_guidance(sequence, step_path))
+		return findings
+
+	@staticmethod
+	def _normalize_guidance_text(value: str) -> str:
+		"""Normalize only formatting differences when comparing authored guidance."""
+		return value.strip().casefold()
+
+	@staticmethod
+	def _normalize_identity_literal(value: str) -> str:
+		"""Make a known identifier comparable with its ordinary prose spelling."""
+		return re.sub(r"[^a-z0-9]+", " ", value.casefold()).strip()
+
+	@staticmethod
+	def _contains_literal(text: str, literal: str) -> bool:
+		"""Match a literal without treating it as a substring of a larger token."""
+		if not literal:
+			return False
+		return re.search(
+			rf"(?<![a-z0-9]){re.escape(literal)}(?![a-z0-9])", text.casefold()
+		) is not None
+
+	def _guidance_identity_literals(self, target: str) -> set[str]:
+		"""Return literal target identities available from the loaded content registry.
+
+		The checks intentionally stop at canonical identifiers, placement names, and
+		object-library labels. They do not claim to recognize scientific synonyms.
+		"""
+		prefix, _separator, suffix = target.partition('.')
+		values = {target, prefix}
+		if self.db is None:
+			return {self._normalize_identity_literal(value) for value in values}
+
+		resolved = self.db.resolve_target(target)
+		if resolved is None:
+			return {self._normalize_identity_literal(value) for value in values}
+		object_data, _subpart = resolved
+		object_name = object_data.get('object_name')
+		label = object_data.get('label')
+		for value in (object_name, label):
+			if isinstance(value, str):
+				values.add(value)
+		if isinstance(object_name, str):
+			for placement_name, placed_object_name in self.db.placements.items():
+				if placed_object_name == object_name:
+					values.add(placement_name + (f".{suffix}" if suffix else ""))
+		return {
+			self._normalize_identity_literal(value)
+			for value in values
+			if self._normalize_identity_literal(value)
+		}
+
+	def _validate_interaction_guidance(self, interaction: dict, path: str) -> list:
+		"""Validate required non-empty guidance and bounded pre-answer safety."""
+		findings = []
+		guidance_keys = {"instruction", "hint"}
+		present = guidance_keys & set(interaction)
+		if present != guidance_keys:
+			findings.append(Finding(
+				path=path,
+				lineno=None,
+				severity=Severity.ERROR,
+				message="instruction and hint are required on every interaction",
+				tag="guidance_pair",
+			))
+			return findings
+
+		for key in sorted(guidance_keys):
+			value = interaction.get(key)
+			if not isinstance(value, str) or not value.strip():
+				findings.append(Finding(
+					path=f"{path}.{key}",
+					lineno=None,
+					severity=Severity.ERROR,
+					message="must be a non-empty plain string",
+					tag="guidance_string",
+				))
+		if findings:
+			return findings
+
+		gesture = interaction.get('gesture')
+		target = interaction.get('target')
+		if gesture == 'select' and isinstance(target, str):
+			identities = self._guidance_identity_literals(target)
+			for key in sorted(guidance_keys):
+				text = self._normalize_identity_literal(interaction[key])
+				for identity in identities:
+					if self._contains_literal(text, identity):
+						findings.append(Finding(
+							path=f"{path}.{key}",
+							lineno=None,
+							severity=Severity.ERROR,
+							message=(
+								"select guidance must not reveal the correct target's "
+								"canonical identity, placement identity, or learner label"
+							),
+							tag="guidance_select_answer_leak",
+						))
+						break
+
+		validator = interaction.get('validator')
+		if (
+			gesture == 'type'
+			and isinstance(validator, dict)
+			and validator.get('preset') == 'target_with_value'
+		):
+			values = validator.get('value')
+			if isinstance(values, dict):
+				for key in sorted(guidance_keys):
+					text = self._normalize_guidance_text(interaction[key])
+					for expected in values.values():
+						if isinstance(expected, (str, int, float, bool)):
+							literal_value = (
+								str(expected).lower() if isinstance(expected, bool) else str(expected)
+							)
+							literal = self._normalize_guidance_text(literal_value)
+							if self._contains_literal(text, literal):
+								findings.append(Finding(
+									path=f"{path}.{key}",
+									lineno=None,
+									severity=Severity.ERROR,
+									message="type guidance must not reveal a target_with_value expected literal",
+									tag="guidance_type_answer_leak",
+								))
+								break
+		return findings
+
+	def _validate_repeated_interaction_guidance(self, sequence: list, step_path: str) -> list:
+		"""Require distinct guidance when an action signature repeats."""
+		findings = []
+		groups: dict[tuple[str, str], list[tuple[int, dict]]] = {}
+		for index, interaction in enumerate(sequence):
+			if not isinstance(interaction, dict):
+				continue
+			target = interaction.get('target')
+			gesture = interaction.get('gesture')
+			if isinstance(target, str) and isinstance(gesture, str):
+				groups.setdefault((target, gesture), []).append((index, interaction))
+		for (target, gesture), entries in groups.items():
+			if len(entries) < 2:
+				continue
+			for key in ("instruction", "hint"):
+				values = [
+					self._normalize_guidance_text(interaction[key])
+					for _index, interaction in entries
+					if isinstance(interaction.get(key), str) and interaction[key].strip()
+				]
+				if len(values) == len(entries) and len(set(values)) != len(values):
+					findings.append(Finding(
+						path=step_path,
+						lineno=None,
+						severity=Severity.ERROR,
+						message=(
+							f"repeated ({target!r}, {gesture!r}) interactions require "
+							f"distinct {key} values after trim/case normalization"
+						),
+						tag="repeated_interaction_guidance",
+					))
 		return findings
 
 	@staticmethod

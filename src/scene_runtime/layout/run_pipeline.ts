@@ -29,6 +29,7 @@ import { resolveInheritance } from "./resolve_inheritance.js";
 import { scaleToRealWorld } from "./scale_to_real_world.js";
 import { PLACEMENT_PHASES, VERTICAL_TAIL_PHASES, runPhases } from "./phases.js";
 import { applyUniformRescale } from "./vertical_layout.js";
+import { derive_scene_interaction_geometry } from "./interaction_geometry.js";
 import type { LayoutConfig } from "./config/index.js";
 import type { PackerZoneOutcome } from "./strategies/index.js";
 import type { LayoutContext } from "./phases.js";
@@ -350,6 +351,7 @@ export function runPipeline(scene: SceneA, opts: Partial<PipelineInputs> = {}): 
       clamped: finalClamped,
     },
     final,
+    interactionGeometry: derive_scene_interaction_geometry(final),
     decisionMetadata,
     severityDiagnostics,
     offCanvasDiagnostics,

@@ -63,6 +63,24 @@ The driver core knows nothing about specific scenes; capabilities know nothing
 about which scenes will mount them; adapters bind a specific scene id to its
 behavior; YAML carries that scene id's static configuration.
 
+## Layout and hit surfaces
+
+Layout remains a reusable, scene-agnostic geometry service. The build-time
+layout result includes final placement geometry plus serialized interaction
+envelopes and the scene's minimum valid 16:9 frame. `protocol_host.tsx` consumes
+that metadata verbatim: it applies the frame dimensions and 44-pixel hit-core
+size to the scene hosts so a dense scene can remain usable through the panel's
+normal scrolling behavior.
+
+`SceneView` rejects invalid interaction geometry and passes each placement's
+envelope to `SceneItem`. For a clickable top-level placement, the transparent
+envelope owns the delegated whole-object `data-item-id`; the visual root stays
+focused on artwork and does not own that delegated identity. Structured objects
+keep their declaration-owned SVG subpart surfaces instead. When an exact or
+group subpart interaction is active, those surfaces retain their subpart hit
+geometry and identity so sibling subparts remain addressable; the whole-object
+envelope does not cover that surface.
+
 ## Driver (`scene_driver.ts`)
 
 The driver is the universal scene runtime. Two entry points matter:
@@ -79,9 +97,11 @@ The driver is the universal scene runtime. Two entry points matter:
   Called once per scene (the first time the scene is shown). Looks up the
   scene config from `SCENE_CONFIGS`, mounts every declared capability, and
   attaches a single capture-phase click listener to the scene's DOM element.
-  When a click on a `data-item-id` element bubbles through, the driver walks
-  the capability list until one returns `true` from `onClick`; if none claim
-  the click, the adapter's `dispatchInteraction` runs as the fallback path.
+  When a click reaches a delegated interaction surface carrying
+  `data-item-id` (a whole-object envelope or declaration-owned subpart surface),
+  the driver walks the capability list until one returns `true` from `onClick`;
+  if none claim the click, the adapter's `dispatchInteraction` runs as the
+  fallback path.
 
 `SceneAdapter.render(ctx)` is required (not optional). The optional `?` was
 a temporary bridge during the A1-A6a render-ownership migration and was
@@ -94,8 +114,8 @@ context to route clicks back through the adapter without holding a direct
 reference to the registry.
 
 `ClickTarget` is a minimal `{itemId: string}` shape (with extension fields).
-The capture-phase click handler reads `data-item-id` from the clicked
-element and feeds it to capability `onClick` handlers as a `ClickTarget`.
+The capture-phase click handler reads `data-item-id` from the clicked interaction
+surface and feeds it to capability `onClick` handlers as a `ClickTarget`.
 
 ## Registry (`scene_registry.ts`)
 
@@ -225,7 +245,8 @@ A single click-to-frame round trip looks like this:
 
 1. The user clicks an item in the hood. The browser fires `click`.
 2. The driver's capture-phase listener (attached during `runScene`) reads
-   `data-item-id` from the target element. If absent, it returns.
+   `data-item-id` from the nearest delegated interaction surface. If absent, it
+   returns.
 3. The driver iterates the scene's mounted capabilities and calls
    `capability.onClick(ctx, {itemId})` on each. The first capability to
    return `true` claims the click; the driver marks the event as handled

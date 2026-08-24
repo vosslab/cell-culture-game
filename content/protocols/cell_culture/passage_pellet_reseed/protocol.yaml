@@ -57,6 +57,8 @@ steps:
     sequence:
       - target: t75_flask
         gesture: click
+        instruction: "Draw 12 mL of cell suspension from the t75 flask."
+        hint: "Use the t75 flask as the source, then carry this measured load to conical 15ml."
         validator:
           preset: correct_target
         response:
@@ -78,6 +80,8 @@ steps:
                 held_material_volume: 12
       - target: conical_15ml
         gesture: click
+        instruction: "Deliver the neutralized suspension into the labeled 15 mL conical tube."
+        hint: "Empty the complete 12 mL load into the receiving tube, then attach it for centrifugation."
         validator:
           preset: correct_target
         response:
@@ -107,6 +111,8 @@ steps:
     sequence:
       - target: label_pen
         gesture: click
+        instruction: "Pick up the label pen for the sample identity step."
+        hint: "Write the required identity details before continuing with conical 15ml."
         validator:
           preset: correct_target
         response:
@@ -118,6 +124,8 @@ steps:
               operation: attach
       - target: conical_15ml
         gesture: click
+        instruction: "Write the sample identity on the conical tube."
+        hint: "Record the cell line, date, passage number, and initials before spinning."
         validator:
           preset: correct_target
         response:
@@ -137,6 +145,8 @@ steps:
     sequence:
       - target: conical_15ml
         gesture: click
+        instruction: "Load the labeled conical tube into the centrifuge."
+        hint: "Place it opposite the matched balance tube before setting the spin."
         validator:
           preset: correct_target
         response:
@@ -145,6 +155,8 @@ steps:
               to_scene: centrifuge_workspace
       - target: centrifuge
         gesture: click
+        instruction: "Attach to the centrifuge controls."
+        hint: "The balanced tube is ready; select the centrifuge so its controls can be set."
         validator:
           preset: correct_target
         response:
@@ -154,6 +166,8 @@ steps:
               operation: attach
       - target: centrifuge
         gesture: adjust
+        instruction: "Set the centrifuge to 200 x g."
+        hint: "Enter the required relative centrifugal force before setting the run time."
         validator:
           preset: target_with_value
           value:
@@ -166,12 +180,16 @@ steps:
                 set_rcf: 200
       - target: sterile_water_bottle
         gesture: click
+        instruction: "Select sterile water for the balance tube."
+        hint: "Draw the matching balance volume before loading the centrifuge."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: centrifuge_balance_tube
         gesture: click
+        instruction: "Load the matched balance tube into the centrifuge."
+        hint: "Balance the cell-suspension tube opposite this water-filled tube before spinning."
         validator:
           preset: correct_target
         response:
@@ -188,6 +206,8 @@ steps:
                 balance_status: matched
       - target: centrifuge
         gesture: adjust
+        instruction: "Set the centrifuge run time to 5 minutes."
+        hint: "Keep the matched balance in place while you set the duration."
         validator:
           preset: target_with_value
           value:
@@ -200,6 +220,8 @@ steps:
                 set_time_min: 5
       - target: centrifuge
         gesture: click
+        instruction: "Start the 5-minute centrifuge run."
+        hint: "The speed and time are set; begin the run and wait for the pellet."
         validator:
           preset: correct_target
         response:
@@ -233,6 +255,8 @@ steps:
     sequence:
       - target: aspirating_pipette
         gesture: click
+        instruction: "Attach the aspirating pipette for the removal step."
+        hint: "Keep its tip above the cell layer or pellet while aspirating."
         validator:
           preset: correct_target
         response:
@@ -242,6 +266,8 @@ steps:
               operation: attach
       - target: conical_15ml
         gesture: click
+        instruction: "Aspirate the first supernatant portion (9.9 mL) above the pellet."
+        hint: "Keep the pipette tip above the pellet while removing this larger first portion."
         validator:
           preset: correct_target
         response:
@@ -258,6 +284,8 @@ steps:
                 held_material_volume: 9.9
       - target: biohazard_decant
         gesture: click
+        instruction: "Discard the aspirated supernatant in the biohazard container (9.9 mL total)."
+        hint: "Empty the first aspirate into biohazard waste, then continue the second careful pass."
         validator:
           preset: correct_target
         response:
@@ -274,6 +302,8 @@ steps:
                 held_material_volume: 0
       - target: conical_15ml
         gesture: click
+        instruction: "Aspirate the remaining supernatant portion (2 mL)."
+        hint: "Leave the cell pellet undisturbed while removing the final liquid portion."
         validator:
           preset: correct_target
         response:
@@ -290,6 +320,8 @@ steps:
                 held_material_volume: 2
       - target: biohazard_decant
         gesture: click
+        instruction: "Discard the remaining supernatant in the biohazard container (11.9 mL total)."
+        hint: "Keep the cell pellet undisturbed; empty this final aspirate into biohazard waste."
         validator:
           preset: correct_target
         response:
@@ -315,6 +347,8 @@ steps:
     sequence:
       - target: serological_pipette_pack
         gesture: click
+        instruction: "Fit a fresh sterile pipette from the pack."
+        hint: "Use the sterile graduated pipette for the measured transfer that follows."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -323,6 +357,8 @@ steps:
               state: { freshness: sterile }
       - target: serological_pipette
         gesture: click
+        instruction: "Attach the serological pipette for the next transfer."
+        hint: "Use the attached tool to perform the following source draw or dispense."
         validator:
           preset: correct_target
         response:
@@ -332,6 +368,8 @@ steps:
               operation: attach
       - target: media_bottle
         gesture: click
+        instruction: "Draw 7.9 mL of media from the bottle."
+        hint: "Use the measured media load for the receiving tube, flask, or reservoir in the next action."
         validator:
           preset: correct_target
         response:
@@ -347,6 +385,8 @@ steps:
                 held_material_volume: 7.9
       - target: conical_15ml
         gesture: click
+        instruction: "Resuspend the cell pellet in the fresh medium."
+        hint: "Gently pipette up and down until no pellet remains."
         validator:
           preset: correct_target
         response:
@@ -373,6 +413,8 @@ steps:
     sequence:
       - target: serological_pipette_pack
         gesture: click
+        instruction: "Fit a fresh sterile pipette from the pack."
+        hint: "Use the sterile graduated pipette for the measured transfer that follows."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -381,6 +423,8 @@ steps:
               state: { freshness: sterile }
       - target: serological_pipette
         gesture: click
+        instruction: "Attach the serological pipette for the next transfer."
+        hint: "Use the attached tool to perform the following source draw or dispense."
         validator:
           preset: correct_target
         response:
@@ -390,6 +434,8 @@ steps:
               operation: attach
       - target: conical_15ml
         gesture: click
+        instruction: "Draw 1.14 mL of cell suspension for the 1:7 split."
+        hint: "Use the calculated one-seventh volume for the fresh T75 flask."
         validator:
           preset: correct_target
         response:
@@ -405,6 +451,8 @@ steps:
                 held_material_volume: 1.14
       - target: t75_flask_new
         gesture: click
+        instruction: "Dispense the calculated split into the fresh T75 flask."
+        hint: "Deliver 1.14 mL of suspension to seed the new culture."
         validator:
           preset: correct_target
         response:
@@ -430,6 +478,8 @@ steps:
     sequence:
       - target: label_pen
         gesture: click
+        instruction: "Pick up the label pen for the sample identity step."
+        hint: "Write the required identity details before continuing with t75 flask new."
         validator:
           preset: correct_target
         response:
@@ -441,6 +491,8 @@ steps:
               operation: attach
       - target: t75_flask_new
         gesture: click
+        instruction: "Write the required identity label on the fresh T75 flask."
+        hint: "Include OVCAR8, date, passage number, and initials before adding medium."
         validator:
           preset: correct_target
         response:
@@ -461,6 +513,8 @@ steps:
     sequence:
       - target: serological_pipette_pack
         gesture: click
+        instruction: "Fit a fresh sterile pipette from the pack."
+        hint: "Use the sterile graduated pipette for the measured transfer that follows."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -469,6 +523,8 @@ steps:
               state: { freshness: sterile }
       - target: media_bottle
         gesture: click
+        instruction: "Draw 8.86 mL of media from the bottle."
+        hint: "Use the measured media load for the receiving tube, flask, or reservoir in the next action."
         validator:
           preset: correct_target
         response:
@@ -484,6 +540,8 @@ steps:
                 held_material_volume: 8.86
       - target: t75_flask_new
         gesture: click
+        instruction: "Receive the complete medium in the fresh T75 flask."
+        hint: "Add the measured medium to reach 10 mL before incubation."
         validator:
           preset: correct_target
         response:
@@ -500,6 +558,8 @@ steps:
                 held_material_volume: 0
       - target: incubator
         gesture: click
+        instruction: "Open the incubator for the next culture step."
+        hint: "Place the prepared vessel inside and allow the authored incubation to run."
         validator:
           preset: correct_target
         response:

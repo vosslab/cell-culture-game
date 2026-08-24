@@ -32,7 +32,21 @@ The flow sketch is the design source for:
 - screenshot checkpoints
 - transitions between steps
 
-The YAML should then encode that flow using the two-level protocol model: a `protocol` with an `entry_step` and `steps`, each `step` carrying an ordered `sequence` of interactions and a `next_step` that names the next `step_name`. Each `interaction` is one `gesture` on one `target`, with its own `validator` and `response`. The protocol vocabulary treats a step as one pedagogical unit whose `sequence` is the ordered list of interactions that complete it, each interaction naming the scene object it acts on and the scene operations its `response` causes. See [specs/PROTOCOL_VOCABULARY.md](specs/PROTOCOL_VOCABULARY.md) for the canonical model.
+The YAML should then encode that flow using the two-level protocol model: a
+`protocol` with an `entry_step` and `steps`, each `step` carrying an ordered
+`sequence` of interactions and a `next_step` that names the next `step_name`.
+Each `interaction` is one `gesture` on one `target`, with required non-empty
+plain-string `instruction` and `hint` guidance, its own `validator`, and
+`response`. The protocol vocabulary treats a step as one pedagogical unit
+whose `sequence` is the ordered list of interactions that complete it, each
+interaction naming the scene object it acts on and the scene operations its
+`response` causes. When a generic gesture cue cannot distinguish repeated
+`(target, gesture)` substeps, the interaction authors paired `instruction` and
+`hint` fields as non-empty plain strings, so the visible next action is grounded
+in protocol intent rather than a UI heuristic. When an exact `(target, gesture)`
+pair repeats, those strings must remain distinct for each materially different
+substep. See [specs/PROTOCOL_VOCABULARY.md](specs/PROTOCOL_VOCABULARY.md) for
+the canonical model.
 
 ## Learning block
 
@@ -54,6 +68,43 @@ The authored kinds (`mini_protocol`, `sequence_runner`) and the surrounding stru
 A mini-protocol is designed around what a student can see and do. The walkthrough must use the same visible UI path a student would use.
 
 The walker may read generated protocol data to know the expected path, but it must not write game state, skip scenes, call internal APIs, or click hidden controls. If the walker cannot complete the mini-protocol through visible UI, the YAML, scene affordance, or runtime behavior is incomplete and must be fixed before the mini-protocol is considered complete.
+
+### Guidance and durable progress
+
+The current interaction is the learner's unit of orientation. Its ordinal,
+target, instruction, goal, and hint must all describe the same next action.
+`instruction` and `hint` are mandatory authored guidance; a runtime-generated
+gesture fallback is not part of the protocol model. A professor-authored
+step-level `tip`, when present, is optional contextual teaching guidance and
+does not replace either interaction field.
+After an accepted interaction, the runtime completes its response operations
+and transition before publishing the next interaction. An open hint therefore
+updates with the primary message instead of describing the action that just
+finished.
+
+Progress persistence follows that same settled boundary. The interface visibly
+distinguishes a fresh autosaving session, a restored session, a saved checkpoint,
+and unavailable storage. Reloading resumes at the exact next interaction with
+the same declared scientific and cursor state. `Start over` is an explicit,
+confirmed learner command scoped to the current protocol.
+
+The runtime projects authored guidance with the active interaction. The shell
+owns rendering that projection only; it does not infer, replace, or compose
+action guidance.
+
+Browser evidence is production-shaped: Playwright drives the built application
+through visible controls, observes the real save record, reloads, resumes, and
+continues. Screenshots are captured from that exact journey, so visual proof and
+behavioral proof cannot drift into parallel versions of the application.
+
+Clickable visual artwork and its learner hit target are separate derived layout
+products. The precompute pipeline emits a transparent, placement-keyed
+interaction envelope and a scene-level minimum 16:9 interaction frame with a
+44 CSS-pixel hit core. The renderer consumes that envelope verbatim while the
+host consumes the emitted frame metadata; neither layer rederives geometry.
+The artwork remains at its computed visual box. Exact dotted subpart targets
+remain declaration-owned SVG surfaces, so enlarged whole-object envelopes never
+make adjacent wells, lanes, or slots ambiguous.
 
 ## Semantic inheritance and composition
 

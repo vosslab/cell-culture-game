@@ -37,10 +37,12 @@ learning:
 steps:
   - step_name: inspect_confluence
     prompt:
-      Inspect the representative T75 field under the microscope. Compare the visible monolayer with both decisions; this fixed scenario is about 70-80% confluent.
+      Inspect the representative T75 field under the microscope. Compare the visible monolayer with the available decisions and choose the conclusion supported by cell coverage and spacing.
     sequence:
       - target: microscope
         gesture: click
+        instruction: "Open the microscope view to inspect confluence."
+        hint: "Use the visible monolayer field to assess readiness before choosing the confluence decision."
         validator:
           preset: correct_target
         response:
@@ -49,6 +51,8 @@ steps:
               to_scene: passage_hood_detachment_microscope_view
       - target: t75_flask
         gesture: click
+        instruction: "Inspect the visible T75 monolayer."
+        hint: "Use the microscope field to assess confluence before choosing the decision."
         validator:
           preset: correct_target
         response:
@@ -59,6 +63,8 @@ steps:
                 observation_state: confluent_70_80
       - target: confluence_decision_proceed
         gesture: select
+        instruction: "Compare the visible monolayer with the available confluence decisions and choose the matching readiness assessment."
+        hint: "Use cell coverage and spacing in the microscope field as evidence for the passage-readiness decision."
         validator:
           preset: correct_choice
         response:
@@ -72,6 +78,8 @@ steps:
             incorrect: "Compare the visible field with both choices. In this fixed scenario, the near-confluent adherent monolayer is ready to passage."
       - target: hood_surface
         gesture: click
+        instruction: "Move to the disinfected hood surface."
+        hint: "Work on the cleaned hood surface before handling the culture."
         validator:
           preset: correct_target
         response:
@@ -89,6 +97,8 @@ steps:
     sequence:
       - target: ethanol_bottle
         gesture: click
+        instruction: "Apply 70% ethanol to the hood surface."
+        hint: "Wet the interior surface evenly before wiping it with the clean towel."
         validator:
           preset: correct_target
         response:
@@ -99,6 +109,8 @@ steps:
                 surface_cleanliness: ethanol_sprayed
       - target: paper_towel_pad
         gesture: click
+        instruction: "Wipe the wetted hood surface with the clean paper towel."
+        hint: "Complete contact across the ethanol-wetted area; this disinfects but does not sterilize the hood."
         validator:
           preset: correct_target
         response:
@@ -122,12 +134,16 @@ steps:
     sequence:
       - target: aspirating_pipette
         gesture: click
+        instruction: "Attach the aspirating pipette for the removal step."
+        hint: "Keep its tip above the cell layer or pellet while aspirating."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: t75_flask
         gesture: click
+        instruction: "Aspirate the spent medium from the T75 flask."
+        hint: "Keep the pipette tip above the adherent-cell layer while removing the liquid."
         validator:
           preset: correct_target
         response:
@@ -149,6 +165,8 @@ steps:
     sequence:
       - target: serological_pipette_pack
         gesture: click
+        instruction: "Fit a fresh sterile pipette from the pack."
+        hint: "Use the sterile graduated pipette for the measured transfer that follows."
         validator:
           preset: correct_target
         response:
@@ -158,12 +176,16 @@ steps:
               state: { freshness: sterile }
       - target: serological_pipette
         gesture: click
+        instruction: "Attach the serological pipette for the next transfer."
+        hint: "Use the attached tool to perform the following source draw or dispense."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: pbs_bottle
         gesture: click
+        instruction: "Draw 4 mL of PBS from the bottle."
+        hint: "Measure the PBS at the pipette graduations before rinsing or filling the solution tube."
         validator:
           preset: correct_target
         response:
@@ -180,6 +202,8 @@ steps:
                 freshness: used
       - target: t75_flask
         gesture: click
+        instruction: "Rinse the covered monolayer gently with the PBS."
+        hint: "Keep the PBS over the adherent cells while completing the wash."
         validator:
           preset: correct_target
         response:
@@ -198,6 +222,8 @@ steps:
                 held_material_volume: 0
       - target: t75_flask
         gesture: click
+        instruction: "Finish the PBS rinse across the monolayer."
+        hint: "The coverage is already present; complete the gentle rinse before aspiration."
         validator:
           preset: correct_target
         response:
@@ -220,12 +246,16 @@ steps:
     sequence:
       - target: aspirating_pipette
         gesture: click
+        instruction: "Attach the aspirating pipette for the removal step."
+        hint: "Keep its tip above the cell layer or pellet while aspirating."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: t75_flask
         gesture: click
+        instruction: "Aspirate the PBS rinse from the T75 flask."
+        hint: "Keep the pipette tip above the adherent-cell layer while removing the liquid."
         validator:
           preset: correct_target
         response:
@@ -247,6 +277,8 @@ steps:
     sequence:
       - target: serological_pipette_pack
         gesture: click
+        instruction: "Fit a fresh sterile pipette from the pack."
+        hint: "Use the sterile graduated pipette for the measured transfer that follows."
         validator:
           preset: correct_target
         response:
@@ -256,12 +288,16 @@ steps:
               state: { freshness: sterile }
       - target: serological_pipette
         gesture: click
+        instruction: "Attach the serological pipette for the next transfer."
+        hint: "Use the attached tool to perform the following source draw or dispense."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: trypsin_bottle
         gesture: click
+        instruction: "Draw 3 mL of trypsin from the bottle."
+        hint: "Use the graduated pipette to measure the fixed 3 mL trypsin addition."
         validator:
           preset: correct_target
         response:
@@ -278,6 +314,8 @@ steps:
                 freshness: used
       - target: t75_flask
         gesture: click
+        instruction: "Cover the T75 monolayer with the measured trypsin."
+        hint: "Spread the trypsin across the attached cells before the timed detachment step."
         validator:
           preset: correct_target
         response:
@@ -305,6 +343,8 @@ steps:
     sequence:
       - target: incubator
         gesture: click
+        instruction: "Place the prepared vessel in the incubator and start the Allowing trypsin to act; check detachment."
+        hint: "Allow the authored Allowing trypsin to act; check detachment to complete before continuing the culture workflow."
         validator:
           preset: correct_target
         response:
@@ -325,6 +365,8 @@ steps:
     sequence:
       - target: microscope
         gesture: click
+        instruction: "Open the microscope view to inspect cell detachment."
+        hint: "Compare the rounded, detached cells in the visible field before neutralizing trypsin."
         validator:
           preset: correct_target
         response:
@@ -333,6 +375,8 @@ steps:
               to_scene: passage_hood_detachment_microscope_view
       - target: t75_flask
         gesture: click
+        instruction: "Inspect the T75 flask for rounded, detached cells."
+        hint: "Use the visible detachment field before neutralizing the trypsin."
         validator:
           preset: correct_target
         response:
@@ -343,6 +387,8 @@ steps:
                 observation_state: rounded_detached
       - target: detachment_decision_neutralize
         gesture: select
+        instruction: "Compare the visible cell shapes with the available detachment decisions and choose the matching assessment."
+        hint: "Use the rounded-cell pattern and separation from the surface as evidence before neutralizing trypsin."
         validator:
           preset: correct_choice
         response:
@@ -356,6 +402,8 @@ steps:
             incorrect: "Compare the visible field with both choices. In this fixed scenario, the rounded detached cells are ready for neutralization."
       - target: hood_surface
         gesture: click
+        instruction: "Return to the hood surface after inspecting the flask."
+        hint: "Keep the inspected flask in the clean hood workspace for the next transfer."
         validator:
           preset: correct_target
         response:
@@ -374,6 +422,8 @@ steps:
     sequence:
       - target: serological_pipette_pack
         gesture: click
+        instruction: "Fit a fresh sterile pipette from the pack."
+        hint: "Use the sterile graduated pipette for the measured transfer that follows."
         validator:
           preset: correct_target
         response:
@@ -383,12 +433,16 @@ steps:
               state: { freshness: sterile }
       - target: serological_pipette
         gesture: click
+        instruction: "Attach the serological pipette for the next transfer."
+        hint: "Use the attached tool to perform the following source draw or dispense."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: media_bottle
         gesture: click
+        instruction: "Draw 9 mL of media from the bottle."
+        hint: "Use the measured media load for the receiving tube, flask, or reservoir in the next action."
         validator:
           preset: correct_target
         response:
@@ -405,6 +459,8 @@ steps:
                 freshness: used
       - target: t75_flask
         gesture: click
+        instruction: "Add complete medium to the T75 flask to neutralize trypsin."
+        hint: "Use the measured 9 mL medium addition to protect the detached cells."
         validator:
           preset: correct_target
         response:

@@ -123,6 +123,13 @@ export interface StateDelta {
   readonly after: StatePartial;
 }
 
+export interface CursorStateSnapshot {
+  readonly target: string;
+  readonly cursor_attached: boolean;
+  readonly held_material_name: string | null;
+  readonly held_material_volume: number | null;
+}
+
 //============================================
 // Public store API
 //============================================
@@ -139,6 +146,15 @@ export interface SceneStore {
     seeds: ReadonlyArray<TargetSeed>,
     initial_state: ReadonlyArray<{ readonly target: string; readonly state: StatePartial }>,
   ): void;
+  // Restore a validated browser-session archive into one active scene. Saved
+  // fields are checked again against current object schemas before the archive
+  // or reactive projection changes.
+  restore_session(
+    seeds: ReadonlyArray<TargetSeed>,
+    declared_state: Readonly<Record<string, StatePartial>>,
+    cursor_state: ReadonlyArray<CursorStateSnapshot>,
+    restored_state_revision: number,
+  ): void;
   // Transition to another scene without discarding the scientific state of
   // exact target identities that remain present. New targets start at schema
   // defaults, absent targets are dropped, and runtime-only flags reset.
@@ -146,6 +162,8 @@ export interface SceneStore {
   // Immutable snapshot of all declared state retained for this protocol
   // session, including targets absent from the currently mounted scene.
   snapshot_declared_state(): Readonly<Record<string, StatePartial>>;
+  // Detached cursor-held runtime state for the currently mounted scene.
+  snapshot_cursor_state(): ReadonlyArray<CursorStateSnapshot>;
   // Monotonic diagnostic revision. Declared writes and scene reconciliation
   // advance it; cursor/selection/timed-wait flags do not.
   readonly state_revision: number;
@@ -657,6 +675,86 @@ export function create_scene_store(material_registry: MaterialRegistry | null = 
   }
 
   //----------------------------------------
+  function restore_session(
+    seeds: ReadonlyArray<TargetSeed>,
+    declared_state: Readonly<Record<string, StatePartial>>,
+    cursor_state: ReadonlyArray<CursorStateSnapshot>,
+    restored_state_revision: number,
+  ): void {
+    if (!Number.isSafeInteger(restored_state_revision) || restored_state_revision < 0) {
+      throw new Error("scene_store: restored state revision must be a non-negative integer");
+    }
+
+    // Validate and build every archived target before touching live state.
+    const next_archive: Record<string, TargetState> = {};
+    for (const [target, fields] of Object.entries(declared_state)) {
+      const { object_name, subpart } = split_target(target);
+      // Scene-defined structured instances (for example generated rack slots)
+      // can be concrete without appearing in object_def.subparts. Match the
+      // normal scene-seed boundary here; schema validation below still rejects
+      // an unknown object or unsupported subpart state shape.
+      validate_concrete_target(target, object_name, subpart);
+      const schema = resolve_schema(object_name, subpart);
+      const expected_fields = Object.keys(schema).sort();
+      const restored_fields = Object.keys(fields).sort();
+      const exact_schema =
+        expected_fields.length === restored_fields.length &&
+        expected_fields.every((field, index) => field === restored_fields[index]);
+      if (!exact_schema) {
+        throw new Error(`scene_store: restored target "${target}" does not match its state schema`);
+      }
+      validate_partial(target, schema, fields, subpart !== null, material_registry);
+      next_archive[target] = {
+        object_name,
+        subpart,
+        state: { ...fields },
+        flags: build_default_flags(),
+      };
+    }
+
+    // The mounted scene must be wholly represented by the restored archive.
+    const next_scene: SceneStoreState = {};
+    for (const seed of seeds) {
+      validate_seed(seed);
+      const restored = next_archive[seed.target];
+      if (restored === undefined) {
+        throw new Error(
+          `scene_store: restored archive is missing active scene target "${seed.target}"`,
+        );
+      }
+      next_scene[seed.target] = {
+        object_name: restored.object_name,
+        subpart: restored.subpart,
+        state: { ...restored.state },
+        flags: build_default_flags(),
+      };
+    }
+
+    const cursor_targets = new Set<string>();
+    for (const cursor of cursor_state) {
+      if (cursor_targets.has(cursor.target)) {
+        throw new Error(`scene_store: duplicate restored cursor target "${cursor.target}"`);
+      }
+      cursor_targets.add(cursor.target);
+      const active = next_scene[cursor.target];
+      if (active === undefined) {
+        throw new Error(
+          `scene_store: restored cursor target "${cursor.target}" is not in the active scene`,
+        );
+      }
+      active.flags.cursor_attached = cursor.cursor_attached;
+      active.flags.held_material_name = cursor.held_material_name;
+      active.flags.held_material_volume = cursor.held_material_volume;
+    }
+
+    archive = next_archive;
+    last_state_delta = null;
+    state_delta_log = [];
+    state_revision = restored_state_revision;
+    replace_all(next_scene);
+  }
+
+  //----------------------------------------
   // Replace the entire store contents with next, deleting every prior key.
   // Done inside one produce so the reactive write is atomic.
   function replace_all(next: SceneStoreState): void {
@@ -856,12 +954,32 @@ export function create_scene_store(material_registry: MaterialRegistry | null = 
     return snapshot;
   }
 
+  //----------------------------------------
+  function snapshot_cursor_state(): ReadonlyArray<CursorStateSnapshot> {
+    const snapshot: CursorStateSnapshot[] = [];
+    for (const target of Object.keys(state)) {
+      const entry = state[target];
+      if (entry === undefined || !entry.flags.cursor_attached) {
+        continue;
+      }
+      snapshot.push({
+        target,
+        cursor_attached: true,
+        held_material_name: entry.flags.held_material_name,
+        held_material_volume: entry.flags.held_material_volume,
+      });
+    }
+    return snapshot;
+  }
+
   const store: SceneStore = {
     state,
     seed_from_scene,
     start_session,
+    restore_session,
     reconcile_scene,
     snapshot_declared_state,
+    snapshot_cursor_state,
     get state_revision(): number {
       return state_revision;
     },

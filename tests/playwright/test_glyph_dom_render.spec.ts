@@ -10,8 +10,8 @@
 // Builds the production protocol-host bundle (same esbuild + solidPlugin
 // transform as pipeline/build_main_bundle.mjs) pinned to drug_dilution_setup,
 // serves it over HTTP, and asserts against real rendered DOM text:
-//   - #guidance-text (GuidanceBar, src/shell/regions/guidance_bar.tsx) contains
-//     the micro sign glyph.
+//   - [data-current-step-goal] (GuidanceBar, src/shell/regions/guidance_bar.tsx)
+//     contains the authored prompt and micro sign glyph.
 //   - .outline-step-card (StepOutline, src/shell/regions/step_outline.tsx)
 //     visible text contains the micro sign glyph.
 //   - .outline-step-card's title attribute (step_outline.tsx, the full
@@ -132,9 +132,9 @@ function startServer(rootDir: string): Promise<ServerHandle> {
 //============================================
 
 test.describe("drug_dilution_setup glyph rendering", () => {
-  let outDir: string;
-  let serverHandle: ServerHandle;
-  let browser: Browser;
+  let outDir = "";
+  let serverHandle: ServerHandle | undefined;
+  let browser: Browser | undefined;
   let page: Page;
 
   test.beforeAll(async () => {
@@ -146,19 +146,38 @@ test.describe("drug_dilution_setup glyph rendering", () => {
     await page.goto(serverHandle.base, { waitUntil: "load" });
     // Wait for the HUD to mount and the guidance bar to carry real text.
     await expect(page.locator("#guidance-text")).not.toHaveText("Loading...");
+    await expect(page.locator("[data-current-step-goal]")).toBeVisible();
   });
 
   test.afterAll(async () => {
-    await browser.close();
-    await new Promise<void>((resolve) => serverHandle.server.close(() => resolve()));
-    fs.rmSync(outDir, { recursive: true, force: true });
+    try {
+      await browser?.close();
+    } finally {
+      try {
+        const handle = serverHandle;
+        if (handle !== undefined) {
+          await new Promise<void>((resolve) => handle.server.close(() => resolve()));
+        }
+      } finally {
+        if (outDir !== "") {
+          fs.rmSync(outDir, { recursive: true, force: true });
+        }
+      }
+    }
   });
 
   test("guidance bar renders the micro sign glyph, not the literal entity", async () => {
     const guidanceText = await page.locator("#guidance-text").textContent();
     expect(guidanceText).not.toBeNull();
-    expect(guidanceText).toContain(MICRO_SIGN);
-    expect(guidanceText).not.toContain("&micro;");
+    expect(guidanceText).toMatch(/\S/);
+    await expect(page.locator("[data-current-action-instruction]")).toHaveAttribute(
+      "data-current-action-instruction",
+      "",
+    );
+    const stepGoal = await page.locator("[data-current-step-goal]").textContent();
+    expect(stepGoal).not.toBeNull();
+    expect(stepGoal).toContain(MICRO_SIGN);
+    expect(stepGoal).not.toContain("&micro;");
   });
 
   test("outline step card text renders the micro sign glyph, not the literal entity", async () => {

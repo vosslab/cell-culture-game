@@ -46,7 +46,7 @@ body {
 .protocol-page-grid {
   display: grid;
   /* Two columns: scene area (flex) + outline (fixed 220px) */
-  grid-template-columns: 1fr 220px;
+  grid-template-columns: minmax(0, 1fr) 220px;
   /* Four rows: header (auto) + scene (flex) + controls (auto) + guidance (auto) */
   grid-template-rows: auto minmax(0, 1fr) auto auto;
   grid-template-areas:
@@ -139,6 +139,120 @@ body {
   white-space: nowrap;
 }
 
+.protocol-header-statuses {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 14px;
+  align-items: center;
+}
+
+.protocol-session-controls {
+  display: grid;
+  gap: 2px;
+  justify-items: end;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+.protocol-session-status {
+  margin: 0;
+  color: #26734d;
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.protocol-session-status[data-session-status="unavailable"] {
+  color: #8a1c1c;
+}
+
+.protocol-start-over {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 5px 8px;
+  color: #486581;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.protocol-start-over:hover {
+  color: #102a43;
+  background: #e8f1f2;
+  border-color: #75b8ba;
+}
+
+.protocol-start-over:focus-visible,
+.protocol-reset-dialog button:focus-visible {
+  outline: 3px solid #f0a202;
+  outline-offset: 2px;
+}
+
+.protocol-reset-dialog {
+  max-width: min(30rem, calc(100vw - 32px));
+  padding: 22px;
+  color: #102a43;
+  background: #fbfaf7;
+  border: 1px solid #829ab1;
+  border-radius: 10px;
+  box-shadow: 0 18px 48px rgb(16 42 67 / 28%);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+.protocol-reset-dialog::backdrop {
+  background: rgb(16 42 67 / 52%);
+}
+
+.protocol-reset-dialog h2 {
+  margin: 0;
+  font-size: 1.2rem;
+}
+
+.protocol-reset-dialog p {
+  margin: 10px 0 0;
+  color: #334e68;
+  line-height: 1.5;
+}
+
+.protocol-reset-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+.protocol-reset-actions button {
+  min-height: 44px;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.protocol-reset-cancel {
+  color: #102a43;
+  background: #ffffff;
+  border: 1px solid #829ab1;
+}
+
+.protocol-reset-confirm {
+  color: #ffffff;
+  background: #a3261f;
+  border: 1px solid #781b16;
+}
+
+.protocol-reset-confirm:hover {
+  background: #781b16;
+}
+
 .protocol-status-summary {
   display: grid;
   gap: 1px;
@@ -176,13 +290,17 @@ body {
 
 .scene-panel {
   grid-area: scene;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  /* The protocol shell owns the browser viewport. If a scene's declared
+     interaction frame is larger than the available row, this region -- not the
+     document -- scrolls it into reach. `safe` prevents centering an oversized
+     frame to an unreachable negative origin. */
+  align-items: safe center;
+  justify-items: safe center;
   background: #e8e0cc;
   padding: 8px;
   min-height: 0; /* allow grid row to shrink */
-  overflow: visible; /* never clip scientific assets; layout pipeline guards prevent items from escaping scene bounds */
+  overflow: auto;
   /* Size container so .scene-panel-inner can compute the largest 16:9 box that
      fits using container-query units (cqw/cqh). This is what FORCES exact 16:9
      regardless of whether the panel is wider or taller than 16:9 (WP-PRECOMP2). */
@@ -218,6 +336,11 @@ body {
   position: relative;
   width: min(100cqw, calc(100cqh * 16 / 9));
   aspect-ratio: 16 / 9;
+  /* Host-provided precomputed scene metadata reserves a usable interaction
+     frame when the grid has room. The transparent envelope itself preserves
+     the 44px core in constrained desktop layouts without scaling artwork. */
+  min-width: var(--scene-min-interaction-width, 0px);
+  min-height: var(--scene-min-interaction-height, 0px);
   overflow: visible;
 }
 
@@ -421,7 +544,90 @@ body {
 
 .action-rail {
   display: block;
+  min-width: 0;
   border-left: 6px solid #176b6f;
+}
+
+.action-rail__goal {
+  max-width: 70rem;
+  margin: 6px 0 0;
+  color: #486581;
+  font-size: 0.92rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.action-rail__goal-label {
+  color: #334e68;
+  font-weight: 700;
+}
+
+/* The target names the real scene object without competing with the next
+   action. Select interactions intentionally omit this cue so the choice stays
+   answer-neutral before the learner responds. */
+.action-rail__target {
+  max-width: 70rem;
+  margin: 5px 0 0;
+  color: #486581;
+  font-size: 0.88rem;
+  font-weight: 600;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.action-rail__target span {
+  color: #334e68;
+  font-weight: 800;
+}
+
+.action-rail__hint {
+  max-width: 70rem;
+  margin-top: 8px;
+  color: #334e68;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.action-rail__hint summary {
+  display: list-item;
+  box-sizing: border-box;
+  min-height: 44px;
+  width: fit-content;
+  max-width: 100%;
+  padding: 8px 10px;
+  color: #0f5154;
+  border: 1px solid #75b8ba;
+  border-radius: 5px;
+  background: #f4fbfb;
+  cursor: pointer;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.action-rail__hint summary::marker {
+  color: #0f5154;
+}
+
+.action-rail__hint[open] > summary::marker {
+  color: #176b6f;
+}
+
+.action-rail__hint summary:hover {
+  background: #e8f1f2;
+}
+
+.action-rail__hint summary:focus-visible {
+  outline: 3px solid #f0a202;
+  outline-offset: 2px;
+}
+
+.action-rail__hint [data-action-hint-text] {
+  margin: 7px 0 0;
+  padding: 8px 10px;
+  color: #243b53;
+  background: #f8fafc;
+  border-left: 3px solid #75b8ba;
+  overflow-wrap: anywhere;
 }
 
 .action-rail--waiting {
@@ -433,6 +639,15 @@ body {
   color: #6b4f00;
 }
 
+.action-rail__wait-duration {
+  max-width: 70rem;
+  margin: 6px 0 0;
+  color: #6b4f00;
+  font-size: 0.86rem;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
 .protocol-kicker {
   margin: 0 0 3px;
   color: #176b6f;
@@ -442,18 +657,36 @@ body {
   text-transform: uppercase;
 }
 
-.action-rail-prompt {
-  display: block;
-  font-size: 1rem;
-  line-height: 1.35;
-}
-
-.action-rail-cue,
 .action-rail-tip,
 .protocol-completion p {
   margin: 4px 0 0;
   color: #486581;
   font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.action-rail__primary {
+  display: block;
+  max-width: 70rem;
+  margin: 5px 0 0;
+  color: #102a43;
+  font-size: clamp(1.05rem, 1rem + 0.35vw, 1.25rem);
+  font-weight: 800;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+.action-rail__wait-copy {
+  margin: 4px 0 0;
+  color: #486581;
+  font-size: 0.86rem;
+  line-height: 1.35;
+}
+
+.action-rail__wait-primary {
+  display: block;
+  font-size: 1rem;
   line-height: 1.35;
 }
 
@@ -631,25 +864,38 @@ body {
   font-weight: 600;
 }
 
-/* Narrow laptop/tablet layout: keep the full 16:9 scene as the primary work
-   surface, move the curriculum outline below the action rail, and retain it as
-   a compact horizontally scrollable progress strip. Nothing is hidden: the
-   current step, total progress, and each authored step remain available. */
+/* Narrow layout: return ownership of vertical space to the document. The
+   scene panel remains the local scrollport for an emitted minimum interaction
+   frame, so that frame cannot widen the document or strand the lower regions. */
 @media (max-width: 920px) {
   .protocol-page-grid {
     grid-template-columns: minmax(0, 1fr);
-    grid-template-rows: auto minmax(0, 1fr) auto auto minmax(94px, 18vh);
+    grid-template-rows: auto auto auto auto auto;
     grid-template-areas:
       "header"
       "scene"
       "controls"
       "guidance"
       "outline";
+    width: 100%;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
   }
 
   .protocol-header {
     gap: 10px;
     padding: 8px 12px;
+  }
+
+  .protocol-header-statuses {
+    gap: 8px;
+  }
+
+  .protocol-session-status {
+    max-width: 7rem;
+    text-align: right;
+    white-space: normal;
   }
 
   .outline-panel {
@@ -702,6 +948,14 @@ body {
 
   .scene-panel {
     padding: 6px;
+    min-width: 0;
+    overflow: auto;
+  }
+
+  .scene-panel-inner {
+    /* Keep the authored minimum frame inside this element's local scrollport;
+       max() preserves the normal fluid frame when no minimum is emitted. */
+    width: max(100%, var(--scene-min-interaction-width, 0px));
   }
 
   .value-entry-panel {
@@ -755,7 +1009,8 @@ body {
   A faint static outline on :hover / :focus-visible reinforces the cue
   without distracting from the scene content.
 
-  Ring rules: consumed once the renderer emits data-affordance on each item.
+  Ring rules: consumed once the renderer emits the canonical affordance state
+  on each interaction envelope or exact subpart surface.
     active    -- directed target for a click/drag/adjust/type gesture:
                  3px solid orange (#f5a623)
     candidate -- one of several selectable objects for a select gesture:
@@ -770,7 +1025,20 @@ body {
   No @keyframes, no animation, no transition-based motion. All static.
 ============================================*/
 
-/* Baseline: pointer cursor for all clickable scene objects */
+/* The transparent interaction envelope is the one delegated whole-object hit
+   target. Artwork keeps its layout box; the envelope supplies a 44px core. */
+[data-interaction-envelope] {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: max(100%, var(--scene-interaction-hit-core, 44px));
+  height: max(100%, var(--scene-interaction-hit-core, 44px));
+  transform: translate(-50%, -50%);
+  z-index: 5;
+  background: transparent;
+}
+
+/* Baseline: pointer cursor for every delegated hit target. */
 [data-item-id] {
   cursor: pointer;
 }
@@ -783,19 +1051,14 @@ body {
   outline-offset: 3px;
 }
 
-/* Active ring: directed target for click/drag/adjust/type.
-   Selector anchored to [data-item-id] to raise specificity to (0,2,0),
-   matching [data-item-id]:hover / :focus-visible. Later source order
-   guarantees the ring wins when the same element is also hovered or focused. */
-[data-item-id][data-affordance="active"] {
+/* Active ring: directed target for click/drag/adjust/type. */
+[data-interaction-envelope][data-interaction-envelope-kind="active"] {
   outline: 3px solid #f5a623;
   outline-offset: 3px;
 }
 
-/* Candidate ring: selectable objects for a select gesture.
-   Same specificity fix as active: (0,2,0) via [data-item-id] anchor,
-   later source order wins over the baseline hover/focus rule. */
-[data-item-id][data-affordance="candidate"] {
+/* Candidate ring: selectable objects for a select gesture. */
+[data-interaction-envelope][data-interaction-envelope-kind="candidate"] {
   outline: 3px dashed #2563eb;
   outline-offset: 3px;
 }

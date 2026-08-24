@@ -35,6 +35,8 @@ steps:
     sequence:
       - target: running_buffer_preparation_carboy
         gesture: click
+        instruction: Pick up the running-buffer carboy for the seal check.
+        hint: Take only a small test volume before committing the full fill.
         validator:
           preset: correct_target
         response:
@@ -46,6 +48,8 @@ steps:
               operation: attach
       - target: electrophoresis_inner_chamber
         gesture: click
+        instruction: Add a small buffer volume to the upper chamber.
+        hint: Use the test fill to inspect the cassette-and-dam gasket for leaks.
         validator:
           preset: correct_target
         response:
@@ -80,6 +84,8 @@ steps:
     sequence:
       - target: running_buffer_preparation_carboy
         gesture: click
+        instruction: Pick up the running-buffer carboy for the upper fill.
+        hint: The seal passed; prepare to cover the wells to the marked line.
         validator:
           preset: correct_target
         response:
@@ -89,6 +95,8 @@ steps:
               operation: attach
       - target: electrophoresis_inner_chamber
         gesture: click
+        instruction: Fill the upper chamber to the well-covering line.
+        hint: Add 1x running buffer just below the outer plate edge.
         validator:
           preset: correct_target
         response:
@@ -124,6 +132,8 @@ steps:
     sequence:
       - target: running_buffer_preparation_carboy
         gesture: click
+        instruction: Pick up the running-buffer carboy for the lower fill.
+        hint: The upper chamber is filled; now prepare the outer reservoir.
         validator:
           preset: correct_target
         response:
@@ -133,6 +143,8 @@ steps:
               operation: attach
       - target: electrophoresis_outer_chamber
         gesture: click
+        instruction: Fill the lower reservoir to its marked line.
+        hint: Add the remaining 1x buffer to the outer chamber after the upper fill.
         validator:
           preset: correct_target
         response:

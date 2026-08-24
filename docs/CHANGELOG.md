@@ -1,5 +1,64 @@
 # Changelog
 
+## 2026-08-23
+
+### Behavior or Interface Changes
+
+- After each accepted substep, the active interaction and ordinal are now the
+  primary next-action message. The authored step goal remains visible.
+- Protocol interactions now have a closed six-key schema: `target`, `gesture`,
+  non-empty authored `instruction` and `hint`, `validator`, and `response`.
+  There is no generic runtime guidance fallback. Repeated exact action
+  signatures require distinct instruction and hint text, so both live surfaces
+  advance with each materially different substep.
+- Layout compilation now serializes a validated 44px minimum interaction frame
+  for every clickable placement. Renderer-owned hit surfaces provide the
+  durable interaction envelope, with bounds and overlap checks rejecting
+  unrealizable scenes before they ship.
+- Desktop scenes now own scrolling within their declared frame, while narrow
+  layouts use normal document flow so the protocol remains reachable without
+  viewport clipping. Active-target reveal exposes the next exact subpart and
+  its affordance while keeping select-choice identity hidden.
+- Student progress now autosaves to one versioned browser-session store after
+  each settled accepted interaction. Reload restores the exact next action,
+  declared scientific state, cursor state, and progress; the header reports
+  save/restore availability and offers a confirmed protocol-scoped `Start over`.
+
+### Fixes and Maintenance
+
+- Removed the desktop-editor text-outline wrapper, its process adapter, and
+  their dedicated unit and E2E tests. The repository-native normalizer remains
+  the canonical SVG gate, with optional librsvg preparation for rare approved
+  intrinsic marks. Imported editor namespaces remain accepted only so the
+  normalizer can strip their non-rendering metadata.
+- Scoped the broader asset-ownership defect in which complete result screens,
+  observation panels, and instructional labels are flattened into equipment
+  SVGs. The scope audit separates application-owned interfaces from removable
+  labels and approved intrinsic marks before a full migration plan is written.
+
+### Developer Tests and Notes
+
+- The real Trypan Blue first step covers all five visible interactions,
+  including hint pointer and keyboard use.
+- The real viability choice proves generic hint non-disclosure while preserving
+  post-rejection scientific feedback.
+- Generator and YAML validation now share the interaction allow-list, reject
+  partial or empty guidance, and reject literal select-identity or typed-value
+  answer leaks using available content-registry evidence.
+- Connected Playwright acceptance now advances through visible controls, proves
+  the real production save record, reloads and resumes, completes the protocol,
+  resets through the visible dialog, and captures screenshots from that same
+  browser journey. The exhaustive runner bounds every auxiliary non-browser E2E,
+  reaches Playwright before shell E2Es, and records hung process groups as
+  explicit failures.
+- Generated `test-results/` browser artifacts are outside source-lint scope, and
+  the glyph-render browser test now removes its temporary compiled bundle even
+  when browser startup fails partway through suite setup.
+- The SVG migration scope records source assets, current YAML owners, semantic
+  ownership boundaries, exact embedded content, runtime rendering consequences,
+  reproducible census commands, source and workflow links, evidence confidence,
+  plan decisions, and connected browser acceptance gates.
+
 ## 2026-08-03
 
 ### Fixes and Maintenance

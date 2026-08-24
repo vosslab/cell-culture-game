@@ -25,7 +25,8 @@ by DOM-element presence, not by URL.
 | [dist_entry.tsx](../src/dist_entry.tsx)                   | Bundle entry; routes to launcher, protocol host, or bench by DOM root presence                                       |
 | [launcher_entry.tsx](../src/launcher_entry.tsx)           | Launcher bundle entry; mounts Solid `Launcher` into `#launcher-root`                                                 |
 | [protocol_host_entry.tsx](../src/protocol_host_entry.tsx) | Protocol-host bundle entry; imports `protocol_host.tsx`                                                              |
-| [protocol_host.tsx](../src/protocol_host.tsx)             | Wires layout pipeline, renderer, step machine, click resolver, and HUD for one protocol page                         |
+| [protocol_host.tsx](../src/protocol_host.tsx)             | Wires persistence, precomputed layout, renderer, step machine, click resolver, and HUD for one protocol page         |
+| `src/schema_version.ts`                                   | Sole repository-wide schema version for persisted browser sessions                                                   |
 | `src/launcher/protocol_launcher.tsx`                      | Solid component; renders the protocol selector from `PROTOCOLS_INDEX_SLIM`                                           |
 | [index.html](../src/index.html)                           | Bench page (render smoke target; copied to `dist/bench_basic.html`)                                                  |
 | [index.html](../src/launcher/index.html)                  | Launcher page (copied to `dist/index.html`)                                                                          |
@@ -38,27 +39,34 @@ by DOM-element presence, not by URL.
    `sequence_runner` is flattened once here into its direct, unique
    `mini_protocol` leaves; the runner root remains the sole owner of any
    `initial_state` declaration.
-3. Resolve entry scene via `resolve_entry_scene_name` (see scene_runtime/protocol below).
-4. Paint `#scene-root` from the precomputed layout. The shipped bundle loads
+3. Create the protocol-scoped view of the single localStorage session root;
+   validate its schema version, protocol fingerprint, checkpoint, declared
+   state, and cursor state. Invalid or stale data is discarded.
+4. Resolve the restored scene when a valid checkpoint exists; otherwise resolve
+   the entry scene via `resolve_entry_scene_name` (see scene_runtime/protocol below).
+5. Restore or initialize the scene store, then paint `#scene-root` from the precomputed layout. The shipped bundle loads
    `PRECOMPUTED_LAYOUT[scene_name]` from `generated/precomputed_layout.ts`
    (build-time layout at the canonical 16:9 frame) and assembles a
    `PipelineResult` from it via `resolve_precomputed_result` /
    `make_precomputed_result` in
-   `src/scene_runtime/layout/precomputed_result.ts` (the renderer reads only
-   `final` and `scene`); a missing entry throws. WP-PRECOMP3 retired the runtime
-   `runPipeline` engine and the `?layout=runtime` parity switch from every shipped
-   entry, so the production bundle holds no `runPipeline` call path -- the
-   precomputed layout is the single production path. The runtime engine in
-   `src/scene_runtime/layout/` is now BUILD-ONLY: `pipeline/precompute_layout.mjs`
-   runs it to emit `generated/precomputed_layout.ts`, and tests still import it,
-   but it is tree-shaken out of `dist/protocol_host.js`, `dist/scene_viewer.js`,
-   and `dist/launcher.js`. The CSS forces `#scene-root` to an exact 16:9 letterboxed frame
-   (`.scene-panel` size container + `.scene-panel-inner` 16:9), so precomputed
-   16:9 positions are pixel-correct at any panel size; resizing changes only the
-   neutral bars and uniform scale, never the scene-internal layout.
-5. Build emitter, scene-op handler, step machine, and click resolver.
-6. Mount `ProtocolHud` into `#shell-root` (unless `?shell=off`).
-7. Call `step_machine.start()`.
+   `src/scene_runtime/layout/precomputed_result.ts`. The serialized result
+   includes the laid-out items, resolved scene, zone bands, diagnostics, and the
+   layout-owned `interactionGeometry` contract. Its valid `minimum_frame`
+   records the smallest 16:9 frame that keeps every emitted clickable envelope
+   usable, including the 44px hit core; a missing entry or invalid geometry
+   throws. The production bundle does not run `runPipeline`: the build-time
+   `pipeline/precompute_layout.mjs` path is the sole production layout source,
+   while the engine remains available to that build step and to tests. The CSS
+   forces the scene to an exact 16:9 letterboxed frame (`.scene-panel` size
+   container plus `.scene-panel-inner` 16:9), so precomputed positions are
+   pixel-correct at any panel size; resizing changes only neutral bars and
+   uniform scale, never scene-internal layout.
+6. Build emitter, scene-op handler, restorable step machine, and click resolver.
+   Subscribe persistence to the machine's stable-checkpoint event, emitted only
+   after accepted interaction effects and transitions settle.
+7. Mount `ProtocolHud` into `#shell-root` (unless `?shell=off`), including visible
+   save/restore status and the confirmed protocol-scoped start-over command.
+8. Call `step_machine.start()`.
 
 ### Scene runtime - layout (`src/scene_runtime/layout/`)
 
@@ -74,6 +82,7 @@ precomputed layout via `precomputed_result.ts` instead.
 | [precomputed_result.ts](../src/scene_runtime/layout/precomputed_result.ts)     | Production seam (WP-PRECOMP3): `resolve_precomputed_result` / `make_precomputed_result` build a renderer-ready `PipelineResult` from `PRECOMPUTED_LAYOUT[scene_name]` (throws on a missing entry). Imports `buildDecisionMetadata` directly (not the barrel) so the shipped bundle drags in no `runPipeline` call path. This is the only layout module the production bundle reaches at render time. |
 | [phases.ts](../src/scene_runtime/layout/phases.ts)                             | Phase registry: named phase sequence including vertical measurement and zone reflow before vertical placement, with explicit read/mutate boundaries and bounded convergence loop                                                                                                                                                                                                                     |
 | [run_pipeline.ts](../src/scene_runtime/layout/run_pipeline.ts)                 | Top-level pipeline runner; drives named phases from the registry (build-only since WP-PRECOMP3)                                                                                                                                                                                                                                                                                                      |
+| `src/scene_runtime/layout/interaction_geometry.ts`                             | Derives placement-keyed transparent interaction envelopes and the valid minimum 16:9 frame, including the 44px hit-core requirement; rejects scenes with no valid frame                                                                                                                                                                                                                              |
 | [types.ts](../src/scene_runtime/layout/types.ts)                               | All layout type definitions (`PipelineResult`, `ComputedItem`, `PlacementAuthored`, etc.)                                                                                                                                                                                                                                                                                                            |
 | [constants.ts](../src/scene_runtime/layout/constants.ts)                       | Layout constants (`DEFAULT_VIEWPORT`, `WORKSPACE_PX_PER_CM`, shrink factor)                                                                                                                                                                                                                                                                                                                          |
 | [bind_objects.ts](../src/scene_runtime/layout/bind_objects.ts)                 | Stage: bind object YAML to placements                                                                                                                                                                                                                                                                                                                                                                |
@@ -158,7 +167,9 @@ Step machine, validators, scene operations, and click resolver.
 | File                                                                                     | Purpose                                                                                                                                                                                                                                                                                                                   |
 | ---------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [resolve_entry_scene.ts](../src/scene_runtime/protocol/resolve_entry_scene.ts)           | `resolve_entry_scene_name` (step.scene -> SceneChange fallback -> throw; runner delegation); `assert_scene_not_empty` guard                                                                                                                                                                                               |
+| `src/scene_runtime/protocol/active_interaction_view.ts`                                  | Resolves one atomic learner-facing interaction view: placement identity, label, gesture, requested adjustment value, and the required authored instruction/hint pair; missing guidance is rejected during content validation                                                                                              |
 | [step_machine.ts](../src/scene_runtime/protocol/step_machine.ts)                         | Pure step machine: step progression, interaction-index advancement, validator dispatch, scene-op handoff, event emission                                                                                                                                                                                                  |
+| `src/scene_runtime/protocol/session_persistence.ts`                                      | Versioned browser-session boundary: protocol fingerprint, strict untrusted-JSON validation, per-protocol load/save/clear, and monotonic persistence revision                                                                                                                                                              |
 | [validators.ts](../src/scene_runtime/protocol/validators.ts)                             | Interaction and step validator dispatch (`correct_target`, `correct_choice`, `target_with_value`, `sequence_complete`, `final_state_matches`)                                                                                                                                                                             |
 | [gesture_registry.ts](../src/scene_runtime/protocol/gesture_registry.ts)                 | `GESTURE_REGISTRY`: one row per closed `Gesture` (render shape, `data-*` selectors, value extraction, single dispatch entry, walker driver); owns `scene_click_to_command` and `dispatch_gesture` (the single gesture-routing point, exhaustive `never` default)                                                          |
 | [target_adapter.ts](../src/scene_runtime/protocol/target_adapter.ts)                     | Protocol-target -> DOM identity adapter: `resolve_to_placement` / `resolve_to_object`, `AmbiguousTargetError` on non-unique object_name, `TARGET_DOM_ATTR` / `TARGET_DOM_SELECTOR`                                                                                                                                        |
@@ -193,6 +204,13 @@ from the archive or declared defaults, with runtime-only flags reset.
 targets that are temporarily absent from the rendered scene. A fresh session or
 `reset()` clears retained state.
 
+`restore_session(seeds, declared_state, cursor_state, revision)` is an
+all-or-nothing boundary used before the first render. It revalidates every saved
+field against the current generated object declarations and restores the exact
+active projection, durable archive, cursor state, and state revision. The step
+machine independently validates that its checkpoint is an exact reachable flow
+prefix. Together these checks prevent partial or stale restoration.
+
 `initial_state` has the same closed primitive state domain as an
 `ObjectStateChange`: object, declared subpart, and declared subpart-group
 targets are allowed only when their fields, types, ranges, enums, units, and
@@ -209,26 +227,30 @@ Renders a `PipelineResult` into the DOM. The paint path is Solid: a reactive
 `scene_store`. The earlier imperative item-paint path (`render_item.ts`,
 `render_label.ts`) is retired; `render_scene.tsx` is the public Solid mount
 facade and `scene_item.tsx` / `scene_view.tsx` own item and label rendering.
+`SceneView` consumes the layout-owned envelope map and reveals the active target
+through the nearest `.scene-panel` scrollport. `SceneItem` emits a transparent
+placement-keyed envelope with `data-item-id` for whole-object actions; exact
+subpart surfaces keep their declaration-owned `data-item-id` identities.
 
-| File                                                                               | Purpose                                                                                                                                                                                                                                                                                         |
-| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [render_scene.tsx](../src/scene_runtime/renderer/render_scene.tsx)                 | Public Solid mount facade: creates the scene store, mounts `SceneView` into `#scene-root`, returns a dispose handle                                                                                                                                                                             |
-| [affordance_candidates.ts](../src/scene_runtime/renderer/affordance_candidates.ts) | `enumerate_candidate_targets(result)`: renderer-layer candidate-set enumeration over clickable placements plus geometry-complete declared subparts and groups; single source of truth with the click resolver                                                                                   |
-| [scene_view.tsx](../src/scene_runtime/renderer/scene_view.tsx)                     | Solid `SceneView`: renders background, one `SceneItem` per placement, and label elements; runs structural guards (collects violations) and sets `data-scene-degraded`                                                                                                                           |
-| [scene_item.tsx](../src/scene_runtime/renderer/scene_item.tsx)                     | Solid `SceneItem`: reactive single-item paint (position, depth, SVG inject, missing-svg placeholder dashed box, `data-*` attributes), including focused scaling around an active exact subpart or declared group                                                                                |
-| [subpart_hit_surface.tsx](../src/scene_runtime/renderer/subpart_hit_surface.tsx)   | Generic declaration-owned SVG hit surface for dotted targets. It requires generated geometry, maps a declared group to each concrete member, preserves nonmember sibling identities for rejection, and throws rather than falling back to the parent object when target geometry is incomplete. |
-| [visual_state_resolver.ts](../src/scene_runtime/renderer/visual_state_resolver.ts) | Pure (no-DOM, no-Solid) resolver mapping object state + authored `visual_states` + per-protocol material registry to a renderable description                                                                                                                                                   |
-| [render_background.ts](../src/scene_runtime/renderer/render_background.ts)         | Render scene background (gradient or asset)                                                                                                                                                                                                                                                     |
-| [structural_guards.ts](../src/scene_runtime/renderer/structural_guards.ts)         | Six structural guards (item count, bounds, aspect ratio, asset presence, etc.); collects all violations rather than throwing on the first; throwing wrapper is exposed for tests/CI                                                                                                             |
-| [inject_svg.ts](../src/scene_runtime/renderer/inject_svg.ts)                       | Manifest-fetch SVG DOM path: `injectSvgFromManifest` and `injectSvgMarkupInto` both route through `namespaceSvgIds`; material forms also bind compiler-generated opaque liquid-region handles. No `injectSvgInto` or bundled-registry path.                                                     |
-| `material_color.ts`                                                                | D3 color resolver: `resolve_color_result(material_name, registry)` returns `ColorResult` discriminated union (empty/null, built-in mixed/#686868, registry-backed scalar, or `ok:false` failure)                                                                                                |
-| `material_acceptance.ts`                                                           | D1 registry-backed acceptance predicate: mirrors Python stepper `mutate_state_field` so TS store and Python stepper accept and reject the same material names                                                                                                                                   |
-| [liquid_paint.ts](../src/scene_runtime/renderer/liquid_paint.ts)                   | Sole object-level material writer: recolors compiled paint handles and applies stationary-bottom, scaled-body, and translated-surface operations from compiler-owned geometry.                                                                                                                  |
-| [oklch_shade.ts](../src/scene_runtime/renderer/oklch_shade.ts)                     | Derives coordinated base, highlight, and shadow colors from one material display color.                                                                                                                                                                                                         |
-| `subpart_dispatch.ts`                                                              | JSX-free dispatch predicate (`find_material_tint_subpart_field`): identifies structured objects with a `material_tint`/`subpart` render effect from the declaration, not runtime value                                                                                                          |
-| `subpart_visual_state_renderer.tsx`                                                | Solid subpart material-tint overlay: one static `<svg>` per structured object over generated `subpart_geometry`; per-subpart `createMemo` reads via `getSubpartStateField` and `resolve_color_result`; `ok:true`+color paints, `ok:true`+null transparent, `ok:false` degrades                  |
-| [svg_manifest_loader.ts](../src/scene_runtime/renderer/svg_manifest_loader.ts)     | Runtime SVG manifest fetch/cache layer; loads SVG files from `dist/assets/svg/` via `generated/svg_manifest.ts`                                                                                                                                                                                 |
-| [index.ts](../src/scene_runtime/renderer/index.ts)                                 | Barrel re-export: `renderScene`, `mountScene`, `SceneView`, `SceneItem`, `renderBackground`                                                                                                                                                                                                     |
+| File                                                                               | Purpose                                                                                                                                                                                                                                                                                                  |
+| ---------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [render_scene.tsx](../src/scene_runtime/renderer/render_scene.tsx)                 | Public Solid mount facade: creates the scene store, mounts `SceneView` into `#scene-root`, returns a dispose handle                                                                                                                                                                                      |
+| [affordance_candidates.ts](../src/scene_runtime/renderer/affordance_candidates.ts) | `enumerate_candidate_targets(result)`: renderer-layer candidate-set enumeration over clickable placements plus geometry-complete declared subparts and groups; single source of truth with the click resolver                                                                                            |
+| [scene_view.tsx](../src/scene_runtime/renderer/scene_view.tsx)                     | Solid `SceneView`: renders background, one `SceneItem` per placement, and label elements; consumes serialized interaction geometry, owns the scene-panel local scrollport reveal, runs structural guards, and sets `data-scene-degraded`                                                                 |
+| [scene_item.tsx](../src/scene_runtime/renderer/scene_item.tsx)                     | Solid `SceneItem`: reactive single-item paint (position, depth, SVG inject, missing-svg placeholder dashed box, `data-*` attributes), and emits a placement-keyed transparent `data-interaction-envelope` carrying `data-item-id` for whole-object actions; exact subparts retain their own hit surfaces |
+| [subpart_hit_surface.tsx](../src/scene_runtime/renderer/subpart_hit_surface.tsx)   | Generic declaration-owned SVG hit surface for dotted targets. It requires generated geometry, maps a declared group to each concrete member, preserves nonmember sibling identities for rejection, and throws rather than falling back to the parent object when target geometry is incomplete.          |
+| [visual_state_resolver.ts](../src/scene_runtime/renderer/visual_state_resolver.ts) | Pure (no-DOM, no-Solid) resolver mapping object state + authored `visual_states` + per-protocol material registry to a renderable description                                                                                                                                                            |
+| [render_background.ts](../src/scene_runtime/renderer/render_background.ts)         | Render scene background (gradient or asset)                                                                                                                                                                                                                                                              |
+| [structural_guards.ts](../src/scene_runtime/renderer/structural_guards.ts)         | Six structural guards (item count, bounds, aspect ratio, asset presence, etc.); collects all violations rather than throwing on the first; throwing wrapper is exposed for tests/CI                                                                                                                      |
+| [inject_svg.ts](../src/scene_runtime/renderer/inject_svg.ts)                       | Manifest-fetch SVG DOM path: `injectSvgFromManifest` and `injectSvgMarkupInto` both route through `namespaceSvgIds`; material forms also bind compiler-generated opaque liquid-region handles. No `injectSvgInto` or bundled-registry path.                                                              |
+| `material_color.ts`                                                                | D3 color resolver: `resolve_color_result(material_name, registry)` returns `ColorResult` discriminated union (empty/null, built-in mixed/#686868, registry-backed scalar, or `ok:false` failure)                                                                                                         |
+| `material_acceptance.ts`                                                           | D1 registry-backed acceptance predicate: mirrors Python stepper `mutate_state_field` so TS store and Python stepper accept and reject the same material names                                                                                                                                            |
+| [liquid_paint.ts](../src/scene_runtime/renderer/liquid_paint.ts)                   | Sole object-level material writer: recolors compiled paint handles and applies stationary-bottom, scaled-body, and translated-surface operations from compiler-owned geometry.                                                                                                                           |
+| [oklch_shade.ts](../src/scene_runtime/renderer/oklch_shade.ts)                     | Derives coordinated base, highlight, and shadow colors from one material display color.                                                                                                                                                                                                                  |
+| `subpart_dispatch.ts`                                                              | JSX-free dispatch predicate (`find_material_tint_subpart_field`): identifies structured objects with a `material_tint`/`subpart` render effect from the declaration, not runtime value                                                                                                                   |
+| `subpart_visual_state_renderer.tsx`                                                | Solid subpart material-tint overlay: one static `<svg>` per structured object over generated `subpart_geometry`; per-subpart `createMemo` reads via `getSubpartStateField` and `resolve_color_result`; `ok:true`+color paints, `ok:true`+null transparent, `ok:false` degrades                           |
+| [svg_manifest_loader.ts](../src/scene_runtime/renderer/svg_manifest_loader.ts)     | Runtime SVG manifest fetch/cache layer; loads SVG files from `dist/assets/svg/` via `generated/svg_manifest.ts`                                                                                                                                                                                          |
+| [index.ts](../src/scene_runtime/renderer/index.ts)                                 | Barrel re-export: `renderScene`, `mountScene`, `SceneView`, `SceneItem`, `renderBackground`                                                                                                                                                                                                              |
 
 ### Shell and HUD (`src/shell/`)
 
@@ -245,6 +267,13 @@ Solid.js observer layer. Subscribes to the emitter; never mutates protocol state
 | [guidance_bar.tsx](../src/shell/regions/guidance_bar.tsx) | Current action, recovery feedback, authored tip, and completion handoff                 |
 
 The shell is a sibling of `#scene-root`, never an ancestor (asset-crop rule).
+On desktop, `.protocol-page-grid` is a fixed viewport shell with a fixed outline
+column. The `.scene-panel` owns a local scrollport for an emitted minimum
+interaction frame; `protocol_host.tsx` only copies the layout-owned minimum-frame
+width, height, and hit-core values into CSS custom properties. At widths up to
+920px, the shell returns to normal document flow with `height: auto`; the scene
+panel remains the local scrollport, so the interaction frame does not widen the
+document or strand the guidance and outline regions.
 
 ### Build pipeline (`pipeline/`)
 
@@ -264,7 +293,7 @@ All scripts that emit to `generated/` or produce `dist/` artifacts. Run by
 | [list_protocols.py](../pipeline/list_protocols.py)             | Parses `PROTOCOLS_INDEX` from generated TS; `emit` subcommand writes per-protocol HTML                                                                                                                                                                                                                                                                                                                                                                                                                |
 | [scene_inheritance.py](../pipeline/scene_inheritance.py)       | Scene YAML inheritance resolution library (shared by gen_scene_index)                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | [build_main_bundle.mjs](../pipeline/build_main_bundle.mjs)     | esbuild Node API bundle: `src/launcher_entry.tsx` -> `dist/launcher.js`, `src/protocol_host_entry.tsx` -> `dist/protocol_host.js`                                                                                                                                                                                                                                                                                                                                                                     |
-| [precompute_layout.mjs](../pipeline/precompute_layout.mjs)     | Runs the layout engine (`runPipeline`) for every scene at canonical 16:9 (1920x1080) -> `generated/precomputed_layout.ts` (`PRECOMPUTED_LAYOUT`: per-scene `{ final: ComputedItem[] }`). Runs via `node --import tsx` in `build_github_pages.sh` after `build_generated.sh`, since it imports the generated `SCENES`, `OBJECT_LIBRARY`, and `ASSET_SPECS`. Deterministic (scenes and items sorted) so two builds are byte-identical.                                                                  |
+| [precompute_layout.mjs](../pipeline/precompute_layout.mjs)     | Runs `runPipeline` for every scene at canonical 16:9 (1920x1080) and serializes `final`, resolved scene data, zone bands, diagnostics, and layout-owned `interactionGeometry` into `generated/precomputed_layout.ts`. The geometry includes the valid minimum 16:9 frame and placement-keyed envelope map. Runs after `build_generated.sh`; scenes and items are sorted for deterministic output.                                                                                                     |
 
 #### Material-rendered SVG compilation and runtime paint
 
@@ -357,12 +386,12 @@ Developer-only helpers that do not appear in any build chain.
 | ------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [run_smoke.py](../tools/run_smoke.py)                               | Fast browser smoke test wrapper                                                                                                                                                                                                                                                   |
 | [run_protocol_walkthrough.py](../tools/run_protocol_walkthrough.py) | Full protocol E2E wrapper                                                                                                                                                                                                                                                         |
+| `tools/run_with_timeout.py`                                         | Process-group timeout used by every exhaustive non-browser E2E so a hung auxiliary process is recorded as a failed gate and cannot block the final summary                                                                                                                        |
 | [build_test_fixture.sh](../tools/build_test_fixture.sh)             | Bundle a well-plate adapter for a Playwright test fixture directory                                                                                                                                                                                                               |
 | `tools/normalize_svg_v3.py`                                         | SVG ingestion-gate normalizer (lxml + tinycss2 + shapely); see below                                                                                                                                                                                                              |
 | `tools/svg_semantic_inspector.py`                                   | Read-only SVG inspector that reports material semantic-layer, clip, and level-frame bounds and geometry-matches donor variants to propose paint-changing candidates plus shared white/translucent review items; it never infers volume or replaces physical and renderer evidence |
 | `tools/liquid_volume_contact_page.mjs`                              | Developer visual gate that serializes real compiled-liquid runtime output into a self-contained volume contact HTML page and PNG under `rendered-reports/liquid_volume_contacts/`; its sibling renderer script rebuilds the complete five-family sheet in one step                |
 | `tools/liquid_render_harness.ts`                                    | Shared browser adapter used by the volume contact tool and focused Playwright tests; delegates injection and painting to production modules                                                                                                                                       |
-| `tools/outline_svg_text.sh`                                         | Optional, on-demand Inkscape authoring preparer for approved physically intrinsic markings, including during legacy/import preparation; never an authorization to outline prose; validates its temporary SVG and publishes only when no live text remains                         |
 | [check_css_content_policy.py](../tools/check_css_content_policy.py) | CSS content policy checker (invoked by check_codebase.sh)                                                                                                                                                                                                                         |
 | [html_to_pdf.mjs](../tools/html_to_pdf.mjs)                         | Playwright-based HTML-to-PDF renderer                                                                                                                                                                                                                                             |
 | [seam_types_compile_check.ts](../tools/seam_types_compile_check.ts) | Compile-time type check for seam interface literals                                                                                                                                                                                                                               |
@@ -388,23 +417,19 @@ or blind-recognition assessment. Approved physically intrinsic markings such as
 numbers, scientific units or symbols, polarity, graduations, and plate
 coordinates may remain in the art.
 
-`tools/outline_svg_text.sh` is an optional, on-demand authoring preparation
-step for an approved physically intrinsic marking, including one retained
-during legacy/import preparation. Provenance never permits prose outlining. It
-calls Inkscape with `--export-text-to-path`, writes to a same-directory
-temporary file, verifies XML validity and the absence of `text`, `tspan`, and
-`textPath` elements, then publishes the result. It is not a Brewfile entry,
-required installation, runtime, or build dependency. Its default form refuses
-an existing output; `--in-place` is explicit:
+The text policy is ordered. Learner-facing text lives in accessible, localizable
+DOM or object data. Rare approved intrinsic markings preferably arrive as path
+geometry. If an imported intrinsic marking instead arrives as live SVG text,
+prefer librsvg to prepare a separate path-only SVG:
 
 ```bash
-tools/outline_svg_text.sh raw.svg outlined.svg
-tools/outline_svg_text.sh --in-place assets/equipment/static/my_asset.svg
+rsvg-convert --format svg --output outlined.svg raw.svg
 ```
 
-`normalize_svg_v3.py` remains the separate SVG ingestion gate for ordinary
-forms. The approved material-aware policy is a deliberate extension of that
-pipeline, not a second generic normalizer; see [SVG_PIPELINE.md](specs/SVG_PIPELINE.md).
+Every prepared output then enters `normalize_svg_v3.py`, the canonical SVG
+ingestion gate for ordinary forms. The approved material-aware policy is a
+deliberate extension of that pipeline, not a second generic normalizer; see
+[SVG_PIPELINE.md](specs/SVG_PIPELINE.md).
 
 `normalize_svg_v3.py` is the SVG ingestion gate for ordinary static and
 discrete-state forms. Every such SVG must pass through v3 before being added to
@@ -422,7 +447,7 @@ parse (lxml; recovery that alters input -> reject)
   -> classify features, reject unsupported (S2)
   -> transform flatten (A1: translate/scale/rotate/matrix, nested groups, arc-under-matrix SVD)
   -> shape->path (A2: rect, rounded-rect, circle, ellipse, line, polyline, polygon)
-  -> editor-cruft removal (B1: Inkscape/Sodipodi/Adobe ns allowlist)
+  -> editor-cruft removal (B1: known editor namespace allowlist)
   -> optional floor-shadow removal (D1: --remove-floor-shadow, default off)
   -> compute bbox with stroke pad (A3: half stroke-width + miter allowance)
   -> decimal precision (A4)
@@ -458,25 +483,25 @@ disposition. Material-declared forms use the approved semantic policy above,
 which preserves validated semantic group boundaries rather than flattening or
 merging across them:
 
-| Feature                                                                        | Disposition                                                                                                                                 |
-| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| `path`, `rect`, `circle`, `ellipse`, `line`, `polyline`, `polygon`             | normalize -> absolute path in root coords                                                                                                   |
-| element `transform` (translate/scale/rotate/matrix/skew), nested groups        | normalize -> flatten into coords                                                                                                            |
-| `gradientTransform`, `patternTransform`                                        | preserve (paint-space only)                                                                                                                 |
-| simple `clipPath` (one path/shape, no nested clips/mask/filter/text/image/use) | normalize -> flatten to path geometry, drop clip ref                                                                                        |
-| complex `clipPath`                                                             | reject (`CLIPPATH_UNSUPPORTED_COMPLEX`)                                                                                                     |
-| `filter`, `mask`, `marker`                                                     | reject                                                                                                                                      |
-| `<text>`, `<tspan>`, `textPath`                                                | reject (`TEXT_UNSUPPORTED`); remove prose to layout-manager DOM/object data, then outline only approved intrinsic markings before ingestion |
-| `<use>`, `<symbol>`                                                            | reject (`USE_OR_SYMBOL_UNSUPPORTED`)                                                                                                        |
-| `<image>` base64 or external `href`                                            | reject (`EMBEDDED_RASTER_UNSUPPORTED` / `EXTERNAL_RESOURCE_UNSUPPORTED`)                                                                    |
-| `foreignObject`                                                                | reject                                                                                                                                      |
-| `<script>`, `on*=`, animation                                                  | reject (`SCRIPT_OR_HANDLER` / `ANIMATION_UNSUPPORTED`)                                                                                      |
-| `<!DOCTYPE>` / `<!ENTITY>`                                                     | reject (`DOCTYPE_OR_ENTITY`)                                                                                                                |
-| inline `style=` geometry/cleanup props                                         | normalize (resolve listed props from inline styles)                                                                                         |
-| `<style>` block                                                                | preserve; rewrite `url(#id)` refs on rename (F8); reject if geometry-affecting rule found (`STYLE_GEOMETRY_UNSUPPORTED`)                    |
-| editor cruft (Inkscape/Sodipodi/Adobe ns)                                      | normalize (remove, B1 allowlist)                                                                                                            |
-| `dc/cc/rdf` metadata, `<title>`, `<desc>`, pre-root comments                   | preserve                                                                                                                                    |
-| parse failure                                                                  | reject (`PARSER_ERROR`)                                                                                                                     |
+| Feature                                                                        | Disposition                                                                                                                                                  |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `path`, `rect`, `circle`, `ellipse`, `line`, `polyline`, `polygon`             | normalize -> absolute path in root coords                                                                                                                    |
+| element `transform` (translate/scale/rotate/matrix/skew), nested groups        | normalize -> flatten into coords                                                                                                                             |
+| `gradientTransform`, `patternTransform`                                        | preserve (paint-space only)                                                                                                                                  |
+| simple `clipPath` (one path/shape, no nested clips/mask/filter/text/image/use) | normalize -> flatten to path geometry, drop clip ref                                                                                                         |
+| complex `clipPath`                                                             | reject (`CLIPPATH_UNSUPPORTED_COMPLEX`)                                                                                                                      |
+| `filter`, `mask`, `marker`                                                     | reject                                                                                                                                                       |
+| `<text>`, `<tspan>`, `textPath`                                                | reject (`TEXT_UNSUPPORTED`); remove prose to DOM/object data; prefer authored paths or librsvg for rare intrinsic markings |
+| `<use>`, `<symbol>`                                                            | reject (`USE_OR_SYMBOL_UNSUPPORTED`)                                                                                                                         |
+| `<image>` base64 or external `href`                                            | reject (`EMBEDDED_RASTER_UNSUPPORTED` / `EXTERNAL_RESOURCE_UNSUPPORTED`)                                                                                     |
+| `foreignObject`                                                                | reject                                                                                                                                                       |
+| `<script>`, `on*=`, animation                                                  | reject (`SCRIPT_OR_HANDLER` / `ANIMATION_UNSUPPORTED`)                                                                                                       |
+| `<!DOCTYPE>` / `<!ENTITY>`                                                     | reject (`DOCTYPE_OR_ENTITY`)                                                                                                                                 |
+| inline `style=` geometry/cleanup props                                         | normalize (resolve listed props from inline styles)                                                                                                          |
+| `<style>` block                                                                | preserve; rewrite `url(#id)` refs on rename (F8); reject if geometry-affecting rule found (`STYLE_GEOMETRY_UNSUPPORTED`)                                     |
+| known editor-namespace cruft                                                   | normalize (remove, B1 allowlist)                                                                                                                             |
+| `dc/cc/rdf` metadata, `<title>`, `<desc>`, pre-root comments                   | preserve                                                                                                                                                     |
+| parse failure                                                                  | reject (`PARSER_ERROR`)                                                                                                                                      |
 
 **Rejection reason codes** (stable tokens used in reports and tests):
 `TEXT_UNSUPPORTED`, `USE_OR_SYMBOL_UNSUPPORTED`, `FILTER_UNSUPPORTED`,
@@ -502,7 +527,7 @@ and move it to layout-manager DOM; outline only approved intrinsic markings for
 normalized output is written only when all verification gates pass.
 
 ```bash
-tools/outline_svg_text.sh raw.svg outlined.svg
+rsvg-convert --format svg --output outlined.svg raw.svg
 source source_me.sh && python3 tools/normalize_svg_v3.py -i outlined.svg -o assets/equipment/static/
 # or to normalize in place after copying:
 source source_me.sh && python3 tools/normalize_svg_v3.py --in-place assets/equipment/static/my_asset.svg
@@ -535,8 +560,9 @@ resolve_entry_scene_name(): entry step's scene: field -> SceneChange fallback ->
   |
   v
 resolve_precomputed_result(scene_name, scene): single production layout path
-  |     PRECOMPUTED_LAYOUT[scene_name].final (build-time, 16:9; throws if missing)
-  |     -> make_precomputed_result(scene, final) -> PipelineResult
+  |     PRECOMPUTED_LAYOUT[scene_name] (build-time 16:9 final, scene, zones,
+  |     diagnostics, and interactionGeometry; throws if missing)
+  |     -> make_precomputed_result(scene, stored data) -> PipelineResult
   |
   | (WP-PRECOMP3: runPipeline retired from the shipped bundle. The runtime
   |  engine -- normalizeSchema -> resolveInheritance -> bindObjects ->
@@ -546,10 +572,14 @@ resolve_precomputed_result(scene_name, scene): single production layout path
   |  pipeline/precompute_layout.mjs and in tests.)
   |
   v
-renderScene(#scene-root, result): mounts Solid SceneView -> structural guards
+  protocol_host.tsx copies minimum_frame CSS variables; it does not derive
+  interaction geometry
+  |
+  renderScene(#scene-root, result): mounts Solid SceneView -> structural guards
   (collect violations, set data-scene-degraded + console.warn instead of
   throwing) -> renderBackground -> SceneItem per placement (inject_svg or
-  placeholder) -> label elements
+  placeholder) -> placement-keyed data-interaction-envelope/data-item-id hit
+  targets -> label elements
   |
   v
 assert_scene_not_empty(): throws for student protocols with 0 items
@@ -666,7 +696,8 @@ What each gate checks:
 - **check_codebase.sh**: TypeScript typecheck (tsconfig.json + tsconfig.lint.json),
   ESLint zero warnings, Prettier format check, CSS content policy, node unit tests.
 - **Playwright** (runner model, `playwright.config.ts` + `*.spec.ts`):
-  framed-layout measurable evidence, initial-scene rendering evidence, and the
+  framed-layout measurable evidence, initial-scene rendering evidence, the
+  production persistence/reload/resume/reset journey with screenshots, and the
   full-path walker sweep under `tests/playwright/e2e/protocol_walkthrough.spec.ts`
   (one `test()` per curriculum protocol, native Playwright workers, plus a
   wrong-order negative test), all served by the config's shared `webServer`.

@@ -100,6 +100,8 @@ step
     interaction
       target              # the addressable scene object or control
       gesture             # how the student acts on the target
+      instruction          # required non-empty plain-string next-action guidance
+      hint                 # required non-empty plain-string disclosed guidance
       validator           # named preset: checks this gesture on this target
       response            # container: scene_operations, optional feedback
   step_validator          # named preset: checks whole-step completion
@@ -109,8 +111,10 @@ step
 
 A `step` is one pedagogical unit. A step is often multi-gesture; the
 individual gestures live inside it in the ordered `sequence`. Each
-`interaction` has exactly the four slots `target`, `gesture`, `validator`,
-`response`. The full slot charters and the closed `gesture` value set
+`interaction` has six required slots: `target`, `gesture`, `instruction`,
+`hint`, `validator`, and `response`. `instruction` is the primary next-action
+message and `hint` is additional learner support; both are non-empty authored
+plain strings. The full slot charters and the closed `gesture` value set
 (`click`, `drag`, `adjust`, `select`, `type`) are in
 [PROTOCOL_VOCABULARY.md](PROTOCOL_VOCABULARY.md).
 For cross-layer gesture status and the distinct roles of directed actions,
@@ -147,6 +151,8 @@ multi-gesture case:
   sequence:
     - target: serological_pipette
       gesture: click
+      instruction: "Pick up the serological pipette for the PBS wash."
+      hint: "Use the highlighted pipette so the wash volume stays with this step."
       validator: { preset: correct_target }
       response:
         scene_operations:
@@ -155,6 +161,8 @@ multi-gesture case:
             operation: attach
     - target: pbs_bottle
       gesture: click
+      instruction: "Draw 4 mL of PBS from the PBS bottle."
+      hint: "PBS provides the wash; keep the pipette aligned with the bottle label."
       validator: { preset: correct_target }
       response:
         scene_operations:
@@ -168,6 +176,8 @@ multi-gesture case:
           incorrect: Use the PBS bottle.
     - target: flask
       gesture: click
+      instruction: "Dispense the PBS into the flask."
+      hint: "Move to the flask, then release the wash so the liquid volume is recorded."
       validator: { preset: correct_target }
       response:
         scene_operations:
@@ -209,6 +219,8 @@ the needed graduation and represent the loaded volume as material state.
   sequence:
     - target: p200_micropipette
       gesture: adjust
+      instruction: "Set the P200 micropipette to 100 uL."
+      hint: "Use the adjustment control and confirm the displayed setting before continuing."
       validator: { preset: target_with_value, value: { set_volume: 100 } }
       response:
         scene_operations:
@@ -234,6 +246,8 @@ validated by `correct_choice`:
   sequence:
     - target: choice_20uL_stock
       gesture: select
+      instruction: "Choose the recipe that matches the dilution calculation."
+      hint: "Compare stock, final, and volume evidence before selecting an option."
       validator: { preset: correct_choice }
       response:
         feedback:
@@ -267,6 +281,8 @@ Worked example for two wells in row B:
   sequence:
     - target: serological_pipette
       gesture: click
+      instruction: "Pick up the serological pipette for the media addition."
+      hint: "Start with the highlighted pipette so each well receives the intended volume."
       validator: { preset: correct_target }
       response:
         scene_operations:
@@ -275,6 +291,8 @@ Worked example for two wells in row B:
             operation: attach
     - target: treatment_plate.B1
       gesture: click
+      instruction: "Dispense 100 uL of media into well B1."
+      hint: "Aim for the outlined B1 well and release the media into its center."
       validator: { preset: correct_target }
       response:
         scene_operations:
@@ -285,6 +303,8 @@ Worked example for two wells in row B:
               material_volume: 100
     - target: treatment_plate.B2
       gesture: click
+      instruction: "Dispense 100 uL of media into well B2."
+      hint: "Move to the outlined B2 well and release the media into its center."
       validator: { preset: correct_target }
       response:
         scene_operations:
@@ -427,8 +447,29 @@ as a field on a `click` instead of using `gesture: adjust`. See
 
 Run through this checklist for every step you write.
 
-- **Each interaction has exactly four slots.** Every `interaction` carries
-  `target`, `gesture`, `validator`, and `response` -- no more, no fewer.
+- **Each interaction has a closed six-key schema.** Every `interaction`
+  carries required `target`, `gesture`, `instruction`, `hint`, `validator`,
+  and `response`. The two guidance fields are non-empty plain strings; no
+  other interaction key is allowed. The runtime has no generic action-guidance
+  fallback, so write both fields before building.
+- **Write guidance for indistinguishable repeats.** Within a step, every
+  repeated exact `(target, gesture)` pair needs both fields on every member.
+  Make all instructions distinct and all hints distinct after trim/case
+  normalization, so the live message and an open hint identify the next
+  substep. Do not put the correct choice identity in `select` guidance or an
+  expected literal in `type` guidance.
+- **Advance both guidance surfaces across flow.** After each accepted
+  interaction with a successor, the visible instruction and any already-open
+  hint advance together to the next authored pair. Adjacent interactions in
+  reachable flow, including step boundaries, use distinct normalized
+  instruction and hint text. This flow-neighbor rule is separate from the
+  stricter repeated exact `(target, gesture)` rule above, which applies to
+  every repeated pair within one step.
+- **Make hints additive.** A hint should add method, purpose, safety, or
+  evidence (for example, where to aim, why the action matters, what to check,
+  or which observation to use). It should support the instruction rather than
+  repeat the same command. Keep select and type hints answer-safe before the
+  learner attempts the interaction.
 - **Gesture matches the skill.** A set-point step uses `adjust`; a decision
   uses `select`; a scene-object action uses `click`. Do not collapse a
   skill into a rote `click`.

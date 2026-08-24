@@ -66,6 +66,8 @@ steps:
   sequence:
   - target: repeat_dispenser
     gesture: click
+    instruction: "Fit a fresh repeating-dispenser tip for row B."
+    hint: "Use a new tip before loading row B so its carboplatin series stays free of carry-over."
     validator:
       preset: correct_target
     response:
@@ -81,6 +83,8 @@ steps:
         incorrect: Use the repeating dispenser for the row-B series.
   - target: repeat_dispenser
     gesture: adjust
+    instruction: "Set the repeating dispenser to 5 &micro;L per dispense for the row series."
+    hint: "The 5 &micro;L set point keeps every repeated addition consistent across the dose-response row."
     validator:
       preset: target_with_value
       value:
@@ -93,6 +97,8 @@ steps:
           set_dispense_volume: 5
   - target: dilution_tube_rack_8.tube_B
     gesture: click
+    instruction: "Load the repeating dispenser from carboplatin tube B."
+    hint: "Use the labeled B stock for the next dose-response row before dispensing across the plate."
     validator:
       preset: correct_target
     response:
@@ -108,6 +114,8 @@ steps:
           held_material_volume: 60
   - target: well_plate_96
     gesture: click
+    instruction: "Dispense the loaded cells in growth media carboplatin 0 1 microM across row B, columns 1-12."
+    hint: "Center the repeating dispenser over row B, columns 1-12; complete this block before changing the stock."
     validator:
       preset: correct_target
     response:
@@ -183,6 +191,8 @@ steps:
         incorrect: Apply the controlled row-B series to the plate.
   - target: repeat_dispenser
     gesture: click
+    instruction: "Fit a fresh repeating-dispenser tip for row C."
+    hint: "Use a new tip before loading row C so its carboplatin series stays free of carry-over."
     validator:
       preset: correct_target
     response:
@@ -196,6 +206,8 @@ steps:
         incorrect: Start row C with a fresh repeating-dispenser tip.
   - target: dilution_tube_rack_8.tube_C
     gesture: click
+    instruction: "Load the repeating dispenser from carboplatin tube C."
+    hint: "Use the labeled C stock for the next dose-response row before dispensing across the plate."
     validator:
       preset: correct_target
     response:
@@ -211,6 +223,8 @@ steps:
           held_material_volume: 60
   - target: well_plate_96
     gesture: click
+    instruction: "Dispense the loaded cells in growth media carboplatin 0 2 microM across row C, columns 1-12."
+    hint: "Center the repeating dispenser over row C, columns 1-12; complete this block before changing the stock."
     validator:
       preset: correct_target
     response:
@@ -286,6 +300,8 @@ steps:
         incorrect: Apply the row-C series to the plate.
   - target: repeat_dispenser
     gesture: click
+    instruction: "Fit a fresh repeating-dispenser tip for row D."
+    hint: "Use a new tip before loading row D so its carboplatin series stays free of carry-over."
     validator:
       preset: correct_target
     response:
@@ -299,6 +315,8 @@ steps:
         incorrect: Start row D with a fresh repeating-dispenser tip.
   - target: dilution_tube_rack_8.tube_D
     gesture: click
+    instruction: "Load the repeating dispenser from carboplatin tube D."
+    hint: "Use the labeled D stock for the next dose-response row before dispensing across the plate."
     validator:
       preset: correct_target
     response:
@@ -314,6 +332,8 @@ steps:
           held_material_volume: 60
   - target: well_plate_96
     gesture: click
+    instruction: "Dispense the loaded cells in growth media carboplatin 0 5 microM across row D, columns 1-12."
+    hint: "Center the repeating dispenser over row D, columns 1-12; complete this block before changing the stock."
     validator:
       preset: correct_target
     response:
@@ -389,6 +409,8 @@ steps:
         incorrect: Apply the row-D series to the plate.
   - target: repeat_dispenser
     gesture: click
+    instruction: "Fit a fresh repeating-dispenser tip for row E."
+    hint: "Use a new tip before loading row E so its carboplatin series stays free of carry-over."
     validator:
       preset: correct_target
     response:
@@ -402,6 +424,8 @@ steps:
         incorrect: Start row E with a fresh repeating-dispenser tip.
   - target: dilution_tube_rack_8.tube_E
     gesture: click
+    instruction: "Load the repeating dispenser from carboplatin tube E."
+    hint: "Use the labeled E stock for the next dose-response row before dispensing across the plate."
     validator:
       preset: correct_target
     response:
@@ -417,6 +441,8 @@ steps:
           held_material_volume: 60
   - target: well_plate_96
     gesture: click
+    instruction: "Dispense the loaded cells in growth media carboplatin 1 microM across row E, columns 1-12."
+    hint: "Center the repeating dispenser over row E, columns 1-12; complete this block before changing the stock."
     validator:
       preset: correct_target
     response:
@@ -492,6 +518,8 @@ steps:
         incorrect: Apply the row-E series to the plate.
   - target: repeat_dispenser
     gesture: click
+    instruction: "Fit a fresh repeating-dispenser tip for row F."
+    hint: "Use a new tip before loading row F so its carboplatin series stays free of carry-over."
     validator:
       preset: correct_target
     response:
@@ -505,6 +533,8 @@ steps:
         incorrect: Start row F with a fresh repeating-dispenser tip.
   - target: dilution_tube_rack_8.tube_F
     gesture: click
+    instruction: "Load the repeating dispenser from carboplatin tube F."
+    hint: "Use the labeled F stock for the next dose-response row before dispensing across the plate."
     validator:
       preset: correct_target
     response:
@@ -520,6 +550,8 @@ steps:
           held_material_volume: 60
   - target: well_plate_96
     gesture: click
+    instruction: "Dispense the loaded cells in growth media carboplatin 2 microM across row F, columns 1-12."
+    hint: "Center the repeating dispenser over row F, columns 1-12; complete this block before changing the stock."
     validator:
       preset: correct_target
     response:
@@ -595,6 +627,8 @@ steps:
         incorrect: Apply the row-F series to the plate.
   - target: repeat_dispenser
     gesture: click
+    instruction: "Fit a fresh repeating-dispenser tip for row G."
+    hint: "Use a new tip before loading row G so its carboplatin series stays free of carry-over."
     validator:
       preset: correct_target
     response:
@@ -608,6 +642,8 @@ steps:
         incorrect: Start row G with a fresh repeating-dispenser tip.
   - target: dilution_tube_rack_8.tube_G
     gesture: click
+    instruction: "Load the repeating dispenser from carboplatin tube G."
+    hint: "Use the labeled G stock for the next dose-response row before dispensing across the plate."
     validator:
       preset: correct_target
     response:
@@ -623,6 +659,8 @@ steps:
           held_material_volume: 60
   - target: well_plate_96
     gesture: click
+    instruction: "Dispense the loaded cells in growth media carboplatin 5 microM across row G, columns 1-12."
+    hint: "Center the repeating dispenser over row G, columns 1-12; complete this block before changing the stock."
     validator:
       preset: correct_target
     response:
@@ -698,6 +736,8 @@ steps:
         incorrect: Apply the row-G series to the plate.
   - target: repeat_dispenser
     gesture: click
+    instruction: "Fit a fresh repeating-dispenser tip for row H."
+    hint: "Use a new tip before loading row H so its carboplatin series stays free of carry-over."
     validator:
       preset: correct_target
     response:
@@ -711,6 +751,8 @@ steps:
         incorrect: Start row H with a fresh repeating-dispenser tip.
   - target: microtube_15ml_intermediate
     gesture: click
+    instruction: "Load the repeating dispenser from the 400 microM parent tube."
+    hint: "Use the parent stock for the highest carboplatin row after fitting its fresh tip."
     validator:
       preset: correct_target
     response:
@@ -726,6 +768,8 @@ steps:
           held_material_volume: 60
   - target: well_plate_96
     gesture: click
+    instruction: "Dispense the loaded cells in growth media carboplatin 10 microM across row H, columns 1-12."
+    hint: "Center the repeating dispenser over row H, columns 1-12; complete this block before changing the stock."
     validator:
       preset: correct_target
     response:
@@ -812,6 +856,8 @@ steps:
   sequence:
   - target: repeat_dispenser
     gesture: click
+    instruction: "Fit a fresh repeating-dispenser tip for the metformin series."
+    hint: "Use a new tip before loading metformin to prevent carry-over from the carboplatin rows."
     validator:
       preset: correct_target
     response:
@@ -825,6 +871,8 @@ steps:
         incorrect: Use a fresh repeating-dispenser tip for metformin.
   - target: metformin_working_tube
     gesture: click
+    instruction: "Draw 120 microL of metformin working solution for rows A-D, columns 7-12."
+    hint: "Use the metformin tube as the source, then load the repeating dispenser for rows A-D, columns 7-12."
     validator:
       preset: correct_target
     response:
@@ -840,6 +888,8 @@ steps:
           held_material_volume: 120
   - target: well_plate_96
     gesture: click
+    instruction: "Dispense the loaded cells in growth media metformin 5 mM across rows A-D, columns 7-12."
+    hint: "Center the repeating dispenser over rows A-D, columns 7-12; complete this block before changing the stock."
     validator:
       preset: correct_target
     response:
@@ -975,6 +1025,8 @@ steps:
         incorrect: Dispense the first 120 &micro;L metformin load to the A-D right-half block.
   - target: metformin_working_tube
     gesture: click
+    instruction: "Draw 120 microL of metformin working solution for rows E-H, columns 7-12."
+    hint: "Use the metformin tube as the source, then load the repeating dispenser for rows E-H, columns 7-12."
     validator:
       preset: correct_target
     response:
@@ -990,6 +1042,8 @@ steps:
           held_material_volume: 120
   - target: well_plate_96
     gesture: click
+    instruction: "Dispense the loaded cells in growth media carboplatin 1 microM metformin 5 mM across rows E-H, columns 7-12."
+    hint: "Center the repeating dispenser over rows E-H, columns 7-12; complete this block before changing the stock."
     validator:
       preset: correct_target
     response:
@@ -1134,12 +1188,16 @@ steps:
   sequence:
   - target: well_plate_96
     gesture: click
+    instruction: "Pick up the completed dose-response plate for incubation."
+    hint: "Keep the treatment map level while moving it into the incubator."
     validator:
       preset: correct_target
     response:
       scene_operations: []
   - target: incubator
     gesture: click
+    instruction: "Place the dose-response plate in the incubator for 48 hours."
+    hint: "Start the authored 48-hour treatment incubation before the MTT workflow."
     validator:
       preset: correct_target
     response:

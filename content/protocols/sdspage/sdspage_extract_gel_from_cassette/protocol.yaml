@@ -48,6 +48,8 @@ steps:
     sequence:
       - target: electrophoresis_tank
         gesture: click
+        instruction: Open the electrophoresis tank workspace.
+        hint: Begin with the power-off apparatus so the leads and lid are visible.
         validator:
           preset: correct_target
         response:
@@ -56,6 +58,8 @@ steps:
               to_scene: extraction_workspace
       - target: power_supply
         gesture: click
+        instruction: Turn off the power supply.
+        hint: Confirm the supply is stopped before disconnecting either lead.
         validator:
           preset: correct_target
         response:
@@ -66,6 +70,8 @@ steps:
                 running: false
       - target: electrophoresis_black_lead
         gesture: click
+        instruction: Disconnect the black cathode lead.
+        hint: Remove the black lead only after the supply is off.
         validator:
           preset: correct_target
         response:
@@ -80,6 +86,8 @@ steps:
                 cathode_lead_attached: false
       - target: electrophoresis_red_lead
         gesture: click
+        instruction: Disconnect the red anode lead.
+        hint: Remove the red lead so both electrical connections are clear.
         validator:
           preset: correct_target
         response:
@@ -94,6 +102,8 @@ steps:
                 anode_lead_attached: false
       - target: electrophoresis_tank
         gesture: click
+        instruction: Lift the tank lid after both leads are disconnected.
+        hint: Power is off and both leads are removed; now open the chamber.
         validator:
           preset: correct_target
         response:
@@ -118,6 +128,8 @@ steps:
     sequence:
       - target: electrode_module
         gesture: click
+        instruction: Lift the electrode module out of the tank.
+        hint: Set the module aside after confirming the tank no longer contains it.
         validator:
           preset: correct_target
         response:
@@ -144,6 +156,8 @@ steps:
     sequence:
       - target: gel_opening_tool
         gesture: click
+        instruction: Pick up the gel-opening tool.
+        hint: Align its tip with a marked cassette arrow before pressing down.
         validator:
           preset: correct_target
         response:
@@ -153,6 +167,8 @@ steps:
               operation: attach
       - target: gel_cassette
         gesture: click
+        instruction: Press the aligned opening tool straight down on the cassette.
+        hint: Use gentle downward pressure and do not twist the tool.
         validator:
           preset: correct_target
         response:
@@ -179,6 +195,8 @@ steps:
     sequence:
       - target: gel_cassette
         gesture: click
+        instruction: Release the opened gel from the cassette.
+        hint: Keep the gel flat and supported before moving it to the tray.
         validator:
           preset: correct_target
         response:
@@ -190,6 +208,8 @@ steps:
                 gel_transfer_status: free_flat
       - target: staining_tray
         gesture: click
+        instruction: Transfer the gel flat into the staining tray.
+        hint: Keep the wells at the top and preserve ladder lane 5 orientation.
         validator:
           preset: correct_target
         response:

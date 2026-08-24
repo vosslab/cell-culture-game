@@ -72,6 +72,10 @@ function pageErrorSuffix(page) {
 // Read-only state snapshots
 //============================================
 
+function normalizeGuidance(value) {
+  return value.trim().replace(/\s+/g, " ").toLowerCase();
+}
+
 // The progress signals a real click may change. Snapshot-compared, never set.
 export async function readProgressSnapshot(page) {
   return await page.evaluate(() => {
@@ -152,7 +156,8 @@ export async function readVisibleAdjustValue(page, target) {
     throw new Error(`adjust_visible_cue_missing: no visible action rail for '${target}'`);
   }
   const cue = await actionRail.evaluate((element) => {
-    const cueElement = element.querySelector(".action-rail-cue");
+    const instruction = element.querySelector("[data-current-action-instruction]");
+    const cueElement = instruction?.querySelector("#guidance-text");
     return {
       target: element.getAttribute("data-action-target"),
       gesture: element.getAttribute("data-action-gesture"),
@@ -161,6 +166,29 @@ export async function readVisibleAdjustValue(page, target) {
     };
   });
   return parseVisibleAdjustCue(cue, target);
+}
+
+// Open the learner's native hint disclosure through the same visible summary a
+// student uses. Keeping it open for the walk makes every checkpoint prove the
+// currently actionable hint, rather than merely proving that a collapsed help
+// affordance exists somewhere in the shell.
+export async function openVisibleActionHint(page) {
+  const hint = page.locator("details[data-action-hint]").first();
+  if ((await hint.count()) === 0 || !(await hint.isVisible())) {
+    throw new Error("action_hint_missing: visible native hint disclosure not found");
+  }
+  if (!(await hint.evaluate((element) => element.open))) {
+    const summary = hint.locator("summary").first();
+    if ((await summary.count()) === 0 || !(await summary.isVisible())) {
+      throw new Error("action_hint_summary_missing: visible 'Need a hint?' control not found");
+    }
+    await summary.click();
+  }
+  if (!(await hint.evaluate((element) => element.open))) {
+    throw new Error(
+      "action_hint_did_not_open: visible hint disclosure remained closed after click",
+    );
+  }
 }
 
 // Wait for the read-only walker surfaces to appear (after load and after reload).
@@ -202,12 +230,22 @@ export function resolveSelector(itemId) {
 // read-only game-state projection, and the element is the same scene-scoped DOM
 // node that clickTargetAndWaitProgress will actionability-click.
 //
-// `visibleTargetBounds` is the intersection of the rendered target box and the
+// `visibleTargetBounds` is the intersection of the rendered hit target and the
 // current viewport, rather than a raw DOMRect that could be nonempty while the
-// target is offscreen. A zero-area intersection is a hard evidence failure.
+// target is offscreen. The checkpoint keeps viewport, hit-core, and occlusion
+// failures distinct: each one has a different learner-facing repair.
 export async function captureVisibleTargetCheckpoint(
   page,
-  { protocol, step, target, gesture, interactionIndex, resultsDir },
+  {
+    protocol,
+    step,
+    target,
+    gesture,
+    interactionIndex,
+    resultsDir,
+    expectedGuidance = null,
+    guidanceTracker = null,
+  },
 ) {
   const selector = resolveSelector(target);
   const locator = page.locator(selector).first();
@@ -223,30 +261,64 @@ export async function captureVisibleTargetCheckpoint(
   await locator.scrollIntoViewIfNeeded();
   const bounds = await locator.evaluate((element) => {
     const rect = element.getBoundingClientRect();
-    const left = Math.max(0, rect.left);
-    const top = Math.max(0, rect.top);
-    const right = Math.min(window.innerWidth, rect.right);
-    const bottom = Math.min(window.innerHeight, rect.bottom);
+    const scene = element.closest("#scene-root")?.getBoundingClientRect() ?? null;
+    const scrollport = element.closest(".scene-panel")?.getBoundingClientRect() ?? null;
+    const visual = element.closest("[data-placement-name]")?.getBoundingClientRect() ?? null;
+    // A large target may not fit wholly inside the scene scrollport. Measure
+    // and hit-test the actual learner-visible intersection, not its raw center
+    // (which can remain outside the viewport even after a normal scroll).
+    const left = Math.max(0, rect.left, scrollport?.left ?? 0);
+    const top = Math.max(0, rect.top, scrollport?.top ?? 0);
+    const right = Math.min(window.innerWidth, rect.right, scrollport?.right ?? window.innerWidth);
+    const bottom = Math.min(
+      window.innerHeight,
+      rect.bottom,
+      scrollport?.bottom ?? window.innerHeight,
+    );
     return {
+      raw: { x: rect.left, y: rect.top, width: rect.width, height: rect.height },
       x: left,
       y: top,
       width: Math.max(0, right - left),
       height: Math.max(0, bottom - top),
       viewportWidth: window.innerWidth,
       viewportHeight: window.innerHeight,
+      sceneFrame:
+        scene === null
+          ? null
+          : { x: scene.left, y: scene.top, width: scene.width, height: scene.height },
+      visualBox:
+        visual === null
+          ? null
+          : { x: visual.left, y: visual.top, width: visual.width, height: visual.height },
+      isInteractionEnvelope: element.hasAttribute("data-interaction-envelope"),
     };
   });
-  if (bounds.width < 24 || bounds.height < 24) {
+  if (bounds.width === 0 || bounds.height === 0) {
     throw new Error(`checkpoint_target_outside_viewport: ${selector}`);
+  }
+
+  const minimumHitCore = bounds.isInteractionEnvelope ? 44 : 24;
+  // Browser scaling can place a nominal 44px edge on a fractional device-pixel
+  // boundary. Match the existing structured-target geometry tolerance rather
+  // than turning subpixel rasterization into a learner-action failure.
+  const hitCoreTolerance = 0.5;
+  if (
+    bounds.width < minimumHitCore - hitCoreTolerance ||
+    bounds.height < minimumHitCore - hitCoreTolerance
+  ) {
+    throw new Error(
+      `checkpoint_target_below_minimum_hit_size: ${selector} has a visible ` +
+        `${bounds.width}x${bounds.height}px core, need ${minimumHitCore}x${minimumHitCore}px`,
+    );
   }
 
   // The DOM identity that Playwright will click must be the authored target,
   // and it must own an unobscured, learner-sized hit core. This is intentionally
   // a browser hit-test, not a synthetic event or a hidden geometry shortcut.
-  const effectiveClickTarget = await locator.evaluate((element) => {
-    const rect = element.getBoundingClientRect();
-    const x = Math.max(rect.left, Math.min(rect.right, rect.left + rect.width / 2));
-    const y = Math.max(rect.top, Math.min(rect.bottom, rect.top + rect.height / 2));
+  const effectiveClickTarget = await locator.evaluate((element, visibleBounds) => {
+    const x = visibleBounds.x + visibleBounds.width / 2;
+    const y = visibleBounds.y + visibleBounds.height / 2;
     const hit = document.elementFromPoint(x, y);
     const hitItem = hit?.closest?.("[data-item-id]") ?? null;
     const hitRect = hitItem?.getBoundingClientRect();
@@ -255,21 +327,27 @@ export async function captureVisibleTargetCheckpoint(
       hitDomTarget: hitItem?.getAttribute("data-item-id") ?? null,
       coreWidth: hitRect?.width ?? 0,
       coreHeight: hitRect?.height ?? 0,
+      point: { x, y },
     };
-  });
+  }, bounds);
   if (
     effectiveClickTarget.authoredDomTarget !== target ||
     effectiveClickTarget.hitDomTarget !== target
   ) {
     throw new Error(
-      `checkpoint_click_target_mismatch: authored '${target}', DOM '${String(effectiveClickTarget.authoredDomTarget)}', ` +
-        `hit '${String(effectiveClickTarget.hitDomTarget)}'`,
+      `checkpoint_target_obscured: authored '${target}', DOM '${String(effectiveClickTarget.authoredDomTarget)}', ` +
+        `topmost '${String(effectiveClickTarget.hitDomTarget)}' at ` +
+        `${effectiveClickTarget.point.x},${effectiveClickTarget.point.y}`,
     );
   }
-  if (effectiveClickTarget.coreWidth < 24 || effectiveClickTarget.coreHeight < 24) {
+  if (
+    effectiveClickTarget.coreWidth < minimumHitCore ||
+    effectiveClickTarget.coreHeight < minimumHitCore
+  ) {
     throw new Error(
-      `checkpoint_click_core_too_small: ${selector} hit core is ` +
-        `${effectiveClickTarget.coreWidth}x${effectiveClickTarget.coreHeight}px, need at least 24x24px`,
+      `checkpoint_target_below_minimum_hit_size: ${selector} hit core is ` +
+        `${effectiveClickTarget.coreWidth}x${effectiveClickTarget.coreHeight}px, need at least ` +
+        `${minimumHitCore}x${minimumHitCore}px`,
     );
   }
 
@@ -281,8 +359,11 @@ export async function captureVisibleTargetCheckpoint(
   const affordance = await locator.evaluate((element) => {
     const computed = window.getComputedStyle(element);
     const subpartKind = element.getAttribute("data-subpart-affordance");
-    const itemKind = element.getAttribute("data-affordance");
-    const kind = subpartKind ?? itemKind ?? "none";
+    const envelopeKind = element.getAttribute("data-interaction-envelope-kind");
+    // The active whole-object locator is its transparent interaction envelope;
+    // the visual placement root intentionally carries no delegated identity.
+    // Exact subparts retain their own declaration-owned affordance hook.
+    const kind = subpartKind ?? envelopeKind ?? "none";
     const isSubpart = subpartKind !== null;
     // Exact-subpart identity lives on the hit-surface group, while the visible
     // learner indicator is its painted child. Reading the group stroke would
@@ -326,38 +407,119 @@ export async function captureVisibleTargetCheckpoint(
     throw new Error("checkpoint_action_cue_missing: visible [data-current-action] not found");
   }
   const actionCue = await actionRail.evaluate((element) => {
-    const cue = element.querySelector(".action-rail-cue");
+    const instruction = element.querySelector("[data-current-action-instruction]");
+    const cue = instruction?.querySelector("#guidance-text");
+    const targetCue = element.querySelector("[data-current-action-target-label]");
+    const progress = element.querySelector("[data-current-action-progress]");
+    const message = instruction?.querySelector("#guidance-text");
+    const goal = element.querySelector("[data-current-step-goal]");
+    const hint = element.querySelector("details[data-action-hint]");
+    const hintText = element.querySelector("[data-action-hint-text]");
     return {
       target: element.getAttribute("data-action-target"),
       label: element.getAttribute("data-action-label"),
       gesture: element.getAttribute("data-action-gesture"),
       value: element.getAttribute("data-action-value"),
       text: cue?.textContent?.trim() ?? "",
+      targetText: targetCue?.textContent?.trim() ?? "",
+      progress: progress?.textContent?.trim() ?? "",
+      message: message?.textContent?.trim() ?? "",
+      goal: goal?.textContent?.replace(/^Step goal:\s*/, "").trim() ?? "",
+      hint: hintText?.textContent?.trim() ?? "",
+      hintOpen: hint instanceof HTMLDetailsElement && hint.open,
     };
   });
-  if (actionCue.target !== target || actionCue.gesture !== gesture) {
+  if (actionCue.gesture !== gesture) {
     throw new Error(
-      `checkpoint_action_cue_mismatch: rail advertises target '${String(actionCue.target)}' ` +
-        `gesture '${String(actionCue.gesture)}', expected '${target}' / '${gesture}'`,
+      `checkpoint_action_cue_mismatch: rail advertises gesture '${String(actionCue.gesture)}', ` +
+        `expected '${gesture}'`,
     );
   }
   if (actionCue.text === "") {
     throw new Error("checkpoint_action_cue_empty: current action has no learner-facing cue");
   }
+  // The state index is zero based, and the rail's ordinal is one based. The
+  // interaction count belongs to the rendered rail, so read it directly from
+  // its stable learner-facing text rather than inventing a separate runtime
+  // projection. Its grammar is part of the shell's visible action contract.
+  if (!/^Action [1-9][0-9]* of [1-9][0-9]*$/.test(actionCue.progress)) {
+    throw new Error(
+      `checkpoint_action_progress_invalid: '${actionCue.progress}' is not an action ordinal`,
+    );
+  }
+  const [visibleIndex, visibleCount] = actionCue.progress.match(/[0-9]+/g) ?? [];
+  if (
+    visibleIndex !== String(interactionIndex + 1) ||
+    visibleCount === undefined ||
+    Number(visibleIndex) > Number(visibleCount)
+  ) {
+    throw new Error(
+      `checkpoint_action_progress_mismatch: visible '${actionCue.progress}' does not match interaction ${interactionIndex}`,
+    );
+  }
+  if (actionCue.message === "") {
+    throw new Error("checkpoint_action_message_empty: current action has no primary instruction");
+  }
+  if (actionCue.goal === "") {
+    throw new Error("checkpoint_step_goal_empty: current action has no visible step goal");
+  }
+  if (!actionCue.hintOpen || actionCue.hint === "") {
+    throw new Error(
+      "checkpoint_action_hint_unavailable: the visible current-action hint is closed or empty",
+    );
+  }
+  if (expectedGuidance !== null) {
+    if (actionCue.message !== expectedGuidance.instruction) {
+      throw new Error(
+        `checkpoint_instruction_mismatch: visible '${actionCue.message}' does not equal authored instruction`,
+      );
+    }
+    if (actionCue.hint !== expectedGuidance.hint) {
+      throw new Error(`checkpoint_hint_mismatch: visible hint does not equal authored hint`);
+    }
+    if (normalizeGuidance(actionCue.goal) !== normalizeGuidance(expectedGuidance.prompt)) {
+      throw new Error(
+        `checkpoint_step_goal_mismatch: visible '${actionCue.goal}' does not equal authored '${expectedGuidance.prompt}'`,
+      );
+    }
+  }
+  if (guidanceTracker !== null) {
+    const instruction = normalizeGuidance(actionCue.message);
+    const hint = normalizeGuidance(actionCue.hint);
+    if (guidanceTracker.instruction === instruction) {
+      throw new Error(
+        `checkpoint_instruction_stale: '${actionCue.message}' repeated after an accepted action`,
+      );
+    }
+    if (guidanceTracker.hint === hint) {
+      throw new Error(
+        `checkpoint_hint_stale: '${actionCue.hint}' repeated after an accepted action`,
+      );
+    }
+    guidanceTracker.instruction = instruction;
+    guidanceTracker.hint = hint;
+  }
   if (gesture !== "select") {
+    if (actionCue.target !== target) {
+      throw new Error(
+        `checkpoint_action_cue_mismatch: rail advertises target '${String(actionCue.target)}', ` +
+          `expected '${target}'`,
+      );
+    }
     if (actionCue.label === null || actionCue.label === "") {
       throw new Error(`checkpoint_action_label_missing: no learner label for '${target}'`);
     }
-    if (!actionCue.text.includes(actionCue.label)) {
+    if (
+      !actionCue.text.includes(actionCue.label) &&
+      !actionCue.targetText.includes(actionCue.label)
+    ) {
       throw new Error(
-        `checkpoint_action_label_unlinked: cue '${actionCue.text}' does not name ` +
-          `'${actionCue.label}'`,
+        `checkpoint_action_label_unlinked: cue '${actionCue.text}' and primary target ` +
+          `'${actionCue.targetText}' do not name '${actionCue.label}'`,
       );
     }
-  } else if (actionCue.label !== null && actionCue.text.includes(actionCue.label)) {
-    throw new Error(
-      `checkpoint_select_answer_revealed: select cue exposes correct label '${actionCue.label}'`,
-    );
+  } else if (actionCue.target !== null || actionCue.label !== null || actionCue.targetText !== "") {
+    throw new Error("checkpoint_select_answer_revealed: select action exposes a directed target");
   }
 
   const candidateCount =
@@ -365,7 +527,7 @@ export async function captureVisibleTargetCheckpoint(
       ? await page
           .locator(
             [
-              '#scene-root [data-affordance="candidate"]',
+              '#scene-root [data-interaction-envelope][data-interaction-envelope-kind="candidate"]',
               '#scene-root [data-subpart-affordance="candidate"]',
             ].join(", "),
           )

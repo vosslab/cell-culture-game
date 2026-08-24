@@ -35,6 +35,8 @@ steps:
     sequence:
       - target: staining_tray
         gesture: click
+        instruction: Open the imaging-bench workspace with the rinsed tray.
+        hint: Keep the destained gel flat and wells-top while moving to imaging.
         validator:
           preset: correct_target
         response:
@@ -43,6 +45,8 @@ steps:
               to_scene: sdspage_image_gel_workspace
       - target: ddh2o_bottle
         gesture: click
+        instruction: Add 100 mL ddH2O around the gel.
+        hint: Pour around the flat gel rather than directly onto it.
         validator:
           preset: correct_target
         response:
@@ -55,6 +59,8 @@ steps:
               state: { material_name: ddh2o, material_volume: 0 }
       - target: waste_container
         gesture: click
+        instruction: Discard the water rinse in the aqueous waste container.
+        hint: Remove only the rinse and retain the clean, oriented gel in the tray.
         validator:
           preset: correct_target
         response:
@@ -84,6 +90,8 @@ steps:
     sequence:
       - target: lightbox
         gesture: click
+        instruction: Power on the lightbox.
+        hint: Turn on the imaging surface before placing the rinsed tray.
         validator:
           preset: correct_target
         response:
@@ -94,6 +102,8 @@ steps:
                 powered_on: true
       - target: staining_tray
         gesture: click
+        instruction: Place the rinsed tray on the lightbox imaging surface.
+        hint: Keep the gel wells-top without rotating the tray.
         validator:
           preset: correct_target
         response:
@@ -118,6 +128,8 @@ steps:
     sequence:
       - target: lightbox
         gesture: click
+        instruction: Capture the overhead image of the prepared gel.
+        hint: Confirm lanes 1-3 and ladder lane 5 are sharp and evenly lit first.
         validator:
           preset: correct_target
         response:
@@ -143,11 +155,12 @@ steps:
   - step_name: interpret_ladder_and_sample_lanes
     prompt: >-
       Review the visible captured image with the ladder. Select the conclusion supported
-      by the simulated lane-resolved result: a strong 24-28 kDa miraculin monomer band
-      in lanes 1-3 and no prominent extra bands.
+      by the sample-band positions and any additional bands.
     sequence:
       - target: gel_conclusion_expected_band
         gesture: select
+        instruction: Select the conclusion supported by the visible ladder and lane-resolved bands.
+        hint: Compare sample-band positions with the molecular-weight reference and check for extra bands.
         validator: { preset: correct_choice }
         response:
           scene_operations:

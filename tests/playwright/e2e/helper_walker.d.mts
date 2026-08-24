@@ -6,6 +6,14 @@ export interface WalkOptions {
   wrongOrder?: boolean;
   screenshotMode?: "per-step" | "per-interaction" | "per-click";
   resultsDir: string;
+  authoredProtocol?: {
+    protocol_type: "mini_protocol" | "sequence_runner";
+    steps?: ReadonlyArray<{
+      step_name: string;
+      prompt: string;
+      sequence: ReadonlyArray<{ instruction: string; hint: string }>;
+    }>;
+  } | null;
 }
 
 export interface WalkOutcome {
@@ -36,6 +44,7 @@ export interface TargetCheckpoint {
     height: number;
     viewportWidth: number;
     viewportHeight: number;
+    isInteractionEnvelope: boolean;
   };
   affordance: {
     expectedKind: "active" | "candidate";
@@ -50,6 +59,12 @@ export interface TargetCheckpoint {
     gesture: string | null;
     value: string | null;
     text: string;
+    targetText: string;
+    progress: string;
+    message: string;
+    goal: string;
+    hint: string;
+    hintOpen: boolean;
   };
   effectiveClickTarget: {
     authoredDomTarget: string | null;

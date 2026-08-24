@@ -61,7 +61,7 @@ test.describe("cell-seeding plate-focused teaching composition", () => {
       await page.setViewportSize({ width: viewport.width, height: viewport.height });
       await page.goto(PROTOCOL_PAGE, { waitUntil: "networkidle" });
       const calculationChoice = page.locator(
-        "#scene-root [data-object-name='calculation_2_8_ml'][data-affordance='candidate']",
+        "#scene-root [data-interaction-envelope][data-interaction-envelope-kind='candidate'][data-item-id='calculation_2_8_choice']",
       );
       await expect(calculationChoice).toHaveCount(1);
       await calculationChoice.click();

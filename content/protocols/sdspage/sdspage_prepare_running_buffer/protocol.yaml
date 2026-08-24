@@ -28,6 +28,8 @@ steps:
     sequence:
       - target: running_buffer_10x_bottle
         gesture: click
+        instruction: Pick up the 10x running-buffer concentrate.
+        hint: Draw the bulk concentrate for the labeled 1 L carboy.
         validator:
           preset: correct_target
         response:
@@ -39,6 +41,8 @@ steps:
               operation: attach
       - target: running_buffer_preparation_carboy
         gesture: click
+        instruction: Transfer the 100 mL 10x concentrate into the labeled 1 L carboy.
+        hint: Use the carboy first to receive the concentrate.
         validator:
           preset: correct_target
         response:
@@ -58,6 +62,8 @@ steps:
               operation: detach
       - target: ddh2o_carboy
         gesture: click
+        instruction: Pick up the deionized-water carboy.
+        hint: Prepare water for the final 1 L fill after adding concentrate.
         validator:
           preset: correct_target
         response:
@@ -67,6 +73,8 @@ steps:
               operation: attach
       - target: running_buffer_preparation_carboy
         gesture: click
+        instruction: Add ddH2O to the 1 L mark in the carboy.
+        hint: The concentrate is already inside; top up with 900 mL water.
         validator:
           preset: correct_target
         response:

@@ -80,6 +80,15 @@ bash dist_clean.sh
 
 See [specs/SVG_PIPELINE.md](specs/SVG_PIPELINE.md) for the full asset pipeline rules.
 
+### Optional SVG authoring tools
+
+The build does not require an external SVG editor or renderer. If a rare,
+approved intrinsic instrument marking arrives as live SVG text, the preferred
+one-off preparation tool is `rsvg-convert` from librsvg. It is an optional
+developer tool, and its output must still pass `tools/normalize_svg_v3.py`.
+The repository does not integrate a desktop SVG editor. Learner-facing prose
+belongs in accessible, localizable DOM or object data rather than SVG paths.
+
 ## Verify install
 
 ```bash

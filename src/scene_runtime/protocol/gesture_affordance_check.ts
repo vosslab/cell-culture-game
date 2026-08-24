@@ -11,9 +11,9 @@
 // completed through the visible UI, so the protocol fails loud at load rather
 // than trapping a student mid-walk when the click reaches an unaffordanced step.
 //
-// This replaces the M2 temporary runtime guard that used to live in
-// step_machine.ts, which rejected a bare click landing on an active adjust/drag
-// interaction only at click time. The invariant is data-driven off
+// This centralizes the runtime affordance invariant that belongs at the
+// interaction boundary rather than checking it only at click time. The
+// invariant is data-driven off
 // GESTURE_REGISTRY: it hardcodes no gesture list, so it grows automatically as
 // the registry adds gestures or flips a row's wired flag.
 //

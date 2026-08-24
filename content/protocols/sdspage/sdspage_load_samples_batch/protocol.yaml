@@ -32,6 +32,8 @@ steps:
     sequence:
       - target: p200_micropipette
         gesture: click
+        instruction: Open the batch gel-loading workspace.
+        hint: Begin the worked B1-to-lane-1 cycle before repeating it for B2 and B3.
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -48,50 +50,74 @@ steps:
               state: { material_name: empty, material_volume: 0 }
       - target: gel_loading_tip_box
         gesture: click
+        instruction: Fit a fresh gel-loading tip for lane 1.
+        hint: Start the worked B1-to-lane-1 cycle with a new tip.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: CursorAttach, target: p200_micropipette, operation: attach }, { type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }], feedback: { correct: "Fresh gel-loading tip fitted for B1.", incorrect: "Fit a fresh gel-loading tip before each sample source." } }
       - target: p200_micropipette
         gesture: adjust
+        instruction: Set the P200 to 30 &micro;L for lane 1.
+        hint: Match this setpoint to the worked B1 transfer.
         validator: { preset: target_with_value, value: { set_volume: 30 } }
         response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { set_volume: 30 } }] }
       - target: microtube_rack_8.slot_B1
         gesture: click
+        instruction: Draw denatured sample B1 from the rack.
+        hint: The P200 is set; draw the 30 &micro;L aliquot for lane 1.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: protein_sample_denatured, held_material_volume: 30 } }, { type: ObjectStateChange, target: microtube_rack_8.slot_B1, state: { material_name: empty, material_volume: 0 } }] }
       - target: gel_cassette.lane_1
         gesture: click
+        instruction: Dispense B1 slowly into gel lane 1.
+        hint: Enter through the lane-1 well without pressing the tip against the bottom.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: gel_cassette.lane_1, state: { material_name: protein_sample_denatured, material_volume: 30 } }, { type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }, { type: CursorAttach, target: p200_micropipette, operation: detach }] }
       - target: gel_loading_tip_box
         gesture: click
+        instruction: Fit a fresh gel-loading tip for lane 2.
+        hint: Discard the used tip and prepare a new one before drawing B2.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: CursorAttach, target: p200_micropipette, operation: attach }, { type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }], feedback: { correct: "Fresh gel-loading tip fitted for B2.", incorrect: "A used tip can carry B1 into B2; fit a fresh tip." } }
       - target: p200_micropipette
         gesture: adjust
+        instruction: Set the P200 to 30 &micro;L for lane 2.
+        hint: Keep the same volume while matching B2 to lane 2.
         validator: { preset: target_with_value, value: { set_volume: 30 } }
         response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { set_volume: 30 } }] }
       - target: microtube_rack_8.slot_B2
         gesture: click
+        instruction: Draw denatured sample B2 from the rack.
+        hint: The P200 is set; draw the 30 &micro;L aliquot for lane 2.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: protein_sample_denatured, held_material_volume: 30 } }, { type: ObjectStateChange, target: microtube_rack_8.slot_B2, state: { material_name: empty, material_volume: 0 } }] }
       - target: gel_cassette.lane_2
         gesture: click
+        instruction: Dispense B2 slowly into gel lane 2.
+        hint: Match source B2 to lane 2 and keep the tip clear of the well bottom.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: gel_cassette.lane_2, state: { material_name: protein_sample_denatured, material_volume: 30 } }, { type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }, { type: CursorAttach, target: p200_micropipette, operation: detach }] }
       - target: gel_loading_tip_box
         gesture: click
+        instruction: Fit a fresh gel-loading tip for lane 3.
+        hint: Replace the B2 tip before drawing the B3 source tube.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: CursorAttach, target: p200_micropipette, operation: attach }, { type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }], feedback: { correct: "Fresh gel-loading tip fitted for B3.", incorrect: "A used tip can carry B2 into B3; fit a fresh tip." } }
       - target: p200_micropipette
         gesture: adjust
+        instruction: Set the P200 to 30 &micro;L for lane 3.
+        hint: Keep the fixed volume while preparing the B3 transfer.
         validator: { preset: target_with_value, value: { set_volume: 30 } }
         response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { set_volume: 30 } }] }
       - target: microtube_rack_8.slot_B3
         gesture: click
+        instruction: Draw denatured sample B3 from the rack.
+        hint: The P200 is set; draw the 30 &micro;L aliquot for lane 3.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: protein_sample_denatured, held_material_volume: 30 } }, { type: ObjectStateChange, target: microtube_rack_8.slot_B3, state: { material_name: empty, material_volume: 0 } }] }
       - target: gel_cassette.lane_3
         gesture: click
+        instruction: Dispense B3 slowly into gel lane 3.
+        hint: Match source B3 to lane 3 and avoid pressing the tip against the well bottom.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: gel_cassette.lane_3, state: { material_name: protein_sample_denatured, material_volume: 30 } }, { type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }, { type: CursorAttach, target: p200_micropipette, operation: detach }] }
     step_validator: { preset: sequence_complete }

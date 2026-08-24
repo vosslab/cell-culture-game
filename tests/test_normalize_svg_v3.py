@@ -1244,7 +1244,7 @@ def test_s1_resolved_ref_normalizes(tmp_path) -> None:
 #============================================
 
 def test_b1_cruft_removed_attribution_preserved(tmp_path) -> None:
-	"""B1 removes Inkscape/Sodipodi cruft while dc/cc/rdf attribution survives.
+	"""B1 removes editor cruft while dc/cc/rdf attribution survives.
 
 	A fixture where editor cruft and attribution coexist proves both halves of
 	the B1 allowlist: cruft gone AND attribution intact.
@@ -1270,10 +1270,10 @@ def test_b1_cruft_removed_attribution_preserved(tmp_path) -> None:
 	result = normalize_svg_v3.normalize_svg_file(svg_in, svg_out, padding=2.0)
 	assert result.normalized, f"unexpected rejection: {result.rejection}"
 	content = svg_out.read_text(encoding="utf-8")
-	# Editor cruft gone: no sodipodi:namedview element, no inkscape:* attribute.
+	# Editor cruft gone: no named-view element or editor-prefixed attribute.
 	assert "namedview" not in content, "sodipodi:namedview cruft survived"
-	assert "inkscape:zoom" not in content, "inkscape attribute survived"
-	assert "inkscape:label" not in content, "inkscape:label attribute survived"
+	assert "inkscape:zoom" not in content, "editor zoom attribute survived"
+	assert "inkscape:label" not in content, "editor label attribute survived"
 	# Attribution intact: dc/cc/rdf metadata preserved.
 	assert "dc:creator" in content, "dc:creator attribution lost"
 	assert "cc:Work" in content, "cc:Work attribution lost"

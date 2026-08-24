@@ -13,6 +13,9 @@
 # repo's single Playwright model per docs/PLAYWRIGHT_TEST_STYLE.md. The
 # runner's config owns the shared webServer and covers every .spec.ts file,
 # including the protocol walker sweep at tests/playwright/e2e/protocol_walkthrough.spec.ts.
+# Every non-browser E2E has a generous process-group timeout, and connected
+# browser acceptance runs before shell E2Es, so any external-tool regression
+# is reported without preventing the browser result or final summary.
 #
 # Full output is saved to SUPER_LOG.txt. A short PASS/FAIL line prints per step.
 # The runner is single-writer because build outputs, generated reports,
@@ -84,6 +87,7 @@ acquire_run_lock
 source source_me.sh
 
 LOG="SUPER_LOG.txt"
+E2E_TIMEOUT_SECONDS="${E2E_TIMEOUT_SECONDS:-300}"
 
 # These lists record the outcome of each step, filled in by run(). STEP_CMDS
 # holds the exact command each step ran, so the summary can show how to re-run
@@ -228,28 +232,38 @@ main() {
 	run "scene_metrics"  python3 -m validation.scene_design.cli -S content/base_scenes/*.yaml
 
 	# --- 3. End-to-end tests in tests/e2e/ (pytest skips this folder). ---
+	#     Every auxiliary command gets the same generous process-group bound.
+	#     A timeout is a visible test failure and the suite continues.
 	#     Python E2E tests:
 	for testfile in tests/e2e/e2e_*.py; do
 		[ -e "$testfile" ] || continue        # skip if none match
-		run "e2e: $(basename "$testfile")" python3 "$testfile"
+		run "e2e: $(basename "$testfile")" \
+			python3 tools/run_with_timeout.py \
+			--seconds "$E2E_TIMEOUT_SECONDS" -- python3 "$testfile"
 	done
 	#     Node E2E tests. Run under the tsx loader so a .mjs that imports .ts
 	#     source is transformed at import time; a plain .mjs with no .ts import
 	#     runs fine under tsx too. Mirrors check_codebase.sh (node --import tsx).
 	for testfile in tests/e2e/e2e_*.mjs; do
 		[ -e "$testfile" ] || continue
-		run "e2e: $(basename "$testfile")" node --import tsx "$testfile"
-	done
-	#     Shell E2E tests run directly through bash, as documented in E2E_TESTS.
-	for testfile in tests/e2e/e2e_*.sh; do
-		[ -e "$testfile" ] || continue
-		run "e2e: $(basename "$testfile")" bash "$testfile"
+		run "e2e: $(basename "$testfile")" \
+			python3 tools/run_with_timeout.py \
+			--seconds "$E2E_TIMEOUT_SECONDS" -- node --import tsx "$testfile"
 	done
 
 	# --- 4. Browser tests in tests/playwright/ (pytest skips this folder). ---
 	#     Runs every .spec.ts through the Playwright runner front door, which
-	#     includes the protocol walker sweep spec.
+	#     includes the protocol walker sweep and the connected persistence test.
+	#     This runs before independent external authoring-tool coverage below.
 	run "browser tests" bash run_playwright_tests.sh
+
+	# --- 5. Shell E2Es. ---
+	for testfile in tests/e2e/e2e_*.sh; do
+		[ -e "$testfile" ] || continue
+		run "e2e: $(basename "$testfile")" \
+			python3 tools/run_with_timeout.py \
+			--seconds "$E2E_TIMEOUT_SECONDS" -- bash "$testfile"
+	done
 
 	# --- Done: print the results table and return non-zero if anything failed. ---
 	print_summary

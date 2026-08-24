@@ -21,7 +21,10 @@ decisions rather than another generic shell milestone:
 - Decide whether selection candidates need a closed choice-role capability
   (B6), so decision scenes can retain visible experimental context without
   presenting every clickable context object as an answer.
-- Re-run the optional SVG text-outline E2E with a working Inkscape installation.
+- Plan the application-owned migration of embedded result screens and removable
+  labels identified by the
+  [SVG interface scope audit](active_plans/audits/svg_embedded_interface_scope.md).
+  Keep only sparse intrinsic marks such as numbers, units, and logos in SVG art.
 - Continue evidence-led protocol expansion without weakening visible-action,
   state-continuity, or scientific-conservation gates.
 

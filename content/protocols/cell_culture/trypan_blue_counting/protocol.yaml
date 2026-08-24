@@ -47,6 +47,8 @@ steps:
     sequence:
       - target: p20_micropipette
         gesture: click
+        instruction: "Attach the P20 micropipette for the Trypan Blue transfer."
+        hint: "Use the fresh tip and 10 microL set point for the stain draw."
         validator:
           preset: correct_target
         response:
@@ -58,6 +60,8 @@ steps:
               operation: attach
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the P20 micropipette."
+        hint: "Use the sterile tip before drawing Trypan Blue stain."
         validator:
           preset: correct_target
         response:
@@ -71,6 +75,8 @@ steps:
             incorrect: "Mount a fresh P20 tip before drawing Trypan Blue."
       - target: p20_micropipette
         gesture: adjust
+        instruction: "Set the P20 micropipette to 10 &micro;L for the Trypan Blue transfer."
+        hint: "The 10 &micro;L set point provides the equal stain volume needed for the planned 1:1 mixture."
         validator:
           preset: target_with_value
           value:
@@ -83,6 +89,8 @@ steps:
                 set_volume: 10
       - target: trypan_blue_tube
         gesture: click
+        instruction: "Draw 10 microL of Trypan Blue stain from the tube."
+        hint: "Use the measured stain load for the central diamond chamber."
         validator:
           preset: correct_target
         response:
@@ -99,6 +107,8 @@ steps:
                 held_material_volume: 10
       - target: hemocytometer_slide.diamond
         gesture: click
+        instruction: "Dispense the Trypan Blue into the central diamond chamber."
+        hint: "Touch the diamond cleanly so the stain remains in the mixing chamber."
         validator:
           preset: correct_target
         response:
@@ -126,6 +136,8 @@ steps:
     sequence:
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the P20 micropipette."
+        hint: "Use a new tip before drawing the cell suspension."
         validator:
           preset: correct_target
         response:
@@ -139,6 +151,8 @@ steps:
             incorrect: "Select a new sterile tip before drawing cell suspension; the prior tip contacted Trypan Blue."
       - target: p20_micropipette
         gesture: click
+        instruction: "Attach the P20 micropipette for the cell-suspension draw."
+        hint: "Use the fresh tip and 10 microL set point for the 1:1 mixture."
         validator:
           preset: correct_target
         response:
@@ -148,6 +162,8 @@ steps:
               operation: attach
       - target: p20_micropipette
         gesture: adjust
+        instruction: "Set the P20 micropipette to 10 &micro;L for the cell-suspension transfer."
+        hint: "The 10 &micro;L set point matches the stain volume so the chamber receives a 1:1 sample mixture."
         validator:
           preset: target_with_value
           value:
@@ -160,6 +176,8 @@ steps:
                 set_volume: 10
       - target: conical_15ml
         gesture: click
+        instruction: "Draw 10 microL of cell suspension from the conical tube."
+        hint: "Keep the fresh tip separate from the stain until dispensing into the diamond."
         validator:
           preset: correct_target
         response:
@@ -176,6 +194,8 @@ steps:
                 held_material_volume: 10
       - target: hemocytometer_slide.diamond
         gesture: click
+        instruction: "Dispense 10 microL of cell suspension into the diamond."
+        hint: "Add the cell suspension to the Trypan Blue to create the 1:1 mixture."
         validator:
           preset: correct_target
         response:
@@ -204,6 +224,8 @@ steps:
     sequence:
       - target: p20_micropipette
         gesture: click
+        instruction: "Attach the P20 tip to begin the three mixing cycles."
+        hint: "Use the attached pipette for each gentle up-and-down stroke."
         validator:
           preset: correct_target
         response:
@@ -213,6 +235,8 @@ steps:
               operation: attach
       - target: hemocytometer_slide.diamond
         gesture: click
+        instruction: "Complete mixing cycle 1 in the central diamond."
+        hint: "Pipette the mixture gently up and down once; stop after cycle 1."
         validator:
           preset: correct_target
         response:
@@ -227,6 +251,8 @@ steps:
                 mix_cycles: 1
       - target: hemocytometer_slide.diamond
         gesture: click
+        instruction: "Complete mixing cycle 2 in the central diamond."
+        hint: "Pipette the mixture gently up and down once; stop after cycle 2."
         validator:
           preset: correct_target
         response:
@@ -241,6 +267,8 @@ steps:
                 mix_cycles: 2
       - target: hemocytometer_slide.diamond
         gesture: click
+        instruction: "Complete mixing cycle 3 in the central diamond."
+        hint: "Pipette the mixture gently up and down once; stop after cycle 3."
         validator:
           preset: correct_target
         response:
@@ -276,6 +304,8 @@ steps:
     sequence:
       - target: p20_micropipette
         gesture: click
+        instruction: "Attach the P20 micropipette to draw the mixed sample."
+        hint: "Use the measured 10 microL load for capillary chamber loading."
         validator:
           preset: correct_target
         response:
@@ -285,6 +315,8 @@ steps:
               operation: attach
       - target: p20_micropipette
         gesture: adjust
+        instruction: "Set the P20 micropipette to 10 &micro;L for the mixed-sample load."
+        hint: "The 10 &micro;L load supplies enough homogeneous mixture for capillary chamber loading without overfilling it."
         validator:
           preset: target_with_value
           value:
@@ -297,6 +329,8 @@ steps:
                 set_volume: 10
       - target: hemocytometer_slide.diamond
         gesture: click
+        instruction: "Draw 10 microL from the mixed central diamond."
+        hint: "Keep the mixture homogeneous while moving the tip to the chamber edge."
         validator:
           preset: correct_target
         response:
@@ -317,6 +351,8 @@ steps:
                 held_material_volume: 10
       - target: hemocytometer_slide.semicircle
         gesture: click
+        instruction: "Touch the right chamber edge to load the semicircle."
+        hint: "Let capillary action fill the chamber without introducing bubbles."
         validator:
           preset: correct_target
         response:
@@ -352,6 +388,8 @@ steps:
     sequence:
       - target: lens_tissue
         gesture: click
+        instruction: "Pick up the lens tissue to wipe the slide edges."
+        hint: "Use the tissue only around the loaded chamber to remove excess liquid."
         validator:
           preset: correct_target
         response:
@@ -361,6 +399,8 @@ steps:
               operation: attach
       - target: hemocytometer_slide
         gesture: click
+        instruction: "Wipe excess liquid from the hemocytometer slide edges."
+        hint: "Leave the loaded chamber saturated while clearing the surrounding surface."
         validator:
           preset: correct_target
         response:
@@ -383,6 +423,8 @@ steps:
     sequence:
       - target: hemocytometer_slide
         gesture: click
+        instruction: "Move the loaded slide into the microscope view."
+        hint: "Place the prepared chamber on the microscope before counting cells."
         validator:
           preset: correct_target
         response:
@@ -391,6 +433,8 @@ steps:
               to_scene: hemocytometer_view
       - target: hemocytometer_slide
         gesture: click
+        instruction: "View the chamber to reveal the live and dead cell pattern."
+        hint: "The microscope view must be visible before you compare the representative counts."
         validator:
           preset: correct_target
         response:
@@ -403,6 +447,8 @@ steps:
               to_scene: hemocytometer_count_review
       - target: manual_count_85_live_7_dead
         gesture: select
+        instruction: "Compare the visible clear and blue cells in the representative quadrants and choose the matching count."
+        hint: "Use the live/dead staining pattern and your quadrant tally as evidence for the manual count decision."
         validator:
           preset: correct_choice
         response:
@@ -427,6 +473,8 @@ steps:
     sequence:
       - target: hemocytometer_slide
         gesture: click
+        instruction: "Insert the prepared hemocytometer slide into the counter."
+        hint: "Seat the slide fully before beginning automated analysis."
         validator:
           preset: correct_target
         response:
@@ -435,6 +483,8 @@ steps:
               to_scene: cell_counter_workspace
       - target: cell_counter
         gesture: click
+        instruction: "Open the cell-counter loading controls."
+        hint: "Confirm the slide is seated before starting the measurement."
         validator:
           preset: correct_target
         response:
@@ -456,6 +506,8 @@ steps:
     sequence:
       - target: cell_counter
         gesture: click
+        instruction: "Start the cell counter and press Capture after focus completes."
+        hint: "Wait for the focus-complete status before recording the measured count and viability."
         validator:
           preset: correct_target
         response:
@@ -490,6 +542,8 @@ steps:
     sequence:
       - target: viability_decision_proceed
         gesture: select
+        instruction: "Compare the displayed viability percentage with the stated downstream gate and choose the matching decision."
+        hint: "Use the counter's visible percentage and the threshold shown in the review screen as your evidence."
         validator:
           preset: correct_choice
         response:

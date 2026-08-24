@@ -20,6 +20,8 @@ steps:
     sequence:
       - target: electrophoresis_tank
         gesture: click
+        instruction: Open the tank workspace to inspect the used buffer.
+        hint: Check the simulated buffer condition before choosing its destination.
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -30,6 +32,8 @@ steps:
             incorrect: "Inspect the tank before choosing a destination."
       - target: recycle_buffer_bottle
         gesture: click
+        instruction: Choose the labeled recycle bottle for this clear simulated buffer.
+        hint: This scenario permits recycling; contaminated or cloudy buffer follows hazardous waste.
         validator: { preset: correct_target }
         response:
           scene_operations: []
@@ -47,10 +51,14 @@ steps:
     sequence:
       - target: electrophoresis_inner_chamber
         gesture: click
+        instruction: Open the inner chamber drain for the 200 mL recovery.
+        hint: Empty the inner chamber before draining the outer reservoir.
         validator: { preset: correct_target }
         response: { scene_operations: [] }
       - target: recycle_buffer_bottle
         gesture: click
+        instruction: Transfer the inner chamber's 200 mL into the recycle bottle.
+        hint: Empty the inner chamber first and preserve this recovery in the labeled bottle.
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -62,10 +70,14 @@ steps:
               state: { material_name: running_buffer_1x_used, material_volume: 200, label_status: running_buffer_recycle }
       - target: electrophoresis_outer_chamber
         gesture: click
+        instruction: Open the outer chamber drain for the 500 mL recovery.
+        hint: Drain the outer reservoir after the inner chamber is recorded.
         validator: { preset: correct_target }
         response: { scene_operations: [] }
       - target: recycle_buffer_bottle
         gesture: click
+        instruction: Transfer the outer chamber's 500 mL into the recycle bottle.
+        hint: The first 200 mL is recorded; add the outer volume to reach 700 mL.
         validator: { preset: correct_target }
         response:
           scene_operations:

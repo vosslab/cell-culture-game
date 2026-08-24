@@ -29,8 +29,8 @@ rewrites the viewBox. The material-asset policy preserves its authored root
 frame and structural-anchor coordinates. Both policies convert relative path
 commands to absolute (M/m L/l H/h V/v C/c S/s
 Q/q T/t A/a Z/z), ASCII-clean id/data-name and rewrite references, preserve
-dc/cc/rdf/xlink/sodipodi/inkscape namespace prefixes, preserve pre-root
-comments, in-root comments, <title>, and <desc>.
+dc/cc/rdf/xlink attribution namespace prefixes, preserve pre-root comments,
+in-root comments, <title>, and <desc>.
 
 The implementation flattens transforms and supported clip paths, converts
 supported shapes to paths, computes stroke-aware bounds, rejects unsupported
@@ -93,8 +93,6 @@ CANONICAL_NS_PREFIXES = {
 	"cc": "http://creativecommons.org/ns#",
 	"rdf": "http://www.w3.org/1999/02/22-rdf-syntax-ns#",
 	"xlink": "http://www.w3.org/1999/xlink",
-	"sodipodi": "http://sodipodi.sourceforge.net/DTD/sodipodi-0.0.dtd",
-	"inkscape": "http://www.inkscape.org/namespaces/inkscape",
 }
 
 COMMAND_RE = re.compile(r"([AaCcHhLlMmQqSsTtVvZz])|([-+]?(?:\d*\.\d+|\d+\.?)(?:[eE][-+]?\d+)?)")
@@ -4085,7 +4083,7 @@ def _resolved_property(elem: lxml.etree._Element, prop: str) -> str | None:
 
 #============================================
 # B1 editor-cruft removal (positive allowlist). Removes ONLY elements and
-# attributes in the Inkscape, Sodipodi, and Adobe Illustrator namespaces. Every
+# attributes in the known editor namespaces below. Every
 # SVG rendering attribute, every def, every id, and all dc/cc/rdf/title/desc are
 # preserved. Ported by hand in spirit from scour removeNamespacedElements /
 # removeNamespacedAttributes (Apache-2.0); no scour file is copied.
@@ -4120,8 +4118,8 @@ def _namespace_uri_of(name: str) -> str | None:
 def remove_editor_cruft(root: lxml.etree._Element) -> None:
 	"""Remove editor-namespace elements and attributes (B1 positive allowlist).
 
-	Removes only elements whose tag is in an editor-cruft namespace (Inkscape,
-	Sodipodi, Adobe) and only attributes whose name is in one of those
+	Removes only elements whose tag is in a known editor-cruft namespace and only
+	attributes whose name is in one of those
 	namespaces. Preserves every SVG-namespace rendering attribute, every def,
 	every id, and all dc/cc/rdf attribution and <title>/<desc>. Modifies root in
 	place.
@@ -4686,9 +4684,8 @@ def normalize_svg_file(
 			code="UNSUPPORTED_TRANSFORM",
 			message=f"A transform could not be safely flattened. ({exc})",
 			fix=(
-				"Pre-flatten the transform in your editor (in Inkscape: select the "
-				"object, then Object > Transform > Apply, or ungroup transformed "
-				"groups) before ingestion."
+				"Pre-flatten the transform or ungroup transformed groups in the "
+				"source editor before ingestion."
 			),
 			element=exc.element_location,
 		)
@@ -4763,7 +4760,7 @@ def normalize_svg_file(
 			element=exc.element_location,
 		)
 
-	# B1: remove editor-namespace cruft (Inkscape/Sodipodi/Adobe) before the bbox
+	# B1: remove known editor-namespace cruft before the bbox
 	# pass. This is a positive allowlist: only editor-namespace elements and
 	# attributes are removed; every SVG render attr, def, id, and dc/cc/rdf
 	# attribution is preserved. Cruft removal never changes the verdict; it only
@@ -4801,9 +4798,8 @@ def normalize_svg_file(
 				f"({exc})"
 			),
 			fix=(
-				"Convert all geometry to user units (unitless or px) before ingestion. "
-				"In Inkscape: File > Document Properties > Scale to 1px = 1 user unit, "
-				"then export or save."
+				"Convert all geometry to user units (unitless or px) in the source "
+				"editor before ingestion, then export or save."
 			),
 			element=exc.element_location,
 		)
@@ -4921,8 +4917,8 @@ def normalize_svg_file(
 #         channel is approximately equal (max delta <= _SHADOW_GREY_TOLERANCE)
 #         AND the value is mid/low (max channel <= _SHADOW_GREY_MAX_VALUE).
 #      c. The element's id= or class= attribute contains the substring "shadow"
-#         (case-insensitive); this also catches inkscape:pageshadow if it were
-#         not already removed by B1.
+#         (case-insensitive); editor-specific page shadows are already removed
+#         by B1.
 #   Blur filter alone is NOT sufficient (filters are rejected by the classifier
 #   before D1 can run; D1 is therefore never called when a filter is present).
 #   If the fill-opacity or fill signal would require reading a <style> class rule

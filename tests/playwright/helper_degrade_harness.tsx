@@ -31,6 +31,7 @@
 // from SceneView's structural-violation marker.
 
 import { mountScene } from "../../src/scene_runtime/renderer/index.js";
+import { derive_scene_interaction_geometry } from "../../src/scene_runtime/layout/interaction_geometry.js";
 import { create_scene_store, type SceneStore } from "../../src/scene_runtime/state/scene_store.js";
 import {
   ASSET_SPECS,
@@ -197,9 +198,11 @@ function make_scene(): SceneA {
 }
 
 function make_result(): PipelineResult {
+  const final = [make_item(DEGRADE_OBJ_NAME, 20), make_item(HAPPY_OBJ_NAME, 50)];
   return {
     scene: make_scene(),
-    final: [make_item(DEGRADE_OBJ_NAME, 20), make_item(HAPPY_OBJ_NAME, 50)],
+    final,
+    interactionGeometry: derive_scene_interaction_geometry(final),
   } as PipelineResult;
 }
 

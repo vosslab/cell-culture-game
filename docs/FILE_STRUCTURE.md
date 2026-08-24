@@ -36,7 +36,8 @@ src/
 +- dist_entry.tsx              -- bundle entry; DOM-presence router
 +- launcher_entry.tsx          -- launcher bundle entry
 +- protocol_host_entry.tsx     -- protocol-host bundle entry
-+- protocol_host.tsx           -- wires pipeline, renderer, step machine, HUD
++- protocol_host.tsx           -- wires persistence, precomputed layout, renderer, step machine, HUD
++- schema_version.ts           -- sole repo-wide persisted-session schema version
 +- index.html                  -- bench page (smoke target)
 +- scene_viewer_template.html  -- scene viewer HTML template (copied to dist/scene_viewer.html)
 +- style.css                   -- stylesheet (copied to dist/)
@@ -45,8 +46,9 @@ src/
 |  +- protocol_launcher.tsx    -- Solid protocol-selector component
 |  `- main.tsx                 -- launcher Solid mount
 +- scene_runtime/
-|  +- layout/                  -- multi-pass layout pipeline
+|  +- layout/                  -- multi-pass layout pipeline and serialized interaction geometry
 |  |  +- run_pipeline.ts       -- top-level pipeline runner
+|  |  +- interaction_geometry.ts -- placement-keyed hit envelopes and the valid minimum 16:9 frame
 |  |  +- types.ts              -- PipelineResult, ComputedItem, layout types
 |  |  +- constants.ts          -- DEFAULT_VIEWPORT, shrink factor
 |  |  +- phases.ts             -- phase registry: named phase sequence with read/mutate boundaries
@@ -76,11 +78,13 @@ src/
 |  |      clamp_scene_bounds, footprint, wrap_label, index).ts
 |  +- protocol/                -- step machine and protocol drivers
 |  |  +- affordance.ts         -- pure affordance-kind mapping (compute_affordance_kind, affordance types)
+|  |  +- active_interaction_view.ts -- atomic learner-facing action, instruction, and hint projection
 |  |  +- gesture_registry.ts   -- GESTURE_REGISTRY: per-gesture affordance contract + dispatch_gesture, scene_click_to_command
 |  |  +- resolve_entry_scene.ts -- entry-scene resolution + empty-scene guard
 |  |  +- target_adapter.ts     -- protocol-target -> DOM identity adapter (resolve_to_placement/object, AmbiguousTargetError)
 |  |  +- flatten_sequence_runner.ts -- rejects nested/repeated leaves and flattens unique direct mini-protocols into one chained step flow
-|  |  +- step_machine.ts       -- pure step machine (no DOM)
+|  |  +- step_machine.ts       -- pure restorable step machine (no DOM)
+|  |  +- session_persistence.ts -- validated, versioned localStorage session boundary
 |  |  +- validators.ts         -- interaction and step validator dispatch
 |  |  +- authored_value_check.ts -- load-time authored-value guard for target_with_value / final_state_matches
 |  |  +- gesture_affordance_check.ts -- load-time invariant: authored gesture must be registered + wired (UnaffordancedGestureError)
@@ -113,6 +117,7 @@ src/
    +- signals.ts               -- Solid signal helpers + subscribeEmitterToSnapshot
    +- hud/
    |  +- protocol_hud.tsx      -- owns the student-facing shell composition
+   |  +- session_controls.tsx  -- visible save/restore status and confirmed start-over dialog
    |  +- type_input.tsx        -- visible type-input affordance (data-type-input / data-type-commit)
    |  `- set_point_editor.tsx  -- shared numeric set-point editor for the adjust gesture (data-adjust-input / data-adjust-commit)
    `- regions/
@@ -125,7 +130,11 @@ src/
 The framed interface uses six named DOM regions in `src/protocol_host_template.html`:
 `header` (tips + counter), `scene` (bounded 16:9 panel), `outline` (step list),
 and `guidance` (teal prompt bar). `#shell-root` is a sibling of `#scene-root`,
-never an ancestor.
+never an ancestor. On desktop, the shell is a fixed viewport grid and
+`.scene-panel` is the local scrollport for layout-emitted minimum interaction
+frames. At widths up to 920px, the shell uses normal document flow with
+`height: auto`; the scene panel keeps the local scrollport so the minimum frame
+does not widen the document.
 
 ### `pipeline/` - Codegen and build scripts
 
@@ -133,20 +142,20 @@ Every script that emits to `generated/`, assembles bundles, or produces
 `dist/` artifacts. Invoked by `package.json` pre-hooks and
 `build_github_pages.sh`.
 
-| File                                                           | Purpose                                                                                                                                                                                                                                  |
-| -------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| [gen_object_library.py](../pipeline/gen_object_library.py)     | `content/objects/` YAML -> `generated/object_library.ts`                                                                                                                                                                                 |
-| [gen_svg_manifest.py](../pipeline/gen_svg_manifest.py)         | `assets/**/*.svg` -> `generated/svg_manifest.ts` final URL mapping and source-versus-compiled publication into `dist/assets/svg/`                                                                                                        |
-| `pipeline/gen_liquid_regions.py`                               | Validated gravity-part material SVG -> compiled SVG plus aggregate opaque-handle manifest                                                                                                                                                |
-| [gen_scene_index.py](../pipeline/gen_scene_index.py)           | Scene YAML -> `generated/scenes.ts` + `generated/scene_manifest.json`; `--missing-svg=strict                                                                                                                                             | placeholder`(default`placeholder`) |
-| [gen_protocols.py](../pipeline/gen_protocols.py)               | Protocol YAML -> `generated/protocols.ts` + `generated/protocols_index_slim.ts` + `generated/protocol_materials.ts` (per-protocol material registry and validated typed `initial_state` from each package)                               |
-| [entity_decode.py](../pipeline/entity_decode.py)               | Codegen helper: `decode_entities()` maps authored HTML entities (`&micro;` etc.) to Unicode glyphs at emit time; imported by `gen_protocols.py` and `gen_object_library.py` so `generated/**` carries the glyph while source stays ASCII |
-| [gen_flow_view.py](../pipeline/gen_flow_view.py)               | Protocol YAML -> `generated/flow_views/<protocol_name>.txt`, a per-protocol audit view (click path, gestures, state changes, transitions); not the design source, see [PROTOCOL_AUTHORING_GUIDE.md](specs/PROTOCOL_AUTHORING_GUIDE.md)   |
-| [build_protocol_index.py](../pipeline/build_protocol_index.py) | Protocol index build helpers                                                                                                                                                                                                             |
-| [list_protocols.py](../pipeline/list_protocols.py)             | Reads `PROTOCOLS_INDEX`; `emit` writes one `dist/<name>.html` per protocol                                                                                                                                                               |
-| [scene_inheritance.py](../pipeline/scene_inheritance.py)       | Scene YAML inheritance resolution library (imported by gen_scene_index)                                                                                                                                                                  |
-| [build_main_bundle.mjs](../pipeline/build_main_bundle.mjs)     | esbuild Node API: bundles launcher and protocol-host entries                                                                                                                                                                             |
-| [precompute_layout.mjs](../pipeline/precompute_layout.mjs)     | Runs the layout engine for every scene at canonical 16:9 (1920x1080) -> `generated/precomputed_layout.ts` (`{ final: ComputedItem[] }` per scene). Runs after `build_generated.sh`.                                                      |
+| File                                                           | Purpose                                                                                                                                                                                                                                                                                                      |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [gen_object_library.py](../pipeline/gen_object_library.py)     | `content/objects/` YAML -> `generated/object_library.ts`                                                                                                                                                                                                                                                     |
+| [gen_svg_manifest.py](../pipeline/gen_svg_manifest.py)         | `assets/**/*.svg` -> `generated/svg_manifest.ts` final URL mapping and source-versus-compiled publication into `dist/assets/svg/`                                                                                                                                                                            |
+| `pipeline/gen_liquid_regions.py`                               | Validated gravity-part material SVG -> compiled SVG plus aggregate opaque-handle manifest                                                                                                                                                                                                                    |
+| [gen_scene_index.py](../pipeline/gen_scene_index.py)           | Scene YAML -> `generated/scenes.ts` + `generated/scene_manifest.json`; `--missing-svg=strict                                                                                                                                                                                                                 | placeholder`(default`placeholder`) |
+| [gen_protocols.py](../pipeline/gen_protocols.py)               | Protocol YAML -> `generated/protocols.ts` + `generated/protocols_index_slim.ts` + `generated/protocol_materials.ts` (per-protocol material registry and validated typed `initial_state` from each package)                                                                                                   |
+| [entity_decode.py](../pipeline/entity_decode.py)               | Codegen helper: `decode_entities()` maps authored HTML entities (`&micro;` etc.) to Unicode glyphs at emit time; imported by `gen_protocols.py` and `gen_object_library.py` so `generated/**` carries the glyph while source stays ASCII                                                                     |
+| [gen_flow_view.py](../pipeline/gen_flow_view.py)               | Protocol YAML -> `generated/flow_views/<protocol_name>.txt`, a per-protocol audit view (click path, gestures, state changes, transitions); not the design source, see [PROTOCOL_AUTHORING_GUIDE.md](specs/PROTOCOL_AUTHORING_GUIDE.md)                                                                       |
+| [build_protocol_index.py](../pipeline/build_protocol_index.py) | Protocol index build helpers                                                                                                                                                                                                                                                                                 |
+| [list_protocols.py](../pipeline/list_protocols.py)             | Reads `PROTOCOLS_INDEX`; `emit` writes one `dist/<name>.html` per protocol                                                                                                                                                                                                                                   |
+| [scene_inheritance.py](../pipeline/scene_inheritance.py)       | Scene YAML inheritance resolution library (imported by gen_scene_index)                                                                                                                                                                                                                                      |
+| [build_main_bundle.mjs](../pipeline/build_main_bundle.mjs)     | esbuild Node API: bundles launcher and protocol-host entries                                                                                                                                                                                                                                                 |
+| [precompute_layout.mjs](../pipeline/precompute_layout.mjs)     | Runs the layout engine for every scene at canonical 16:9 (1920x1080) and emits `generated/precomputed_layout.ts` with final items, resolved scene data, zone bands, diagnostics, and layout-owned `interactionGeometry` (minimum frame plus placement-keyed hit envelopes). Runs after `build_generated.sh`. |
 
 ### `content/` - Authored YAML
 
@@ -212,8 +221,8 @@ tests/
 +- e2e/                        -- non-browser E2E runners (e2e_*.py, e2e_*.sh)
 `- playwright/                 -- browser-driven tests, runner model (@playwright/test)
    +- repo_root.mjs            -- shared REPO_ROOT resolver
-   +- smoke.spec.ts            -- broadest test: launcher loads, a protocol card opens a scene
-   +- test_*.spec.ts           -- runner specs (framed layout, initial scene, etc.)
+	   +- smoke.spec.ts            -- broadest test: launcher loads, a protocol card opens a scene
+	   +- test_*.spec.ts           -- runner specs (framed layout, persistence journey, etc.)
    +- helper_*.mjs / .tsx      -- non-test support (scene discovery, render harnesses)
    `- e2e/                     -- full-path walkthroughs
       `- protocol_walkthrough.spec.ts  -- one test() per curriculum protocol (native
@@ -239,6 +248,9 @@ Key pytest files:
 | [test_test_naming_conventions.py](../tests/test_test_naming_conventions.py)         | Test layout and naming              |
 | [test_spec_docs_no_camelcase_yaml.py](../tests/test_spec_docs_no_camelcase_yaml.py) | Spec doc camelCase gate             |
 | [test_walker_no_step_branches.py](../tests/test_walker_no_step_branches.py)         | Walker must not branch on step name |
+| `tests/test_run_with_timeout.py`                                                    | Success, failure-status, and timeout behavior for the exhaustive runner helper |
+| `tests/test_protocol_initial_state.py`                                              | YAML validation and generation rules for root `initial_state` |
+| `tests/test_stepper_runner_state.py`                                                | Shared runner StateMap and direct-leaf runner semantics |
 
 Key Node test files:
 
@@ -246,6 +258,7 @@ Key Node test files:
 | ----------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
 | [test_layout_engine.mjs](../tests/test_layout_engine.mjs)                     | Layout pipeline unit tests                                                                                                                 |
 | [test_step_machine.mjs](../tests/test_step_machine.mjs)                       | Step machine unit tests                                                                                                                    |
+| `tests/test_session_persistence.mjs`                                          | Versioned session parsing, protocol invalidation, per-protocol isolation, save, load, and clear                                            |
 | [test_structural_guards.mjs](../tests/test_structural_guards.mjs)             | Structural guard unit tests                                                                                                                |
 | [test_resolve_entry_scene.mjs](../tests/test_resolve_entry_scene.mjs)         | Entry-scene resolution unit tests                                                                                                          |
 | [test_visual_state_resolver.mjs](../tests/test_visual_state_resolver.mjs)     | Visual-state resolver (formulas, materials, missing-svg)                                                                                   |
@@ -258,8 +271,6 @@ Key Node test files:
 | [test_walker_debug.mjs](../tests/test_walker_debug.mjs)                       | Walker debug projection, including `stateRevision` and `lastStateDelta`                                                                    |
 | `test_material_color.mjs`                                                     | D3 resolver contract: all `resolve_color_result` success and failure cases                                                                 |
 | `test_subpart_visual_state_renderer.mjs`                                      | Subpart material-tint renderer: dispatch predicate, fill, transparent empty, degrade path                                                  |
-| `tests/test_protocol_initial_state.py`                                        | YAML validation and generation rules for root `initial_state`                                                                              |
-| `tests/test_stepper_runner_state.py`                                          | Shared runner StateMap and direct-leaf runner semantics                                                                                    |
 | `test_material_acceptance_cross_layer.mjs`                                    | Cross-layer acceptance: stepper D1 and TS runtime store accept and reject the same material names                                          |
 | `tests/test_layout_offcanvas.mjs`                                             | Off-canvas classifier unit tests (exercises `PipelineResult.offCanvasDiagnostics` fully_off_canvas and partial_overflow paths)             |
 | `tests/test_layout_config.mjs`                                                | Config-precedence unit tests: 16 behavioral tests covering zone_gap split, scene-level and zone-level overrides, and strategy-local values |
@@ -312,7 +323,7 @@ Key tools:
 | `tools/liquid_volume_contact_page.mjs`                    | Builds self-contained HTML and PNG volume contact sheets under `rendered-reports/liquid_volume_contacts/` through the real compiled SVG injection and liquid writer                                                                                               |
 | `tools/render_liquid_volume_contact_sheet.sh`             | Rebuilds published assets, then renders all five variable-volume families into one persistent HTML/PNG contact sheet                                                                                                                                              |
 | `tools/liquid_render_harness.ts`                          | Shared developer/test browser adapter for exercising the real compiled liquid injection and writer without duplicating their implementation                                                                                                                       |
-| `tools/outline_svg_text.sh`                               | Optional, on-demand Inkscape authoring wrapper for approved physically intrinsic markings, including during legacy/import preparation; it never authorizes prose outlining and writes a validated, non-destructive copy before the separate v3 normalization step |
+| `tools/run_with_timeout.py`                               | Runs one non-browser E2E process group with a bounded wall time so auxiliary-process hangs become visible aggregate failures                                                                                                                                      |
 | [svg_to_html_render.mjs](../tools/svg_to_html_render.mjs) | Renders an SVG on five color swatches via Playwright Firefox and writes `<stem>_render.{html,png}` to CWD; use `--no-open` to skip auto-open                                                                                                                      |
 | [svg_identity_sweep.py](../tools/svg_identity_sweep.py)   | Perceptual-hash duplicate/mislabel sweep over `assets/**/*.svg`; emits a review report                                                                                                                                                                            |
 | [svg_feature_census.py](../tools/svg_feature_census.py)   | Read-only feature census over the wild SVG corpus (`OTHER_REPOS/`); counts clipPath/transform/text/etc. per file, cross-tabbed against the v3 verdict; emits `docs/active_plans/reports/svg_feature_census.{json,md}`                                             |
@@ -390,28 +401,28 @@ Key tools:
 
 All gitignored (see [.gitignore](../.gitignore)):
 
-| Path                                                                  | Source script                                                                                                                                                        |
-| --------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `generated/object_library.ts`                                         | [gen_object_library.py](../pipeline/gen_object_library.py)                                                                                                           |
-| `generated/svg_manifest.ts`                                           | [gen_svg_manifest.py](../pipeline/gen_svg_manifest.py)                                                                                                               |
-| `generated/liquid_regions.json`                                       | `pipeline/gen_liquid_regions.py`                                                                                                                                     |
-| `generated/material_svg/<category>/<name>.svg`                        | `pipeline/gen_liquid_regions.py`                                                                                                                                     |
-| `generated/svg_placeholder_keys.ts`                                   | [gen_svg_manifest.py](../pipeline/gen_svg_manifest.py) (build/test-only placeholder key array)                                                                       |
-| `generated/scenes.ts`                                                 | [gen_scene_index.py](../pipeline/gen_scene_index.py)                                                                                                                 |
-| `generated/scene_manifest.json`                                       | [gen_scene_index.py](../pipeline/gen_scene_index.py) (per-scene classification, source of truth for scene tooling)                                                   |
-| `generated/protocols.ts`                                              | [gen_protocols.py](../pipeline/gen_protocols.py)                                                                                                                     |
-| `generated/protocols_index_slim.ts`                                   | [gen_protocols.py](../pipeline/gen_protocols.py)                                                                                                                     |
-| `generated/protocol_materials.ts`                                     | [gen_protocols.py](../pipeline/gen_protocols.py) (per-protocol material registry; keyed by protocol_name)                                                            |
-| `generated/flow_views/<protocol_name>.txt`                            | [gen_flow_view.py](../pipeline/gen_flow_view.py) (per-protocol audit view; not the design source)                                                                    |
-| `generated/precomputed_layout.ts`                                     | [precompute_layout.mjs](../pipeline/precompute_layout.mjs) (`PRECOMPUTED_LAYOUT`: per-scene `{ final: ComputedItem[] }` at canonical 16:9)                           |
-| `generated/scene_render_stats/<scene>.stats.json`                     | renderer-produced scene geometry stats consumed by SCENE-LINT/SCENE-DESIGN, written by [scene_to_png.mjs](../tools/scene_to_png.mjs) after the Pages bundle is built |
-| `dist/`                                                               | [build_github_pages.sh](../build_github_pages.sh) (GitHub Pages bundle)                                                                                              |
-| `dist/assets/svg/<category>/<name>.svg`                               | SVG assets copied by [build_github_pages.sh](../build_github_pages.sh)                                                                                               |
-| `dist/scene_viewer.html`                                              | Copied from `src/scene_viewer_template.html` during build                                                                                                            |
-| `test-results/`                                                       | Playwright screenshots and reports                                                                                                                                   |
-| `test-results/scenes/<scene>.png`, `test-results/scenes/summary.json` | optional human artifacts (PNG screenshots and run report), written only with `node tools/scene_to_png.mjs --all --png`                                               |
-| `rendered-reports/liquid_volume_contacts/`                            | persistent, gitignored HTML and PNG material-volume visual-review artifacts written by `tools/render_liquid_volume_contact_sheet.sh`                                 |
-| `node_modules/`                                                       | npm install output                                                                                                                                                   |
+| Path                                                                  | Source script                                                                                                                                                                                  |
+| --------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `generated/object_library.ts`                                         | [gen_object_library.py](../pipeline/gen_object_library.py)                                                                                                                                     |
+| `generated/svg_manifest.ts`                                           | [gen_svg_manifest.py](../pipeline/gen_svg_manifest.py)                                                                                                                                         |
+| `generated/liquid_regions.json`                                       | `pipeline/gen_liquid_regions.py`                                                                                                                                                               |
+| `generated/material_svg/<category>/<name>.svg`                        | `pipeline/gen_liquid_regions.py`                                                                                                                                                               |
+| `generated/svg_placeholder_keys.ts`                                   | [gen_svg_manifest.py](../pipeline/gen_svg_manifest.py) (build/test-only placeholder key array)                                                                                                 |
+| `generated/scenes.ts`                                                 | [gen_scene_index.py](../pipeline/gen_scene_index.py)                                                                                                                                           |
+| `generated/scene_manifest.json`                                       | [gen_scene_index.py](../pipeline/gen_scene_index.py) (per-scene classification, source of truth for scene tooling)                                                                             |
+| `generated/protocols.ts`                                              | [gen_protocols.py](../pipeline/gen_protocols.py)                                                                                                                                               |
+| `generated/protocols_index_slim.ts`                                   | [gen_protocols.py](../pipeline/gen_protocols.py)                                                                                                                                               |
+| `generated/protocol_materials.ts`                                     | [gen_protocols.py](../pipeline/gen_protocols.py) (per-protocol material registry; keyed by protocol_name)                                                                                      |
+| `generated/flow_views/<protocol_name>.txt`                            | [gen_flow_view.py](../pipeline/gen_flow_view.py) (per-protocol audit view; not the design source)                                                                                              |
+| `generated/precomputed_layout.ts`                                     | [precompute_layout.mjs](../pipeline/precompute_layout.mjs) (`PRECOMPUTED_LAYOUT`: per-scene final items, resolved scene data, zones, diagnostics, and `interactionGeometry` at canonical 16:9) |
+| `generated/scene_render_stats/<scene>.stats.json`                     | renderer-produced scene geometry stats consumed by SCENE-LINT/SCENE-DESIGN, written by [scene_to_png.mjs](../tools/scene_to_png.mjs) after the Pages bundle is built                           |
+| `dist/`                                                               | [build_github_pages.sh](../build_github_pages.sh) (GitHub Pages bundle)                                                                                                                        |
+| `dist/assets/svg/<category>/<name>.svg`                               | SVG assets copied by [build_github_pages.sh](../build_github_pages.sh)                                                                                                                         |
+| `dist/scene_viewer.html`                                              | Copied from `src/scene_viewer_template.html` during build                                                                                                                                      |
+| `test-results/`                                                       | Playwright screenshots and reports                                                                                                                                                             |
+| `test-results/scenes/<scene>.png`, `test-results/scenes/summary.json` | optional human artifacts (PNG screenshots and run report), written only with `node tools/scene_to_png.mjs --all --png`                                                                         |
+| `rendered-reports/liquid_volume_contacts/`                            | persistent, gitignored HTML and PNG material-volume visual-review artifacts written by `tools/render_liquid_volume_contact_sheet.sh`                                                           |
+| `node_modules/`                                                       | npm install output                                                                                                                                                                             |
 
 The `generated/` tree is rebuilt from current YAML and SVG sources on every
 build. Do not place authored files there.
@@ -437,7 +448,7 @@ build. Do not place authored files there.
 | New mini-protocol       | `content/protocols/<cluster>/<name>/` with `protocol.yaml`, `scenes/`, `materials.yaml`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | New base scene          | `content/base_scenes/<name>.yaml`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | New lab object          | `content/objects/<kind>/<name>.yaml`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
-| New SVG asset           | `assets/equipment/<behavior>/<name>.svg`, where `<behavior>` is `static`, `binary_state`, `multi_state`, or `variable_volume` and must agree with the validator's YAML/SVG-derived projection (move prose labels to layout-manager DOM or object data; outline only approved physically intrinsic markings, including during legacy/import preparation, with `tools/outline_svg_text.sh`, then run `tools/normalize_svg_v3.py`; provenance never permits prose outlining. Ordinary equipment SVGs are complete files. Material-rendered SVGs are self-describing files that follow the closed [SVG_PIPELINE.md](specs/SVG_PIPELINE.md) semantic contract; no recipe sidecar is authored, and the material artifact/manifest are generated.) |
+| New SVG asset           | `assets/equipment/<behavior>/<name>.svg`, where `<behavior>` is `static`, `binary_state`, `multi_state`, or `variable_volume` and must agree with the validator's YAML/SVG-derived projection (move prose labels to accessible DOM or object data; prefer authored paths for rare intrinsic markings and use librsvg for exceptional live-text preparation; then run `tools/normalize_svg_v3.py`. Provenance never permits prose outlining. Ordinary equipment SVGs are complete files. Material-rendered SVGs are self-describing files that follow the closed [SVG_PIPELINE.md](specs/SVG_PIPELINE.md) semantic contract; no recipe sidecar is authored, and the material artifact/manifest are generated.) |
 | New pipeline generator  | `pipeline/` (register in `package.json` pre-hooks; update these two docs)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | New shell region        | `src/shell/regions/` (mount in `src/shell/hud/protocol_hud.tsx`)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
 | New runtime module      | `src/` (imported from entry or scene runtime)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               |

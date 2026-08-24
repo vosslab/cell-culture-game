@@ -45,6 +45,7 @@ import {
   verifyMaterialAreaEffectsAfterInteraction,
   pickWrongSiblingItem,
   readVisibleAdjustValue,
+  openVisibleActionHint,
 } from "./walker_helpers.mjs";
 
 // Whole-run budget: 10 minutes.
@@ -134,14 +135,23 @@ function checkpointManifestProblems(report) {
       !fs.existsSync(checkpoint.screenshot) ||
       !checkpoint.actionCue ||
       checkpoint.actionCue.text === "" ||
-      checkpoint.actionCue.target !== checkpoint.target ||
+      checkpoint.actionCue.progress === "" ||
+      checkpoint.actionCue.message === "" ||
+      checkpoint.actionCue.goal === "" ||
+      checkpoint.actionCue.hint === "" ||
+      !checkpoint.actionCue.hintOpen ||
+      (checkpoint.gesture !== "select" && checkpoint.actionCue.target !== checkpoint.target) ||
+      (checkpoint.gesture === "select" &&
+        (checkpoint.actionCue.target !== null ||
+          checkpoint.actionCue.label !== null ||
+          checkpoint.actionCue.targetText !== "")) ||
       checkpoint.actionCue.gesture !== checkpoint.gesture ||
       !checkpoint.affordance ||
       !checkpoint.effectiveClickTarget ||
       checkpoint.effectiveClickTarget.authoredDomTarget !== checkpoint.target ||
       checkpoint.effectiveClickTarget.hitDomTarget !== checkpoint.target ||
-      checkpoint.effectiveClickTarget.coreWidth < 24 ||
-      checkpoint.effectiveClickTarget.coreHeight < 24 ||
+      checkpoint.effectiveClickTarget.coreWidth < (bounds?.isInteractionEnvelope ? 44 : 24) ||
+      checkpoint.effectiveClickTarget.coreHeight < (bounds?.isInteractionEnvelope ? 44 : 24) ||
       !checkpoint.declaredStateBefore ||
       !checkpoint.declaredStateAfter ||
       !Array.isArray(checkpoint.declaredStateBefore.activeStateWrites) ||
@@ -160,6 +170,27 @@ function checkpointManifestProblems(report) {
       ? [`checkpoint ${index} is missing learner-cue, affordance, screenshot, or viewport proof`]
       : [];
   });
+}
+
+function expectedGuidanceFor(authoredProtocol, stepId, interactionIndex) {
+  if (authoredProtocol?.protocol_type !== "mini_protocol") return null;
+  const step = authoredProtocol.steps.find((candidate) => candidate.step_name === stepId);
+  if (step === undefined) {
+    throw new Error(
+      `authored_guidance_step_missing: '${stepId}' is not in generated protocol data`,
+    );
+  }
+  const interaction = step.sequence[interactionIndex];
+  if (interaction === undefined) {
+    throw new Error(
+      `authored_guidance_interaction_missing: '${stepId}' interaction ${interactionIndex} is not generated`,
+    );
+  }
+  return {
+    instruction: interaction.instruction,
+    hint: interaction.hint,
+    prompt: step.prompt,
+  };
 }
 
 function declaredStateEvidence(gameState) {
@@ -304,6 +335,157 @@ export function wrongOrderAccountingProblem(summary, observedWrongOrderClicks) {
   return null;
 }
 
+// Reveal and prove one declared member at a time. A group can legitimately be
+// larger than the scene scrollport, so a learner never needs its full union on
+// screen. Each exact subpart keeps its existing 24px hit-core contract.
+async function proveDeclaredSubpartGroup(page, target, gesture, report) {
+  const groupMembers = page.locator(
+    `#scene-root [data-subpart-group-target="${target}"][data-item-id="${target}"]`,
+  );
+  const groupMemberCount = await groupMembers.count();
+  if (groupMemberCount === 0) return 0;
+  if (groupMemberCount < 2) {
+    throw new Error(
+      `subpart_group_incomplete: declared group '${target}' exposes only ` +
+        `${groupMemberCount} visible member surface`,
+    );
+  }
+
+  const expectedAffordance = gesture === "select" ? "candidate" : "active";
+  const windowAnchor = await page.evaluate(() => ({ x: window.scrollX, y: window.scrollY }));
+  const memberNames = new Set();
+  const groupProblems = [];
+
+  for (let memberIndex = 0; memberIndex < groupMemberCount; memberIndex++) {
+    const memberLocator = groupMembers.nth(memberIndex);
+    await memberLocator.evaluate((element) => {
+      const panel = element.closest(".scene-panel");
+      if (!(panel instanceof HTMLElement)) return;
+      const memberRect = element.getBoundingClientRect();
+      const panelRect = panel.getBoundingClientRect();
+      const horizontal =
+        panel.scrollLeft +
+        memberRect.left -
+        panelRect.left -
+        (panel.clientWidth - memberRect.width) / 2;
+      const vertical =
+        panel.scrollTop +
+        memberRect.top -
+        panelRect.top -
+        (panel.clientHeight - memberRect.height) / 2;
+      panel.scrollLeft = Math.max(0, Math.min(horizontal, panel.scrollWidth - panel.clientWidth));
+      panel.scrollTop = Math.max(0, Math.min(vertical, panel.scrollHeight - panel.clientHeight));
+    });
+
+    // Wait for the scene-owned scrollport, never browser scroll, to reveal the
+    // member with a learner-sized core and the exact delegated group identity.
+    await page.waitForFunction(
+      ({ target: groupTarget, index }) => {
+        const members = Array.from(
+          document.querySelectorAll("#scene-root [data-subpart-group-target][data-item-id]"),
+        ).filter(
+          (element) =>
+            element.getAttribute("data-subpart-group-target") === groupTarget &&
+            element.getAttribute("data-item-id") === groupTarget,
+        );
+        const element = members[index];
+        const panel = element?.closest(".scene-panel");
+        if (!(element instanceof Element) || !(panel instanceof HTMLElement)) return false;
+        const rect = element.getBoundingClientRect();
+        const panelRect = panel.getBoundingClientRect();
+        const tolerance = 0.5;
+        const insidePanel =
+          rect.left >= panelRect.left - tolerance &&
+          rect.top >= panelRect.top - tolerance &&
+          rect.right <= panelRect.right + tolerance &&
+          rect.bottom <= panelRect.bottom + tolerance;
+        const insideBrowser =
+          rect.left >= -tolerance &&
+          rect.top >= -tolerance &&
+          rect.right <= window.innerWidth + tolerance &&
+          rect.bottom <= window.innerHeight + tolerance;
+        const hit = document
+          .elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
+          ?.closest?.("[data-item-id]");
+        return (
+          rect.width >= 24 - tolerance &&
+          rect.height >= 24 - tolerance &&
+          insidePanel &&
+          insideBrowser &&
+          hit?.getAttribute("data-item-id") === groupTarget
+        );
+      },
+      { target, index: memberIndex },
+      { timeout: CLICK_BUDGET_MS },
+    );
+
+    const member = await memberLocator.evaluate((element) => {
+      const rect = element.getBoundingClientRect();
+      const indicator = element.querySelector(".subpart-focus-indicator");
+      const indicatorStyle = indicator === null ? null : window.getComputedStyle(indicator);
+      const hit = document
+        .elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
+        ?.closest?.("[data-item-id]");
+      return {
+        member: element.getAttribute("data-subpart-name"),
+        target: element.getAttribute("data-item-id"),
+        affordance: element.getAttribute("data-subpart-affordance"),
+        width: rect.width,
+        height: rect.height,
+        centerTarget: hit?.getAttribute("data-item-id") ?? null,
+        strokeWidth: Number.parseFloat(indicatorStyle?.strokeWidth ?? "0"),
+        stroke: indicatorStyle?.stroke ?? "none",
+      };
+    });
+    if (member.member === null || memberNames.has(member.member)) {
+      groupProblems.push(`duplicate or unnamed member '${String(member.member)}'`);
+    } else {
+      memberNames.add(member.member);
+    }
+    if (member.target !== target || member.centerTarget !== target) {
+      groupProblems.push(
+        `member '${String(member.member)}' resolves DOM '${String(member.target)}' / ` +
+          `centre '${String(member.centerTarget)}'`,
+      );
+    }
+    if (member.affordance !== expectedAffordance) {
+      groupProblems.push(
+        `member '${String(member.member)}' affordance '${String(member.affordance)}'`,
+      );
+    }
+    if (member.width < 24 || member.height < 24) {
+      groupProblems.push(
+        `member '${String(member.member)}' core ${member.width}x${member.height}px`,
+      );
+    }
+    if (
+      !Number.isFinite(member.strokeWidth) ||
+      member.strokeWidth <= 0 ||
+      member.stroke === "none"
+    ) {
+      groupProblems.push(`member '${String(member.member)}' has no painted focus stroke`);
+    }
+  }
+
+  const windowAfter = await page.evaluate(() => ({ x: window.scrollX, y: window.scrollY }));
+  if (windowAfter.x !== windowAnchor.x || windowAfter.y !== windowAnchor.y) {
+    throw new Error(
+      `subpart_group_window_scroll_changed: '${target}' moved browser scroll from ` +
+        `${windowAnchor.x},${windowAnchor.y} to ${windowAfter.x},${windowAfter.y}`,
+    );
+  }
+  if (groupProblems.length > 0) {
+    throw new Error(
+      `subpart_group_not_obvious: '${target}' failed member proof: ${groupProblems.join("; ")}`,
+    );
+  }
+  report.info(
+    `[subpart-group proof] ${target} reveals ${groupMemberCount} distinct, painted, ` +
+      `learner-sized member surfaces one at a time`,
+  );
+  return groupMemberCount;
+}
+
 //============================================
 // Step walker (schema-driven, one ordered sequence of interactions)
 //============================================
@@ -314,7 +496,7 @@ export function wrongOrderAccountingProblem(summary, observedWrongOrderClicks) {
 // completes. Throws on any step-level failure; the caller records it as a failed
 // step.
 async function walkActiveStep(page, step, report, opts) {
-  const { wrongOrderMode, screenshotMode, resultsDir } = opts;
+  const { wrongOrderMode, screenshotMode, resultsDir, authoredProtocol, guidanceTracker } = opts;
   report.info(`Walking step: ${step.id}`, { stepId: step.id });
 
   const stepStart = Date.now();
@@ -367,81 +549,7 @@ async function walkActiveStep(page, step, report, opts) {
     // driven through an overlay affordance, not an alternative scene object, so
     // injection is skipped for those.
     if (target.includes(".")) {
-      const groupMembers = page.locator(
-        `#scene-root [data-subpart-group-target="${target}"][data-item-id="${target}"]`,
-      );
-      const groupMemberCount = await groupMembers.count();
-      if (groupMemberCount > 0) {
-        if (groupMemberCount < 2) {
-          throw new Error(
-            `subpart_group_incomplete: declared group '${target}' exposes only ` +
-              `${groupMemberCount} visible member surface`,
-          );
-        }
-        const expectedGroupAffordance = gesture === "select" ? "candidate" : "active";
-        const groupEvidence = await groupMembers.evaluateAll((elements) =>
-          elements.map((element) => {
-            const rect = element.getBoundingClientRect();
-            const indicator = element.querySelector(".subpart-focus-indicator");
-            const indicatorStyle = indicator === null ? null : window.getComputedStyle(indicator);
-            const hit = document
-              .elementFromPoint(rect.left + rect.width / 2, rect.top + rect.height / 2)
-              ?.closest?.("[data-item-id]");
-            return {
-              member: element.getAttribute("data-subpart-name"),
-              target: element.getAttribute("data-item-id"),
-              affordance: element.getAttribute("data-subpart-affordance"),
-              width: rect.width,
-              height: rect.height,
-              centerTarget: hit?.getAttribute("data-item-id") ?? null,
-              strokeWidth: Number.parseFloat(indicatorStyle?.strokeWidth ?? "0"),
-              stroke: indicatorStyle?.stroke ?? "none",
-            };
-          }),
-        );
-        const groupProblems = [];
-        const memberNames = new Set();
-        for (const member of groupEvidence) {
-          if (member.member === null || memberNames.has(member.member)) {
-            groupProblems.push(`duplicate or unnamed member '${String(member.member)}'`);
-          } else {
-            memberNames.add(member.member);
-          }
-          if (member.target !== target || member.centerTarget !== target) {
-            groupProblems.push(
-              `member '${String(member.member)}' resolves DOM '${String(member.target)}' / ` +
-                `centre '${String(member.centerTarget)}'`,
-            );
-          }
-          if (member.affordance !== expectedGroupAffordance) {
-            groupProblems.push(
-              `member '${String(member.member)}' affordance '${String(member.affordance)}'`,
-            );
-          }
-          if (member.width < 24 || member.height < 24) {
-            groupProblems.push(
-              `member '${String(member.member)}' core ${member.width}x${member.height}px`,
-            );
-          }
-          if (
-            !Number.isFinite(member.strokeWidth) ||
-            member.strokeWidth <= 0 ||
-            member.stroke === "none"
-          ) {
-            groupProblems.push(`member '${String(member.member)}' has no painted focus stroke`);
-          }
-        }
-        if (groupProblems.length > 0) {
-          throw new Error(
-            `subpart_group_not_obvious: '${target}' failed member proof: ` +
-              groupProblems.join("; "),
-          );
-        }
-        report.info(
-          `[subpart-group proof] ${target} exposes ${groupMemberCount} distinct, painted, ` +
-            `learner-sized member surfaces`,
-        );
-      }
+      const groupMemberCount = await proveDeclaredSubpartGroup(page, target, gesture, report);
 
       const wrongSibling = await pickWrongSiblingItem(page, target);
       if (wrongSibling === null) {
@@ -514,6 +622,8 @@ async function walkActiveStep(page, step, report, opts) {
       gesture,
       interactionIndex: gs.interactionIndex,
       resultsDir,
+      expectedGuidance: expectedGuidanceFor(authoredProtocol, step.id, gs.interactionIndex),
+      guidanceTracker,
     });
     const declaredBefore = await readGameState(page);
     checkpoint.declaredStateBefore = declaredStateEvidence(declaredBefore);
@@ -658,6 +768,7 @@ export async function runProtocolWalk(page, options) {
     wrongOrder = false,
     screenshotMode = "per-step",
     resultsDir,
+    authoredProtocol = null,
   } = options;
 
   if (!fs.existsSync(resultsDir)) {
@@ -708,17 +819,21 @@ export async function runProtocolWalk(page, options) {
     await waitForExports(page);
     report.info("Walker surfaces ready");
 
-    // Fresh browser state: clear persistence and hard reload.
-    report.info("Clearing localStorage and reloading");
-    await page.evaluate(() => localStorage.clear());
-    await page.reload({ waitUntil: "networkidle" });
-    await waitForExports(page);
+    // Open the native learner hint once through its real visible summary. The
+    // interaction loop then proves that the same disclosure stays open and
+    // updates to the current authored hint after every accepted action.
+    await openVisibleActionHint(page);
+    report.info("Opened visible native action hint");
 
-    // Dismiss any visible welcome/start control by clicking it (a real user
-    // would). Best-effort so the walker stays compatible if one is added later.
-    const startBtn = page
-      .locator('button:has-text("Start"), button:has-text("Begin"), #welcome-start-btn')
-      .first();
+    // Playwright gives each test an isolated fresh browser context. Enter the
+    // product through its normal page load; do not mutate browser persistence
+    // behind the learner UI.
+    report.info("Using the isolated browser context's normal product start state");
+
+    // Dismiss a product-declared welcome control by clicking it (a real user
+    // would). Identity is explicit so unrelated commands such as "Start over"
+    // can never be mistaken for initial entry.
+    const startBtn = page.locator("#welcome-start-btn, [data-welcome-start]").first();
     if ((await startBtn.count()) > 0 && (await startBtn.isVisible())) {
       report.info("Dismissing visible start control");
       await startBtn.click();
@@ -735,6 +850,7 @@ export async function runProtocolWalk(page, options) {
     // Walk steps in flow order (entry_step then next_step), driven by the
     // runtime: read the active step id, find its descriptor, walk it.
     const stepById = new Map(steps.map((s) => [s.id, s]));
+    const guidanceTracker = { instruction: null, hint: null };
     let guard = 0;
     while (guard < steps.length + 5) {
       guard++;
@@ -758,6 +874,8 @@ export async function runProtocolWalk(page, options) {
           wrongOrderMode: wrongOrder,
           screenshotMode,
           resultsDir,
+          authoredProtocol,
+          guidanceTracker,
         });
         report.summary.stepsWalked++;
         report.summary.stepsPassed++;

@@ -36,6 +36,8 @@ steps:
     sequence:
       - target: p200_micropipette
         gesture: click
+        instruction: Open the single-lane sample-mix workspace.
+        hint: Begin the worked protein-sample transfer into B1.
         validator:
           preset: correct_target
         response:
@@ -44,6 +46,8 @@ steps:
               to_scene: sdspage_prepare_sample_mix_single_lane_workspace
       - target: micropipette_tip_box
         gesture: click
+        instruction: Fit a fresh tip for the protein sample transfer.
+        hint: Use a clean tip before drawing the 21 &micro;L sample aliquot.
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -55,6 +59,8 @@ steps:
             incorrect: "Use a fresh tip before drawing protein; a used tip can contaminate the next source."
       - target: p200_micropipette
         gesture: adjust
+        instruction: Set the P200 to 21 &micro;L.
+        hint: Use the 21 &micro;L setpoint to transfer the worked-example protein aliquot accurately.
         validator:
           preset: target_with_value
           value:
@@ -67,6 +73,8 @@ steps:
                 set_volume: 21
       - target: protein_sample_tube
         gesture: click
+        instruction: Draw protein sample from its source tube.
+        hint: The P200 is set to the worked-example volume for B1.
         validator:
           preset: correct_target
         response:
@@ -83,6 +91,8 @@ steps:
                 held_material_volume: 21
       - target: microtube_rack_8.slot_B1
         gesture: click
+        instruction: Dispense protein sample into rack slot B1.
+        hint: Release the aliquot into the empty microtube before adding buffer.
         validator:
           preset: correct_target
         response:
@@ -112,6 +122,8 @@ steps:
     sequence:
       - target: micropipette_tip_box
         gesture: click
+        instruction: Fit a fresh tip for the Laemmli transfer.
+        hint: Replace the sample tip before drawing 4x Laemmli buffer.
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -123,6 +135,8 @@ steps:
             incorrect: "Use a fresh tip before Laemmli to prevent protein carry-over into the reagent stock."
       - target: p20_micropipette
         gesture: adjust
+        instruction: Set the P20 to 7.5 &micro;L.
+        hint: This setpoint adds the 4x Laemmli volume needed for a 1x final buffer concentration.
         validator:
           preset: target_with_value
           value:
@@ -135,6 +149,8 @@ steps:
                 set_volume: 7.5
       - target: laemmli_4x_tube
         gesture: click
+        instruction: Draw 7.5 &micro;L of 4x Laemmli buffer.
+        hint: Use the P20 setpoint and draw from the Laemmli source tube.
         validator:
           preset: correct_target
         response:
@@ -151,6 +167,8 @@ steps:
                 held_material_volume: 7.5
       - target: microtube_rack_8.slot_B1
         gesture: click
+        instruction: Dispense Laemmli buffer into rack slot B1.
+        hint: Add the buffer to the tube that already contains protein sample.
         validator:
           preset: correct_target
         response:
@@ -181,6 +199,8 @@ steps:
     sequence:
       - target: micropipette_tip_box
         gesture: click
+        instruction: Fit a fresh tip for the BME transfer.
+        hint: Use a clean tip after the Laemmli addition and remain in the hood.
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -192,6 +212,8 @@ steps:
             incorrect: "Use a fresh tip before BME to prevent sample carry-over and keep the reagent source clean."
       - target: p10_micropipette
         gesture: adjust
+        instruction: Set the P10 to 1.5 &micro;L.
+        hint: Use this setpoint to add the prepared reducing-agent aliquot and bring the mix to 30 &micro;L.
         validator:
           preset: target_with_value
           value:
@@ -204,6 +226,8 @@ steps:
                 set_volume: 1.5
       - target: bme_tube
         gesture: click
+        instruction: Draw 1.5 &micro;L BME from the hood-prepared tube.
+        hint: Keep BME handling in the hood and use the P10 setpoint.
         validator:
           preset: correct_target
         response:
@@ -220,6 +244,8 @@ steps:
                 held_material_volume: 1.5
       - target: microtube_rack_8.slot_B1
         gesture: click
+        instruction: Dispense BME into rack slot B1.
+        hint: Add BME to complete the 30 &micro;L sample mix.
         validator:
           preset: correct_target
         response:
@@ -248,6 +274,8 @@ steps:
     sequence:
       - target: microtube_rack_8.slot_B1
         gesture: click
+        instruction: Cap the completed B1 sample and rack it for heating.
+        hint: Keep the labeled tube with the other prepared samples for the next step.
         validator:
           preset: correct_target
         response:

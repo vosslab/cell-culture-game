@@ -28,6 +28,8 @@ steps:
     sequence:
       - target: p200_micropipette
         gesture: click
+        instruction: Open the batch sample-mix workspace.
+        hint: Use B1 as the labeled worked example, then preserve that same source-to-destination pattern for B2 and B3.
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -36,147 +38,219 @@ steps:
       # B1 worked example: sample -> Laemmli -> BME.
       - target: micropipette_tip_box
         gesture: click
+        instruction: Fit a fresh tip for the 21 &micro;L A1-to-B1 transfer.
+        hint: A new P200 tip keeps the A1 protein aliquot separate from the buffer and BME sources.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }], feedback: { correct: "Fresh tip fitted for sample B1.", incorrect: "Fit a fresh tip before drawing sample." } }
       - target: p200_micropipette
         gesture: adjust
+        instruction: Set the P200 to 21 &micro;L for the A1-to-B1 transfer.
+        hint: Confirm 21 &micro;L on the P200 display so the A1 sample supplies the protein portion of B1's 30 &micro;L mix.
         validator: { preset: target_with_value, value: { set_volume: 21 } }
         response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { set_volume: 21 } }] }
       - target: microtube_rack_8.slot_A1
         gesture: click
+        instruction: Draw the protein sample from rack slot A1.
+        hint: Use the labeled A1 source; its 21 &micro;L aliquot establishes B1's lane-1 protein identity.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_A1, state: { material_name: empty, material_volume: 0 } }, { type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: protein_sample_raw, held_material_volume: 21 } }] }
       - target: microtube_rack_8.slot_B1
         gesture: click
+        instruction: Dispense the protein sample into rack slot B1.
+        hint: Place the A1 aliquot in its matched B1 destination so lane 1 remains traceable through electrophoresis.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B1, state: { material_name: protein_sample_raw, material_volume: 21 } }, { type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
       - target: micropipette_tip_box
         gesture: click
+        instruction: Fit a fresh tip for the 7.5 &micro;L Laemmli transfer into B1.
+        hint: A new P10 tip protects the shared 4x Laemmli stock from carryover after handling the protein sample.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { tip_status: fresh } }], feedback: { correct: "Fresh tip fitted for Laemmli.", incorrect: "Use a fresh reagent tip after handling sample." } }
       - target: p10_micropipette
         gesture: adjust
+        instruction: Set the P10 to 7.5 &micro;L for Laemmli in B1.
+        hint: At 7.5 &micro;L in a 30 &micro;L final mix, 4x Laemmli becomes the intended 1x working concentration.
         validator: { preset: target_with_value, value: { set_volume: 7.5 } }
         response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { set_volume: 7.5 } }] }
       - target: laemmli_4x_tube
         gesture: click
+        instruction: Draw 7.5 &micro;L of 4x Laemmli for B1.
+        hint: The clean P10 tip keeps the common 4x buffer stock uncontaminated while preparing the B1 lane.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: laemmli_4x_tube, state: { material_name: laemmli_4x, material_volume: 0.9925 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: laemmli_4x, held_material_volume: 7.5 } }] }
       - target: microtube_rack_8.slot_B1
         gesture: click
+        instruction: Dispense 4x Laemmli buffer into rack slot B1.
+        hint: Combining 21 &micro;L protein with 7.5 &micro;L 4x buffer leaves B1 at 28.5 &micro;L before the reducing agent.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B1, state: { material_name: protein_sample_mixed, material_volume: 28.5 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
       - target: micropipette_tip_box
         gesture: click
+        instruction: Fit a fresh tip for the 1.5 &micro;L BME transfer into B1.
+        hint: Work in the hood with a fresh P10 tip so the BME source and the prepared B1 mix stay controlled.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { tip_status: fresh } }], feedback: { correct: "Fresh tip fitted for BME.", incorrect: "Use a fresh tip before entering the BME source." } }
       - target: p10_micropipette
         gesture: adjust
+        instruction: Set the P10 to 1.5 &micro;L for BME in B1.
+        hint: The 1.5 &micro;L BME aliquot completes the 30 &micro;L formula while keeping the reducing-agent addition precise.
         validator: { preset: target_with_value, value: { set_volume: 1.5 } }
         response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { set_volume: 1.5 } }] }
       - target: bme_tube
         gesture: click
+        instruction: Draw 1.5 &micro;L of BME for B1.
+        hint: Draw BME only after the protein and buffer are in B1; its reducing action prepares proteins for SDS-PAGE under hood handling.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: bme_tube, state: { material_name: bme, material_volume: 0.9985 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: bme, held_material_volume: 1.5 } }] }
       - target: microtube_rack_8.slot_B1
         gesture: click
+        instruction: Dispense BME into rack slot B1.
+        hint: Adding BME last brings B1 from 28.5 to 30 &micro;L and completes the lane-1 denaturation mix in the hood.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B1, state: { material_name: protein_sample_mixed, material_volume: 30 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
       # B2 and B3: the same transfer checklist, kept in this one batch skill.
       - target: micropipette_tip_box
         gesture: click
+        instruction: Fit a fresh tip for the 21 &micro;L A2-to-B2 transfer.
+        hint: A new P200 tip prevents lane-1 material from carrying into the A2-to-B2 protein transfer.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }] }
       - target: p200_micropipette
         gesture: adjust
+        instruction: Set the P200 to 21 &micro;L for the A2-to-B2 transfer.
+        hint: Verify 21 &micro;L on the P200 display so B2 receives its own lane-2 protein aliquot.
         validator: { preset: target_with_value, value: { set_volume: 21 } }
         response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { set_volume: 21 } }] }
       - target: microtube_rack_8.slot_A2
         gesture: click
+        instruction: Draw the protein sample from rack slot A2.
+        hint: Take the aliquot from labeled A2 only; that source-to-B2 pairing preserves the lane-2 sample identity.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_A2, state: { material_name: empty, material_volume: 0 } }, { type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: protein_sample_raw, held_material_volume: 21 } }] }
       - target: microtube_rack_8.slot_B2
         gesture: click
+        instruction: Dispense the protein sample into rack slot B2.
+        hint: Deliver the A2 protein into its matched B2 tube before adding shared reagents, keeping lane identities separate.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B2, state: { material_name: protein_sample_raw, material_volume: 21 } }, { type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
       - target: micropipette_tip_box
         gesture: click
+        instruction: Fit a fresh tip for the 7.5 &micro;L Laemmli transfer into B2.
+        hint: A fresh P10 tip protects the shared 4x Laemmli stock from the B2 protein sample.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { tip_status: fresh } }] }
       - target: p10_micropipette
         gesture: adjust
+        instruction: Set the P10 to 7.5 &micro;L for Laemmli in B2.
+        hint: The 7.5 &micro;L setpoint supplies one quarter of B2's 30 &micro;L final volume, converting 4x Laemmli to 1x.
         validator: { preset: target_with_value, value: { set_volume: 7.5 } }
         response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { set_volume: 7.5 } }] }
       - target: laemmli_4x_tube
         gesture: click
+        instruction: Draw 7.5 &micro;L of 4x Laemmli for B2.
+        hint: Draw from the shared buffer stock with the clean tip so B2 gets the same 1x final buffer condition as B1.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: laemmli_4x_tube, state: { material_name: laemmli_4x, material_volume: 0.985 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: laemmli_4x, held_material_volume: 7.5 } }] }
       - target: microtube_rack_8.slot_B2
         gesture: click
+        instruction: Dispense 4x Laemmli buffer into rack slot B2.
+        hint: This brings B2 to 28.5 &micro;L before BME, matching the worked B1 composition without mixing tube identities.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B2, state: { material_name: protein_sample_mixed, material_volume: 28.5 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
       - target: micropipette_tip_box
         gesture: click
+        instruction: Fit a fresh tip for the 1.5 &micro;L BME transfer into B2.
+        hint: Fit a fresh P10 tip in the hood so BME is transferred into B2 without carrying over the shared buffer.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { tip_status: fresh } }] }
       - target: p10_micropipette
         gesture: adjust
+        instruction: Set the P10 to 1.5 &micro;L for BME in B2.
+        hint: A 1.5 &micro;L BME setting leaves B2 with the same reducing-agent proportion as the worked B1 mix.
         validator: { preset: target_with_value, value: { set_volume: 1.5 } }
         response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { set_volume: 1.5 } }] }
       - target: bme_tube
         gesture: click
+        instruction: Draw 1.5 &micro;L of BME for B2.
+        hint: Draw the B2 BME aliquot in the hood after buffer addition so this reducing agent is added in the intended order.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: bme_tube, state: { material_name: bme, material_volume: 0.997 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: bme, held_material_volume: 1.5 } }] }
       - target: microtube_rack_8.slot_B2
         gesture: click
+        instruction: Dispense BME into rack slot B2.
+        hint: The final BME addition completes B2 at 30 &micro;L and keeps its lane-specific sample ready for denaturation.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B2, state: { material_name: protein_sample_mixed, material_volume: 30 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
       - target: micropipette_tip_box
         gesture: click
+        instruction: Fit a fresh tip for the 21 &micro;L A3-to-B3 transfer.
+        hint: A new P200 tip keeps the A3 protein transfer free of material from the completed B1 and B2 lanes.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { tip_status: fresh } }] }
       - target: p200_micropipette
         gesture: adjust
+        instruction: Set the P200 to 21 &micro;L for the A3-to-B3 transfer.
+        hint: Confirm the P200 reads 21 &micro;L so B3 receives the correct lane-3 protein fraction.
         validator: { preset: target_with_value, value: { set_volume: 21 } }
         response: { scene_operations: [{ type: ObjectStateChange, target: p200_micropipette, state: { set_volume: 21 } }] }
       - target: microtube_rack_8.slot_A3
         gesture: click
+        instruction: Draw the protein sample from rack slot A3.
+        hint: Use labeled A3 as the source; matching A3 to B3 preserves the final lane's identity.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_A3, state: { material_name: empty, material_volume: 0 } }, { type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: protein_sample_raw, held_material_volume: 21 } }] }
       - target: microtube_rack_8.slot_B3
         gesture: click
+        instruction: Dispense the protein sample into rack slot B3.
+        hint: Send the A3 aliquot to B3 before shared reagents so the final sample remains distinguishable from B1 and B2.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B3, state: { material_name: protein_sample_raw, material_volume: 21 } }, { type: ObjectStateChange, target: p200_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
       - target: micropipette_tip_box
         gesture: click
+        instruction: Fit a fresh tip for the 7.5 &micro;L Laemmli transfer into B3.
+        hint: A fresh P10 tip keeps the shared 4x Laemmli stock clean after the lane-3 protein transfer.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { tip_status: fresh } }] }
       - target: p10_micropipette
         gesture: adjust
+        instruction: Set the P10 to 7.5 &micro;L for Laemmli in B3.
+        hint: Setting 7.5 &micro;L makes 4x Laemmli one quarter of B3's 30 &micro;L final mix, yielding 1x buffer.
         validator: { preset: target_with_value, value: { set_volume: 7.5 } }
         response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { set_volume: 7.5 } }] }
       - target: laemmli_4x_tube
         gesture: click
+        instruction: Draw 7.5 &micro;L of 4x Laemmli for B3.
+        hint: Use the clean tip at the common buffer source to give B3 the same final buffer concentration as the other lanes.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: laemmli_4x_tube, state: { material_name: laemmli_4x, material_volume: 0.9775 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: laemmli_4x, held_material_volume: 7.5 } }] }
       - target: microtube_rack_8.slot_B3
         gesture: click
+        instruction: Dispense 4x Laemmli buffer into rack slot B3.
+        hint: B3 now contains 28.5 &micro;L, leaving one final 1.5 &micro;L BME addition to match the batch formula.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B3, state: { material_name: protein_sample_mixed, material_volume: 28.5 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
       - target: micropipette_tip_box
         gesture: click
+        instruction: Fit a fresh tip for the 1.5 &micro;L BME transfer into B3.
+        hint: In the hood, use a fresh P10 tip so the BME source remains separate from the final lane's buffer.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { tip_status: fresh } }] }
       - target: p10_micropipette
         gesture: adjust
+        instruction: Set the P10 to 1.5 &micro;L for BME in B3.
+        hint: The 1.5 &micro;L BME setpoint completes the last mix at 30 &micro;L with the same reducing-agent ratio.
         validator: { preset: target_with_value, value: { set_volume: 1.5 } }
         response: { scene_operations: [{ type: ObjectStateChange, target: p10_micropipette, state: { set_volume: 1.5 } }] }
       - target: bme_tube
         gesture: click
+        instruction: Draw 1.5 &micro;L of BME for B3.
+        hint: Draw BME in the hood after the B3 buffer addition; this order keeps the reducing-agent step distinct and controlled.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: bme_tube, state: { material_name: bme, material_volume: 0.9955 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: bme, held_material_volume: 1.5 } }] }
       - target: microtube_rack_8.slot_B3
         gesture: click
+        instruction: Dispense BME into rack slot B3.
+        hint: This final hood-handled addition brings B3 to 30 &micro;L, completing the matched three-lane batch.
         validator: { preset: correct_target }
         response: { scene_operations: [{ type: ObjectStateChange, target: microtube_rack_8.slot_B3, state: { material_name: protein_sample_mixed, material_volume: 30 } }, { type: ObjectStateChange, target: p10_micropipette, state: { held_material_name: empty, held_material_volume: 0, tip_status: used } }] }
     step_validator: { preset: sequence_complete }

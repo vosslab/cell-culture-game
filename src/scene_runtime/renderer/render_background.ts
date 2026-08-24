@@ -27,7 +27,7 @@ export function renderBackground(host: HTMLElement, bg: Background): void {
   }
 
   // Asset form: render a neutral fill until the asset registry is wired.
-  // M4 unblock: scene must mount even when the YAML declares an asset
+  // The scene must mount even when the YAML declares an asset
   // background. A real asset lookup is follow-up work, but throwing here
   // would block every protocol whose base scene uses an asset background
   // (electrophoresis_bench, microscope_view_bg, etc.).

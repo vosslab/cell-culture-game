@@ -33,7 +33,7 @@ async function readWellFill(page: Page, subpart: string): Promise<WellFill> {
 async function clickActiveSceneTarget(page: Page): Promise<void> {
   const activeSurfaces = page.locator(
     [
-      "#scene-root [data-item-id][data-affordance='active']",
+      "#scene-root [data-interaction-envelope][data-interaction-envelope-kind='active']",
       "#scene-root [data-item-id][data-subpart-affordance='active']",
     ].join(", "),
   );

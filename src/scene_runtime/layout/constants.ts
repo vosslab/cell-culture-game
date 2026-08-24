@@ -144,7 +144,7 @@ export const DEFAULT_LAYOUT_RULES = {
 
 // Per-workspace px_per_cm (SCALING_MODEL.md). Author writes display_width_cm
 // on object; engine multiplies by per-workspace px_per_cm.
-// Calibrated empirically so a fully-populated scene (Workstream C target)
+// Calibrated empirically so a fully-populated scene
 // lands in 15-70% occupancy with no clip or item_escapes_zone diagnostics.
 // bench: raised from 3.2 (the old fallback-width placeholder value) to 7.0;
 //   at 7.0 a vortex (22 cm) -> width_scale ~2.2 -> ~13% of canvas, a media

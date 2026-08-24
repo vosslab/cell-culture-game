@@ -235,7 +235,7 @@ test.describe("scene degrade DOM contract", () => {
     const firstRender: FirstRenderState = await page.evaluate((name: string) => {
       (window as unknown as DegradeHarnessWindow).__degrade_harness.mount();
       const root = document.getElementById("scene-root");
-      const item = document.querySelector(`[data-item-id="${name}"]`);
+      const item = document.querySelector(`[data-placement-name="${name}"]`);
       return {
         sceneDegraded: root ? root.getAttribute("data-scene-degraded") : null,
         violationCount: root ? root.getAttribute("data-degraded-violation-count") : null,
@@ -269,7 +269,7 @@ test.describe("scene degrade DOM contract", () => {
 
   test("DEGRADE path: item renders its bound asset, degraded, scene root marked, console.warn emitted", async () => {
     const degradeState: DegradeState = await page.evaluate((name: string) => {
-      const item = document.querySelector(`[data-item-id="${name}"]`);
+      const item = document.querySelector(`[data-placement-name="${name}"]`);
       if (!item) {
         return { exists: false, hasSvg: false, degradedAttr: null, assetAttr: null };
       }
@@ -318,7 +318,7 @@ test.describe("scene degrade DOM contract", () => {
 
   test("HAPPY path: item renders without any degrade marker", async () => {
     const happyState: HappyState = await page.evaluate((name: string) => {
-      const item = document.querySelector(`[data-item-id="${name}"]`);
+      const item = document.querySelector(`[data-placement-name="${name}"]`);
       if (!item) {
         return { exists: false, degradedAttr: null, assetAttr: null };
       }

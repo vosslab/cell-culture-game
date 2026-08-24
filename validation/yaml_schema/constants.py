@@ -131,6 +131,16 @@ VALID_SCENE_OPERATIONS = {'ObjectStateChange', 'CursorAttach', 'SceneChange', 'L
 # spec: docs/specs/PROTOCOL_VOCABULARY.md "Validator preset library"
 INTERACTION_VALIDATOR_PRESETS = {'correct_target', 'correct_choice', 'target_with_value'}
 
+# spec: docs/PRIMARY_SPEC.md "Interaction guidance"
+# This is the one interaction-container closure shared by the content
+# validator and generator. Every interaction owns its learner-facing next
+# action and hint, so generated protocol data cannot fall back to generic UI
+# wording.
+INTERACTION_REQUIRED_KEYS = {
+	'target', 'gesture', 'instruction', 'hint', 'validator', 'response',
+}
+INTERACTION_ALL_KEYS = set(INTERACTION_REQUIRED_KEYS)
+
 # spec: docs/specs/PROTOCOL_VOCABULARY.md "Validator preset library"
 STEP_VALIDATOR_PRESETS = {'sequence_complete', 'final_state_matches'}
 

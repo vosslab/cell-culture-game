@@ -45,6 +45,8 @@ steps:
     sequence:
       - target: mtt_solution_tube
         gesture: click
+        instruction: "Select the prepared 12 mM MTT solution tube."
+        hint: "Bring the yellow, homogeneous reagent to the treated plate for the assay step."
         validator:
           preset: correct_target
         response:
@@ -56,18 +58,24 @@ steps:
             incorrect: "Use only the freshly prepared yellow 12 mM MTT solution."
       - target: well_plate_96
         gesture: click
+        instruction: "Select the prepared well plate for the next assay operation."
+        hint: "Keep the plate surface level while moving to the next workstation."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: multichannel_pipette
         gesture: click
+        instruction: "Attach the multichannel pipette for the next transfer."
+        hint: "Use the attached tool to perform the following source draw or dispense."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: multichannel_pipette
         gesture: adjust
+        instruction: "Set the multichannel pipette to 25 microL per channel for MTT addition."
+        hint: "The 25 microL set point adds the assay reagent evenly to each well and produces the intended reaction volume and concentration."
         validator:
           preset: target_with_value
           value:
@@ -91,12 +99,16 @@ steps:
     sequence:
       - target: multichannel_pipette
         gesture: click
+        instruction: "Attach the multichannel pipette for the next transfer."
+        hint: "Use the attached tool to perform the following source draw or dispense."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: micropipette_tip_box
         gesture: click
+        instruction: "Fit a fresh tip on the multichannel pipette."
+        hint: "Use the fresh tip before touching the next source or receiving vessel."
         validator:
           preset: correct_target
         response:
@@ -110,6 +122,8 @@ steps:
             incorrect: "Use the visible tip box to fit fresh multichannel tips before handling MTT."
       - target: mtt_solution_tube
         gesture: click
+        instruction: "Transfer 4 mL of mtt solution 12mm into the reagent reservoir."
+        hint: "Move the prepared solution from this tube into the reservoir before loading the multichannel pipette."
         validator:
           preset: correct_target
         response:
@@ -126,6 +140,8 @@ steps:
                 material_volume: 4
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 25 microL of mtt solution 12 mM for plate column 1."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 1."
         validator:
           preset: correct_target
         response:
@@ -141,6 +157,8 @@ steps:
                 held_material_volume: 25
       - target: well_plate_96.col_1
         gesture: click
+        instruction: "Dispense 25 microL of MTT solution into plate column 1."
+        hint: "Keep the eight-channel pipette level over column 1 so each well receives the assay reagent."
         validator:
           preset: correct_target
         response:
@@ -157,6 +175,8 @@ steps:
                 held_material_volume: 0
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 25 microL of mtt solution 12 mM for plate column 2."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 2."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -168,6 +188,8 @@ steps:
               state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
       - target: well_plate_96.col_2
         gesture: click
+        instruction: "Dispense 25 microL of MTT solution into plate column 2."
+        hint: "Keep the eight-channel pipette level over column 2 so each well receives the assay reagent."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -179,6 +201,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 25 microL of mtt solution 12 mM for plate column 3."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 3."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -190,6 +214,8 @@ steps:
               state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
       - target: well_plate_96.col_3
         gesture: click
+        instruction: "Dispense 25 microL of MTT solution into plate column 3."
+        hint: "Keep the eight-channel pipette level over column 3 so each well receives the assay reagent."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -201,6 +227,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 25 microL of mtt solution 12 mM for plate column 4."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 4."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -212,6 +240,8 @@ steps:
               state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
       - target: well_plate_96.col_4
         gesture: click
+        instruction: "Dispense 25 microL of MTT solution into plate column 4."
+        hint: "Keep the eight-channel pipette level over column 4 so each well receives the assay reagent."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -223,6 +253,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 25 microL of mtt solution 12 mM for plate column 5."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 5."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -234,6 +266,8 @@ steps:
               state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
       - target: well_plate_96.col_5
         gesture: click
+        instruction: "Dispense 25 microL of MTT solution into plate column 5."
+        hint: "Keep the eight-channel pipette level over column 5 so each well receives the assay reagent."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -245,6 +279,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 25 microL of mtt solution 12 mM for plate column 6."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 6."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -256,6 +292,8 @@ steps:
               state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
       - target: well_plate_96.col_6
         gesture: click
+        instruction: "Dispense 25 microL of MTT solution into plate column 6."
+        hint: "Keep the eight-channel pipette level over column 6 so each well receives the assay reagent."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -267,6 +305,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 25 microL of mtt solution 12 mM for plate column 7."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 7."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -278,6 +318,8 @@ steps:
               state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
       - target: well_plate_96.col_7
         gesture: click
+        instruction: "Dispense 25 microL of MTT solution into plate column 7."
+        hint: "Keep the eight-channel pipette level over column 7 so each well receives the assay reagent."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -289,6 +331,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 25 microL of mtt solution 12 mM for plate column 8."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 8."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -300,6 +344,8 @@ steps:
               state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
       - target: well_plate_96.col_8
         gesture: click
+        instruction: "Dispense 25 microL of MTT solution into plate column 8."
+        hint: "Keep the eight-channel pipette level over column 8 so each well receives the assay reagent."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -311,6 +357,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 25 microL of mtt solution 12 mM for plate column 9."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 9."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -322,6 +370,8 @@ steps:
               state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
       - target: well_plate_96.col_9
         gesture: click
+        instruction: "Dispense 25 microL of MTT solution into plate column 9."
+        hint: "Keep the eight-channel pipette level over column 9 so each well receives the assay reagent."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -333,6 +383,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 25 microL of mtt solution 12 mM for plate column 10."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 10."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -344,6 +396,8 @@ steps:
               state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
       - target: well_plate_96.col_10
         gesture: click
+        instruction: "Dispense 25 microL of MTT solution into plate column 10."
+        hint: "Keep the eight-channel pipette level over column 10 so each well receives the assay reagent."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -355,6 +409,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 25 microL of mtt solution 12 mM for plate column 11."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 11."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -366,6 +422,8 @@ steps:
               state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
       - target: well_plate_96.col_11
         gesture: click
+        instruction: "Dispense 25 microL of MTT solution into plate column 11."
+        hint: "Keep the eight-channel pipette level over column 11 so each well receives the assay reagent."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -377,6 +435,8 @@ steps:
               state: { held_material_name: empty, held_material_volume: 0 }
       - target: reagent_reservoir
         gesture: click
+        instruction: "Draw 25 microL of mtt solution 12 mM for plate column 12."
+        hint: "Use the reservoir as the source, then deliver this load into plate column 12."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -388,6 +448,8 @@ steps:
               state: { held_material_name: mtt_solution_12mm, held_material_volume: 25 }
       - target: well_plate_96.col_12
         gesture: click
+        instruction: "Dispense 25 microL of MTT solution into plate column 12."
+        hint: "Keep the eight-channel pipette level over column 12 so each well receives the assay reagent."
         validator: { preset: correct_target }
         response:
           scene_operations:
@@ -416,12 +478,16 @@ steps:
     sequence:
       - target: well_plate_96
         gesture: click
+        instruction: "Pick up the completed plate for incubation."
+        hint: "Keep the treatment map level while moving the plate into the incubator."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: incubator
         gesture: click
+        instruction: "Place the prepared vessel in the incubator and start the formazan conversion (1.5 hours)."
+        hint: "Allow the authored formazan conversion (1.5 hours) to complete before continuing the culture workflow."
         validator:
           preset: correct_target
         response:
@@ -468,12 +534,16 @@ steps:
     sequence:
       - target: well_plate_96
         gesture: click
+        instruction: "Lift the plate from the incubator for decanting."
+        hint: "Hold the plate securely over the waste container before removing spent MTT medium."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: biohazard_decant_bin
         gesture: click
+        instruction: "Open the biohazard waste container for disposal."
+        hint: "Keep the plate or pipette over biohazard waste while discarding the spent liquid."
         validator:
           preset: correct_target
         response:
@@ -519,12 +589,16 @@ steps:
     sequence:
       - target: well_plate_96
         gesture: click
+        instruction: "Move the plate onto the paper-towel stack."
+        hint: "Set the plate on the towels before gently pressing away residual liquid."
         validator:
           preset: correct_target
         response:
           scene_operations: []
       - target: paper_towel_pad
         gesture: click
+        instruction: "Press the plate gently against the paper-towel stack."
+        hint: "Blot residual liquid from the plate without disturbing the attached cells."
         validator:
           preset: correct_target
         response:

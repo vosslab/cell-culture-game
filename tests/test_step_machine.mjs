@@ -97,7 +97,7 @@ function stub_lookup_state_field() {
 // snapshot read. Defaults to empty (no observed state). target_with_value and
 // final_state_matches now judge against this observed state, not the authored
 // expected values, so a case that expects a match seeds the matching state here.
-function build_harness(config, observed_state = {}) {
+function build_harness(config, observed_state = {}, machine_options = {}) {
   const events = [];
   const scene_ops = [];
   const start_snapshot = initial_snapshot(config.protocol_name);
@@ -107,12 +107,21 @@ function build_harness(config, observed_state = {}) {
   const machine = create_step_machine(config, emitter, (op) => scene_ops.push(op), {
     lookup_state_field: stub_lookup_state_field,
     read_object_state: (target) => observed_state[target] ?? {},
+    ...machine_options,
   });
   return { machine, events, scene_ops, emitter };
 }
 
 function kinds(events) {
   return events.map((e) => e.kind);
+}
+
+function active_view(snapshot) {
+  return snapshot.active_interaction;
+}
+
+function active_action(snapshot) {
+  return snapshot.active_interaction?.action;
 }
 
 //============================================
@@ -134,6 +143,85 @@ describe("step machine - start", () => {
   });
 });
 
+describe("step machine - restored checkpoints", () => {
+  test("resumes the exact interaction and completes without replaying prior input", () => {
+    const cfg = make_config([make_two_click_step("a", "t1", "t2", null)], "a");
+    const original = build_harness(cfg);
+    original.machine.start();
+    original.machine.handle_click("t1", "click");
+    const saved = original.machine.get_checkpoint();
+    assert.strictEqual(saved.active_step_name, "a");
+    assert.strictEqual(saved.interaction_index, 1);
+
+    const restored = build_harness(cfg, {}, { restore_checkpoint: saved });
+    restored.machine.start();
+    assert.deepStrictEqual(kinds(restored.events).slice(0, 2), [
+      "protocol_loaded",
+      "session_restored",
+    ]);
+    assert.strictEqual(restored.emitter.get_snapshot().active_interaction.index, 1);
+
+    restored.machine.handle_click("t2", "click");
+    assert.strictEqual(restored.emitter.get_snapshot().is_complete, true);
+    assert.deepStrictEqual(restored.machine.get_checkpoint(), {
+      active_step_name: null,
+      interaction_index: 0,
+      completed_step_names: ["a"],
+      current_scene: "scene_b",
+      is_complete: true,
+      pending_timed_wait: null,
+    });
+  });
+
+  test("restarts only a pending TimedWait and then applies the remaining operations", () => {
+    const step = make_click_step("wait", "centrifuge", null);
+    step.sequence[0].response.scene_operations = [
+      { type: "ObjectStateChange", target: "centrifuge", state: { running: true } },
+      { type: "TimedWait", target: "centrifuge", duration_min: 1, display: "Spinning" },
+      { type: "ObjectStateChange", target: "centrifuge", state: { running: false } },
+    ];
+    const cfg = make_config([step], "wait");
+    const original = build_harness(cfg);
+    original.machine.start();
+    original.machine.handle_click("centrifuge", "click");
+    const saved = original.machine.get_checkpoint();
+
+    const restored = build_harness(cfg, {}, { restore_checkpoint: saved });
+    restored.machine.start();
+    assert.deepStrictEqual(
+      restored.scene_ops.map((op) => op.type),
+      ["TimedWait"],
+    );
+    assert.strictEqual(restored.emitter.get_snapshot().pending_timed_wait.display, "Spinning");
+
+    restored.machine.handle_timer_elapsed("centrifuge");
+    assert.deepStrictEqual(
+      restored.scene_ops.map((op) => op.type),
+      ["TimedWait", "ObjectStateChange"],
+    );
+    assert.strictEqual(restored.machine.get_checkpoint().is_complete, true);
+  });
+
+  test("rejects a checkpoint whose completed steps are not the active-flow prefix", () => {
+    const cfg = make_config(
+      [make_click_step("a", "t1", "b"), make_click_step("b", "t2", null)],
+      "a",
+    );
+    const invalid = {
+      active_step_name: "b",
+      interaction_index: 0,
+      completed_step_names: [],
+      current_scene: null,
+      is_complete: false,
+      pending_timed_wait: null,
+    };
+    assert.throws(
+      () => build_harness(cfg, {}, { restore_checkpoint: invalid }),
+      /completed steps are not the active step prefix/,
+    );
+  });
+});
+
 describe("step machine - happy path click", () => {
   test("validated click advances interaction_index and emits interaction_validated", () => {
     const cfg = make_config([make_two_click_step("a", "t1", "t2", null)], "a");
@@ -144,7 +232,7 @@ describe("step machine - happy path click", () => {
     assert.ok(validated);
     assert.strictEqual(validated.target_name, "t1");
     assert.strictEqual(validated.interaction_index, 0);
-    assert.strictEqual(emitter.get_snapshot().current_interaction_index, 1);
+    assert.strictEqual(active_view(emitter.get_snapshot()).index, 1);
   });
 
   test("projects authored correct feedback and retains it when the next step starts", () => {
@@ -203,9 +291,9 @@ describe("step machine - TimedWait sequencing", () => {
     );
     const waiting_snapshot = emitter.get_snapshot();
     assert.deepStrictEqual(
-      [waiting_snapshot.active_interaction_target, waiting_snapshot.pending_timed_wait],
+      [active_view(waiting_snapshot).availability, waiting_snapshot.pending_timed_wait],
       [
-        null,
+        "timed_wait",
         {
           target_name: "centrifuge",
           display: "Centrifuging",
@@ -213,6 +301,12 @@ describe("step machine - TimedWait sequencing", () => {
         },
       ],
     );
+    assert.deepStrictEqual(active_view(waiting_snapshot), {
+      index: 1,
+      count: 1,
+      availability: "timed_wait",
+      action: null,
+    });
     assert.strictEqual(events.filter((event) => event.kind === "timed_wait_started").length, 1);
 
     machine.handle_click("centrifuge", "click");
@@ -248,7 +342,7 @@ describe("step machine - wrong target", () => {
     const rejected = events.find((e) => e.kind === "interaction_rejected");
     assert.ok(rejected);
     assert.strictEqual(rejected.reason_code, "wrong_target");
-    assert.strictEqual(emitter.get_snapshot().current_interaction_index, 0);
+    assert.strictEqual(active_view(emitter.get_snapshot()).index, 0);
     // No interaction_validated should have fired.
     assert.ok(!events.some((e) => e.kind === "interaction_validated"));
   });
@@ -267,7 +361,7 @@ describe("step machine - wrong target", () => {
       kind: "incorrect",
       message: "Use the PBS bottle.",
     });
-    assert.strictEqual(emitter.get_snapshot().current_interaction_index, 0);
+    assert.strictEqual(active_view(emitter.get_snapshot()).index, 0);
   });
 
   test("a correct interaction clears an earlier rejection within the same step", () => {
@@ -381,7 +475,7 @@ describe("step machine - same-step SceneChange re-resolves active target", () =>
   // Regression: mtt_solubilization_readout read_absorbance. A step's first
   // interaction carries a SceneChange in its response; the NEXT interaction in
   // the same step names a semantic target that resolves to a DIFFERENT placement
-  // in the new scene. Before the fix, active_interaction_target was resolved
+  // in the new scene. Before the fix, the active placement was resolved
   // against the OLD scene's adapter by interaction_validated and never
   // re-resolved after the scene swapped, so the follow-on commit was scored
   // against the stale old-scene placement and rejected as out-of-order. The
@@ -417,7 +511,7 @@ describe("step machine - same-step SceneChange re-resolves active target", () =>
     };
   }
 
-  test("active_interaction_target follows the new scene's placement after a same-step SceneChange", () => {
+  test("active placement follows the new scene after a same-step SceneChange", () => {
     const cfg = make_config([make_scene_change_then_adjust_step("read")], "read");
 
     // Real per-scene adapters, one placement per scene for the same object, built
@@ -468,7 +562,10 @@ describe("step machine - same-step SceneChange re-resolves active target", () =>
 
     machine.start();
     // At entry, the active interaction is interaction 0 in scene_a.
-    assert.strictEqual(emitter.get_snapshot().active_interaction_target, "rear_right_plate_reader");
+    assert.strictEqual(
+      active_action(emitter.get_snapshot()).placement_name,
+      "rear_right_plate_reader",
+    );
 
     // Validate interaction 0: this advances to interaction 1 AND runs the
     // SceneChange. The active target for interaction 1 must now be resolved
@@ -477,10 +574,10 @@ describe("step machine - same-step SceneChange re-resolves active target", () =>
 
     const snap = emitter.get_snapshot();
     assert.strictEqual(snap.active_scene_name, "scene_b");
-    assert.strictEqual(snap.current_interaction_index, 1);
-    assert.strictEqual(snap.active_interaction_gesture, "adjust");
-    // The fix: active_interaction_target re-resolved against scene_b.
-    assert.strictEqual(snap.active_interaction_target, "center_plate_reader");
+    assert.strictEqual(active_view(snap).index, 1);
+    assert.strictEqual(active_action(snap).gesture, "adjust");
+    // The fix: placement_name is re-resolved against scene_b.
+    assert.strictEqual(active_action(snap).placement_name, "center_plate_reader");
   });
 });
 
@@ -534,7 +631,7 @@ describe("step machine - retry path", () => {
     // Sequence restarts: a second step_started for "a".
     const started_a = events.filter((e) => e.kind === "step_started" && e.step_name === "a");
     assert.ok(started_a.length >= 2);
-    assert.strictEqual(emitter.get_snapshot().current_interaction_index, 0);
+    assert.strictEqual(active_view(emitter.get_snapshot()).index, 0);
   });
 });
 
@@ -707,19 +804,19 @@ describe("step machine - adjust commit (target_with_value)", () => {
     const { machine, emitter } = build_harness(cfg);
     machine.start();
     const snapshot = emitter.get_snapshot();
-    assert.strictEqual(snapshot.active_interaction_gesture, "adjust");
-    assert.strictEqual(snapshot.active_interaction_value, 1000);
+    assert.strictEqual(active_action(snapshot).gesture, "adjust");
+    assert.strictEqual(active_action(snapshot).requested_adjustment_value, 1000);
   });
 
   test("transitioning from adjust to type clears the requested adjustment value", () => {
     const cfg = make_config([make_adjust_then_type_step()], "a");
     const { machine, emitter } = build_harness(cfg);
     machine.start();
-    assert.strictEqual(emitter.get_snapshot().active_interaction_value, 1000);
+    assert.strictEqual(active_action(emitter.get_snapshot()).requested_adjustment_value, 1000);
     machine.handle_adjust_commit("micropipette", 1000);
     const snapshot = emitter.get_snapshot();
-    assert.strictEqual(snapshot.active_interaction_gesture, "type");
-    assert.strictEqual(snapshot.active_interaction_value, null);
+    assert.strictEqual(active_action(snapshot).gesture, "type");
+    assert.strictEqual(active_action(snapshot).requested_adjustment_value, null);
   });
 
   test("committing the correct set-point validates and completes", () => {
@@ -733,7 +830,7 @@ describe("step machine - adjust commit (target_with_value)", () => {
     assert.strictEqual(validated.gesture, "adjust");
     const done = events.find((e) => e.kind === "protocol_completed");
     assert.ok(done);
-    assert.strictEqual(emitter.get_snapshot().active_interaction_value, null);
+    assert.strictEqual(active_view(emitter.get_snapshot()), null);
   });
 
   test("committing a wrong set-point rejects and does not advance", () => {
@@ -918,7 +1015,7 @@ describe("step machine - reducer snapshot derivation", () => {
   });
 });
 
-describe("step machine - active_interaction_target and active_interaction_gesture", () => {
+describe("step machine - active interaction view", () => {
   test("snapshot resolves a learner label independently from the DOM placement", () => {
     const cfg = make_config([make_click_step("a", "pbs_bottle", null)], "a");
     const start_snapshot = initial_snapshot(cfg.protocol_name);
@@ -935,7 +1032,7 @@ describe("step machine - active_interaction_target and active_interaction_gestur
     machine.start();
     const snapshot = emitter.get_snapshot();
     assert.deepStrictEqual(
-      [snapshot.active_interaction_target, snapshot.active_interaction_label],
+      [active_action(snapshot).placement_name, active_action(snapshot).label],
       ["rear_pbs_bottle", "PBS"],
     );
   });
@@ -945,10 +1042,10 @@ describe("step machine - active_interaction_target and active_interaction_gestur
     const { machine, emitter } = build_harness(cfg);
     machine.start();
     const snap = emitter.get_snapshot();
-    assert.strictEqual(snap.active_interaction_target, "t1");
-    assert.strictEqual(snap.active_interaction_gesture, "click");
-    assert.strictEqual(snap.current_interaction_index, 0);
-    assert.strictEqual(snap.current_interaction_count, 2);
+    assert.strictEqual(active_action(snap).placement_name, "t1");
+    assert.strictEqual(active_action(snap).gesture, "click");
+    assert.strictEqual(active_view(snap).index, 0);
+    assert.strictEqual(active_view(snap).count, 2);
   });
 
   test("interaction_validated advances target and gesture to the next interaction", () => {
@@ -957,22 +1054,33 @@ describe("step machine - active_interaction_target and active_interaction_gestur
     machine.start();
     machine.handle_click("t1", "click");
     const snap = emitter.get_snapshot();
-    assert.strictEqual(snap.active_interaction_target, "t2");
-    assert.strictEqual(snap.active_interaction_gesture, "click");
-    assert.strictEqual(snap.current_interaction_index, 1);
-    assert.strictEqual(snap.current_interaction_count, 2);
+    assert.strictEqual(active_action(snap).placement_name, "t2");
+    assert.strictEqual(active_action(snap).gesture, "click");
+    assert.strictEqual(active_view(snap).index, 1);
+    assert.strictEqual(active_view(snap).count, 2);
     assert.strictEqual(snap.progress.completed_step_count, 0);
   });
 
   test("last interaction validates -> target and gesture become null", () => {
     const cfg = make_config([make_two_click_step("a", "t1", "t2", null)], "a");
     const { machine, emitter } = build_harness(cfg);
+    const lifecycle_snapshots = [];
+    emitter.subscribe((event) => {
+      if (event.kind === "interaction_validated") {
+        lifecycle_snapshots.push(emitter.get_snapshot().active_interaction);
+      }
+    });
     machine.start();
     machine.handle_click("t1", "click");
     machine.handle_click("t2", "click");
     const snap = emitter.get_snapshot();
-    assert.strictEqual(snap.active_interaction_target, null);
-    assert.strictEqual(snap.active_interaction_gesture, null);
+    assert.deepStrictEqual(lifecycle_snapshots.at(-1), {
+      index: 2,
+      count: 2,
+      availability: "transition",
+      action: null,
+    });
+    assert.strictEqual(active_view(snap), null);
   });
 
   test("step_completed clears target and gesture", () => {
@@ -983,26 +1091,25 @@ describe("step machine - active_interaction_target and active_interaction_gestur
     const { machine, emitter } = build_harness(cfg);
     machine.start();
     let snap = emitter.get_snapshot();
-    assert.strictEqual(snap.active_interaction_target, "obj_a");
-    assert.strictEqual(snap.active_interaction_gesture, "click");
+    assert.strictEqual(active_action(snap).placement_name, "obj_a");
+    assert.strictEqual(active_action(snap).gesture, "click");
     machine.handle_click("obj_a", "click");
     snap = emitter.get_snapshot();
     // After step_completed and step_started for "b", the target/gesture
     // should be set to the first (and only) interaction of "b".
-    assert.strictEqual(snap.active_interaction_target, "obj_b");
-    assert.strictEqual(snap.active_interaction_gesture, "click");
+    assert.strictEqual(active_action(snap).placement_name, "obj_b");
+    assert.strictEqual(active_action(snap).gesture, "click");
   });
 
   test("protocol_completed clears target and gesture", () => {
     const cfg = make_config([make_click_step("a", "obj_a", null)], "a");
     const { machine, emitter } = build_harness(cfg);
     machine.start();
-    assert.strictEqual(emitter.get_snapshot().active_interaction_target, "obj_a");
+    assert.strictEqual(active_action(emitter.get_snapshot()).placement_name, "obj_a");
     machine.handle_click("obj_a", "click");
     const snap = emitter.get_snapshot();
     assert.strictEqual(snap.is_complete, true);
-    assert.strictEqual(snap.active_interaction_target, null);
-    assert.strictEqual(snap.active_interaction_gesture, null);
+    assert.strictEqual(active_view(snap), null);
   });
 
   test("interaction_rejected does not change target or gesture", () => {
@@ -1010,11 +1117,12 @@ describe("step machine - active_interaction_target and active_interaction_gestur
     const { machine, emitter } = build_harness(cfg);
     machine.start();
     const before = emitter.get_snapshot();
-    assert.strictEqual(before.active_interaction_target, "t1");
+    assert.strictEqual(active_action(before).placement_name, "t1");
     machine.handle_click("wrong", "click");
     const after = emitter.get_snapshot();
-    assert.strictEqual(after.active_interaction_target, "t1");
-    assert.strictEqual(after.active_interaction_gesture, "click");
+    assert.deepStrictEqual(after.active_interaction, before.active_interaction);
+    assert.strictEqual(active_action(after).placement_name, "t1");
+    assert.strictEqual(active_action(after).gesture, "click");
   });
 });
 
@@ -1131,7 +1239,7 @@ describe("step machine - target_with_value authored value", () => {
     assert.ok(!events.some((ev) => ev.kind === "interaction_validated"));
     assert.ok(!events.some((ev) => ev.kind === "protocol_completed"));
     assert.strictEqual(emitter.get_snapshot().is_complete, false);
-    assert.strictEqual(emitter.get_snapshot().current_interaction_index, 0);
+    assert.strictEqual(active_view(emitter.get_snapshot()).index, 0);
   });
 });
 
@@ -1234,7 +1342,7 @@ describe("step machine - final_state_matches authored target/contains (positive 
     assert.ok(started_s1.length >= 2, "expected sequence to restart with a second step_started");
     assert.ok(!events.some((ev) => ev.kind === "protocol_completed"));
     assert.strictEqual(emitter.get_snapshot().is_complete, false);
-    assert.strictEqual(emitter.get_snapshot().current_interaction_index, 0);
+    assert.strictEqual(active_view(emitter.get_snapshot()).index, 0);
   });
 });
 

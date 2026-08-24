@@ -28,6 +28,8 @@ New contract items require user approval. Agents may not add, remove, or edit co
 
    The walkthrough must run every step, perform every required interaction, and save browser screenshots showing the intended objects, highlights, click targets, and visible state changes. Screenshots should provide evidence before and after meaningful interactions, not only at the final state.
 
+   Playwright acceptance must exercise the shipped application and the same workflows students receive. Visible UI actions must produce their real persisted effects through the product path; browser tests must prove those effects survive a reload and remain operable. Screenshots are evidence only when they come from that same connected run. The exhaustive acceptance entry point must include and reach this connected browser suite even when an earlier independent gate fails; external-tool E2Es must be bounded so a hung process becomes a recorded failure instead of hiding the browser result.
+
    Passing TypeScript, validators, build steps, or walker setup is not enough. For interactive scene work, completion requires browser evidence that the mini-protocol can be completed by a real user through the visible interface.
 
 5. **A mini-protocol is scoped by its learning block.**

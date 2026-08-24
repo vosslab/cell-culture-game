@@ -7,7 +7,7 @@
 // set_volume, a power-supply set_voltage, a hotplate set_temperature, a timed
 // duration, a titration pH) on a target object. ONE editor instance serves
 // every set-point field: the field being set is named by the active interaction,
-// not by the widget (affordance_contract.md M10 default: "One shared numeric
+// not by the widget (affordance_contract.md: "One shared numeric
 // set-point editor for every adjust field"). It renders a stepper (decrement /
 // increment buttons) plus a direct numeric input, appears only while the active
 // interaction's gesture is `adjust`, and hides otherwise.
@@ -47,7 +47,7 @@ import type { ShellViewSnapshot } from "../adapter/types";
 
 export interface SetPointEditorProps {
   // Live read-only protocol snapshot. The editor shows only when
-  // active_interaction_gesture === "adjust".
+  // active_interaction.action.gesture === "adjust".
   snapshot: Accessor<ShellViewSnapshot>;
   // Commit handler. Receives the active target and the committed numeric
   // set-point. Wired by protocol_host.tsx to step_machine.handle_adjust_commit.
@@ -88,10 +88,12 @@ export function SetPointEditor(props: SetPointEditorProps): JSXElement {
   const [rejected, set_rejected] = createSignal(false);
 
   // Whether the active interaction is an `adjust` gesture.
-  const is_adjust_active = (): boolean => props.snapshot().active_interaction_gesture === "adjust";
+  const is_adjust_active = (): boolean =>
+    props.snapshot().active_interaction?.action?.gesture === "adjust";
 
   // The active target for the current adjust interaction (null when not adjusting).
-  const active_target = (): string | null => props.snapshot().active_interaction_target;
+  const active_target = (): string | null =>
+    props.snapshot().active_interaction?.action?.placement_name ?? null;
 
   // Reset the draft and clear any rejection feedback when the active target
   // changes (new interaction or step started).
@@ -144,7 +146,8 @@ export function SetPointEditor(props: SetPointEditorProps): JSXElement {
     <Show when={is_adjust_active()}>
       <div data-adjust-panel="" class="value-entry-panel">
         <label data-adjust-label="" for="protocol-adjust-input" class="value-entry-label">
-          Set value for {props.snapshot().active_interaction_label ?? "the highlighted item"}:
+          Set value for{" "}
+          {props.snapshot().active_interaction?.action?.label ?? "the highlighted item"}:
         </label>
         <button
           data-adjust-decrement=""

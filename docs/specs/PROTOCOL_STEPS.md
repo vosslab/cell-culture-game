@@ -95,8 +95,14 @@ expressed as a `final_state_matches` `step_validator` plus an
 
 1. Add a new entry to the protocol's `steps` list with `step_name`,
    `prompt`, `sequence`, `step_validator`, `outcome`, and `next_step`.
-2. For each interaction in the `sequence`, fill the four slots: `target`,
-   `gesture`, `validator`, `response`.
+2. For each interaction in the `sequence`, fill all six required slots:
+   `target`, `gesture`, non-empty plain-string `instruction`, non-empty
+   plain-string `hint`, `validator`, and `response`. If an exact
+   `(target, gesture)` pair repeats within the step, every interaction in that
+   group must use distinct instructions and hints after trim/case
+   normalization. Select and type guidance remains answer-safe before an
+   attempt. See [PROTOCOL_YAML_FORMAT.md](PROTOCOL_YAML_FORMAT.md) for the
+   complete safety and validation rules.
 3. Wire `next_step` to the next step's `step_name` (or `null` for the last step).
 4. Find the step that should now come before the new step and change its
    `next_step` to the new step's `step_name`.

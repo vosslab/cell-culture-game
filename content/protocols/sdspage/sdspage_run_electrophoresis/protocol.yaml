@@ -39,6 +39,8 @@ steps:
     sequence:
       - target: power_supply
         gesture: adjust
+        instruction: Set the power supply to 150 V.
+        hint: The 150 V setpoint drives the fixed 30-minute separation while preserving the tracking-dye endpoint.
         validator:
           preset: target_with_value
           value:
@@ -67,6 +69,8 @@ steps:
     sequence:
       - target: power_supply
         gesture: click
+        instruction: Start the electrophoresis run at the configured voltage.
+        hint: Confirm the lid and both leads are seated before starting the 30-minute run.
         validator:
           preset: correct_target
         response:
@@ -106,6 +110,8 @@ steps:
     sequence:
       - target: electrophoresis_endpoint_stop_now
         gesture: select
+        instruction: Select the endpoint decision supported by the visible tracking-dye position.
+        hint: Use the dye's distance from the bottom edge to decide whether the run should continue or stop.
         validator:
           preset: correct_choice
         response:
@@ -115,6 +121,8 @@ steps:
             incorrect: "Do not continue this run: the visible dye front is already near the bottom of the gel. Select Stop now, then switch the supply off."
       - target: power_supply
         gesture: click
+        instruction: Turn off the power supply at the tracking-dye endpoint.
+        hint: Stop the run while the dye remains near the bottom edge of the gel.
         validator:
           preset: correct_target
         response:

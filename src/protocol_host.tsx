@@ -8,15 +8,18 @@
 // Mount order:
 //   1. Resolve protocol name (query string or window fallback).
 //   2. Look up ProtocolConfig from generated/protocols.ts.
-//   3. Resolve the entry scene: (1) entry step's optional scene: field;
-//      (2) first SceneChange.to_scene in the entry step; (3) throw.
+//   3. Load and validate this protocol's saved session, if one exists.
+//   4. Resolve the entry scene: (1) the restored checkpoint; (2) the entry
+//      step's optional scene: field;
+//      (3) the first SceneChange.to_scene in the entry step; (4) throw.
 //      For sequence_runner protocols, resolution delegates to the first
 //      mini-protocol's entry step. See resolve_entry_scene.ts.
-//   4. Run the layout pipeline + renderer to paint #scene-root.
-//   5. Build emitter (seeded with initial ShellViewSnapshot), browser
+//   5. Load precomputed layout and restore or initialize scene state before
+//      the Solid renderer paints #scene-root.
+//   6. Build emitter (seeded with initial ShellViewSnapshot), browser
 //      scene-op handler, step machine, and click resolver.
-//   6. Mount <ProtocolHud /> into #shell-root unless ?shell=off.
-//   7. step_machine.start() drives the rest via emitter subscription.
+//   7. Mount <ProtocolHud /> into #shell-root unless ?shell=off.
+//   8. step_machine.start() drives the rest via emitter subscription.
 //
 // Debug-only query params (documented in seam_interface.md):
 //   ?shell=off       -- skip shell mount; runtime still runs.
@@ -30,6 +33,7 @@
 import type {
   Gesture,
   ProtocolConfig,
+  ProtocolShellEvent,
   ProtocolShellEmitter,
   ShellViewSnapshot,
   TimedWaitOp,
@@ -54,6 +58,7 @@ import {
   create_step_machine,
   create_snapshot_reducer,
   type StepMachineHandle,
+  validate_step_machine_checkpoint,
 } from "./scene_runtime/protocol/step_machine.js";
 import { create_scene_op_handler } from "./scene_runtime/protocol/scene_operations.js";
 import { build_store_scene_op_deps } from "./scene_runtime/protocol/scene_op_deps.js";
@@ -76,7 +81,13 @@ import {
   assert_scene_not_empty,
 } from "./scene_runtime/protocol/resolve_entry_scene.js";
 import { flatten_sequence_runner } from "./scene_runtime/protocol/flatten_sequence_runner.js";
+import {
+  create_protocol_session_persistence,
+  fingerprint_protocol,
+  type SessionSaveStatus,
+} from "./scene_runtime/protocol/session_persistence.js";
 
+import { createSignal } from "solid-js";
 import { render } from "solid-js/web";
 import { subscribeEmitterToSnapshot } from "./shell/signals.js";
 import { ProtocolHud } from "./shell/hud/protocol_hud.js";
@@ -163,8 +174,7 @@ function build_initial_snapshot(config: ProtocolConfig): ShellViewSnapshot {
     current_prompt: null,
     // No step active yet; tip resolves to null until step_started fires.
     current_tip: null,
-    current_interaction_index: 0,
-    current_interaction_count: 0,
+    active_interaction: null,
     progress: { completed_step_count: 0, total_step_count },
     last_outcome: null,
     last_rejection: null,
@@ -181,10 +191,6 @@ function build_initial_snapshot(config: ProtocolConfig): ShellViewSnapshot {
     tray: { items: [] },
     active_scene_name: null,
     is_complete: false,
-    active_interaction_target: null,
-    active_interaction_label: null,
-    active_interaction_gesture: null,
-    active_interaction_value: null,
     pending_timed_wait: null,
   };
   return initial;
@@ -216,6 +222,35 @@ function mount(): void {
   // config in PROTOCOLS is untouched.
   const active_config = flatten_sequence_runner(config, PROTOCOLS);
 
+  // Browser persistence is a real product boundary, not a walker fixture. One
+  // repository-wide schema version and one root localStorage key own every
+  // protocol session. The exact flattened protocol shape invalidates stale
+  // progress without adding version fields to authored YAML.
+  const persistence = create_protocol_session_persistence(
+    window.localStorage,
+    protocol_name,
+    fingerprint_protocol(active_config),
+  );
+  const load_result = persistence.load();
+  let restored_session = load_result.kind === "restored" ? load_result.session : null;
+  const initial_session_status: SessionSaveStatus =
+    load_result.kind === "restored"
+      ? "restored"
+      : load_result.kind === "unavailable"
+        ? "unavailable"
+        : "fresh";
+  const [session_status, set_session_status] =
+    createSignal<SessionSaveStatus>(initial_session_status);
+  // The learner owns hint disclosure for the lifetime of this protocol page.
+  // Keep it above the shell branches so a timed wait or other component
+  // remount cannot silently close the native details element.
+  const [action_hint_open, set_action_hint_open] = createSignal(false);
+  if (restored_session !== null) {
+    document.documentElement.dataset.protocolSessionRevision = String(
+      restored_session.persistence_revision,
+    );
+  }
+
   // Resolve the permanent DOM hosts. Shell mounts as a sibling of scene-root,
   // never as an ancestor (asset-cropping rule). Value-entry controls are host
   // structure, not body-mounted overlays, so they remain usable under
@@ -225,6 +260,11 @@ function mount(): void {
     throw new Error("protocol_host: #scene-root element not found");
   }
   const active_scene_root = scene_root;
+  const scene_frame_element = active_scene_root.closest(".scene-panel-inner");
+  if (!(scene_frame_element instanceof HTMLElement)) {
+    throw new Error("protocol_host: #scene-root must be inside .scene-panel-inner");
+  }
+  const scene_frame: HTMLElement = scene_frame_element;
   const shell_root = document.getElementById("shell-root");
   if (!(shell_root instanceof HTMLElement)) {
     throw new Error("protocol_host: #shell-root element not found");
@@ -241,7 +281,8 @@ function mount(): void {
   // Resolve the entry scene from the flattened config. For a runner this reads
   // the first constituent's namespaced entry step (whose scene the flattener set
   // to that mini's resolved entry scene); for a normal protocol it is unchanged.
-  const scene_name = resolve_entry_scene_name_bound(active_config);
+  const entry_scene_name = resolve_entry_scene_name_bound(active_config);
+  let scene_name = restored_session?.machine.current_scene ?? entry_scene_name;
 
   // Measure actual #scene-root pixel dimensions before running the pipeline.
   // getBoundingClientRect() forces a synchronous layout reflow so the CSS grid
@@ -318,7 +359,7 @@ function mount(): void {
 
   function render_protocol_scene(
     next_scene_name: string,
-    seed_mode: "replace" | "reconcile" = "replace",
+    seed_mode: "replace" | "reconcile" | "none" = "replace",
   ): void {
     const scene = SCENES[next_scene_name];
     if (!scene) {
@@ -334,6 +375,22 @@ function mount(): void {
     // loudly inside resolvePrecomputedResult rather than silently falling back
     // to the runtime engine (single production path = precomputed).
     const pipeline_result: PipelineResult = resolvePrecomputedResult(next_scene_name, scene);
+    const interaction_geometry = pipeline_result.interactionGeometry;
+    if (!interaction_geometry.valid) {
+      throw new Error(
+        `protocol_host: scene "${next_scene_name}" has invalid interaction geometry (${interaction_geometry.issues
+          .map((issue) => issue.kind)
+          .join(", ")})`,
+      );
+    }
+    const minimum_frame = interaction_geometry.minimum_frame;
+    // The host owns shell sizing, but it consumes the precomputed scene contract
+    // verbatim: no browser-side envelope or frame calculation is permitted.
+    scene_frame.style.setProperty("--scene-min-interaction-width", `${minimum_frame.width_px}px`);
+    scene_frame.style.setProperty("--scene-min-interaction-height", `${minimum_frame.height_px}px`);
+    scene_frame.style.setProperty("--scene-interaction-hit-core", `${minimum_frame.hit_core_px}px`);
+    scene_frame.dataset.minimumInteractionFrame = `${minimum_frame.width_px}x${minimum_frame.height_px}`;
+    scene_frame.dataset.interactionHitCorePx = String(minimum_frame.hit_core_px);
 
     // Rebuild the scene-scoped target-identity adapter from this scene's
     // placements. Every ComputedItem carries its unique placement_name and its
@@ -366,10 +423,19 @@ function mount(): void {
     // `seed_mode` itself is only a caller-facing replace/reconcile choice.
     let effective_seed_mode: "replace" | "reconcile" | "none" = seed_mode;
     if (!session_started) {
-      scene_store.start_session(
-        build_seed_list(pipeline_result),
-        active_config.initial_state ?? [],
-      );
+      if (restored_session === null) {
+        scene_store.start_session(
+          build_seed_list(pipeline_result),
+          active_config.initial_state ?? [],
+        );
+      } else {
+        scene_store.restore_session(
+          build_seed_list(pipeline_result),
+          restored_session.declared_state,
+          restored_session.cursor_state,
+          restored_session.state_revision,
+        );
+      }
       session_started = true;
       // start_session has already populated the active projection. Avoid the
       // mount facade's compatibility replace path, which intentionally starts
@@ -391,7 +457,7 @@ function mount(): void {
   // snapshot signal; the renderer needs the accessor at mount time.
   const initial_snapshot = build_initial_snapshot(active_config);
   // Resolve the active interaction's authored target to the unique DOM
-  // placement_name as it enters the snapshot, so active_interaction_target
+  // placement_name as it enters the snapshot action, so its placement identity
   // matches the data-item-id the walker clicks, the select-promotion equality,
   // and the affordance highlight. Delegates to the live per-scene adapter.
   function resolve_target_label(target: string): string {
@@ -428,14 +494,44 @@ function mount(): void {
   const active_affordance: ActiveAffordanceAccessor = () => {
     const snap = affordance_snapshot_signal();
     return {
-      active_target: snap.active_interaction_target,
-      active_gesture: snap.active_interaction_gesture,
+      active_target: snap.active_interaction?.action?.placement_name ?? null,
+      active_gesture: snap.active_interaction?.action?.gesture ?? null,
     };
   };
 
+  // Validate the complete candidate before the first render. JSON decoding in
+  // the persistence module checks the serialized shape; these two domain
+  // boundaries check the checkpoint against the current protocol and every
+  // declared value against the current object schemas. The scene-store restore
+  // is atomic, so any failure leaves it untouched. Discard only this protocol's
+  // entry and continue as a fresh session instead of crashing during mount.
+  if (restored_session !== null) {
+    try {
+      validate_step_machine_checkpoint(active_config, restored_session.machine);
+      const restored_scene = SCENES[scene_name];
+      if (restored_scene === undefined) {
+        throw new Error(`protocol_host: restored scene "${scene_name}" does not exist`);
+      }
+      const restored_pipeline_result = resolvePrecomputedResult(scene_name, restored_scene);
+      scene_store.restore_session(
+        build_seed_list(restored_pipeline_result),
+        restored_session.declared_state,
+        restored_session.cursor_state,
+        restored_session.state_revision,
+      );
+      session_started = true;
+    } catch {
+      const cleared = persistence.clear();
+      restored_session = null;
+      scene_name = entry_scene_name;
+      delete document.documentElement.dataset.protocolSessionRevision;
+      set_session_status(cleared ? "fresh" : "unavailable");
+    }
+  }
+
   // First scene render. Runs after the emitter + affordance accessor exist so
   // the renderer mounts with a live highlight derivation from the start.
-  render_protocol_scene(scene_name);
+  render_protocol_scene(scene_name, session_started ? "none" : "replace");
   // Store-driven scene-op deps. ObjectStateChange/CursorAttach write
   // the reactive store; SceneChange re-renders the target scene through
   // render_protocol_scene while reconciling exact target identities, and the
@@ -528,8 +624,53 @@ function mount(): void {
     // scene so its step-entry scene render (sequence_runner boundary) fires only
     // on an actual change, never redundantly re-rendering the entry scene.
     initial_scene: scene_name,
+    ...(restored_session === null ? {} : { restore_checkpoint: restored_session.machine }),
   });
   step_machine_for_timer = step_machine;
+
+  // Persist only after the machine announces a stable accepted-interaction
+  // checkpoint. This event fires after synchronous scene operations and step
+  // transitions, so the stored cursor and declared state cannot lag the UI.
+  let save_queued = false;
+  let is_starting_over = false;
+  function flush_queued_session_save(): void {
+    if (!save_queued || is_starting_over) {
+      return;
+    }
+    save_queued = false;
+    const revision = persistence.save(
+      step_machine.get_checkpoint(),
+      scene_store.snapshot_declared_state(),
+      scene_store.snapshot_cursor_state(),
+      scene_store.state_revision,
+    );
+    if (revision === null) {
+      set_session_status("unavailable");
+      return;
+    }
+    document.documentElement.dataset.protocolSessionRevision = String(revision);
+    set_session_status("saved");
+  }
+
+  function on_persistence_event(event: ProtocolShellEvent): void {
+    if (event.kind !== "session_checkpoint_changed" || save_queued) {
+      return;
+    }
+    save_queued = true;
+    queueMicrotask(flush_queued_session_save);
+  }
+
+  const unsubscribe_persistence = emitter.subscribe(on_persistence_event);
+
+  function start_over(): void {
+    is_starting_over = true;
+    if (!persistence.clear()) {
+      is_starting_over = false;
+      set_session_status("unavailable");
+      return;
+    }
+    window.location.reload();
+  }
 
   // Restore the read-only walker/debug surfaces (window.PROTOCOL_STEPS +
   // window.gameState) the Solid HUD migration dropped. Read-only: the walker
@@ -556,8 +697,8 @@ function mount(): void {
   attach_click_resolver(active_scene_root, (target: string, _gesture: Gesture) => {
     const snapshot = emitter.get_snapshot();
     const command = scene_click_to_command(
-      snapshot.active_interaction_gesture,
-      snapshot.active_interaction_target,
+      snapshot.active_interaction?.action?.gesture ?? null,
+      snapshot.active_interaction?.action?.placement_name ?? null,
       target,
     );
     dispatch_gesture(step_machine, command);
@@ -645,6 +786,10 @@ function mount(): void {
           steps={protocol_steps}
           entry_step={active_config.entry_step}
           display_title={display_title}
+          session_status={session_status}
+          action_hint_open={action_hint_open}
+          on_action_hint_toggle={set_action_hint_open}
+          on_start_over={start_over}
         />
       ),
       shell_root,
@@ -664,6 +809,7 @@ function mount(): void {
   window.addEventListener(
     "pagehide",
     () => {
+      flush_queued_session_save();
       if (active_dispose !== null) {
         active_dispose();
         active_dispose = null;
@@ -684,6 +830,7 @@ function mount(): void {
       if (shell_unsubscribe !== null) {
         shell_unsubscribe();
       }
+      unsubscribe_persistence();
     },
     { once: true },
   );

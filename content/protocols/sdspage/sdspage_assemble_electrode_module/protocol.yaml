@@ -26,6 +26,8 @@ steps:
     sequence:
       - target: electrode_module
         gesture: click
+        instruction: Open the electrode-module frame.
+        hint: Bring the assembly workspace into view before seating the cassette.
         validator:
           preset: correct_target
         response:
@@ -38,6 +40,8 @@ steps:
                 wing_clamps_open: true
       - target: gel_cassette
         gesture: click
+        instruction: Seat the gel cassette with its short plate against the gasket.
+        hint: Align the short plate inward so the cassette seals the upper chamber.
         validator:
           preset: correct_target
         response:
@@ -48,6 +52,8 @@ steps:
                 cassette_mounted: true
       - target: electrophoresis_buffer_dam
         gesture: click
+        instruction: Install the buffer dam in the open module position.
+        hint: The dam closes the upper chamber for this one-gel run.
         validator:
           preset: correct_target
         response:
@@ -73,6 +79,8 @@ steps:
     sequence:
       - target: electrode_module
         gesture: click
+        instruction: Close both wing clamps on the electrode module.
+        hint: Clamp the cassette and dam against the gasket to make a leakproof chamber.
         validator:
           preset: correct_target
         response:
@@ -101,6 +109,8 @@ steps:
     sequence:
       - target: electrophoresis_tank
         gesture: click
+        instruction: Lower the sealed module into the electrophoresis tank.
+        hint: Align the banana plugs with the matching tank contacts.
         validator:
           preset: correct_target
         response:

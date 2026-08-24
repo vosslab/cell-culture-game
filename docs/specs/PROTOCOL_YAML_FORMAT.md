@@ -78,10 +78,10 @@ The `materials.yaml` file defines the materials used in the protocol: reagents, 
 
 Each material entry is a mapping keyed by snake_case name. All fields required.
 
-| Field           | Type   | Description                                                                                                                      |
-| --------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| `label`         | string | Display name (shown in UI and step text)                                                                                         |
-| `display_color` | string | A single scalar hex string (`#rrggbb`). See [MATERIAL_YAML_FORMAT.md](MATERIAL_YAML_FORMAT.md) for the exact format and rules.   |
+| Field           | Type   | Description                                                                                                                    |
+| --------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------ |
+| `label`         | string | Display name (shown in UI and step text)                                                                                       |
+| `display_color` | string | A single scalar hex string (`#rrggbb`). See [MATERIAL_YAML_FORMAT.md](MATERIAL_YAML_FORMAT.md) for the exact format and rules. |
 
 ### Materials example
 
@@ -107,13 +107,13 @@ A required top-level `learning` block carries pedagogy metadata for every mini-p
 
 ### Top-level protocol fields
 
-| Field           | Type   | Required                                     | Description                                                                                                                          |
-| --------------- | ------ | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| `protocol_type` | enum   | yes                             | One of `mini_protocol`, `sequence_runner`. See [PROTOCOL_VOCABULARY.md](PROTOCOL_VOCABULARY.md) Protocol kinds section. |
-| `protocol_name` | string | yes                             | Stable snake_case identifier for the protocol.                                                                          |
-| `entry_step`    | string | yes                             | `step_name` of the first step the runtime runs.                                                                         |
+| Field           | Type   | Required                         | Description                                                                                                             |
+| --------------- | ------ | -------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `protocol_type` | enum   | yes                              | One of `mini_protocol`, `sequence_runner`. See [PROTOCOL_VOCABULARY.md](PROTOCOL_VOCABULARY.md) Protocol kinds section. |
+| `protocol_name` | string | yes                              | Stable snake_case identifier for the protocol.                                                                          |
+| `entry_step`    | string | yes                              | `step_name` of the first step the runtime runs.                                                                         |
 | `steps`         | list   | conditional (mini_protocol only) | List of authored step entries. Absent for `sequence_runner`.                                                            |
-| `initial_state` | list   | no                              | Root session seed. Each entry is exactly `{target, state}`; see Initial session state.                                  |
+| `initial_state` | list   | no                               | Root session seed. Each entry is exactly `{target, state}`; see Initial session state.                                  |
 
 Example top of a mini-protocol `protocol.yaml`:
 
@@ -170,15 +170,15 @@ place in the hood; the hood is not a default starting scene.
 A sequence runner is a protocol that chains together a list of mini-protocols
 rather than authoring steps directly. A sequence runner declares:
 
-| Field            | Type            | Required | Description                                                                                                    |
-| ---------------- | --------------- | -------- | -------------------------------------------------------------------------------------------------------------- |
-| `protocol_type`  | enum            | yes      | Must be `sequence_runner`.                                                                                     |
-| `protocol_name`  | string          | yes      | Stable snake_case identifier for the sequence.                                                                 |
-| `entry_step`     | string          | yes      | Must match the first mini-protocol's `entry_step`.                                                             |
+| Field            | Type            | Required | Description                                                                                                                                                           |
+| ---------------- | --------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `protocol_type`  | enum            | yes      | Must be `sequence_runner`.                                                                                                                                            |
+| `protocol_name`  | string          | yes      | Stable snake_case identifier for the sequence.                                                                                                                        |
+| `entry_step`     | string          | yes      | Must match the first mini-protocol's `entry_step`.                                                                                                                    |
 | `mini_protocols` | list of strings | yes      | Non-empty ordered list of unique direct `mini_protocol` names. Every name resolves to `content/protocols/<cluster>/<name>/protocol.yaml`; nested runners are invalid. |
-| `steps`          | list            | no       | Must be absent. Sequence runners do not author steps; they list constituent mini-protocols.                    |
-| `learning`       | mapping         | yes      | Pedagogy block scoped to the overall pathway. Uses "Students completing this protocol..." phrasing.            |
-| `initial_state`  | list            | no       | Root-only session seed. It applies once before the first leaf; constituent mini seeds do not apply during this run. |
+| `steps`          | list            | no       | Must be absent. Sequence runners do not author steps; they list constituent mini-protocols.                                                                           |
+| `learning`       | mapping         | yes      | Pedagogy block scoped to the overall pathway. Uses "Students completing this protocol..." phrasing.                                                                   |
+| `initial_state`  | list            | no       | Root-only session seed. It applies once before the first leaf; constituent mini seeds do not apply during this run.                                                   |
 
 Example:
 
@@ -218,10 +218,10 @@ initial_state:
 
 Each list item has exactly two keys:
 
-| Key | Type | Requirement |
-| --- | --- | --- |
-| `target` | string | Names one object, one declared subpart, or one declared `subpart_group`. A group expands to its declared concrete subparts. |
-| `state` | mapping | Non-empty flat mapping from declared state-field names to declared primitive values. |
+| Key      | Type    | Requirement                                                                                                                 |
+| -------- | ------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `target` | string  | Names one object, one declared subpart, or one declared `subpart_group`. A group expands to its declared concrete subparts. |
+| `state`  | mapping | Non-empty flat mapping from declared state-field names to declared primitive values.                                        |
 
 The validator rejects an unknown object, subpart, or group; an empty group; an
 unknown state field; a nested value; a wrong primitive type; an out-of-range
@@ -261,8 +261,7 @@ Example (from `content/protocols/tutorial_plate_drug_additions/protocol.yaml`):
 
 ```yaml
 learning:
-  objectives:
-    Students completing this mini-protocol will have achieved fluency with
+  objectives: Students completing this mini-protocol will have achieved fluency with
     the OVCAR8 96-well plate map and the media-adjustment-before-drug ordering rule.
   outcomes: Students completing this mini-protocol will be able to dose a 96-well assay plate Day-2 unsupervised.
   goals: Overall, this mini-protocol aims to accomplish bridging the single-technique tutorials to the full OVCAR8 protocol.
@@ -309,34 +308,48 @@ A `step` has six required slots, all defined in
 
 Optional step-level fields used for display only:
 
-| Field        | Type            | Required | Description                                                                        |
-| ------------ | --------------- | -------- | ---------------------------------------------------------------------------------- |
-| `label`      | string          | no       | Short display name shown in the protocol panel.                                    |
-| `why`        | string          | no       | One-line rationale shown under the step card.                                      |
-| `part_name`  | string          | no       | Reference to a part name in the parts block; UI grouping only.                     |
-| `day_name`   | string          | no       | Reference to a day name in the days block; UI grouping only.                       |
-| `step_index` | number          | no       | 1-based display position within the part. Display order only; never controls flow. |
-| `scene`      | string          | no       | The scene this step's interactions happen in.                                      |
-| `details`    | list of strings | no       | Short strings rendered as a bulleted side panel beneath the prompt.                |
-| `tip`        | string          | no       | One sentence of professor guidance shown in the tip bubble next to the step prompt. Authoring real per-step tips is future content work (TODO). |
+| Field        | Type            | Required | Description                                                                                                                                     |
+| ------------ | --------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------- |
+| `label`      | string          | no       | Short display name shown in the protocol panel.                                                                                                 |
+| `why`        | string          | no       | One-line rationale shown under the step card.                                                                                                   |
+| `part_name`  | string          | no       | Reference to a part name in the parts block; UI grouping only.                                                                                  |
+| `day_name`   | string          | no       | Reference to a day name in the days block; UI grouping only.                                                                                    |
+| `step_index` | number          | no       | 1-based display position within the part. Display order only; never controls flow.                                                              |
+| `scene`      | string          | no       | The scene this step's interactions happen in.                                                                                                   |
+| `details`    | list of strings | no       | Short strings rendered as a bulleted side panel beneath the prompt.                                                                             |
+| `tip`        | string          | no       | Optional one-sentence professor-authored contextual guidance shown next to the step prompt; it does not replace mandatory per-interaction `instruction` and `hint`. |
 
 ## The interaction block
 
 Each entry in a step's `sequence` is one `interaction` block. An
-`interaction` has exactly four literal slots:
+`interaction` has six required structural slots, including its paired
+learner-guidance fields. Its complete closed key set is `target`, `gesture`,
+`instruction`, `hint`, `validator`, and `response`:
 
-| Slot        | Type    | Required | Description                                                                                                       |
-| ----------- | ------- | -------- | ----------------------------------------------------------------------------------------------------------------- |
-| `target`    | string  | yes      | The semantic name of the scene object or control the student acts on. Geometry-free; the scene resolves the name. |
-| `gesture`   | string  | yes      | How the student acts on the target. One of `click`, `drag`, `adjust`, `select`, `type`.                           |
-| `validator` | mapping | yes      | Named preset that checks this one gesture on this one target. See "Validator presets".                            |
-| `response`  | mapping | yes      | Container for post-validation behavior: `scene_operations` and optional `feedback`.                               |
+| Slot          | Type    | Required                      | Description                                                                                                                 |
+| ------------- | ------- | ----------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| `target`      | string  | yes                           | The semantic name of the scene object or control the student acts on. Geometry-free; the scene resolves the name.           |
+| `gesture`     | string  | yes                           | How the student acts on the target. One of `click`, `drag`, `adjust`, `select`, `type`.                                     |
+| `instruction` | string  | yes                           | Non-empty plain-string primary pre-action instruction authored for this interaction. |
+| `hint`        | string  | yes                           | Non-empty plain-string disclosed pre-action help authored for this interaction; it changes with `instruction` when repeated actions need distinct intent. |
+| `validator`   | mapping | yes                           | Named preset that checks this one gesture on this one target. See "Validator presets".                                      |
+| `response`    | mapping | yes                           | Container for post-validation behavior: `scene_operations` and optional `feedback`.                                         |
 
 There is no separate interaction task-type slot. The work a gesture does
 is determined by the gesture plus the kind of target it lands on.
 The cross-layer distinction between authored gestures, physical browser input,
 object capabilities, and response operations is summarized in
 `docs/specs/GESTURE_MODEL.md`.
+
+The generator preserves the authored guidance pair. The protocol runtime owns
+the learner-facing active-interaction projection and supplies the shell with
+the current ordinal, resolved target identity, learner label, safe adjustment
+value, instruction, and hint as one state. The shell renders that projection
+only and does not derive, replace, or compose action meaning.
+
+This is a breaking pre-production migration: every existing authored
+interaction must gain both non-empty guidance fields before validation. There
+is no compatibility default or generic runtime fallback.
 
 ### The `response` container
 
@@ -503,8 +516,9 @@ protocol:
 - **Sequence** (`sequence`): the ordered list of `interaction` blocks. Each
   is one `gesture` on one `target` with its own `validator` and `response`.
   Order always matters.
-- **Interaction slots**: every interaction carries exactly `target`,
-  `gesture`, `validator`, and `response`. There is no tool-first click
+- **Interaction slots**: every interaction carries required `target`,
+  `gesture`, non-empty plain-string `instruction`, non-empty plain-string
+  `hint`, `validator`, and `response`. There is no tool-first click
   field and no source or destination slot; the target's kind plus the
   gesture carries the task semantics.
 - **Response** (`response`): `scene_operations` (an ordered list of typed
@@ -534,8 +548,17 @@ The build process (`pipeline/build_protocol_data.py`) enforces these rules:
 
 ### Interaction validation
 
-- Every `interaction` carries exactly the four slots `target`, `gesture`,
-  `validator`, and `response`.
+- Every `interaction` carries the six required keys `target`, `gesture`,
+  `instruction`, `hint`, `validator`, and `response`; `instruction` and `hint`
+  must be non-empty plain strings. Unknown interaction keys fail closure
+  validation.
+- A repeated exact `(target, gesture)` pair within one step must use both
+  guidance keys on every member. After trim/case normalization, every member's
+  `instruction` and every member's `hint` must be distinct.
+- `select` guidance cannot reveal the correct canonical target, placement
+  identity, or learner-facing label before rejection. `type` guidance cannot
+  reveal a literal `target_with_value` expected value. These are bounded
+  literal checks against the loaded content registry, not synonym detection.
 - Every `target` value resolves to a scene object or to a declared subpart
   of a structured object (`<object_name>.<subpart_name>`) through the scene's
   adapter registry; see [SCENE_YAML_FORMAT.md](SCENE_YAML_FORMAT.md) and

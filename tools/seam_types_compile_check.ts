@@ -43,6 +43,10 @@ export function _check_exhaustive(event: ProtocolShellEvent): string {
       return event.protocol_name;
     case "protocol_completed":
       return event.protocol_name;
+    case "session_restored":
+      return event.step_name ?? "complete";
+    case "session_checkpoint_changed":
+      return "session_checkpoint_changed";
     case "step_started":
       return event.step_name;
     case "step_completed":
@@ -87,8 +91,7 @@ const _snapshot_shape_check: ShellViewSnapshot = {
   current_step_name: null,
   current_prompt: null,
   current_tip: null,
-  current_interaction_index: 0,
-  current_interaction_count: 0,
+  active_interaction: null,
   progress: { completed_step_count: 0, total_step_count: 0 },
   last_outcome: null,
   last_rejection: null,
@@ -105,10 +108,6 @@ const _snapshot_shape_check: ShellViewSnapshot = {
   tray: { items: [] },
   active_scene_name: null,
   is_complete: false,
-  active_interaction_target: null,
-  active_interaction_label: null,
-  active_interaction_gesture: null,
-  active_interaction_value: null,
   pending_timed_wait: null,
 };
 void _snapshot_shape_check;

@@ -24,7 +24,7 @@
 //   runtime itself uses to resolve a click's gesture (protocol_host.tsx).
 //
 // The signals are sourced from:
-//   - the emitter snapshot (current_step_name, current_interaction_index,
+//   - the emitter snapshot (current_step_name, active_interaction,
 //     active_scene_name, progress.completed_step_count, is_complete);
 //   - step_completed / interaction_rejected events (completed-step ids,
 //     wrong-order counters);
@@ -144,8 +144,8 @@ export interface WalkerGameState {
   // runtime applies them sequentially and collapsing would hide a conflict.
   activeStateWrites: ReadonlyArray<ActiveStateWrite>;
   // The current interaction's target and gesture, projected read-only from the
-  // step machine's emitter snapshot (active_interaction_target /
-  // active_interaction_gesture). These are the SAME fields the runtime itself
+  // step machine's emitter snapshot (active_interaction.action). These are the
+  // same action details the runtime itself
   // uses to resolve which gesture a click on a target counts as
   // (see protocol_host.tsx attach_click_resolver). The schema-driven walker
   // reads them to know which VISIBLE [data-item-id] element to click next, so
@@ -425,9 +425,12 @@ export function install_walker_debug_surface(
   function rebuild_game_state(): void {
     const snapshot = emitter.get_snapshot();
     const held = read_held(store);
+    const active_interaction = snapshot.active_interaction;
+    const interaction_index = active_interaction?.index ?? 0;
+    const active_action = active_interaction?.action ?? null;
     const game_state: WalkerGameState = {
       activeStepId: snapshot.current_step_name,
-      interactionIndex: snapshot.current_interaction_index,
+      interactionIndex: interaction_index,
       activeScene: snapshot.active_scene_name,
       // Fresh array each rebuild so a reader cannot mutate the internal list.
       completedSteps: completed_steps.slice(),
@@ -443,34 +446,37 @@ export function install_walker_debug_surface(
       activeStateWrites: resolve_active_state_writes(
         config,
         snapshot.current_step_name,
-        snapshot.current_interaction_index,
+        interaction_index,
       ),
       // Read-only projection of the snapshot's active-interaction fields. The
       // walker mirrors the runtime's own click resolution by clicking the
-      // visible element whose data-item-id equals activeTarget. active_interaction_target
-      // now carries the adapter-resolved placement_name (M8 target identity): the
+      // visible element whose data-item-id equals activeTarget. The active action
+      // carries the adapter-resolved placement_name: the
       // reducer normalizes the authored target to the unique DOM placement_name
       // before it enters the snapshot, so activeTarget and data-item-id agree
       // (both the placement_name) and the walker's [data-item-id="<activeTarget>"]
       // selector matches with zero walker-logic change, even when a scene renames
       // a placement (placement_name hood_flask for object_name t75_flask).
-      activeTarget: snapshot.active_interaction_target,
-      activeGesture: snapshot.active_interaction_gesture,
+      activeTarget: active_action?.placement_name ?? null,
+      activeGesture: active_action?.gesture ?? null,
       activeDragDestination: resolve_active_drag_destination(
         config,
         snapshot.current_step_name,
-        snapshot.current_interaction_index,
+        interaction_index,
       ),
       activeMaterialEffects: resolve_active_material_effects(
         config,
         snapshot.current_step_name,
-        snapshot.current_interaction_index,
+        interaction_index,
       ),
     };
     window.gameState = game_state;
   }
 
   function on_event(event: ProtocolShellEvent): void {
+    if (event.kind === "session_restored") {
+      completed_steps.splice(0, completed_steps.length, ...event.completed_step_names);
+    }
     // Record completed step ids (resolution "complete" only; "retry" restarts
     // the step and must not count as completed).
     if (event.kind === "step_completed" && event.resolution === "complete") {

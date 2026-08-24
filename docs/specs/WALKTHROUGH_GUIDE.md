@@ -53,9 +53,11 @@ The core loop is:
 1. Serve the compiled `dist/` directory.
 2. Launch headless Chromium through Playwright.
 3. Open the per-protocol page `/<protocol>.html` exactly as a student would.
-4. Reset browser persistence with `localStorage.clear()` and reload.
-5. Enter through any visible welcome/start control (best-effort; the new host
-   has none, so this is a no-op there).
+4. Start in the Playwright worker's fresh isolated browser context; do not alter
+   application persistence behind the visible UI.
+5. Enter through a visible product-declared welcome control
+   (`#welcome-start-btn` or `[data-welcome-start]`; the current host has none,
+   so this is a no-op).
 6. Read the compiled step list from `window.PROTOCOL_STEPS`.
 7. Drive the active step: read `gameState.activeTarget` / `gameState.activeGesture`
    and prove that the same target is advertised by the visible action cue and
@@ -83,9 +85,9 @@ served locally and completed through the same visible click path a learner uses.
 Specifically, it proves:
 
 - The built app loads through the per-protocol page `/<protocol_name>.html`.
-- The walker starts from normal browser entry, clears `localStorage`, reloads,
-  and dismisses any visible welcome/start control by clicking it (the new host
-  has none).
+- The walker starts from normal browser entry in a fresh isolated browser
+  context and dismisses an explicitly identified welcome control by clicking it
+  (the current host has none).
 - Protocol steps are available through `window.PROTOCOL_STEPS`.
 - Runtime state is available through `window.gameState`, including the current
   interaction's `activeTarget` / `activeGesture`.
@@ -258,8 +260,8 @@ Current outputs include:
 - `playthrough_report.json`: structured run report with timestamp, protocol id,
   wrong-order mode, screenshot mode, summary counts, log entries, final-state
   notes, console errors, and same-origin network errors.
-- `initial_state.png`: screenshot after browser entry, localStorage clearing,
-  reload, and welcome dismissal.
+- `initial_state.png`: screenshot after fresh isolated browser entry and welcome
+  dismissal.
 - `checkpoint_<step>_i<n>_<target>.png`: actionable-state evidence saved before
   every interaction. Each corresponding manifest entry records viewport
   geometry, painted-affordance evidence, visible action cue, interaction
@@ -299,17 +301,17 @@ The current sequence is:
 3. Open `/<protocol_name>.html`.
 4. Wait for browser exports: `window.gameState` and
    `window.PROTOCOL_STEPS` (read-only walker surfaces).
-5. Clear `localStorage`.
-6. Reload the page.
-7. Wait for exports again.
-8. Click a visible welcome/start control if present (the new host has none, so
-   this is a no-op there; `step_machine.start()` already ran at mount).
-9. Read `window.PROTOCOL_STEPS` from the page.
-10. Save `initial_state.png`.
+5. Click a visible `#welcome-start-btn` or `[data-welcome-start]` control if
+   present (the current host has none, so this is a no-op there;
+   `step_machine.start()` already ran at mount).
+6. Read `window.PROTOCOL_STEPS` from the page.
+7. Save `initial_state.png`.
 
-This matters because persisted browser state can hide runtime bugs. The walker
-is expected to start from fresh browser state and enter through the same UI path
-as a normal user.
+The Playwright runner gives each test a fresh isolated context, so the walker
+gets deterministic first-entry state without reaching behind the product UI.
+Persistence has its own connected acceptance journey: it advances through
+visible controls, proves the production save record, reloads that same page,
+resumes, completes, and resets through the visible confirmation dialog.
 
 ## How the walker decides what to click
 

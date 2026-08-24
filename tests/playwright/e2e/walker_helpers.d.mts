@@ -23,6 +23,8 @@ export interface WalkerReport {
 
 export declare function readGameState(page: Page): Promise<ReadonlyGameState>;
 
+export declare function openVisibleActionHint(page: Page): Promise<void>;
+
 export declare function clickTargetAndWaitProgress(
   page: Page,
   itemId: string,
@@ -33,4 +35,12 @@ export declare function adjustCommitAndWaitProgress(
   page: Page,
   numericValue: string,
   report: WalkerReport,
+): Promise<unknown>;
+
+export declare function waitForVisibleTimedWait(
+  page: Page,
+  stepName: string,
+  resultsDir: string,
+  report: WalkerReport,
+  waitBudgetMs?: number,
 ): Promise<unknown>;
