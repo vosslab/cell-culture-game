@@ -271,16 +271,40 @@ this table before proceeding to the next one.
 
 ## Final closeout
 
-- Final disposition: 139 retained SVGs modified, 40 retired SVGs deleted, and
-  seven result composites byte-preserved.
-- The final asset audit reports 131 objects, 146 SVGs, and zero findings.
+### Post-sweep human-review disposition
+
+The 186-row table above remains the locked baseline ledger. Human review then
+approved these pre-production canonicalization changes:
+
+| Baseline asset                                | Final disposition | Durable owner                                                                                               |
+| --------------------------------------------- | ----------------- | ----------------------------------------------------------------------------------------------------------- |
+| `binary_state/protein_ladder_tube_empty.svg`  | deleted           | `protein_ladder_tube` selects canonical `variable_volume/microtube.svg`                                     |
+| `binary_state/protein_ladder_tube_filled.svg` | deleted           | material volume renders on canonical `variable_volume/microtube.svg`                                        |
+| `binary_state/protein_sample_tube_empty.svg`  | deleted           | `protein_sample_tube` selects canonical `variable_volume/microtube.svg`                                     |
+| `binary_state/protein_sample_tube_filled.svg` | deleted           | material volume renders on canonical `variable_volume/microtube.svg`                                        |
+| `binary_state/sharps_container_full.svg`      | deleted           | both recorded amounts select one opaque `static/sharps_container.svg`                                       |
+| `static/mtt_vial.svg`                         | deleted           | the authored powder source uses ordinary microtube geometry; solution remains in the authored 15 mL conical |
+| `binary_state/gel_opening_tool_hidden.svg`    | deleted           | one approximately 8 cm aluminum lever lives at `static/gel_opening_tool.svg`                                |
+
+- Current disposition: 132 ordinary SVGs retained, 47 SVGs retired, and seven
+  result composites byte-preserved, for 139 final SVGs.
+- The current production build discovers 139 SVGs and generates 139 manifest
+  entries for 129 objects. The final strict SVG audit passes with no findings or
+  orphans.
 - The material baseline was intentionally refreshed after visual review; the
   production material contact sheet passed.
-- `./run_playwright_tests.sh` passed 115/115 and `./super_all_tests.sh` passed
-  20/20.
-- Those delivery counts describe the SVG-sweep tree before the later vendored
-  template refresh. Combined-tree revalidation remains pending until the
-  vendored permanent-test blockers are resolved.
-- The labeled all-SVG contact sheet is published at
+- Final combined-tree evidence includes 6,182 passing pytest cases,
+  `./run_playwright_tests.sh` at 115/115, and `./super_all_tests.sh` at 20/20.
+- The corrected labeled all-SVG contact sheet is published at
   [final_equipment_contact_sheet.svg](../../figures/final_equipment_contact_sheet.svg)
-  as the final review artifact. Human visual acceptance remains pending.
+  after the independent repaired-asset review.
+- Bounded human-review repairs restored the normalized direct Servier water-bath
+  pair; corrected layer order in the identified equipment families; restored
+  the repository-authored T75 form; and applied the canonical labware/state
+  ownership listed above.
+- Human findings supersede the earlier agent-only visual-stream pass as final
+  acceptance evidence. Independent re-review and the corrected 139-asset
+  contact-sheet presentation check pass; human acceptance remains open.
+- The contact sheet embeds all 139 current assets, marks exactly seven protected
+  result composites, has no external references, parses as XML, and renders at
+  2400 x 7776 px.

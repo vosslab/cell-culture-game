@@ -7,13 +7,25 @@
 - The equipment SVG sweep adopted the de-shadowed Servier visual dialect.
   Detached floor shadows were removed narrowly while local form shading and
   semantic/runtime anchors were retained.
+- Human review rejected the flattened water-bath redraw. Both water-bath states
+  now use the normalized direct Servier geometry on one stable canvas, with its
+  coherent projection, part order, local depth, and runtime anchors retained.
+  The source has no detached floor-shadow candidate. The labeled contact sheet
+  was updated after the broader human layer-order review completed.
 - Removed exactly 40 unreachable retired static SVG variants after reachability
   validation. Seven result composites remain byte-preserved; their migration is
   deferred.
 - Retired `assets/equipment/MISSING_SVG_PLACEHOLDERS.md` after confirming that
-  all 146 retained equipment SVGs are finished artwork. Reconciled
+  no retained equipment SVG uses its retired dashed-box template. Reconciled
   `assets/equipment/SOURCES.md` and `assets/SVG_ASSET_GAPS.md` against the current
-  recursive asset tree, including corrected DBCLS provenance for `tube_rack.svg`.
+  recursive asset tree, including corrected DBCLS provenance for `tube_rack.svg`
+  and the current vendored Bioicons filename for the protein-ladder microtube.
+- Applied the human SVG review at the physical-object boundary: corrected the
+  identified layer/projection defects, restored the authored T75 flask, reused
+  the canonical microtube for protein samples, collapsed the opaque sharps
+  container to one form, and replaced the binary gel-opening-tool model with one
+  static approximately 8 cm aluminum lever. The final tree contains 132 ordinary
+  equipment SVGs and seven deferred, byte-preserved result composites.
 - Made scene generation strict for object/SVG resolution. Removed the authored
   `missing_svg` scene field, the alternate scene-emission mode, and the generated
   `svg_placeholder_keys.ts` compatibility surface. Layout-only impossible states
@@ -32,10 +44,15 @@
   verified, self-contained final SVG was intentionally promoted to
   `docs/figures/` and linked from the README and usage docs for GitHub-based
   human review; the oversized PNG remains ignored implementation evidence.
-- A later template-vendored refresh invalidated the SVG-sweep tree's final-suite
-  counts as combined-tree evidence. Current revalidation remains pending because
-  newly vendored permanent gates impose an unapproved whole-repository line
-  migration and a machine-dependent checkout-size subprocess check.
+- Re-audited the later template-vendored tests against the permanent-test
+  checklist. Removed machine-dependent checkout-size, arbitrary source-line,
+  and blanket AST annotation gates instead of turning implementation census
+  checks into permanent product contracts.
+- Final combined-tree validation passes 6,182 pytest cases, 115/115 Playwright
+  tests, and all 20 exhaustive-suite gates. The strict SVG audit reports 129
+  objects, 139 SVGs, zero findings, and zero orphans. One-time contact-sheet
+  checks confirm 139 embedded assets, seven protected markers, unique local IDs,
+  no external references, valid XML, and a 2400 x 7776 px raster render.
 
 ## 2026-08-23
 

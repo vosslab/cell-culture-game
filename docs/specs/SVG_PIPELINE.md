@@ -66,6 +66,12 @@ accent. Material colors remain owned by the material pipeline. A retained
 detail must clarify function or material at normal scene size: typical examples
 are a graduation band, cap ribs, lens, control, electrode, or pipette tip.
 
+When a Servier source is selected, preserve its object-part drawing order,
+projection, and functional overlaps. Apply source-faithful normalization and
+narrow repository adaptations to that layer stack. An original redraw is
+appropriate when the source cannot satisfy the scientific or runtime contract,
+and its replacement must retain equally coherent physical volume and occlusion.
+
 Remove detached floor shadows with the repository normalizer's narrow
 floor-shadow operation before cropping the asset. This does not require flat
 art: retain only the local shade, liquid depth, recess, or highlight needed to

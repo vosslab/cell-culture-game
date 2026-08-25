@@ -9,5 +9,4 @@
     <circle cx="188" cy="87" r="3.4"/><circle cx="209" cy="101" r="3.4"/><circle cx="229" cy="108" r="3.4"/>
     <circle cx="175" cy="124" r="3.4"/><circle cx="202" cy="140" r="3.4"/>
   </g>
-  <path fill="none" stroke="#f8feff" stroke-width="1.6" stroke-linecap="round" d="M 291 94 L 329 94 M 291 106 L 329 106 M 291 118 L 329 118" opacity="0.9"/>
 </svg>

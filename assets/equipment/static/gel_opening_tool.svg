@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 205 100" role="img" aria-labelledby="gel-opening-tool-title gel-opening-tool-desc">
+  <title id="gel-opening-tool-title">Gel cassette opening lever</title>
+  <desc id="gel-opening-tool-desc">A compact aluminum pry bar with a tapered working end for separating gel-cassette plates.</desc>
+  <defs>
+    <linearGradient id="gel-opening-tool-metal" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#f1f4f5"/>
+      <stop offset="0.46" stop-color="#aebbc0"/>
+      <stop offset="1" stop-color="#7d8d94"/>
+    </linearGradient>
+    <linearGradient id="gel-opening-tool-edge" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#aab7bd"/>
+      <stop offset="1" stop-color="#64737a"/>
+    </linearGradient>
+  </defs>
+  <g id="opening-lever" stroke="#33444c" stroke-linejoin="round">
+    <path id="lever-edge" d="M17 55 H158 L196 43 V51 L159 65 H17 Q10 65 8 58 V48 Q10 55 17 55 Z" fill="url(#gel-opening-tool-edge)" stroke-width="3"/>
+    <path id="lever-body" d="M18 31 H158 L196 43 L158 56 H18 Q9 56 8 45 Q8 34 18 31 Z" fill="url(#gel-opening-tool-metal)" stroke-width="4"/>
+    <path id="lever-working-wedge" d="M158 31 L196 43 L158 56 Z" fill="#dce4e6" stroke-width="3"/>
+    <path id="lever-highlight" d="M25 38 H150" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="4" opacity="0.82"/>
+    <ellipse id="lever-hanging-hole" cx="26" cy="44" rx="7" ry="6" fill="#596b73" stroke-width="3"/>
+    <ellipse id="lever-hole-reflection" cx="24.5" cy="42.5" rx="2.4" ry="2" fill="#cad4d7" stroke="none"/>
+    <path id="working-edge" d="M158 56 L196 43" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="2.5" opacity="0.76"/>
+  </g>
+</svg>

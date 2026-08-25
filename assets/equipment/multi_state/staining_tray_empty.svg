@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 306.973 424.97">
   <title>Empty staining tray</title>
-  <defs><clipPath id="anchor_liquid_clip"><rect x="30" y="126" width="247" height="170" rx="18"/></clipPath></defs>
-  <path d="M25 91 48 67h211l23 24v231l-23 27H48l-23-27Z" fill="#d5edf6" stroke="#26363c" stroke-linejoin="round" stroke-width="5"/>
-  <path d="m25 91 23-24h211l23 24-22 27H47Z" fill="#f9fcfd" stroke="#26363c" stroke-linejoin="round" stroke-width="5"/>
-  <path d="M35 117h237v194H35Z" fill="#f8fcfd" stroke="#5e96aa" stroke-linejoin="round" stroke-width="3"/>
-  <rect x="30" y="126" width="247" height="170" rx="18" fill="#eaf7fb" stroke="#26363c" stroke-width="4"/>
+  <defs><clipPath id="anchor_liquid_clip"><path d="M44 145H262L244 279H62Z"/></clipPath></defs>
+  <path d="M43 112H263L278 143H28Z" fill="#e6f5fa" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
+  <path d="m28 143 15-31 19 167-14 27Z" fill="#c4e4ef" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
+  <path d="m278 143-15-31-19 167 14 27Z" fill="#b6dce9" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
+  <path d="M44 145H262L244 279H62Z" fill="#eaf7fb" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
   <g id="overlay_root"/>
-  <rect id="anchor_liquid_bounds" x="30" y="126" width="247" height="170" rx="18" display="none" fill="none" stroke="none"/>
-  <g clip-path="url(#anchor_liquid_clip)" fill="none" stroke="#b4d8e5" stroke-width="3"><path d="M48 169h211M48 211h211M48 253h211"/><path d="M82 143v136M153 143v136M224 143v136"/></g>
-  <path d="M35 311h237l-13 19H48Z" fill="#b8deec" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
-  <path d="M48 349h211" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="4"/>
+  <rect id="anchor_liquid_bounds" x="44" y="145" width="218" height="134" display="none" fill="none" stroke="none"/>
+  <g clip-path="url(#anchor_liquid_clip)" fill="none" stroke="#b4d8e5" stroke-width="2.5"><path d="M61 184h185M55 224h185"/><path d="M101 159 84 267M153 151 136 273M205 151 188 273"/></g>
+  <path d="M62 279H244L258 304H48Z" fill="#d6edf4" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
+  <path d="M65 286H241" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="3" opacity=".9"/>
 </svg>

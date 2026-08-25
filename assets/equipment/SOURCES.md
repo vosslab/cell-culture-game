@@ -45,17 +45,11 @@ Medical Art sources.
 
 ### Microbiology / Servier
 
-| Our Filename                     | Servier Source                                         | Notes                                           |
-| -------------------------------- | ------------------------------------------------------ | ----------------------------------------------- |
-| `falcon_15ml.svg`                | `Microbiology/Servier/falcon-15ml-empty.svg`           | Material-rendered conical form                  |
-| `falcon_50ml.svg`                | `Microbiology/Servier/falcon-50ml-empty.svg`           | Material-rendered conical form                  |
-| `bottle_medium_pink.svg`         | `Microbiology/Servier/bottle-medium-pink.svg`          | Shared material-rendered reagent-bottle form    |
-| `cell_counter_instrument.svg`    | `Microbiology/Servier/cell-culture-equipment-1.svg`    | Automated cell-counter instrument state         |
-| `mtt_vial.svg`                   | `Microbiology/Servier/tube-screwcap-closed-orange.svg` | MTT stock vial                                  |
-| `protein_sample_tube_empty.svg`  | `Microbiology/Servier/microtube-closed-blue.svg`       | Microtube (blue tint for sample identification) |
-| `protein_sample_tube_filled.svg` | `Microbiology/Servier/microtube-closed-blue.svg`       | Microtube (blue tint for sample identification) |
-| `protein_ladder_tube_empty.svg`  | `Microbiology/Servier/microtube-closed-pink.svg`       | Microtube (pink tint for ladder identification) |
-| `protein_ladder_tube_filled.svg` | `Microbiology/Servier/microtube-closed-pink.svg`       | Microtube (pink tint for ladder identification) |
+| Our Filename             | Servier Source                                | Notes                                        |
+| ------------------------ | --------------------------------------------- | -------------------------------------------- |
+| `falcon_15ml.svg`        | `Microbiology/Servier/falcon-15ml-empty.svg`  | Material-rendered conical form               |
+| `falcon_50ml.svg`        | `Microbiology/Servier/falcon-50ml-empty.svg`  | Material-rendered conical form               |
+| `bottle_medium_pink.svg` | `Microbiology/Servier/bottle-medium-pink.svg` | Shared material-rendered reagent-bottle form |
 
 ### Lab Apparatus / DBCLS (CC-BY-4.0)
 
@@ -73,9 +67,9 @@ Commercial use permitted.
 
 ### Bioicons CC0
 
-| Our Filename           | Source                                                  | Notes                   |
-| ---------------------- | ------------------------------------------------------- | ----------------------- |
-| `96well_pcr_plate.svg` | `cc-0/Lab_apparatus/Xi-Chen/96well_pcr_plate_kelly.svg` | Public-domain plate art |
+| Our Filename           | Source                                                  | Notes                                                                              |
+| ---------------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------- |
+| `96well_pcr_plate.svg` | `cc-0/Lab_apparatus/Xi-Chen/96well_pcr_plate_kelly.svg` | Public-domain orientation reference for the repository-authored orthographic plate |
 
 ## Repository artwork
 
@@ -85,3 +79,12 @@ external source here before reuse so licensing and attribution stay explicit.
 
 Generic, unbranded repository artwork is an accepted finished target alongside
 sourced art.
+
+| Our Filename                  | Repository source and notes                                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `cell_counter_instrument.svg` | Repository-authored generic automated cell counter; no external source geometry retained.                     |
+| `gel_opening_tool.svg`        | Repository-authored generic aluminum cassette-opening lever; manufacturer manuals informed its physical role. |
+| `mtt_powder_vial.svg`         | Discrete solid-content form using the canonical repository microtube geometry and a contained powder bed.     |
+| `mtt_powder_vial_empty.svg`   | Empty companion using the same canonical repository microtube geometry.                                       |
+| `t75_flask_empty.svg`         | State adaptation of the repository-authored root `T75_flask.svg`.                                             |
+| `t75_flask_filled.svg`        | Filled state adaptation of the repository-authored root `T75_flask.svg`.                                      |

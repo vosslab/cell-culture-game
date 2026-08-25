@@ -1,13 +1,13 @@
 object_name: mtt_powder_container
 kind: bottle
-label: MTT powder vial
+label: Pre-weighed MTT microtube
 
 state_fields:
   - field_name: material_name
     type: enum
     allowed: [mtt_powder, empty]
     default: mtt_powder
-    description: Contents of this vial.
+    description: Contents of this pre-weighed microtube.
   - field_name: material_volume
     type: float
     unit: mg

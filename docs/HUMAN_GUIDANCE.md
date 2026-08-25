@@ -41,6 +41,32 @@ Provenance never permits outlining prose. Treat blind recognition as
 diagnostic evidence, and improve ambiguity when it creates a material
 pedagogical risk.
 
+## Scientific equipment SVGs
+
+Research ambiguous labware against primary manufacturer images or manuals and
+the recorded source asset before drawing it. Use the de-shadowed Servier
+Bioicons subset as the target visual language: remove detached floor shadows
+while preserving local shading that explains form. Treat other Bioicons source
+families as references rather than style targets.
+
+Reuse one canonical physical SVG form when semantic objects use the same
+labware and differ only by identity, contents, or volume. Keep distinct object
+names when protocols need distinct state contracts, then let their
+`visual_states` select the shared form and let material rendering show the
+contents. Encode state changes in equipment art when the physical object makes
+them observable. An opaque sharps container, for example, uses one SVG whether
+its recorded state is empty or full.
+
+Keep genuinely different labware distinct. A T75 tissue-culture flask is a flat
+growth-surface vessel with a canted neck. Microtubes and conical centrifuge
+tubes are separate forms; select between them from the authored material volume
+and procedure rather than from a generic "tube" label.
+
+When the user identifies repository-authored artwork as the intended source,
+compare that artwork and its history before replacing it with a generic redraw.
+Use focused standalone and composite renders during implementation, then use
+the labeled equipment contact sheet as the final human visual review surface.
+
 ## Connected learner acceptance
 
 Keep browser acceptance on the same built system and visible workflows learners

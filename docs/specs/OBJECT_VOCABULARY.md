@@ -235,9 +235,9 @@ Rules:
   subpart material rendering remains a separate generated-geometry mechanism.
 
   This rule does not prohibit complete discrete forms that depict genuine form,
-  geometry, or content states, including `mtt_powder_vial_empty` and
-  `sharps_container_full`; they may be selected by a material-like field when no
-  paired runtime material binding applies. Filenames never determine intent.
+  geometry, or content states, including `mtt_powder_vial_empty`; they may be
+  selected by a material-like field when no paired runtime material binding
+  applies. Filenames never determine intent.
 
 Object YAML must not name an SVG `layer_name`, `paint_role`, `adjustment`,
 stacking phase, runtime handle, DOM id, or SVG-recipe sidecar. Runtime code

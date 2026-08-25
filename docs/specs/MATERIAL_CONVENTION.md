@@ -523,8 +523,7 @@ This rule is deliberately narrower than a filename rule. Complete discrete forms
 remain valid when they represent genuine form, geometry, or content states, even
 when their names include words such as `empty` or `full`, or when the selecting
 field is material-like but has no paired runtime material binding. For example,
-`mtt_powder_vial.svg` / `mtt_powder_vial_empty.svg` and
-`sharps_container.svg` / `sharps_container_full.svg` are legitimate ordinary
+`mtt_powder_vial.svg` / `mtt_powder_vial_empty.svg` are legitimate ordinary
 discrete forms. Names alone never classify an asset's intent.
 
 The prohibited fan-out is selecting different forms solely to encode the color

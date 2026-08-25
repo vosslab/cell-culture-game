@@ -1,11 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 306.973 424.97">
   <title>Staining tray with destaining gel</title>
-  <defs><clipPath id="bath"><rect x="30" y="126" width="247" height="170" rx="18"/></clipPath></defs>
-  <path d="M25 91 48 67h211l23 24v231l-23 27H48l-23-27Z" fill="#d5edf6" stroke="#26363c" stroke-linejoin="round" stroke-width="5"/>
-  <path d="m25 91 23-24h211l23 24-22 27H47Z" fill="#f9fcfd" stroke="#26363c" stroke-linejoin="round" stroke-width="5"/>
-  <path d="M35 117h237v194H35Z" fill="#f8fcfd" stroke="#5e96aa" stroke-linejoin="round" stroke-width="3"/>
-  <rect x="30" y="126" width="247" height="170" rx="18" fill="#b8dce6" stroke="#26363c" stroke-width="4"/>
-  <g clip-path="url(#bath)"><path d="M30 148h247v148H30Z" fill="#9acbd8"/><path d="M30 148h247" fill="none" stroke="#f2fcfd" stroke-width="4"/><rect x="91" y="157" width="125" height="101" rx="5" fill="#e4eef0" stroke="#456773" stroke-width="3"/><path d="M107 164v87M124 164v87M141 164v87M158 164v87M175 164v87M192 164v87" stroke="#4d829b" stroke-width="2.4"/><path d="M103 190h101M103 217h101" stroke="#9fc4cf" stroke-width="3"/></g>
-  <path d="M35 311h237l-13 19H48Z" fill="#b8deec" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
-  <path d="M48 349h211" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="4"/>
+  <defs><clipPath id="anchor_liquid_clip"><path d="M44 145H262L244 279H62Z"/></clipPath></defs>
+  <path d="M43 112H263L278 143H28Z" fill="#e6f5fa" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
+  <path d="m28 143 15-31 19 167-14 27Z" fill="#c4e4ef" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
+  <path d="m278 143-15-31-19 167 14 27Z" fill="#b6dce9" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
+  <path d="M44 145H262L244 279H62Z" fill="#b9dce6" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
+  <g id="overlay_root"/>
+  <rect id="anchor_liquid_bounds" x="44" y="145" width="218" height="134" display="none" fill="none" stroke="none"/>
+  <g clip-path="url(#anchor_liquid_clip)"><path d="M44 158H260" fill="none" stroke="#f5fdff" stroke-width="3"/><path d="M91 169H215L202 250H104Z" fill="#e4eef0" stroke="#456773" stroke-linejoin="round" stroke-width="3"/><g fill="none" stroke="#5b91a9" stroke-width="2.3"><path d="m107 177-12 65M124 177l-12 65M141 177l-12 65M158 177l-12 65M175 177l-12 65M192 177l-12 65"/></g><g stroke="#a8cdd8" stroke-width="2.5"><path d="m103 203 99 0M99 224h100"/></g></g>
+  <path d="M62 279H244L258 304H48Z" fill="#d6edf4" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
+  <path d="M65 286H241" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="3" opacity=".9"/>
 </svg>

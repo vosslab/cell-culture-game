@@ -20,8 +20,8 @@ the execution sequence and acceptance gates; the ledger owns the 186-row invento
 ## Objectives
 
 - Establish one documented de-shadowed Servier visual dialect for retained equipment SVGs.
-- Apply that dialect to 139 retained SVGs without flattening useful form, glass, or liquid cues.
-- Remove 40 approved unreachable SVGs after repeatable reachability checks.
+- Apply that dialect to the final 132 ordinary retained SVGs without flattening useful form, glass, or liquid cues.
+- Remove 40 approved unreachable SVGs plus seven human-approved redundant physical/state variants.
 - Preserve seven result composites byte-for-byte and keep their future application-UI migration in `docs/TODO.md` and `docs/ROADMAP.md`.
 - Preserve material rendering hooks, semantic anchors, state distinctions, asset bindings, and real delivery behavior.
 - Finish with automated structural and production-shaped browser evidence, independent source and visual review, and a labeled SVG contact sheet for human inspection.
@@ -41,14 +41,15 @@ generic recognition cues while excluding brand- and model-specific decoration.
 - Document the visual acceptance dialect in `docs/specs/SVG_PIPELINE.md`.
 - Maintain an exact edit/delete/protected ledger for the 186 baseline SVGs.
 - Repair the shadow-removal dry-run path and keep one focused behavior regression.
-- Remove the 40 approved unreachable assets and reconcile provenance and audit links.
+- Remove the 40 approved unreachable assets and seven human-approved redundant
+  physical/state variants, then reconcile provenance and audit links.
 - Retire authored missing-SVG placeholders and generated placeholder-key
   compatibility so unresolved object assets fail at generation and impossible
   internal layout states use renderer-owned diagnostics.
 - Enforce one compiled SVG form for paired runtime material bindings at the
   object-validation boundary.
 - Parse Servier provenance by explicit source-path grammar and keep one focused parser regression.
-- Edit the 139 retained assets in small, independently reviewable families.
+- Edit the 132 ordinary retained assets in small, independently reviewable families.
 - Preserve family-level viewBox, projection, palette, state distinction, and semantic interfaces.
 - Validate normalized XML, local references, materials, manifests, compiled output, and production browser behavior.
 - Produce a self-contained labeled SVG contact sheet containing every final retained SVG.
@@ -75,17 +76,21 @@ Status date: 2026-08-24.
 | --------------------------- | --------------- | ---------------------------------------------------------------------------------------------------------------------------- |
 | Visual dialect and ledger   | Complete        | Servier-only target, de-shadowing rule, and 186-row disposition are documented.                                              |
 | Shadow-removal tooling      | Complete        | Dry-run formatting is fixed and one focused behavior regression passes.                                                       |
-| Approved cleanup            | Complete        | 40 unreachable SVGs and the superseded liquid-census helper are removed.                                                     |
+| Approved cleanup            | Complete        | 40 unreachable SVGs and seven redundant physical/state variants are removed.                                                 |
 | Gold-set calibration        | Complete        | Eight representative SVGs passed source and visual re-review after recognition-cue repairs.                                  |
-| Remaining retained SVGs     | Complete        | Seventeen bounded work packages edited the other 131 retained SVGs.                                                          |
+| Remaining retained SVGs     | Complete        | The final library contains 132 ordinary assets plus seven protected result composites.                                       |
 | Source-interface review     | Complete        | Lost anchors, live prose, and geometry-affecting CSS findings were repaired and re-reviewed.                                 |
-| Visual stream review        | Complete        | All four asset streams passed independent visual review.                                                                     |
-| Repository validation       | Revalidation blocked | The SVG-sweep tree passed; the later vendored refresh added failing permanent gates, so combined-tree proof is pending. |
-| Final labeled contact sheet | Complete        | The labeled all-SVG contact sheet is the final review artifact.                                                               |
-| Human visual acceptance     | Pending review  | Human inspection begins from the repository-linked final labeled contact sheet.                                              |
+| Visual stream review        | Complete        | All ordinary assets received 160/640 px review; bounded human findings were repaired and independently re-reviewed.          |
+| Repository validation       | Complete        | Strict SVG audit and the current-tree exhaustive suite pass on 129 objects and 139 SVGs.                                     |
+| Final labeled contact sheet | Complete        | The self-contained 139-asset sheet passes inventory, reference, XML, raster, and independent presentation checks.            |
+| Human visual acceptance     | Pending         | The corrected sheet is published for the user's final visual judgment.                                                       |
 
-The intended integrated tree contains 139 modified retained SVGs, 40 deleted
-unreachable SVGs, and seven protected result composites with no byte changes.
+The baseline sweep contained 139 edit rows, 40 deleted unreachable SVGs, and
+seven protected result composites. Human review then approved seven additional
+pre-production deletions: four redundant protein-tube variants, the opaque
+sharps-container full variant, the unused MTT vial, and the gel-opening-tool
+hidden variant. The final library contains 139 SVGs: 132 ordinary assets plus
+the seven byte-preserved result composites.
 
 ## Architecture boundaries and ownership
 
@@ -191,9 +196,9 @@ unreachable SVGs, and seven protected result composites with no byte changes.
 - Entry criteria: M4 passes and no editing agent remains active.
 - Exit criteria:
   - All commands in the test strategy pass or have an explicit evidence-scoped explanation.
-  - The final asset audit reports 131 objects, 146 SVGs, no orphans, and no findings.
+  - The final asset audit reports 129 objects, 139 SVGs, no orphans, and no findings.
   - The protected seven hashes match the baseline.
-  - The contact sheet contains and labels all 146 retained SVGs, visibly marks the seven protected result composites, parses as XML, and renders to PNG.
+  - The contact sheet contains and labels all 139 retained SVGs, visibly marks the seven protected result composites, parses as XML, and renders to PNG.
   - An independent visual evaluator finds no gross contact-sheet omissions, clipping, or mislabeled tiles.
   - The human reviewer receives clickable paths to the GitHub review page and
     full-resolution SVG without a claim of human approval.
@@ -439,9 +444,8 @@ unreachable SVGs, and seven protected result composites with no byte changes.
 - Acceptance criteria: `./build_github_pages.sh`, material contact rendering, and the repository's production-shaped Playwright/walker entry point pass.
 - Evidence or review, when useful: build logs, browser result, and rendered material contact sheet.
 - Obvious follow-ons: run the exhaustive suite after browser stability is proven.
-- Status: Historical pass on the SVG-sweep tree. The production material
-  contact sheet and `./run_playwright_tests.sh` passed (115/115); combined-tree
-  revalidation is pending after the later vendored refresh.
+- Status: Complete. The production material contact sheet verifies 798 surfaces,
+  and `./run_playwright_tests.sh` passes 115/115 on the final combined tree.
 
 ### Work package WP-V4: Run the exhaustive final suite
 
@@ -451,14 +455,13 @@ unreachable SVGs, and seven protected result composites with no byte changes.
 - Acceptance criteria: `./super_all_tests.sh` completes with all applicable gates passing; any environmental exclusion is explicit and does not conceal a product failure.
 - Evidence or review, when useful: exhaustive-suite summary and final status/diff reconciliation.
 - Obvious follow-ons: freeze SVG edits and generate the final contact sheet.
-- Status: Historical pass on the SVG-sweep tree. `./super_all_tests.sh` passed
-  (20/20); combined-tree revalidation is blocked by newly vendored permanent
-  gates that fail or violate the fast-pytest policy.
+- Status: Complete. `./super_all_tests.sh` passes 20/20 on the final combined
+  tree after the vendored permanent-test policy was reconciled.
 
 ### Work package WP-H1: Generate the labeled SVG contact sheet
 
 - Owner: integrator.
-- Touch points: all 146 retained SVGs, `test-results/svg-consistency/`, and the
+- Touch points: all 139 retained SVGs, `test-results/svg-consistency/`, and the
   published documentation snapshot.
 - Depends on: WP-V4.
 - Acceptance criteria:
@@ -469,11 +472,8 @@ unreachable SVGs, and seven protected result composites with no byte changes.
   - The header states the final asset count and the generic de-shadowed Servier review target.
 - Evidence or review, when useful: XML parse, reference check, and PNG render.
 - Obvious follow-ons: inspect the raster preview for omissions and gross layout defects.
-- Status: Complete. The verified final labeled all-SVG contact sheet is
-  published at
-  [final_equipment_contact_sheet.svg](../../figures/final_equipment_contact_sheet.svg).
-  Its temporary generator was removed after the source tree and artifact were
-  verified; the oversized PNG remains ignored construction evidence.
+- Status: Complete. The published 139-asset figure is self-contained, has no
+  external references, parses as XML, and renders at 2400 x 7776 px.
 
 ### Work package WP-H2: Review and hand off the contact sheet
 
@@ -484,7 +484,49 @@ unreachable SVGs, and seven protected result composites with no byte changes.
 - Acceptance criteria: evaluator confirms label legibility, complete tiling, no gross clipping, and clear protected markers; final handoff provides clickable artifact paths and leaves human visual approval explicitly pending.
 - Evidence or review, when useful: image-evaluator report and human review notes.
 - Obvious follow-ons: route any human-requested art changes into new bounded SVG packages, then repeat M5.
-- Status: Pending human visual acceptance.
+- Status: Complete through independent image-evaluator review. The corrected
+  139-asset contact sheet is published for human visual acceptance.
+
+### Work package WP-H3: Apply human visual corrections
+
+- Owner: file-disjoint SVG expert coders, followed by independent image evaluators.
+- Touch points: only the user-identified or independently confirmed equipment
+  families, their object bindings, and directly affected provenance/spec text.
+- Depends on: WP-H2 human findings.
+- Scope:
+  - repair bounded layer/projection defects in micropipettes, the open heat block,
+    attached electrophoresis leads, the 96-well plate, staining trays, the
+    hemocytometer live/dead overlay, the P10 tip box, and the removed gel-cassette
+    top plate;
+  - restore the repository-authored T75 flask as the physical source for its
+    empty/filled pair;
+  - make protein ladder and sample semantic objects reuse the canonical material
+    microtube form, then delete their four redundant SVG variants;
+  - make the opaque sharps container use one static SVG for both recorded states,
+    then delete its redundant full variant;
+  - collapse the gel-opening tool to one static approximately 8 cm aluminum
+    pry-bar form; scene/cursor ownership controls presence, so no hidden SVG state
+    remains;
+  - distinguish the live MTT powder source from the 15 mL receiving tube, remove
+    stale unreferenced MTT object/art contracts, and keep the solid powder state
+    visibly distinct using ordinary microtube physical geometry without adding a
+    new solid-rendering schema;
+  - correct any provenance row disproved by source and history evidence.
+- Acceptance criteria:
+  - every repaired family passes standalone and relevant composite rendering at
+    160 px and 640 px;
+  - repeated labware uses canonical physical geometry whenever current contracts
+    support it;
+  - state art encodes only physically observable differences;
+  - primary manufacturer imagery or manuals resolve ambiguous laboratory form;
+  - no new permanent test is added for asset-specific appearance;
+  - all seven protected result-composite hashes remain exact.
+- Evidence or review, when useful: focused source validators, temporary state
+  renders, official product references, and independent post-repair visual review.
+- Obvious follow-ons: regenerate and republish the all-SVG contact sheet, repeat
+  independent review, then run current-tree validation.
+- Status: Complete. Repaired assets passed independent review, the contact sheet
+  was regenerated from the final tree, and only human visual acceptance remains.
 
 ## Acceptance criteria and gates
 
@@ -512,9 +554,11 @@ unreachable SVGs, and seven protected result composites with no byte changes.
 
 ### One-time implementation evidence
 
-- The 186-row census, exact 139/40/seven disposition, protected-file hashes,
-  reachability audit, and exact final asset/object counts prove this migration.
-  They remain in the active-plan ledger rather than becoming count or hash tests.
+- The 186-row census, locked 139-edit/40-delete/seven-defer baseline,
+  human-approved 132-retain/47-delete/seven-protect final disposition,
+  protected-file hashes, reachability audit, and exact final asset/object counts
+  prove this migration. They remain in the active-plan ledger rather than
+  becoming count or hash tests.
 - Matched 160/640 px renders, per-wave source review, perceptual comparison, and
   contact-sheet construction support visual judgment. The intermediate renders
   remain ignored evidence under `test-results/` rather than entering an
@@ -574,7 +618,7 @@ Failure semantics:
 | Result screens enter the art sweep        | High   | Any protected hash changes                                             | Integrator         | Check seven hashes after every integrated wave and again at closeout.                                            |
 | Parallel edits collide                    | Medium | Two packages touch one file or shared generated state                  | Manager            | Use file-disjoint packages; serialize shared docs and final generation.                                          |
 | Raw source render misrepresents materials | Medium | Variable-volume object appears empty or malformed outside its consumer | Image evaluator    | Inspect material-aware assets through the compiled production contact renderer.                                  |
-| Contact sheet is incomplete or unreadable | Medium | Tile count differs from 146 or labels clip                             | Integrator         | Generate from the final filesystem inventory, embed all sources, validate XML, rasterize, and visually evaluate. |
+| Contact sheet is incomplete or unreadable | Medium | Tile count differs from 139 or labels clip                             | Integrator         | Generate from the final filesystem inventory, embed all sources, validate XML, rasterize, and visually evaluate. |
 | Validation mutates tracked derived files  | Medium | Unexpected generated or report diffs appear                            | Integrator         | Run final gates as a single writer and reconcile `git status` after each generator.                              |
 
 ## Rollout and release checklist
@@ -583,16 +627,18 @@ Failure semantics:
 - [x] Lock the 186-row disposition ledger and protected hashes.
 - [x] Repair shadow dry-run and keep focused regression coverage that meets the permanent-test checklist.
 - [x] Remove exactly 40 approved unreachable SVGs.
+- [x] Remove seven human-approved redundant physical/state SVG variants.
 - [x] Complete and approve the eight-file gold set.
 - [x] Complete 17 file-disjoint packages for the remaining 131 retained SVGs.
 - [x] Pass all stream-level source and visual reviews after repairs.
 - [x] Reconcile provenance, deleted links, changelog, TODO, and ROADMAP.
 - [x] Pass strict SVG, focused pytest, documentation, repository static/unit, and production build gates on the SVG-sweep tree.
 - [x] Pass the final material renderer, production-shaped browser path, and exhaustive suite on the SVG-sweep tree.
-- [ ] Revalidate the combined tree after resolving the later vendored-test blockers.
-- [x] Confirm protected hashes, exact disposition, and clean generated-output status one final time.
-- [x] Generate, parse, render, and independently inspect the final labeled SVG contact sheet.
-- [x] Publish and hand off the contact sheet for human visual acceptance.
+- [x] Complete current-tree validation after removing the unsuitable vendored permanent gates.
+- [x] Confirm protected hashes, exact disposition, and generated-output status one final time.
+- [x] Generate, parse, render, and independently inspect the corrected labeled SVG contact sheet.
+- [x] Publish and hand off the corrected contact sheet for human visual acceptance.
+- [ ] Obtain human visual acceptance after the requested layer-order repair packages.
 
 ## Documentation close-out requirements
 
@@ -603,17 +649,18 @@ Failure semantics:
 
 ## Closeout ledger
 
-- Final disposition: 139 retained SVGs modified, 40 retired SVGs deleted, and
-  seven result composites byte-preserved.
-- Final audit: 131 objects, 146 SVGs, and zero findings.
+- Current disposition: 132 ordinary SVGs retained, 47 SVGs retired, and seven
+  result composites byte-preserved, for 139 final SVGs.
+- Current production build: 129 objects, 139 discovered SVGs, and 139 generated
+  manifest entries. The strict SVG audit passes with no findings or orphans.
 - The material baseline was intentionally refreshed after visual review; the
-  production material contact sheet passed.
-- Historical SVG-sweep delivery gates: `./run_playwright_tests.sh` passed
-  115/115 and `./super_all_tests.sh` passed 20/20. These counts predate the
-  later vendored refresh and do not establish combined-tree acceptance.
+  production material contact sheet verifies 798 surfaces.
+- Final combined-tree delivery gates: 6,182 pytest cases pass,
+  `./run_playwright_tests.sh` passes 115/115, and `./super_all_tests.sh` passes
+  20/20.
 - The repository-linked labeled all-SVG contact sheet remains the final review
-  artifact. Human visual acceptance is still pending and is not implied by
-  these results.
+  artifact. Its corrected 139-asset edition passes structural, raster, and
+  independent presentation checks; human acceptance is not implied.
 
 ## Patch plan and reporting format
 
@@ -634,6 +681,8 @@ review reports remain separate from implementation reports.
 
 - Servier Medical Art is the only Bioicons style authority for this sweep.
 - The target is de-shadowed Servier, not flat artwork.
+- Selected Servier sources retain their coherent projection, object-part order,
+  and functional overlaps through narrow repository adaptations.
 - Detached floor shadows are removed; restrained local form/glass/liquid shading remains.
 - Generic, unbranded, model-independent equipment is correct and desirable.
 - Only wrong-class ambiguity justifies adding recognition detail.
