@@ -406,7 +406,7 @@ def run_all_checks(repo_root: Path) -> list[Finding]:
 	return all_findings
 
 
-def parse_args():
+def parse_args() -> object:
 	"""Build argparse parser with unified flags for structure validation."""
 	parser = validation.shared_toolkit.cli.build_parser(
 		prog='layout_check',

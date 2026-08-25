@@ -4,7 +4,7 @@ import validation.shared_toolkit.console
 from validation.yaml_schema.summary import _protocol_counts
 
 
-def aggregate(db, protocol_rows, protocol_scene_rows, material_rows, counts_dict=None):
+def aggregate(db: object, protocol_rows: object, protocol_scene_rows: object, material_rows: object, counts_dict: object=None) -> object:
 	"""
 	Aggregate counts across all four content vocabularies.
 
@@ -151,7 +151,7 @@ def aggregate(db, protocol_rows, protocol_scene_rows, material_rows, counts_dict
 	return counts
 
 
-def render(counts, severity_counts=None):
+def render(counts: object, severity_counts: object=None) -> None:
 	"""
 	Render compact indented dashboard to stdout.
 	Uses rich Console with auto-detected output mode for section headings in bold colored style.

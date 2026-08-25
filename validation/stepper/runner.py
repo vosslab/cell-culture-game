@@ -5,6 +5,7 @@ import validation.stepper.loader
 import validation.stepper.flow
 import validation.stepper.state
 import validation.stepper.scene_ops
+import validation.stepper.material_ledger
 import validation.stepper.cross_mini
 from validation.shared_toolkit.discovery import construct_protocol_scene_path
 
@@ -227,10 +228,10 @@ def walk_protocol(
 			interaction_index,
 			emitter,
 		)
-		validation.stepper.scene_ops.validate_material_ledger(
+		validation.stepper.material_ledger.validate_material_ledger(
 			state_before, state_after, state_map, protocol_name, step_name, interaction_index, emitter, scene_ops
 		)
-		validation.stepper.scene_ops.detect_material_volume_creation(
+		validation.stepper.material_ledger.detect_material_volume_creation(
 			state_before, state_after, scene_ops, state_map, protocol_name, step_name, interaction_index, emitter
 		)
 
@@ -636,10 +637,10 @@ def walk_sequence_runner(
 				state_before, state_after, scene_ops, state_map, mini_name, step_name,
 				interaction_index, emitter,
 			)
-			validation.stepper.scene_ops.validate_material_ledger(
+			validation.stepper.material_ledger.validate_material_ledger(
 				state_before, state_after, state_map, mini_name, step_name, interaction_index, emitter, scene_ops
 			)
-			validation.stepper.scene_ops.detect_material_volume_creation(
+			validation.stepper.material_ledger.detect_material_volume_creation(
 				state_before, state_after, scene_ops, state_map, mini_name, step_name, interaction_index, emitter
 			)
 

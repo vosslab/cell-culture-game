@@ -34,7 +34,7 @@ def _variant_svg(*, liquid_fill: str, transform: str = "") -> str:
 </svg>'''
 
 
-def test_inspector_reports_coordinate_model_layers_and_top_gap(tmp_path: Path):
+def test_inspector_reports_coordinate_model_layers_and_top_gap(tmp_path: Path) -> None:
 	"""The report distinguishes geometric user units from physical volume."""
 	source = tmp_path / "sample.svg"
 	source.write_text(_material_svg(), encoding="utf-8")
@@ -63,7 +63,7 @@ def test_inspector_reports_coordinate_model_layers_and_top_gap(tmp_path: Path):
 	assert material_names == ["liquid_body", "liquid_surface"]
 
 
-def test_inspector_reports_individual_element_paint_and_bounds(tmp_path: Path):
+def test_inspector_reports_individual_element_paint_and_bounds(tmp_path: Path) -> None:
 	"""Human review can trace a layer envelope back to its concrete artwork."""
 	source = tmp_path / "sample.svg"
 	source.write_text(_material_svg(), encoding="utf-8")
@@ -82,7 +82,7 @@ def test_inspector_reports_individual_element_paint_and_bounds(tmp_path: Path):
 	}]
 
 
-def test_inspector_rejects_unflattened_transforms(tmp_path: Path):
+def test_inspector_rejects_unflattened_transforms(tmp_path: Path) -> None:
 	"""The inspector refuses to approximate a coordinate frame normalization owns."""
 	source = tmp_path / "transformed.svg"
 	source.write_text(_material_svg(transform="translate(0 2)"), encoding="utf-8")
@@ -90,7 +90,7 @@ def test_inspector_rejects_unflattened_transforms(tmp_path: Path):
 		svg_semantic_inspector.inspect_material_svg(source)
 
 
-def test_cli_emits_one_json_object_without_modifying_source(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+def test_cli_emits_one_json_object_without_modifying_source(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
 	"""The read-only CLI emits stable machine-readable evidence for one asset."""
 	source = tmp_path / "sample.svg"
 	source.write_text(_material_svg(), encoding="utf-8")
@@ -102,7 +102,7 @@ def test_cli_emits_one_json_object_without_modifying_source(tmp_path: Path, caps
 	assert source.read_bytes() == before
 
 
-def test_variant_comparison_proposes_changed_paint_and_flags_shared_white(tmp_path: Path):
+def test_variant_comparison_proposes_changed_paint_and_flags_shared_white(tmp_path: Path) -> None:
 	"""Variant paint is evidence while shared white artwork remains reviewable."""
 	pink = tmp_path / "pink.svg"
 	green = tmp_path / "green.svg"
@@ -120,7 +120,7 @@ def test_variant_comparison_proposes_changed_paint_and_flags_shared_white(tmp_pa
 	assert report["unmatched_geometry"] == []
 
 
-def test_variant_comparison_rejects_unflattened_geometry(tmp_path: Path):
+def test_variant_comparison_rejects_unflattened_geometry(tmp_path: Path) -> None:
 	"""Variant correspondence is not guessed across unnormalized transforms."""
 	pink = tmp_path / "pink.svg"
 	green = tmp_path / "green.svg"
@@ -133,7 +133,7 @@ def test_variant_comparison_rejects_unflattened_geometry(tmp_path: Path):
 		svg_semantic_inspector.compare_svg_variants([pink, green])
 
 
-def test_variant_comparison_cli_emits_one_report(tmp_path: Path, capsys: pytest.CaptureFixture[str]):
+def test_variant_comparison_cli_emits_one_report(tmp_path: Path, capsys: pytest.CaptureFixture[str]) -> None:
 	"""The CLI exposes the reusable read-only donor-family comparison."""
 	pink = tmp_path / "pink.svg"
 	green = tmp_path / "green.svg"

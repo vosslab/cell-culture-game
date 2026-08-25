@@ -128,8 +128,8 @@ that class as an opaque `<img alt="">`. Therefore:
 
 Current [test_pedagogy_outcomes.spec.ts](../../../tests/playwright/test_pedagogy_outcomes.spec.ts)
 coverage proves that the endpoint and gel-result `<img>` elements become
-visible. [test_mtt_readout_visibility.py](../../../tests/test_mtt_readout_visibility.py)
-goes in the opposite direction and parses visible words directly from
+visible. The retired `test_mtt_readout_visibility.py` test went in the opposite
+direction and parsed visible words directly from
 `mtt_reader_results_display.svg`. Both preserve the flattened implementation:
 one checks the container without its semantics, while the other treats SVG
 prose as the contract.
@@ -315,7 +315,7 @@ a silent new contract:
   correct state change and understand the next action.
 - [normalize_svg_v3.py](../../../tools/normalize_svg_v3.py) is the canonical
   normalizer and emits `TEXT_UNSUPPORTED` for live text.
-- [test_normalize_svg_v3.py](../../../tests/test_normalize_svg_v3.py) proves
+- `tests/test_svg_normalizer_guards.py` proves
   that imported editor-namespace cruft is stripped while attribution metadata
   survives.
 
@@ -341,11 +341,11 @@ The executable desktop-editor integration is absent from the final tree:
   historical sequence of the earlier adapter experiment.
 
 Other than this audit's own explanation, an unrestricted `rg -i inkscape`
-still finds four non-integration classes:
+ still finds four non-integration classes:
 
 - the namespace URI and literal removal fixtures in
   [normalize_svg_v3.py](../../../tools/normalize_svg_v3.py) and
-  [test_normalize_svg_v3.py](../../../tests/test_normalize_svg_v3.py);
+  `tests/test_svg_normalizer_guards.py`;
 - historical changelog and archive statements;
 - source-editor provenance or metadata in
   [tissue_culture_flask.svg](../../../tissue_culture_flask.svg) and
@@ -441,7 +441,7 @@ repository evidence:
 | Learner workflow | Current evidence | Required migrated evidence |
 | --- | --- | --- |
 | Trypan Blue manual count and viability decision | [test_pedagogy_outcomes.spec.ts](../../../tests/playwright/test_pedagogy_outcomes.spec.ts) proves visible decisions and guidance; the two full result images remain opaque | Visible UI creates the observation/result state, semantic quadrant counts and viability values match it, the decision uses those values, and reload preserves the next action and result |
-| MTT readout and dose-response interpretation | [test_mtt_readout_visibility.py](../../../tests/test_mtt_readout_visibility.py) checks YAML writes plus SVG words; Playwright checks the monitor image and DOM overlays | One typed dataset drives raw, corrected, normalized, visual, and accessible output; Playwright verifies it through the visible reader workflow without parsing source SVG prose |
+| MTT readout and dose-response interpretation | The retired `test_mtt_readout_visibility.py` test checked YAML writes plus SVG words; Playwright checks the monitor image and DOM overlays | One typed dataset drives raw, corrected, normalized, visual, and accessible output; Playwright verifies it through the visible reader workflow without parsing source SVG prose |
 | SDS-PAGE endpoint decision | [test_pedagogy_outcomes.spec.ts](../../../tests/playwright/test_pedagogy_outcomes.spec.ts) checks the endpoint image, wrong choice, recovery, and power-off action | `migration_state` drives language-neutral dye evidence and semantic endpoint guidance; wrong choice leaves power state unchanged and reload resumes correctly |
 | SDS-PAGE image interpretation | The same Playwright file checks the full result image plus lightbox state overlays and conclusion choices | Lightbox state drives lane/band evidence, lane metadata, archive status, quality, and conclusion; no result fact exists only in the image |
 | Connected persistence and reset | [test_protocol_persistence.spec.ts](../../../tests/playwright/test_protocol_persistence.spec.ts) proves persisted visible actions on the production-shaped app | Each migrated result remains identical after reload, supports continued interaction, and resets through the same visible product path |

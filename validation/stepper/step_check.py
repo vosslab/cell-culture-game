@@ -103,10 +103,10 @@ def _build_severity_rollup(walks: list) -> str:
 
 
 def _post_walk_material_checks(
-	tree,
-	protocol_name,
-	emitter,
-	referenced_materials,
+	tree: object,
+	protocol_name: object,
+	emitter: object,
+	referenced_materials: object,
 ) -> None:
 	"""
 	Perform post-walk material consistency checks:
@@ -146,10 +146,10 @@ def _post_walk_material_checks(
 		))
 
 
-def parse_args():
+def parse_args() -> object:
 	"""Parse command-line arguments using unified toolkit parser."""
 	# Extras callback for tool-specific flags (none for stepper)
-	def add_stepper_extras(parser):
+	def add_stepper_extras(parser: object) -> None:
 		# No stepper-specific flags
 		pass
 
@@ -168,7 +168,7 @@ def parse_args():
 	return args
 
 
-def _resolve_selection(args, repo_root, tree):
+def _resolve_selection(args: object, repo_root: object, tree: object) -> object:
 	"""
 	Resolve which protocol names to walk based on CLI flags.
 
@@ -204,7 +204,7 @@ def _resolve_selection(args, repo_root, tree):
 	return names
 
 
-def _build_diagnostic_data(counts):
+def _build_diagnostic_data(counts: object) -> object:
 	"""
 	Build a verbosity.DiagnosticData from aggregated walk counts.
 
@@ -243,7 +243,7 @@ def _build_diagnostic_data(counts):
 	return data
 
 
-def _render_normal_totals(counts):
+def _render_normal_totals(counts: object) -> None:
 	"""
 	Render the compact NORMAL-level totals block (no color, no dashboard).
 
@@ -272,7 +272,7 @@ def _render_normal_totals(counts):
 	print('\n'.join(lines))
 
 
-def _to_shared_finding(finding):
+def _to_shared_finding(finding: object) -> object:
 	"""
 	Convert a stepper Finding into a shared_toolkit Finding.
 
@@ -303,7 +303,7 @@ def _to_shared_finding(finding):
 	return shared
 
 
-def main():
+def main() -> None:
 	"""Dispatch by selection mode and walk the chosen protocols.
 
 	Verbosity contract (text output line targets):

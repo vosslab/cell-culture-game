@@ -7,7 +7,7 @@ import validation.shared_toolkit.paths as paths
 from validation.shared_toolkit.discovery import find_protocol_yaml_files
 
 
-def list_protocols(protocols_dir=None):
+def list_protocols(protocols_dir: object=None) -> object:
 	"""
 	List protocol package names under content/protocols/.
 
@@ -32,7 +32,7 @@ def list_protocols(protocols_dir=None):
 	return sorted(names)
 
 
-def resolve_protocol_path(name_or_path, repo_root=None):
+def resolve_protocol_path(name_or_path: object, repo_root: object=None) -> object:
 	"""
 	Resolve a protocol identifier to an absolute protocol.yaml Path.
 
@@ -64,7 +64,7 @@ def resolve_protocol_path(name_or_path, repo_root=None):
 	return None
 
 
-def classify_protocol(protocol_dict):
+def classify_protocol(protocol_dict: object) -> object:
 	"""
 	Return the declared protocol_type, defaulting to mini_protocol.
 
@@ -76,7 +76,7 @@ def classify_protocol(protocol_dict):
 	return protocol_dict.get("protocol_type", "mini_protocol")
 
 
-def protocol_name_from_path(protocol_path):
+def protocol_name_from_path(protocol_path: object) -> object:
 	"""
 	Derive the protocol directory name from a path to its protocol.yaml.
 

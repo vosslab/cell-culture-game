@@ -4,9 +4,9 @@ from validation.stepper.findings import Finding, Level
 
 
 def build_upstream_materials(
-	tree,
+	tree: object,
 	sequence_runner_minis: list[str],
-	emitter,
+	emitter: object,
 ) -> tuple[set, dict]:
 	"""
 	Build the set of upstream-produced materials and declared input materials.
@@ -75,13 +75,13 @@ def build_upstream_materials(
 
 
 def check_cross_mini_material_references(
-	tree,
+	tree: object,
 	mini_name: str,
 	mini_index: int,
 	sequence_runner_minis: list[str],
 	produced_materials: set,
 	declared_materials_by_mini: dict,
-	emitter,
+	emitter: object,
 ) -> None:
 	"""
 	Check all material references in mini_index against upstream production.

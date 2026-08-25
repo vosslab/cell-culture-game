@@ -2,6 +2,7 @@
 
 # local repo modules
 import pipeline.gen_object_library as gen_object_library
+import pipeline.object_library_visual_states as object_library_visual_states
 
 
 #============================================
@@ -20,7 +21,7 @@ def test_parse_visual_states_keeps_a_valid_fill_height_material_contract() -> No
 		},
 	}
 
-	visual_states = gen_object_library.parse_visual_states(data, "inline_object.yaml")
+	visual_states = object_library_visual_states.parse_visual_states(data, "inline_object.yaml")
 	effect = visual_states["held_material_volume"]
 
 	assert effect["render_effect"] == "fill_height"

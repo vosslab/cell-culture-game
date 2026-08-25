@@ -625,7 +625,7 @@ def _object_asset_names(obj_data: dict) -> set:
 	return asset_names
 
 
-def _collect_asset_names_recursive(node, asset_names: set):
+def _collect_asset_names_recursive(node: object, asset_names: set) -> None:
 	"""Walk a nested YAML node and collect every 'asset_name' string value."""
 	if isinstance(node, dict):
 		for key, value in node.items():
@@ -681,7 +681,7 @@ def _derive_requires_dom_svg(repo_root: str, asset_keys: set) -> dict:
 
 
 def _emit_ts_manifest(output_file: str, asset_keys: set,
-		category_map: dict, requires_dom_svg: dict):
+		category_map: dict, requires_dom_svg: dict) -> None:
 	"""Emit the SVG manifest as a TypeScript module.
 
 	Emits SVG_MANIFEST mapping each asset_name to a per-asset entry with the

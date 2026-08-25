@@ -19,7 +19,6 @@ Dump schema reference:
   dump_data['scene_bounds'] is {left, right, top, bottom} in scene-%.
 """
 
-from typing import Any
 
 
 #============================================
@@ -42,7 +41,7 @@ def _bbox_valid(bbox: dict[str, float]) -> bool:
 # Metric: tab_stops_symmetry
 #============================================
 
-def tab_stops_symmetry(scene: dict[str, Any], dump_data: dict[str, Any]) -> float | None:
+def tab_stops_symmetry(scene: dict[str, object], dump_data: dict[str, object]) -> float | None:
 	"""Distribution evenness of placement left-edges, as 0-100.
 
 	Definition (SCENE_DESIGN_LINT_PLAN.md "Composition health"):
@@ -134,7 +133,7 @@ def tab_stops_symmetry(scene: dict[str, Any], dump_data: dict[str, Any]) -> floa
 # Metric: depth_tier_usage
 #============================================
 
-def depth_tier_usage(scene: dict[str, Any], dump_data: dict[str, Any]) -> float | None:
+def depth_tier_usage(scene: dict[str, object], dump_data: dict[str, object]) -> float | None:
 	"""Fraction of available depth tiers used by placements, as 0-100.
 
 	Definition (SCENE_DESIGN_LINT_PLAN.md "Composition health"):
@@ -204,7 +203,7 @@ def depth_tier_usage(scene: dict[str, Any], dump_data: dict[str, Any]) -> float 
 # Metric: aspect_fidelity
 #============================================
 
-def aspect_fidelity(scene: dict[str, Any], dump_data: dict[str, Any]) -> float | None:
+def aspect_fidelity(scene: dict[str, object], dump_data: dict[str, object]) -> float | None:
 	"""Mean inverse of predicted aspect distortion across placements, as 0-100.
 
 	Definition (SCENE_DESIGN_LINT_PLAN.md "Composition health"):

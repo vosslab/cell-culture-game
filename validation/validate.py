@@ -53,7 +53,7 @@ def _extract_counts(stdout: str) -> tuple:
 	return errors, warnings, advisories
 
 
-def _print_scoreboard(console, all_stage_outputs: list) -> None:
+def _print_scoreboard(console: object, all_stage_outputs: list) -> None:
 	"""
 	Print the aggregate TOTAL line and, on failure, the stages with errors.
 
@@ -102,7 +102,7 @@ def _colorize_summary(text: str) -> str:
 	them as literal text on TTY. Rich handles TTY-gating: markup is stripped
 	automatically on non-tty output or when NO_COLOR is set.
 	"""
-	def make_sub(style: str):
+	def make_sub(style: str) -> object:
 		def sub(match: re.Match) -> str:
 			count = int(match.group(1))
 			if count == 0:
@@ -116,7 +116,7 @@ def _colorize_summary(text: str) -> str:
 	return colored
 
 
-def build_parser():
+def build_parser() -> object:
 	"""Build argparse parser with unified flags for aggregate validation."""
 	parser = validation.shared_toolkit.cli.build_parser(
 		prog='validate',
@@ -148,7 +148,7 @@ def _stage_scripts(stage_name: str) -> list[str]:
 	return stage_map.get(stage_name, [])
 
 
-def run_stage(stage_name: str, args, repo_root: Path) -> tuple[int, str]:
+def run_stage(stage_name: str, args: object, repo_root: Path) -> tuple[int, str]:
 	"""
 	Run one validation stage and return (exit_code, captured_stdout).
 
@@ -188,7 +188,7 @@ def run_stage(stage_name: str, args, repo_root: Path) -> tuple[int, str]:
 	return combined_exit, combined_stdout
 
 
-def _run_one_script(script_path: Path, args, repo_root: Path) -> tuple[int, str]:
+def _run_one_script(script_path: Path, args: object, repo_root: Path) -> tuple[int, str]:
 	"""Invoke a single validator script as subprocess; return (exit_code, stdout)."""
 	# Build command for the stage
 	cmd = [

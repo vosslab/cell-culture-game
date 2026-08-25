@@ -42,7 +42,7 @@ class Finding:
 class FindingEmitter:
 	"""Emits findings to stdout in a standard format."""
 
-	def __init__(self, verbose: bool = False):
+	def __init__(self, verbose: bool = False) -> None:
 		"""
 		Initialize the emitter.
 

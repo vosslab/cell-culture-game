@@ -11,7 +11,7 @@ import validation.shared_toolkit.reporter as reporter
 import validation.shared_toolkit.verbosity as verbosity
 
 
-def _add_scene_lint_extras(parser):
+def _add_scene_lint_extras(parser: object) -> None:
 	"""Register scene_lint-specific flags beyond the shared flag set."""
 	parser.add_argument(
 		'--report-only',
@@ -55,7 +55,7 @@ def _add_scene_lint_extras(parser):
 	)
 
 
-def parse_args():
+def parse_args() -> object:
 	"""Parse command-line arguments for scene_lint."""
 	parser = toolkit_cli.build_parser(
 		prog='scene_lint',
@@ -88,7 +88,7 @@ def resolve_paths(path_specs: list[str]) -> list[Path]:
 	return resolved
 
 
-def check_confusion_flags(args) -> None:
+def check_confusion_flags(args: object) -> None:
 	"""
 	Validate confusion-table CLI flags for mutual consistency.
 	--emit-confusion requires --validate-against (corpus is the input).
@@ -145,6 +145,8 @@ def run_all_rules(paths: list[Path]) -> list[Finding]:
 		check_row_footprint_overflow,
 		check_placement_bbox_outside_scene,
 		check_placement_bbox_outside_zone,
+	)
+	from validation.scene_lint.rules_group_b_overlap import (
 		check_item_item_overlap,
 		check_label_offscreen,
 		check_label_object_overlap,
@@ -234,7 +236,7 @@ def run_all_rules(paths: list[Path]) -> list[Finding]:
 	return findings
 
 
-def emit_findings_json_document(findings: list[Finding], output) -> None:
+def emit_findings_json_document(findings: list[Finding], output: object) -> None:
 	"""
 	Emit findings as a single JSON document: {"findings": [...]}.
 

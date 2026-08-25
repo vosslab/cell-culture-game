@@ -15,7 +15,6 @@ Card schema fields (all required, even if null):
 """
 
 import json
-from typing import Any
 
 
 class SceneCard:
@@ -39,9 +38,9 @@ class SceneCard:
 		score: float | None = None,
 		confidence: str = 'stub',
 		gated_by_render_predictor: bool = False,
-		metrics: dict[str, Any] | None = None,
+		metrics: dict[str, object] | None = None,
 		suggestions: list[str] | None = None,
-	):
+	) -> None:
 		self.scene = scene
 		self.scene_class = scene_class
 		self.score = score
@@ -50,7 +49,7 @@ class SceneCard:
 		self.metrics = metrics if metrics is not None else {}
 		self.suggestions = suggestions if suggestions is not None else []
 
-	def to_dict(self) -> dict[str, Any]:
+	def to_dict(self) -> dict[str, object]:
 		"""Convert card to dict for JSON serialization."""
 		return {
 			'scene': self.scene,

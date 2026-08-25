@@ -18,7 +18,7 @@ import validation.shared_toolkit.console
 import validation.stepper.findings
 
 
-def aggregate(walks):
+def aggregate(walks: object) -> object:
 	"""
 	Aggregate a list of walk results into a single counts dict.
 
@@ -99,7 +99,7 @@ def aggregate(walks):
 	return counts
 
 
-def render(counts, max_codes=10):
+def render(counts: object, max_codes: object=10) -> None:
 	"""
 	Render the aggregated counts to stdout via a rich Console.
 
@@ -141,7 +141,7 @@ def render(counts, max_codes=10):
 		output_lines.append("")
 		output_lines.append("[bold yellow]Findings by code[/bold yellow] [dim](top results)[/dim]")
 		# Order: ERROR codes first, then WARNING; within each, by count desc.
-		def sort_key(item):
+		def sort_key(item: object) -> object:
 			_code, entry = item
 			level_priority = 0 if entry['level'] == "ERROR" else 1
 			return (level_priority, -entry['count'])
@@ -178,7 +178,7 @@ def render(counts, max_codes=10):
 			"[dim](only protocols with findings)[/dim]"
 		)
 		# Sort errors-first, then by warning count desc, then by name.
-		def proto_sort_key(item):
+		def proto_sort_key(item: object) -> object:
 			_name, entry = item
 			return (-entry['errors'], -entry['warnings'], _name)
 		noisy_rows.sort(key=proto_sort_key)

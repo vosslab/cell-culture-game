@@ -21,7 +21,7 @@ OBJECTS_DIR = os.path.join(CONTENT_ROOT, "objects")
 BASE_SCENES_DIR = os.path.join(CONTENT_ROOT, "base_scenes")
 
 
-def paths_from_root(root):
+def paths_from_root(root: object) -> object:
 	"""
 	Return a dict of content-tree paths anchored at an arbitrary root.
 

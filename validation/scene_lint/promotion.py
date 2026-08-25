@@ -25,7 +25,6 @@ promoted rule (when --strict is passed).
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 from validation.scene_lint.findings import Finding, Verdict, Confidence
 from validation.scene_lint.confusion import load_labeled_corpus, compute_confusion
@@ -262,8 +261,8 @@ def load_promotions(
 def evaluate_promotion_bar(
 	rule_name: str,
 	findings: list[Finding],
-	corpus: dict[str, Any],
-) -> dict[str, Any]:
+	corpus: dict[str, object],
+) -> dict[str, object]:
 	"""Evaluate if a rule meets the promotion bar.
 
 	Computes precision, recall, and positive label count from the corpus

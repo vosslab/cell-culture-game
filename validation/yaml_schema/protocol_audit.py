@@ -22,7 +22,7 @@ import yaml
 import validation.shared_toolkit.cli as toolkit_cli
 
 
-def get_repo_root():
+def get_repo_root() -> object:
 	"""Determine REPO_ROOT via git rev-parse --show-toplevel."""
 	result = subprocess.run(
 		['git', 'rev-parse', '--show-toplevel'],
@@ -34,13 +34,13 @@ def get_repo_root():
 	return pathlib.Path(result.stdout.strip())
 
 
-def load_yaml_file(path):
+def load_yaml_file(path: object) -> object:
 	"""Load a YAML file and return parsed content."""
 	with open(path, 'r') as f:
 		return yaml.safe_load(f)
 
 
-def derive_used_items(step):
+def derive_used_items(step: object) -> object:
 	"""Derive usedItems from interactionSequence in first-use order (tool -> source -> destination, de-duplicated)."""
 	seen = set()
 	used = []
@@ -57,7 +57,7 @@ def derive_used_items(step):
 	return used
 
 
-def discover_protocols(repo_root):
+def discover_protocols(repo_root: object) -> object:
 	"""Discover available protocols by globbing content/protocols/*/protocol.yaml."""
 	content_dir = repo_root / 'content' / 'protocols'
 	if not content_dir.is_dir():
@@ -73,7 +73,7 @@ def discover_protocols(repo_root):
 	return sorted(protocols)
 
 
-def classify_step(step, items, reagents, item_index):
+def classify_step(step: object, items: object, reagents: object, item_index: object) -> object:
 	"""
 	Classify a step and return (status, message).
 
@@ -105,7 +105,7 @@ def classify_step(step, items, reagents, item_index):
 	return ('OK', '')
 
 
-def audit_protocol(repo_root, protocol_name, items_data, reagents_data, protocol_data):
+def audit_protocol(repo_root: object, protocol_name: object, items_data: object, reagents_data: object, protocol_data: object) -> object:
 	"""Audit a protocol and return list of (status, step_index, step_id, message)."""
 	steps = protocol_data['steps']
 	items = items_data['items']
@@ -144,10 +144,10 @@ def audit_protocol(repo_root, protocol_name, items_data, reagents_data, protocol
 	return results, unused_errors
 
 
-def parse_args():
+def parse_args() -> object:
 	"""Parse command-line arguments using unified toolkit parser."""
 	# Extras callback for tool-specific flags
-	def add_audit_extras(parser):
+	def add_audit_extras(parser: object) -> None:
 		# No additional protocol-audit-specific flags
 		pass
 
@@ -167,7 +167,7 @@ def parse_args():
 	return args
 
 
-def main():
+def main() -> object:
 	args = parse_args()
 	repo_root = get_repo_root()
 

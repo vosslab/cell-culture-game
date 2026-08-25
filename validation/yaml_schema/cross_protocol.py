@@ -25,7 +25,7 @@ class CrossProtocolValidator:
 		self._walk_camelcase(data, path, findings)
 		return findings
 
-	def _walk_camelcase(self, obj, path: str, findings: list) -> None:
+	def _walk_camelcase(self, obj: object, path: str, findings: list) -> None:
 		if isinstance(obj, dict):
 			for key, value in obj.items():
 				if isinstance(key, str) and CAMELCASE_KEY_RE.search(key):

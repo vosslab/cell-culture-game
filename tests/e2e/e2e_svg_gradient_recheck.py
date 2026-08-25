@@ -18,7 +18,6 @@ Run:
 """
 
 # Standard Library
-import sys
 import json
 import hashlib
 import shutil
@@ -34,8 +33,7 @@ import imagehash
 _GIT = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True, check=True)
 REPO_ROOT = Path(_GIT.stdout.strip())
 
-sys.path.insert(0, str(REPO_ROOT / "tools"))
-import normalize_svg_v3
+import tools.svg_normalizer.workflow
 
 # Paths
 REPORTS_DIR = REPO_ROOT / "docs" / "active_plans" / "reports"
@@ -124,7 +122,7 @@ def normalize_files(target_rels: list[str], tmp_dir: Path) -> dict[str, Path | N
 		# md5 here names a temp file stem, not a security control.
 		stem = hashlib.md5(rel.encode(), usedforsecurity=False).hexdigest()[:10]
 		out_path = tmp_dir / f"norm_{stem}.svg"
-		result = normalize_svg_v3.normalize_svg_file(svg_path, out_path)
+		result = tools.svg_normalizer.workflow.normalize_svg_file(svg_path, out_path)
 		if result.normalized:
 			norm_map[rel] = out_path
 		else:

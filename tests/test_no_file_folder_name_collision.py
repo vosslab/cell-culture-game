@@ -10,7 +10,7 @@ import file_utils
 
 
 #============================================
-def test_no_file_folder_name_collision():
+def test_no_file_folder_name_collision() -> None:
 	"""
 	Assert that no directory contains both a file named <X>.py and a subdirectory named <X>.
 	"""

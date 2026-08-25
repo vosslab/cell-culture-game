@@ -51,7 +51,7 @@ VERBOSE_PRINTERS = {
 }
 
 
-def _load_and_collect(path: Path, rel_path: Path, validator, cross_validator: CrossProtocolValidator, errors: list, emit_findings: bool = True):
+def _load_and_collect(path: Path, rel_path: Path, validator: object, cross_validator: CrossProtocolValidator, errors: list, emit_findings: bool = True) -> object:
 	"""
 	Load one YAML file, run validator + camelCase sweep, collect any findings.
 	When emit_findings is True, print each finding to stdout (text verbose mode only).
@@ -152,7 +152,7 @@ _TAG_TO_CATEGORY = {
 }
 
 
-def _category_label(finding) -> str:
+def _category_label(finding: object) -> str:
 	"""
 	Resolve a finding's friendly category label for the rollup.
 
@@ -423,7 +423,7 @@ def validate_protocol_package(protocol_name: str, repo_root: str, quiet: bool = 
 	return success, errors
 
 
-def _render_verbose_diagnostics(db):
+def _render_verbose_diagnostics(db: object) -> None:
 	"""
 	Render diagnostic-summary output for -v mode.
 
@@ -591,10 +591,10 @@ def _self_test_sequence_runner_leaves() -> None:
 		print("Self-test passed: sequence_runner-leaves rule working correctly.")
 
 
-def parse_args():
+def parse_args() -> object:
 	"""Parse command-line arguments using unified toolkit parser."""
 	# Extras callback for tool-specific flags
-	def add_yaml_extras(parser):
+	def add_yaml_extras(parser: object) -> None:
 		# Developer/debug options specific to yaml validator
 		# These use different destination names to avoid conflicts with shared selection flags
 		dev_group = parser.add_argument_group('Developer/debug options')
@@ -636,7 +636,7 @@ def parse_args():
 	return args
 
 
-def main():
+def main() -> None:
 	"""Dispatch to the correct validation mode: list, interactive, per-protocol,
 	per-file, or whole-tree. Repo root is imported from shared_toolkit.
 

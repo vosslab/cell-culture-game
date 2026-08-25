@@ -69,7 +69,7 @@ def quarter_to_dates(quarter_str: str) -> tuple[str, str]:
 	return start_date, end_date
 
 
-def parse_args():
+def parse_args() -> object:
 	"""Parse command-line arguments."""
 	parser = argparse.ArgumentParser(
 		description='Generate quarterly scorecard report.',

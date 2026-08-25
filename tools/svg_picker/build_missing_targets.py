@@ -131,7 +131,7 @@ def extract_variant_suffix(asset_name: str) -> tuple:
 		return ("", asset_name)
 
 
-def main():
+def main() -> None:
 	"""Main entry point."""
 	parser = argparse.ArgumentParser(
 		description="Build missing targets JSON for SVG picker."

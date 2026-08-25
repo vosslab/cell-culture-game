@@ -29,7 +29,7 @@ def write_scene_yaml(scenes_dir: str, filename: str, scene_name: str) -> None:
 		f.write(content)
 
 
-def test_duplicate_scene_name_raises(tmp_path) -> None:
+def test_duplicate_scene_name_raises(tmp_path: object) -> None:
 	"""Two per-protocol scenes sharing a scene_name must fail loud, not silently
 	overwrite one another in the composite-key registry."""
 	protocols_dir = tmp_path / "content" / "protocols" / "cluster_a"
@@ -44,7 +44,7 @@ def test_duplicate_scene_name_raises(tmp_path) -> None:
 		gen_scene_index.discover_per_protocol_scenes(str(tmp_path))
 
 
-def test_distinct_scene_names_do_not_collide(tmp_path) -> None:
+def test_distinct_scene_names_do_not_collide(tmp_path: object) -> None:
 	"""Two per-protocol scenes with distinct scene_name values register cleanly."""
 	protocols_dir = tmp_path / "content" / "protocols" / "cluster_a"
 	write_scene_yaml(

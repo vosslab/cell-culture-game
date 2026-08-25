@@ -98,7 +98,8 @@ the seven byte-preserved result composites.
 - `content/objects/**` and scene YAML: existing asset bindings and placements
   remain; the authored missing-SVG compatibility field is retired.
 - `docs/specs/SVG_PIPELINE.md`: canonical SVG visual and normalization guidance.
-- `tools/normalize_svg_v3.py`: developer normalization and shadow-removal implementation.
+- `tools/svg_normalizer/`: developer normalization and shadow-removal implementation;
+  `tools/normalize_svg_v3.py` remains its stable command launcher.
 - `pipeline/**`: production generation and compilation; validation consumer, not a duplicated generator target.
 - `docs/active_plans/reports/svg_consistency_sweep.md`: exact disposition ledger and protected hashes.
 - `docs/figures/final_equipment_contact_sheet.svg`: committed, self-contained human-review snapshot.
@@ -215,7 +216,8 @@ the seven byte-preserved result composites.
 - Interfaces:
   - Needs: repository rules, baseline inventory, normalizer behavior.
   - Provides: canonical acceptance language and working diagnostics.
-- Review boundary, when modifying the repository: `docs/specs/SVG_PIPELINE.md`, `tools/normalize_svg_v3.py`, and its focused test module.
+- Review boundary, when modifying the repository: `docs/specs/SVG_PIPELINE.md`,
+  `tools/svg_normalizer/`, and the focused `tests/test_svg_normalizer_*.py` modules.
 
 ### Workstream WS-X: Reachability cleanup
 
@@ -325,10 +327,11 @@ the seven byte-preserved result composites.
 ### Work package WP-P2: Repair shadow dry-run
 
 - Owner: coder and tester.
-- Touch points: `tools/normalize_svg_v3.py`, `tests/test_normalize_svg_v3.py`.
+- Touch points: `tools/svg_normalizer/cli.py`, `tools/svg_normalizer/shadows.py`,
+  `tests/test_svg_normalizer_shadows.py`.
 - Depends on: WP-P1.
 - Acceptance criteria: shadow diagnostics format numeric geometry safely, preserve source bytes, and pass one focused behavior test.
-- Evidence or review, when useful: `source source_me.sh && python3 -m pytest tests/test_normalize_svg_v3.py`.
+- Evidence or review, when useful: `source source_me.sh && python3 -m pytest tests/test_svg_normalizer_shadows.py`.
 - Obvious follow-ons: use the diagnostic only as evidence, not as a blind bulk rewrite.
 - Status: Complete.
 
@@ -539,7 +542,7 @@ the seven byte-preserved result composites.
 
 ### Permanent regression coverage
 
-- `tests/test_normalize_svg_v3.py` retains one focused dry-run regression. It
+- `tests/test_svg_normalizer_shadows.py` retains one focused dry-run regression. It
   exercises the reporter with inline SVG input under `tmp_path`, checks numeric
   output and source-byte preservation, runs offline, and finishes in the fast
   pytest lane.
@@ -579,7 +582,7 @@ Run the durable validators and existing test tiers:
 
 ```sh
 source source_me.sh && python3 validation/validate.py --only svg --strict
-source source_me.sh && python3 -m pytest tests/test_normalize_svg_v3.py tests/test_asset_audit_provenance.py
+source source_me.sh && python3 -m pytest tests/test_svg_normalizer_shadows.py tests/test_asset_audit_provenance.py
 source source_me.sh && python3 -m pytest tests/test_markdown_links.py tests/test_ascii_compliance.py
 ./check_codebase.sh
 ./build_github_pages.sh

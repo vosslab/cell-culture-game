@@ -9,7 +9,6 @@ See coverage_matrix.md for the delegation of responsibility.
 """
 
 from pathlib import Path
-from typing import Any
 
 from validation.scene_lint.findings import Finding, Verdict, Confidence
 from validation.shared_toolkit.scene_loaders import (
@@ -28,7 +27,7 @@ from validation.shared_toolkit.scene_loaders import (
 #============================================
 
 def check_duplicate_scene_name(
-	scenes: dict[str, dict[str, Any]]
+	scenes: dict[str, dict[str, object]]
 ) -> list[Finding]:
 	"""
 	Detect two or more scene YAMLs declaring the same scene_name.
@@ -77,7 +76,7 @@ def check_duplicate_scene_name(
 #============================================
 
 def check_duplicate_placement_name(
-	scene: dict[str, Any],
+	scene: dict[str, object],
 	scene_name: str,
 ) -> list[Finding]:
 	"""
@@ -131,7 +130,7 @@ def check_duplicate_placement_name(
 #============================================
 
 def check_forbidden_source_geometry(
-	scene: dict[str, Any],
+	scene: dict[str, object],
 	scene_name: str,
 ) -> list[Finding]:
 	"""Block source geometry while allowing semantic zones without bounds."""
@@ -206,7 +205,7 @@ def check_forbidden_source_geometry(
 #============================================
 
 def check_missing_svg_asset(
-	scene: dict[str, Any],
+	scene: dict[str, object],
 	scene_name: str,
 	asset_base_dir: Path | None = None,
 ) -> list[Finding]:
@@ -267,7 +266,7 @@ def check_missing_svg_asset(
 #============================================
 
 def check_invalid_svg_viewbox(
-	scene: dict[str, Any],
+	scene: dict[str, object],
 	scene_name: str,
 	asset_base_dir: Path | None = None,
 ) -> list[Finding]:
@@ -351,7 +350,7 @@ def check_invalid_svg_viewbox(
 #============================================
 
 def check_inheritance_errors(
-	scene: dict[str, Any],
+	scene: dict[str, object],
 	scene_name: str,
 	scene_path: Path | str,
 ) -> list[Finding]:
@@ -454,7 +453,7 @@ def check_inheritance_errors(
 #============================================
 
 def check_inheritance_dangling_ref(
-	scene: dict[str, Any],
+	scene: dict[str, object],
 	scene_name: str,
 ) -> list[Finding]:
 	"""

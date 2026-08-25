@@ -20,13 +20,14 @@ import math
 import sys
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any, Sequence
+from collections.abc import Sequence
 
 # PIP3 modules
 import lxml.etree
 
 # Local application
-from tools import normalize_svg_v3
+import tools.svg_normalizer.geometry
+import tools.svg_normalizer.model
 from validation.svg.layer_recipe_validator import (
 	GEOMETRY_TAGS,
 	is_visible_renderable,
@@ -129,7 +130,7 @@ def _rect_bounds(element: lxml.etree._Element, label: str) -> Bounds:
 	return Bounds(x, y, x + width, y + height)
 
 
-def _to_bounds(measured: normalize_svg_v3.BBox | str | None, label: str) -> Bounds:
+def _to_bounds(measured: tools.svg_normalizer.model.BBox | str | None, label: str) -> Bounds:
 	"""Convert the normalizer's bounded geometry result or fail explicitly."""
 	if measured is None or isinstance(measured, str):
 		raise SvgSemanticInspectionError(f"cannot measure {label} with the normalized SVG geometry model")
@@ -166,7 +167,7 @@ def _clip_child_bounds(element: lxml.etree._Element, label: str) -> Bounds:
 		copy_element.attrib.pop(name, None)
 	copy_element.set("fill", "#000000")
 	copy_element.set("stroke", "none")
-	return _to_bounds(normalize_svg_v3.element_bbox(copy_element), label)
+	return _to_bounds(tools.svg_normalizer.geometry.element_bbox(copy_element), label)
 
 
 def _clip_bounds(root: lxml.etree._Element) -> Bounds:
@@ -282,10 +283,10 @@ def _variant_element_payload(
 	element: lxml.etree._Element,
 	paints: dict[str, dict[str, str | None]],
 	match_deltas: dict[str, float],
-) -> dict[str, Any]:
+) -> dict[str, object]:
 	"""Describe one geometry-matched variant candidate."""
 	measured = _to_bounds(
-		normalize_svg_v3.element_bbox(element),
+		tools.svg_normalizer.geometry.element_bbox(element),
 		f"variant geometry {ordinal}",
 	)
 	return {
@@ -322,12 +323,12 @@ def _normalize_bounds(bounds: Bounds, view_box: Bounds) -> Bounds:
 	)
 
 
-def _variant_entries(root: lxml.etree._Element) -> list[dict[str, Any]]:
+def _variant_entries(root: lxml.etree._Element) -> list[dict[str, object]]:
 	"""Measure visible geometry once for deterministic family correspondence."""
 	view_box = _view_box(root)
 	entries = []
 	for ordinal, element in enumerate(_visible_geometry(root), start=1):
-		bounds = _to_bounds(normalize_svg_v3.element_bbox(element), f"variant geometry {ordinal}")
+		bounds = _to_bounds(tools.svg_normalizer.geometry.element_bbox(element), f"variant geometry {ordinal}")
 		entries.append({
 			"ordinal": ordinal,
 			"element": element,
@@ -348,8 +349,8 @@ def _max_edge_delta(left: Bounds, right: Bounds) -> float:
 
 
 def _match_variant_entries(
-	reference: Sequence[dict[str, Any]],
-	candidate: Sequence[dict[str, Any]],
+	reference: Sequence[dict[str, object]],
+	candidate: Sequence[dict[str, object]],
 	*,
 	maximum_edge_delta: float = 0.02,
 ) -> tuple[dict[int, tuple[int, float]], list[int], list[int]]:
@@ -379,7 +380,7 @@ def _match_variant_entries(
 	return matches, missing_reference, unmatched_candidate
 
 
-def compare_svg_variants(svg_paths: Sequence[Path]) -> dict[str, Any]:
+def compare_svg_variants(svg_paths: Sequence[Path]) -> dict[str, object]:
 	"""Propose material geometry from paint differences in an SVG family.
 
 	Paint variation is evidence, not a final semantic decision. Shared white or
@@ -455,11 +456,11 @@ def compare_svg_variants(svg_paths: Sequence[Path]) -> dict[str, Any]:
 	}
 
 
-def _element_payload(element: lxml.etree._Element, ordinal: int, layer_name: str) -> dict[str, Any] | None:
+def _element_payload(element: lxml.etree._Element, ordinal: int, layer_name: str) -> dict[str, object] | None:
 	"""Describe one visible semantic shape using the normalizer's geometry model."""
 	if _inside_defs(element) or not is_visible_renderable(element):
 		return None
-	measured = normalize_svg_v3.element_bbox(element)
+	measured = tools.svg_normalizer.geometry.element_bbox(element)
 	if measured is None:
 		return None
 	bounds = _to_bounds(measured, f"{layer_name} geometry {ordinal}")
@@ -472,7 +473,7 @@ def _element_payload(element: lxml.etree._Element, ordinal: int, layer_name: str
 	}
 
 
-def _semantic_layer_payloads(root: lxml.etree._Element) -> list[dict[str, Any]]:
+def _semantic_layer_payloads(root: lxml.etree._Element) -> list[dict[str, object]]:
 	"""Report every semantic layer and its individual painted elements."""
 	layers = []
 	for layer in root:
@@ -510,7 +511,7 @@ def _semantic_layer_payloads(root: lxml.etree._Element) -> list[dict[str, Any]]:
 	return layers
 
 
-def inspect_material_svg(svg_path: Path) -> dict[str, Any]:
+def inspect_material_svg(svg_path: Path) -> dict[str, object]:
 	"""Return a deterministic semantic-geometry report for one normalized SVG."""
 	root = _parse_svg(svg_path)
 	validate_material_svg(root)
@@ -612,7 +613,7 @@ def main(argv: Sequence[str] | None = None) -> int:
 	args = parse_args(argv)
 	try:
 		if args.compare_variants:
-			payload: dict[str, Any] | list[dict[str, Any]] = compare_svg_variants(args.svg)
+			payload: dict[str, object] | list[dict[str, object]] = compare_svg_variants(args.svg)
 		else:
 			reports = [inspect_material_svg(path) for path in args.svg]
 			payload = reports[0] if len(reports) == 1 else reports

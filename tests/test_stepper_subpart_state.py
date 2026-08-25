@@ -130,7 +130,7 @@ def apply(state_map: StateMap, emitter: FindingEmitter, op: dict) -> bool:
 # Object-level vs subpart-level schema selection
 #============================================
 
-def test_object_level_write_validates_against_object_field():
+def test_object_level_write_validates_against_object_field() -> None:
 	# A bare-object write of an object-scoped enum must succeed against the
 	# object decl and land in the object-level record.
 	state_map, emitter = build_state_map()
@@ -141,7 +141,7 @@ def test_object_level_write_validates_against_object_field():
 	assert object_state["inspection_status"] == "cells_healthy"
 
 
-def test_object_level_enum_still_rejects_bad_value():
+def test_object_level_enum_still_rejects_bad_value() -> None:
 	# The object-scoped enum gate still fires for an out-of-enum object write.
 	state_map, emitter = build_state_map()
 	ok = apply(state_map, emitter, state_change_op("mini_plate", {"inspection_status": "glowing"}))
@@ -149,7 +149,7 @@ def test_object_level_enum_still_rejects_bad_value():
 	assert "state_value_not_allowed" in error_codes(emitter)
 
 
-def test_subpart_write_validates_against_subpart_field_not_object_enum():
+def test_subpart_write_validates_against_subpart_field_not_object_enum() -> None:
 	# A subpart material write of a registered material must pass even though the
 	# object-level material decl carries a narrow allowed list. The D1 predicate
 	# (sentinel-or-registry) governs the subpart, not the leftover enum.
@@ -165,7 +165,7 @@ def test_subpart_write_validates_against_subpart_field_not_object_enum():
 # Per-subpart independence
 #============================================
 
-def test_two_wells_hold_different_values_simultaneously():
+def test_two_wells_hold_different_values_simultaneously() -> None:
 	# Independent subpart records: A1 and A2 keep distinct materials at once.
 	state_map, emitter = build_state_map()
 	apply(state_map, emitter, state_change_op("mini_plate.A1", {"material_name": "carboplatin"}))
@@ -176,7 +176,7 @@ def test_two_wells_hold_different_values_simultaneously():
 	assert a2 == "media"
 
 
-def test_later_write_does_not_overwrite_object_or_other_well():
+def test_later_write_does_not_overwrite_object_or_other_well() -> None:
 	# A write to A2 must not change A1's record nor the object-level record.
 	state_map, emitter = build_state_map()
 	apply(state_map, emitter, state_change_op("mini_plate", {"inspection_status": "cells_healthy"}))
@@ -196,7 +196,7 @@ def test_later_write_does_not_overwrite_object_or_other_well():
 # Subpart-group cascade
 #============================================
 
-def test_group_cascade_reaches_each_member_well():
+def test_group_cascade_reaches_each_member_well() -> None:
 	# A row write must color every member well in place (A1, A2, A3).
 	state_map, emitter = build_state_map()
 	ok = apply(state_map, emitter, state_change_op("mini_plate.row_A", {"material_name": "carboplatin"}))
@@ -211,7 +211,7 @@ def test_group_cascade_reaches_each_member_well():
 # Invalid material still fails
 #============================================
 
-def test_unregistered_subpart_material_does_not_store():
+def test_unregistered_subpart_material_does_not_store() -> None:
 	# An unregistered, non-sentinel material must not land in the subpart record;
 	# the write fails (the s-unregistered gate owns the surfaced finding).
 	state_map, emitter = build_state_map()
@@ -220,7 +220,7 @@ def test_unregistered_subpart_material_does_not_store():
 	assert state_map.get_subpart_state("plate_1", "A1") is None
 
 
-def test_sentinel_subpart_material_is_accepted():
+def test_sentinel_subpart_material_is_accepted() -> None:
 	# A sentinel value (empty) is always valid for a subpart material write.
 	state_map, emitter = build_state_map()
 	ok = apply(state_map, emitter, state_change_op("mini_plate.A1", {"material_name": "empty"}))
@@ -257,7 +257,7 @@ def build_state_map_with_materials(extra_materials: dict) -> tuple[StateMap, Fin
 	return state_map, emitter
 
 
-def test_empty_passes_without_registration():
+def test_empty_passes_without_registration() -> None:
 	# "empty" is the non-rendering sentinel: valid for a subpart write with no
 	# registry entry. Its transparent/null resolution is the color resolver's job
 	# (see tests/test_material_color.mjs), not the stepper's.
@@ -267,7 +267,7 @@ def test_empty_passes_without_registration():
 	assert state_map.get_subpart_state("plate_1", "A1")["state"]["material_name"] == "empty"
 
 
-def test_mixed_passes_without_registration():
+def test_mixed_passes_without_registration() -> None:
 	# "mixed" is the only built-in visible material: valid for a subpart write
 	# with no registry entry. The built-in color (#686868) is resolved at the
 	# color-resolver layer (tests/test_material_color.mjs), not in the stepper.
@@ -277,7 +277,7 @@ def test_mixed_passes_without_registration():
 	assert state_map.get_subpart_state("plate_1", "A1")["state"]["material_name"] == "mixed"
 
 
-def test_cells_fail_when_not_registered():
+def test_cells_fail_when_not_registered() -> None:
 	# "cells" is no longer in the allowlist; an unregistered write fails and the
 	# value is not stored (the s-unregistered gate owns the surfaced finding).
 	state_map, emitter = build_state_map()
@@ -286,7 +286,7 @@ def test_cells_fail_when_not_registered():
 	assert state_map.get_subpart_state("plate_1", "A1") is None
 
 
-def test_formazan_fail_when_not_registered():
+def test_formazan_fail_when_not_registered() -> None:
 	# "formazan" (the MTT assay product) is registry-required; unregistered fails.
 	state_map, emitter = build_state_map()
 	ok = apply(state_map, emitter, state_change_op("mini_plate.A1", {"material_name": "formazan"}))
@@ -294,7 +294,7 @@ def test_formazan_fail_when_not_registered():
 	assert state_map.get_subpart_state("plate_1", "A1") is None
 
 
-def test_waste_stream_fails_when_not_registered():
+def test_waste_stream_fails_when_not_registered() -> None:
 	# A disposal stream ("waste_mtt") is registry-required, not a sentinel;
 	# unregistered fails and stores nothing.
 	state_map, emitter = build_state_map()
@@ -303,7 +303,7 @@ def test_waste_stream_fails_when_not_registered():
 	assert state_map.get_subpart_state("plate_1", "A1") is None
 
 
-def test_cells_pass_when_registered_with_scalar_color():
+def test_cells_pass_when_registered_with_scalar_color() -> None:
 	# Once "cells" is registered with a scalar display_color, the write succeeds
 	# and the value lands in the subpart record (validates via the registry).
 	registered = {"cells": {"label": "Cells", "display_color": "#33aa55"}}
@@ -313,7 +313,7 @@ def test_cells_pass_when_registered_with_scalar_color():
 	assert state_map.get_subpart_state("plate_1", "A1")["state"]["material_name"] == "cells"
 
 
-def test_formazan_and_waste_pass_when_registered():
+def test_formazan_and_waste_pass_when_registered() -> None:
 	# "formazan" and "waste_mtt", once registered with scalar colors, validate
 	# through the registry like any other named substance.
 	registered = {

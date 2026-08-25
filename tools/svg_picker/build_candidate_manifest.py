@@ -38,7 +38,7 @@ def extract_bioicons_category(rel_path: str) -> str:
 	return ""
 
 
-def get_repo_root():
+def get_repo_root() -> object:
 	"""Get repository root via git."""
 	result = subprocess.run(
 		["git", "rev-parse", "--show-toplevel"],
@@ -49,7 +49,7 @@ def get_repo_root():
 	return result.stdout.strip()
 
 
-def get_bioicons_license_for_path(repo_root, rel_path):
+def get_bioicons_license_for_path(repo_root: object, rel_path: object) -> object:
 	"""
 	Determine license for a bioicons SVG by checking its parent folder.
 
@@ -87,7 +87,7 @@ def get_bioicons_license_for_path(repo_root, rel_path):
 	return ("CC-BY", "https://creativecommons.org/licenses/by/4.0/", "inferred", True)
 
 
-def extract_search_tokens(filename, parent_folder):
+def extract_search_tokens(filename: object, parent_folder: object) -> object:
 	"""
 	Extract search tokens from filename and parent folder.
 
@@ -112,7 +112,7 @@ def extract_search_tokens(filename, parent_folder):
 	return sorted(list(tokens))
 
 
-def build_id(source_repo_short, rel_path):
+def build_id(source_repo_short: object, rel_path: object) -> object:
 	"""
 	Build stable ID from source_repo and rel_path.
 	Format: <source_repo_short>:<sha1(rel_path)[:12]>
@@ -123,7 +123,7 @@ def build_id(source_repo_short, rel_path):
 	return f"{source_repo_short}:{sha1}"
 
 
-def walk_svg_directory(repo_root, source_path, source_repo, source_repo_short, verbose=False):
+def walk_svg_directory(repo_root: object, source_path: object, source_repo: object, source_repo_short: object, verbose: object=False) -> None:
 	"""
 	Walk a directory of SVGs and yield candidate records.
 
@@ -197,7 +197,7 @@ def walk_svg_directory(repo_root, source_path, source_repo, source_repo_short, v
 		print(f"Indexed {count} SVGs from {source_repo}", file=sys.stderr)
 
 
-def main():
+def main() -> None:
 	"""Main entry point."""
 	parser = argparse.ArgumentParser(
 		description="Build SVG candidate manifest from assets and external repos"

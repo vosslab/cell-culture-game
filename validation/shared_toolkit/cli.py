@@ -9,7 +9,7 @@ import argparse
 import os
 
 
-def build_parser(prog: str, description: str, extras=None) -> argparse.ArgumentParser:
+def build_parser(prog: str, description: str, extras: object=None) -> argparse.ArgumentParser:
 	"""
 	Build and return a unified argparse.ArgumentParser with ratified flags.
 

@@ -13,7 +13,7 @@ from pathlib import Path
 
 import lxml.etree
 
-from tools import normalize_svg_v3
+import tools.svg_normalizer.workflow
 from validation.svg.layer_recipe_validator import validate_material_svg, validate_reserved_attributes
 from validation.svg.asset_taxonomy_validator import validate_asset_taxonomy
 from validation.svg.semantic_geometry import measure_material_geometry
@@ -273,7 +273,7 @@ def compile_material_svg(source_path: Path, output_path: Path, asset_name: str) 
 	"""Normalize, post-validate, then compile one source form without partial output."""
 	with tempfile.TemporaryDirectory(prefix="liquid_svg_") as temp_dir:
 		normalized = Path(temp_dir) / "normalized.svg"
-		result = normalize_svg_v3.normalize_svg_file(source_path, normalized, padding=2.0)
+		result = tools.svg_normalizer.workflow.normalize_svg_file(source_path, normalized, padding=2.0)
 		if not result.normalized:
 			raise ValueError(f"material normalization failed: {result.rejection.code}: {result.rejection.message}")
 		root = lxml.etree.parse(str(normalized), lxml.etree.XMLParser(resolve_entities=False, no_network=True)).getroot()

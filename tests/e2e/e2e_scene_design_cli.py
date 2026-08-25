@@ -15,7 +15,7 @@ import sys
 from pathlib import Path
 
 
-def test_scene_design_cli_populates_metrics_with_dump():
+def test_scene_design_cli_populates_metrics_with_dump() -> None:
 	"""scene_design CLI populates metrics with non-None values on successful dump."""
 	scene_path = Path('content/base_scenes/bench_basic.yaml')
 	if not scene_path.exists():

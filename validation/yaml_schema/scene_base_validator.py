@@ -28,7 +28,7 @@ LAYOUT_RULE_POSITIVE_NUMERIC_KEYS = {'label_font_size', 'label_line_height'}
 class BaseSceneValidator:
 	"""Validates base scene YAML files per SCENE_YAML_FORMAT.md."""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		"""Initialize validator."""
 		self.all_objects: set = set()
 

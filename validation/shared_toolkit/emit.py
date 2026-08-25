@@ -8,7 +8,7 @@ import json
 import validation.shared_toolkit.console as toolkit_console
 
 
-def finding_to_dict(finding) -> dict:
+def finding_to_dict(finding: object) -> dict:
 	"""
 	Convert a Finding-like dataclass to a normalized dict for JSON export.
 
@@ -65,7 +65,7 @@ def finding_to_dict(finding) -> dict:
 	return output
 
 
-def emit_findings(findings: list, output_format: str = 'text', console=None) -> None:
+def emit_findings(findings: list, output_format: str = 'text', console: object=None) -> None:
 	"""
 	Render a list of findings in the requested output format.
 

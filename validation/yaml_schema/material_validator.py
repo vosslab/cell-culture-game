@@ -44,7 +44,7 @@ MATERIAL_SENTINEL_NAMES = frozenset({"empty", "mixed"})
 class MaterialValidator:
 	"""Validates one materials.yaml file against the closed schema."""
 
-	def validate(self, data, path: str) -> list:
+	def validate(self, data: object, path: str) -> list:
 		"""Return list of Finding for the supplied materials.yaml data."""
 		findings = []
 
@@ -95,7 +95,7 @@ class MaterialValidator:
 
 		return findings
 
-	def _validate_entry(self, material_name, entry, path: str) -> list:
+	def _validate_entry(self, material_name: object, entry: object, path: str) -> list:
 		"""Validate one material entry (key + body)."""
 		findings = []
 		entry_path = f"{path}::materials.{material_name}"
@@ -176,7 +176,7 @@ class MaterialValidator:
 
 		return findings
 
-	def _validate_display_color(self, material_name, color, entry_path: str) -> list:
+	def _validate_display_color(self, material_name: object, color: object, entry_path: str) -> list:
 		"""Validate display_color as a single scalar hex string.
 
 		Per MATERIAL_YAML_FORMAT.md, display_color is a scalar matching

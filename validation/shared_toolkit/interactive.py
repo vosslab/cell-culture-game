@@ -3,7 +3,7 @@
 import sys
 
 
-def pick_protocol_interactively(protocols, prompt="Select a protocol (number): ", intro="Available protocols:"):
+def pick_protocol_interactively(protocols: object, prompt: object="Select a protocol (number): ", intro: object="Available protocols:") -> object:
 	"""
 	Render a numbered menu of protocol names and return the chosen name.
 

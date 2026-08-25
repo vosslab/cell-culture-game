@@ -19,13 +19,13 @@ def _decision(**overrides: object) -> dict:
 	return decision
 
 
-def test_picker_target_path_includes_behavior_category(tmp_path: Path):
+def test_picker_target_path_includes_behavior_category(tmp_path: Path) -> None:
 	assert target_path(tmp_path, _decision()).relative_to(tmp_path) == Path(
 		"assets/equipment/binary_state/new_device.svg"
 	)
 
 
-def test_picker_preflight_rejects_missing_behavior_category(tmp_path: Path):
+def test_picker_preflight_rejects_missing_behavior_category(tmp_path: Path) -> None:
 	(tmp_path / "assets").mkdir()
 	(tmp_path / "candidate.svg").write_text(
 		'<svg xmlns="http://www.w3.org/2000/svg"/>', encoding="utf-8",

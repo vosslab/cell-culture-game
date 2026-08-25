@@ -1,6 +1,6 @@
 """Behavioral coverage for recorded structured-object material regions."""
 
-import pipeline.gen_object_library as gen_object_library
+import pipeline.object_library_visual_states as object_library_visual_states
 
 
 #============================================
@@ -23,7 +23,7 @@ def test_legacy_subpart_pair_lowers_by_shared_prefix_not_object_name() -> None:
 		},
 	}
 
-	lowered = gen_object_library.lower_legacy_subpart_material_effects(
+	lowered = object_library_visual_states.lower_legacy_subpart_material_effects(
 		visual_states, "inline.yaml", has_subpart_geometry=True
 	)
 

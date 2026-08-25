@@ -17,7 +17,6 @@ Dump schema reference:
 """
 
 import math
-from typing import Any
 
 
 #============================================
@@ -64,7 +63,7 @@ def _scene_diagonal(scene_bounds: dict[str, float]) -> float:
 	return math.sqrt(width * width + height * height)
 
 
-def _identify_primary(scene: dict[str, Any], dump_data: dict[str, Any]) -> dict[str, Any] | None:
+def _identify_primary(scene: dict[str, object], dump_data: dict[str, object]) -> dict[str, object] | None:
 	"""Identify the primary placement from scene YAML.
 
 	Detection order:
@@ -85,7 +84,7 @@ def _identify_primary(scene: dict[str, Any], dump_data: dict[str, Any]) -> dict[
 		return None
 
 	# Build index from placement_name -> dump entry.
-	dump_by_name: dict[str, dict[str, Any]] = {}
+	dump_by_name: dict[str, dict[str, object]] = {}
 	for dp in dump_placements:
 		dump_by_name[dp['placement_name']] = dp
 
@@ -97,7 +96,7 @@ def _identify_primary(scene: dict[str, Any], dump_data: dict[str, Any]) -> dict[
 				return dump_by_name[name]
 
 	# Step 2: heuristic - largest footprint area.
-	best: dict[str, Any] | None = None
+	best: dict[str, object] | None = None
 	best_area = -1.0
 	for dp in dump_placements:
 		area = _footprint_area(dp['footprint_bbox'])
@@ -112,7 +111,7 @@ def _identify_primary(scene: dict[str, Any], dump_data: dict[str, Any]) -> dict[
 # Metric: support_distance
 #============================================
 
-def support_distance(scene: dict[str, Any], dump_data: dict[str, Any]) -> float | None:
+def support_distance(scene: dict[str, object], dump_data: dict[str, object]) -> float | None:
 	"""Mean Euclidean distance from supporting placements to primary center, 0-100.
 
 	Definition (SCENE_DESIGN_LINT_PLAN.md "Proximity"):
@@ -182,7 +181,7 @@ def support_distance(scene: dict[str, Any], dump_data: dict[str, Any]) -> float 
 # Metric: protocol_step_affinity (SKELETON)
 #============================================
 
-def protocol_step_affinity(scene: dict[str, Any]) -> float | None:
+def protocol_step_affinity(scene: dict[str, object]) -> float | None:
 	"""SKELETON: fraction of step-co-used items in same or adjacent zones.
 
 	Definition (SCENE_DESIGN_LINT_PLAN.md "Proximity"):

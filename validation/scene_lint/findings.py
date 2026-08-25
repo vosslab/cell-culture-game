@@ -2,7 +2,6 @@
 
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any
 
 
 class Confidence(str, Enum):
@@ -45,11 +44,11 @@ class Finding:
 	bbox_type: str = ''
 	confidence: Confidence = Confidence.HIGH
 	message: str = ''
-	evidence: dict[str, Any] = field(default_factory=dict)
+	evidence: dict[str, object] = field(default_factory=dict)
 	fix_hints: list[str] = field(default_factory=list)
 	suppressed_by: str | None = None
 
-	def to_dict(self) -> dict[str, Any]:
+	def to_dict(self) -> dict[str, object]:
 		"""Convert finding to dict for JSONL serialization."""
 		return {
 			'scene': self.scene,

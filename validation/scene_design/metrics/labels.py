@@ -21,7 +21,6 @@ Dump schema reference:
 """
 
 import math
-from typing import Any
 
 
 # Estimated single-line label height in scene-% units.
@@ -112,7 +111,7 @@ def _bbox_valid(bbox: dict[str, float]) -> bool:
 # Metric: predicted_label_overlap
 #============================================
 
-def predicted_label_overlap(scene: dict[str, Any], dump_data: dict[str, Any]) -> float | None:
+def predicted_label_overlap(scene: dict[str, object], dump_data: dict[str, object]) -> float | None:
 	"""Fraction of placements whose label_bbox overlaps another placement's bbox, as 0-100.
 
 	Definition (SCENE_DESIGN_LINT_PLAN.md "Label hygiene"):
@@ -181,7 +180,7 @@ def predicted_label_overlap(scene: dict[str, Any], dump_data: dict[str, Any]) ->
 # Metric: label_to_object_distance
 #============================================
 
-def label_to_object_distance(scene: dict[str, Any], dump_data: dict[str, Any]) -> float | None:
+def label_to_object_distance(scene: dict[str, object], dump_data: dict[str, object]) -> float | None:
 	"""Average gap between label_bbox and the footprint_bbox it labels, as 0-100.
 
 	Definition (SCENE_DESIGN_LINT_PLAN.md "Label hygiene"):
@@ -250,7 +249,7 @@ def label_to_object_distance(scene: dict[str, Any], dump_data: dict[str, Any]) -
 # Metric: label_wrap_rate
 #============================================
 
-def label_wrap_rate(scene: dict[str, Any], dump_data: dict[str, Any]) -> float | None:
+def label_wrap_rate(scene: dict[str, object], dump_data: dict[str, object]) -> float | None:
 	"""Fraction of placements whose label spans multiple lines, as 0-100.
 
 	Definition (SCENE_DESIGN_LINT_PLAN.md "Label hygiene"):

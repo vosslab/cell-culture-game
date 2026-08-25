@@ -17,7 +17,7 @@ import argparse
 import sys
 
 
-def get_repo_root():
+def get_repo_root() -> object:
 	"""Determine REPO_ROOT via git rev-parse --show-toplevel."""
 	result = subprocess.run(
 		['git', 'rev-parse', '--show-toplevel'],
@@ -29,7 +29,7 @@ def get_repo_root():
 	return pathlib.Path(result.stdout.strip())
 
 
-def discover_protocols(repo_root):
+def discover_protocols(repo_root: object) -> object:
 	"""
 	Discover available protocols by recursively searching for protocol.yaml.
 
@@ -49,7 +49,7 @@ def discover_protocols(repo_root):
 	return sorted(protocols)
 
 
-def parse_args():
+def parse_args() -> object:
 	"""Parse command-line arguments."""
 	parser = argparse.ArgumentParser(
 		description='YAML-driven protocol walker for UI regression testing.',
@@ -83,7 +83,7 @@ def parse_args():
 	return args
 
 
-def main():
+def main() -> object:
 	args = parse_args()
 	repo_root = get_repo_root()
 

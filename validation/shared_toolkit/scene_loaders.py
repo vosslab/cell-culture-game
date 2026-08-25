@@ -11,7 +11,6 @@ fields that the inheritance system protects) are detected and reported.
 
 import re
 from pathlib import Path
-from typing import Any
 
 import validation.shared_toolkit.yaml_io as yaml_io
 import validation.shared_toolkit.paths as paths
@@ -102,7 +101,7 @@ def load_svg_viewbox(svg_path: Path | str) -> tuple[float, float]:
 # Inheritance resolution
 #============================================
 
-def resolve_inheritance(scene: dict[str, Any], base_scenes_dir: Path | str | None = None) -> dict[str, Any]:
+def resolve_inheritance(scene: dict[str, object], base_scenes_dir: Path | str | None = None) -> dict[str, object]:
 	"""
 	Resolve single-level scene inheritance and return a new scene dict.
 

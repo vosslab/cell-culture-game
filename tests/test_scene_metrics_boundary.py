@@ -199,7 +199,7 @@ def test_no_layout_import_or_yaml_coordinate_subscript(path: str) -> None:
 
 
 #============================================
-def test_dump_scene_geometry_raises_on_missing_render(tmp_path) -> None:
+def test_dump_scene_geometry_raises_on_missing_render(tmp_path: object) -> None:
 	"""
 	dump_scene_geometry is the only geometry source and fails loudly when a
 	scene has never been rendered (no stats.json under

@@ -14,391 +14,24 @@ Usage:
 """
 
 import os
-import re
 import sys
-import hashlib
-from functools import lru_cache
 from pathlib import Path
 
 import yaml
-import lxml.etree
 
 import validation.shared_toolkit.paths as toolkit_paths
 import validation.shared_toolkit.interactive as toolkit_interactive
 import validation.shared_toolkit.reporter as reporter
 import validation.shared_toolkit.cli as toolkit_cli
 import validation.shared_toolkit.verbosity as verbosity
-from validation.svg.asset_registry import build_svg_asset_registry
+import validation.svg.asset_inspection
 
 #============================================
 # setup
 #============================================
 
-REPO_ROOT = toolkit_paths.REPO_ROOT
 OBJECTS_DIR = toolkit_paths.OBJECTS_DIR
-ASSETS_DIR = os.path.join(REPO_ROOT, "assets", "equipment")
-# ASVS 5.3.2: provenance metadata is read only from this fixed repo-owned path.
-SOURCES_MD = os.path.join(ASSETS_DIR, "SOURCES.md")
-OTHER_REPOS_ROOT = os.path.join(REPO_ROOT, "..", "OTHER_REPOS")
 
-
-@lru_cache(maxsize=1)
-def _equipment_registry():
-	"""Return the shared recursive equipment registry for path lookups."""
-	return build_svg_asset_registry(Path(ASSETS_DIR))
-
-
-def _asset_path(asset_name: str) -> str:
-	"""Resolve one logical equipment asset name to its current source path."""
-	try:
-		return str(_equipment_registry().asset_path(asset_name))
-	except KeyError:
-		return os.path.join(ASSETS_DIR, f"{asset_name}.svg")
-
-#============================================
-# Servier source and category parsing
-#============================================
-
-def parse_servier_source_rows(lines: list[str]) -> dict[str, tuple[str, str]]:
-	"""Extract Servier-adopted SVG info from Markdown table rows.
-
-	Returns dict mapping asset_basename -> (source_path, category)
-	where source_path is the Servier path and category is the bioicons
-	category (Lab_apparatus, Chemistry, Microbiology, etc).
-	"""
-	sources_map = {}
-	for line in lines:
-		stripped = line.strip()
-		if not (stripped.startswith('|') and stripped.endswith('|')):
-			continue
-
-		parts = [part.strip() for part in stripped.split('|')]
-		if len(parts) < 4:
-			continue
-
-		asset_match = re.fullmatch(r'`([^`/]+)\.svg`', parts[1])
-		servier_match = re.fullmatch(
-			r'`([^/`]+)/Servier/([^`]+\.svg)`',
-			parts[2],
-		)
-		if not asset_match or not servier_match:
-			continue
-
-		filename = asset_match.group(1)
-		category = servier_match.group(1)
-		servier_path = f"{category}/Servier/{servier_match.group(2)}"
-		full_path = f"OTHER_REPOS/bioicons/static/icons/cc-by-3.0/{servier_path}"
-		sources_map[filename] = (full_path, category)
-
-	return sources_map
-
-
-def parse_servier_sources() -> dict[str, tuple[str, str]]:
-	"""Extract Servier-adopted SVG info from the repository source ledger."""
-	if not os.path.isfile(SOURCES_MD):
-		return {}
-
-	with open(SOURCES_MD, 'r', encoding='utf-8') as f:
-		lines = f.readlines()
-
-	sources_map = parse_servier_source_rows(lines)
-	return sources_map
-
-#============================================
-# asset metadata checks
-#============================================
-
-def compute_file_hash(path: str) -> str:
-	"""Compute SHA-256 hash of a file."""
-	sha256_hash = hashlib.sha256()
-	with open(path, 'rb') as f:
-		for chunk in iter(lambda: f.read(4096), b''):
-			sha256_hash.update(chunk)
-	return sha256_hash.hexdigest()
-
-def check_modification_status(
-	asset_name: str,
-	servier_sources: dict[str, tuple[str, str]]
-) -> str:
-	"""Check if a Servier-adopted SVG has been modified.
-
-	Returns: 'pristine', 'adapted', or 'source_missing'.
-	"""
-	if asset_name not in servier_sources:
-		return 'pristine'  # not a Servier asset, skip
-
-	source_path_rel, _ = servier_sources[asset_name]
-	source_path_abs = os.path.join(REPO_ROOT, source_path_rel)
-
-	if not os.path.isfile(source_path_abs):
-		return 'source_missing'
-
-	our_svg = _asset_path(asset_name)
-	our_hash = compute_file_hash(our_svg)
-	source_hash = compute_file_hash(source_path_abs)
-
-	return 'pristine' if our_hash == source_hash else 'adapted'
-
-def check_attribution(
-	asset_name: str,
-	servier: set[str],
-	servier_sources: dict[str, tuple[str, str]]
-) -> str:
-	"""Check attribution for a Servier-adopted SVG.
-
-	Returns: 'attributed_inline', 'attributed_manifest', 'attributed_both', or 'unattributed'.
-	"""
-	if asset_name not in servier:
-		return 'attributed_both'  # not a Servier asset, no check needed
-
-	svg_path = _asset_path(asset_name)
-	has_inline_attribution = False
-
-	# Check for inline XML comment with Servier + CC BY
-	if os.path.isfile(svg_path):
-		try:
-			with open(svg_path, 'r', encoding='utf-8') as f:
-				content = f.read(2000)  # check first 2000 chars for comment
-				if re.search(r'<!--.*?[Ss]ervier.*?[Cc][Cc]\s+[Bb][Yy].*?-->', content, re.DOTALL):
-					has_inline_attribution = True
-		except (IOError, OSError, UnicodeDecodeError):
-			pass
-
-	in_manifest = asset_name in servier_sources
-
-	if has_inline_attribution and in_manifest:
-		return 'attributed_both'
-	elif has_inline_attribution:
-		return 'attributed_inline'
-	elif in_manifest:
-		return 'attributed_manifest'
-	else:
-		return 'unattributed'
-
-def check_normalization(asset_name: str) -> tuple[str, str | None]:
-	"""Check SVG normalization.
-
-	Returns: (status, reason) where status is 'normalized' or 'failed'.
-	"""
-	svg_path = _asset_path(asset_name)
-
-	if not os.path.isfile(svg_path):
-		return 'failed', 'file_not_found'
-
-	try:
-		# Hardened lxml parser: resolve_entities=False blocks XXE entity
-		# expansion, no_network=True blocks external DTD/entity network fetches.
-		# First-party repo asset, but the parser stays hardened regardless of
-		# source trust.
-		parser = lxml.etree.XMLParser(resolve_entities=False, no_network=True)
-		tree = lxml.etree.parse(svg_path, parser)
-		root = tree.getroot()
-
-		# Check root element
-		if not root.tag.endswith('svg'):
-			return 'failed', 'root_not_svg'
-
-		# Check viewBox
-		viewbox = root.get('viewBox')
-		if not viewbox:
-			return 'failed', 'no_viewbox'
-
-		# Try to parse viewBox as 4 numbers
-		try:
-			viewbox_parts = viewbox.split()
-			if len(viewbox_parts) != 4:
-				return 'failed', 'invalid_viewbox_format'
-			for part in viewbox_parts:
-				float(part)
-		except (ValueError, AttributeError):
-			return 'failed', 'viewbox_not_numeric'
-
-		# Check xmlns. lxml folds the default namespace into the tag (root.tag
-		# becomes '{http://www.w3.org/2000/svg}svg'); it does NOT expose 'xmlns'
-		# as a gettable attribute, so root.get('xmlns') is always None for a
-		# correctly-namespaced SVG. Detect normalization from the parsed tag
-		# namespace instead.
-		svg_namespace = '{http://www.w3.org/2000/svg}'
-		if not root.tag.startswith(svg_namespace):
-			return 'failed', 'bad_xmlns'
-
-		return 'normalized', None
-
-	except lxml.etree.XMLSyntaxError:
-		return 'failed', 'xml_parse_error'
-	except (IOError, OSError):
-		return 'failed', 'parse_exception'
-
-def check_forbidden_constructs(asset_name: str) -> list[str]:
-	"""Check for forbidden SVG constructs.
-
-	Returns list of findings (empty if none).
-	"""
-	findings = []
-	svg_path = _asset_path(asset_name)
-
-	if not os.path.isfile(svg_path):
-		return findings
-
-	try:
-		with open(svg_path, 'r', encoding='utf-8') as f:
-			content = f.read()
-
-		# Check for script elements
-		if re.search(r'<script[^>]*>', content, re.IGNORECASE):
-			findings.append('script_element')
-
-		# Check for foreignObject
-		if re.search(r'<foreignObject[^>]*>', content, re.IGNORECASE):
-			findings.append('foreignObject_element')
-
-		# Check for base64 embedded images
-		if re.search(r'data:image/[^;]+;base64,', content):
-			findings.append('embedded_base64_image')
-
-		# Check for inline event handlers
-		if re.search(r'\bon[a-z]+\s*=', content, re.IGNORECASE):
-			findings.append('inline_event_handler')
-
-	except (IOError, OSError, UnicodeDecodeError):
-		pass
-
-	return findings
-
-def get_file_size_kb(asset_name: str) -> float | None:
-	"""Get file size in KB."""
-	svg_path = _asset_path(asset_name)
-	if os.path.isfile(svg_path):
-		size_bytes = os.path.getsize(svg_path)
-		return size_bytes / 1024.0
-	return None
-
-def extract_subpart_ids(asset_name: str) -> set[str]:
-	"""Extract all data-subpart-id attribute values from SVG."""
-	subpart_ids = set()
-	svg_path = _asset_path(asset_name)
-
-	if not os.path.isfile(svg_path):
-		return subpart_ids
-
-	try:
-		# Hardened lxml parser: resolve_entities=False blocks XXE entity
-		# expansion, no_network=True blocks external DTD/entity network fetches.
-		# First-party repo asset, but the parser stays hardened regardless of
-		# source trust.
-		parser = lxml.etree.XMLParser(resolve_entities=False, no_network=True)
-		tree = lxml.etree.parse(svg_path, parser)
-		root = tree.getroot()
-
-		for elem in root.iter():
-			subpart_id = elem.get('data-subpart-id')
-			if subpart_id:
-				subpart_ids.add(subpart_id)
-
-	except lxml.etree.XMLSyntaxError:
-		pass
-
-	return subpart_ids
-
-def get_expected_subparts(object_name: str, object_data: dict[str, object]) -> set[str] | None:
-	"""Extract expected subpart names from object YAML structure block."""
-	if 'structure' not in object_data:
-		return None
-
-	structure = object_data['structure']
-	explicit_names = structure.get('subpart_names')
-	if isinstance(explicit_names, list):
-		return set(explicit_names)
-	name_pattern = structure.get('name_pattern')
-
-	if not name_pattern:
-		return None
-
-	uses_row = '{row}' in name_pattern
-	uses_row_letter = '{row_letter}' in name_pattern
-	uses_col = '{col}' in name_pattern
-	if not (uses_row or uses_row_letter or uses_col):
-		return None
-
-	# Structured grid names use the same row-major, 1-based numeric convention
-	# as pipeline.gen_object_library. The authoring vocabulary deliberately
-	# limits row letters to A..Z, so do not silently turn row 27 into '['.
-	rows = int(structure.get('rows', 1))
-	cols = int(structure.get('cols', 1))
-	if uses_row_letter and rows > 26:
-		raise ValueError(
-			f"{object_name}: {{row_letter}} supports at most 26 rows (A..Z), "
-			f"not {rows}"
-		)
-
-	row_indices = range(rows) if (uses_row or uses_row_letter) else range(1)
-	col_indices = range(cols) if uses_col else range(1)
-	subparts = set()
-	for row_index in row_indices:
-		for col_index in col_indices:
-			name = name_pattern
-			name = name.replace('{row_letter}', chr(ord('A') + row_index))
-			name = name.replace('{row}', str(row_index + 1))
-			name = name.replace('{col}', str(col_index + 1))
-			subparts.add(name)
-	return subparts
-
-
-def check_enum_coverage(
-	object_name: str,
-	object_data: dict[str, object]
-) -> dict[str, tuple[int, int, list[str]]]:
-	"""Check enum case coverage in visual_states.
-
-	Returns dict: field_name -> (covered_count, total_count, missing_values)
-	Only includes fields with asset_name references and enum state_fields.
-	"""
-	coverage = {}
-
-	if 'visual_states' not in object_data or 'state_fields' not in object_data:
-		return coverage
-
-	# Build state_field enum map
-	enum_map = {}
-	for field_def in object_data['state_fields']:
-		if field_def.get('type') == 'enum':
-			field_name = field_def['field_name']
-			allowed = field_def.get('allowed', [])
-			enum_map[field_name] = set(allowed)
-
-	# Check visual_states that use asset_name
-	visual_states = object_data['visual_states']
-	for field_name, state_def in visual_states.items():
-		if field_name not in enum_map:
-			continue
-
-		if state_def.get('kind') != 'svg':
-			continue
-
-		cases = state_def.get('cases', [])
-		covered_values = set()
-
-		for case in cases:
-			when = case.get('when')
-			output = case.get('output', {})
-			if isinstance(output, dict) and 'asset_name' in output:
-				covered_values.add(when)
-
-		expected = enum_map[field_name]
-		missing = expected - covered_values
-		coverage[field_name] = (len(covered_values), len(expected), sorted(missing))
-
-	return coverage
-
-#============================================
-# asset discovery
-#============================================
-
-def list_disk_svgs() -> set[str]:
-	"""List logical SVG names from the recursive equipment registry."""
-	if not os.path.isdir(ASSETS_DIR):
-		return set()
-	return set(_equipment_registry().asset_names)
 
 def extract_asset_names_recursive(obj: object) -> set[str]:
 	"""Recursively extract all asset_name values from a YAML object.
@@ -565,33 +198,33 @@ def build_asset_metadata(
 
 	# Modification status
 	if asset_name in servier:
-		mod_status = check_modification_status(asset_name, servier_sources)
+		mod_status = validation.svg.asset_inspection.check_modification_status(asset_name, servier_sources)
 		meta['modification_status'] = mod_status
 	else:
 		meta['modification_status'] = None
 
 	# Attribution
 	if asset_name in servier:
-		attr = check_attribution(asset_name, servier, servier_sources)
+		attr = validation.svg.asset_inspection.check_attribution(asset_name, servier, servier_sources)
 		meta['attribution'] = attr
 	else:
 		meta['attribution'] = None
 
 	# Normalization
-	norm_status, norm_reason = check_normalization(asset_name)
+	norm_status, norm_reason = validation.svg.asset_inspection.check_normalization(asset_name)
 	meta['normalization'] = norm_status
 	meta['normalization_reason'] = norm_reason
 
 	# Forbidden constructs
-	forbidden = check_forbidden_constructs(asset_name)
+	forbidden = validation.svg.asset_inspection.check_forbidden_constructs(asset_name)
 	meta['forbidden_constructs'] = forbidden
 
 	# File size
-	size_kb = get_file_size_kb(asset_name)
+	size_kb = validation.svg.asset_inspection.get_file_size_kb(asset_name)
 	meta['file_size_kb'] = size_kb
 
 	# Subpart IDs
-	subpart_ids = extract_subpart_ids(asset_name)
+	subpart_ids = validation.svg.asset_inspection.extract_subpart_ids(asset_name)
 	meta['subpart_ids'] = sorted(subpart_ids)
 
 	return meta
@@ -733,7 +366,7 @@ def print_full_report(
 		for obj_name in objects.keys():
 			obj_data = objects[obj_name]
 			yaml_data = obj_data.get('yaml_data', {})
-			expected_subparts = get_expected_subparts(obj_name, yaml_data)
+			expected_subparts = validation.svg.asset_inspection.get_expected_subparts(obj_name, yaml_data)
 			if expected_subparts:
 				for asset_name in obj_data['assets'].keys():
 					if asset_name in per_asset_metadata:
@@ -844,7 +477,7 @@ def print_object_alignment_section(objects: dict[str, dict[str, object]], asset_
 			print(f"  {asset_name}: {classification} (used {reuse}x)")
 
 		# Enum coverage
-		coverage = check_enum_coverage(obj_name, obj_data.get('yaml_data', {}))
+		coverage = validation.svg.asset_inspection.check_enum_coverage(obj_name, obj_data.get('yaml_data', {}))
 		if coverage:
 			print("  Enum coverage:")
 			for field, (covered, total, missing) in sorted(coverage.items()):
@@ -867,7 +500,7 @@ def print_subpart_alignment_section(objects: dict[str, dict[str, object]], per_a
 
 		obj_data = objects[obj_name]
 		yaml_data = obj_data.get('yaml_data', {})
-		expected_subparts = get_expected_subparts(obj_name, yaml_data)
+		expected_subparts = validation.svg.asset_inspection.get_expected_subparts(obj_name, yaml_data)
 
 		if not expected_subparts:
 			continue
@@ -915,12 +548,12 @@ def print_cleanup_surface_section(orphan_svgs: set[str], verbose: bool = False) 
 # cli
 #============================================
 
-def parse_args():
+def parse_args() -> object:
 	"""Parse command-line arguments."""
 	#============================================
 	# extras callback registers SVG audit-specific flags
 	#============================================
-	def register_svg_audit_flags(parser):
+	def register_svg_audit_flags(parser: object) -> None:
 		selection_group = parser.add_argument_group('SVG Audit')
 		selection_group.add_argument(
 			'--list-objects',
@@ -950,7 +583,7 @@ def parse_args():
 
 	return args
 
-def main():
+def main() -> None:
 	"""SVG asset audit: classify, inspect, and cross-validate assets.
 
 	Verbosity contract (text output line targets):
@@ -964,8 +597,8 @@ def main():
 	args = parse_args()
 
 	# Load the provenance ledger and discover assets.
-	disk_svgs = list_disk_svgs()
-	servier_sources = parse_servier_sources()
+	disk_svgs = validation.svg.asset_inspection.list_disk_svgs()
+	servier_sources = validation.svg.asset_inspection.parse_servier_sources()
 	servier = set(servier_sources)
 
 	# Run the audit
@@ -1104,7 +737,7 @@ def print_json_report(
 	for obj_name in sorted(objects.keys()):
 		obj_data = objects[obj_name]
 		yaml_data = obj_data.get('yaml_data', {})
-		expected_subparts = get_expected_subparts(obj_name, yaml_data)
+		expected_subparts = validation.svg.asset_inspection.get_expected_subparts(obj_name, yaml_data)
 		if expected_subparts:
 			for asset_name in sorted(obj_data['assets'].keys()):
 				if asset_name in per_asset_metadata:

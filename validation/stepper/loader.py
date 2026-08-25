@@ -13,7 +13,7 @@ class ProtocolNotFoundError(Exception):
 class LoadedContentTree:
 	"""Stepper-side view of loaded content, exposing protocols, objects, materials, and scenes."""
 
-	def __init__(self, database: ContentDatabase, root_path: Path | None = None):
+	def __init__(self, database: ContentDatabase, root_path: Path | None = None) -> None:
 		"""Initialize with a populated ContentDatabase."""
 		self.database = database
 		self.objects = database.objects

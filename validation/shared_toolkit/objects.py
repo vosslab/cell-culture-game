@@ -5,7 +5,7 @@ from pathlib import Path
 import validation.shared_toolkit.paths as paths
 
 
-def list_objects(objects_dir=None):
+def list_objects(objects_dir: object=None) -> object:
 	"""
 	List object YAML file basenames (without .yaml) under content/objects/.
 

@@ -19,7 +19,6 @@ Dump schema reference:
   dump_data['scene_bounds'] is {left, right, top, bottom} in scene-%.
 """
 
-from typing import Any
 
 
 #============================================
@@ -52,7 +51,7 @@ def _scene_area(scene_bounds: dict[str, float]) -> float:
 	return width * height
 
 
-def _identify_primary(scene: dict[str, Any], dump_data: dict[str, Any]) -> dict[str, Any] | None:
+def _identify_primary(scene: dict[str, object], dump_data: dict[str, object]) -> dict[str, object] | None:
 	"""Identify the primary placement from scene YAML.
 
 	Detection order:
@@ -73,7 +72,7 @@ def _identify_primary(scene: dict[str, Any], dump_data: dict[str, Any]) -> dict[
 		return None
 
 	# Build index from placement_name -> dump entry.
-	dump_by_name: dict[str, dict[str, Any]] = {}
+	dump_by_name: dict[str, dict[str, object]] = {}
 	for dp in dump_placements:
 		dump_by_name[dp['placement_name']] = dp
 
@@ -85,7 +84,7 @@ def _identify_primary(scene: dict[str, Any], dump_data: dict[str, Any]) -> dict[
 				return dump_by_name[name]
 
 	# Step 2: heuristic - largest footprint area.
-	best: dict[str, Any] | None = None
+	best: dict[str, object] | None = None
 	best_area = -1.0
 	for dp in dump_placements:
 		area = _footprint_area(dp['footprint_bbox'])
@@ -96,7 +95,7 @@ def _identify_primary(scene: dict[str, Any], dump_data: dict[str, Any]) -> dict[
 	return best
 
 
-def _is_primary_explicit(scene: dict[str, Any]) -> bool:
+def _is_primary_explicit(scene: dict[str, object]) -> bool:
 	"""Return True if any placement has data-primary explicitly set to True.
 
 	Args:
@@ -115,7 +114,7 @@ def _is_primary_explicit(scene: dict[str, Any]) -> bool:
 # Metric: primary_area_ratio
 #============================================
 
-def primary_area_ratio(scene: dict[str, Any], dump_data: dict[str, Any]) -> float | None:
+def primary_area_ratio(scene: dict[str, object], dump_data: dict[str, object]) -> float | None:
 	"""Ratio of primary placement footprint area to total footprint area, 0-100.
 
 	Definition (SCENE_DESIGN_LINT_PLAN.md "Hierarchy"):
@@ -155,7 +154,7 @@ def primary_area_ratio(scene: dict[str, Any], dump_data: dict[str, Any]) -> floa
 # Metric: primary_prominence
 #============================================
 
-def primary_prominence(scene: dict[str, Any], dump_data: dict[str, Any]) -> float | None:
+def primary_prominence(scene: dict[str, object], dump_data: dict[str, object]) -> float | None:
 	"""Score combining primary area ratio and primary zone position, 0-100.
 
 	Definition (SCENE_DESIGN_LINT_PLAN.md "Hierarchy"):
@@ -209,7 +208,7 @@ def primary_prominence(scene: dict[str, Any], dump_data: dict[str, Any]) -> floa
 # Metric: primary_detection_confidence
 #============================================
 
-def primary_detection_confidence(scene: dict[str, Any]) -> float | None:
+def primary_detection_confidence(scene: dict[str, object]) -> float | None:
 	"""Confidence score for primary identification method.
 
 	Definition (SCENE_DESIGN_LINT_PLAN.md "Hierarchy"):

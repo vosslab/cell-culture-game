@@ -4,9 +4,9 @@ JSONL writer emits one line per finding (consumable by downstream tools).
 Markdown writer emits per-scene sections with grouped findings.
 """
 
+import io
 import json
 from pathlib import Path
-from typing import TextIO
 
 from validation.scene_lint.findings import Finding, Verdict
 
@@ -15,7 +15,7 @@ from validation.scene_lint.findings import Finding, Verdict
 # JSONL writer
 #============================================
 
-def write_findings_jsonl(findings: list[Finding], output: TextIO | Path | str) -> None:
+def write_findings_jsonl(findings: list[Finding], output: io.TextIOBase | Path | str) -> None:
 	"""
 	Write findings to JSONL format (one JSON object per line).
 
@@ -39,7 +39,7 @@ def write_findings_jsonl(findings: list[Finding], output: TextIO | Path | str) -
 # Markdown writer
 #============================================
 
-def write_findings_markdown(findings: list[Finding], output: TextIO | Path | str) -> None:
+def write_findings_markdown(findings: list[Finding], output: io.TextIOBase | Path | str) -> None:
 	"""
 	Write findings to Markdown format with per-scene sections.
 
@@ -73,7 +73,7 @@ def write_findings_markdown(findings: list[Finding], output: TextIO | Path | str
 		_write_findings_markdown_impl(findings, output)
 
 
-def _write_findings_markdown_impl(findings: list[Finding], out: TextIO) -> None:
+def _write_findings_markdown_impl(findings: list[Finding], out: io.TextIOBase) -> None:
 	"""Internal helper to write Markdown output."""
 	if not findings:
 		out.write('# Scene Lint Report\n\nNo findings.\n')

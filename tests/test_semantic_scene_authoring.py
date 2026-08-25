@@ -5,9 +5,10 @@ import pytest
 
 # local repo modules
 import pipeline.gen_scene_index as gen_scene_index
+import pipeline.scene_geometry_validation as scene_geometry_validation
 import pipeline.scene_inheritance as scene_inheritance
 from validation.scene_lint.rules_group_a import check_forbidden_source_geometry
-from validation.scene_lint.rules_group_b import check_zone_overlap
+from validation.scene_lint.rules_group_b_overlap import check_zone_overlap
 from validation.yaml_schema.scene_base_validator import BaseSceneValidator
 from validation.yaml_schema.scene_protocol_validator import ProtocolSceneValidator
 
@@ -57,7 +58,7 @@ def test_authored_geometry_fails_loudly_at_every_source_boundary() -> None:
 	scene = _semantic_scene()
 	scene['scene_bounds'] = {'left': 0, 'right': 100, 'top': 0, 'bottom': 100}
 	with pytest.raises(ValueError, match="Forbidden authored geometry 'scene_bounds'"):
-		gen_scene_index.reject_authored_geometry(scene, 'memory_scene.yaml')
+		scene_geometry_validation.reject_authored_geometry(scene, 'memory_scene.yaml')
 	findings = check_forbidden_source_geometry(scene, 'semantic_scene')
 	assert any(finding.rule == 'forbidden_source_geometry' for finding in findings)
 

@@ -12,7 +12,7 @@ from validation.yaml_schema.findings import Finding, Severity
 class ProtocolSceneValidator:
 	"""Validates protocol-scene (inherited) YAML files per SCENE_INHERITANCE.md."""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		"""Initialize validator."""
 		self.base_scenes: dict = {}
 

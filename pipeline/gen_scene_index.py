@@ -53,6 +53,7 @@ import yaml  # pyyaml
 
 # local repo modules
 from pipeline import scene_inheritance
+import pipeline.scene_geometry_validation
 from validation.svg.asset_registry import build_svg_asset_registry
 
 
@@ -62,70 +63,6 @@ from validation.svg.asset_registry import build_svg_asset_registry
 # per-placement multipliers; display_width_cm at the placement level would be a
 # size override. All three are removed under vocabulary closure.
 FORBIDDEN_LAYOUT_KEYS = scene_inheritance.SOURCE_FORBIDDEN_GEOMETRY_KEYS
-
-
-#============================================
-
-def reject_authored_geometry(
-	scene_data: dict,
-	yaml_path: str,
-	allow_internal_deactivated: bool = False,
-) -> None:
-	"""Fail loudly when a source scene tries to own renderer geometry."""
-	for key in scene_data:
-		if key in scene_inheritance.SOURCE_FORBIDDEN_GEOMETRY_KEYS:
-			raise ValueError(
-				f"Forbidden authored geometry '{key}' in {yaml_path}; "
-				"semantic zones are sized by the layout manager"
-			)
-
-	background = scene_data.get('background')
-	if isinstance(background, dict):
-		for key in background:
-			if key in scene_inheritance.SOURCE_FORBIDDEN_GEOMETRY_KEYS:
-				raise ValueError(
-					f"Forbidden authored geometry 'background.{key}' in {yaml_path}; "
-					"semantic zones are sized by the layout manager"
-				)
-
-	for index, zone in enumerate(scene_data.get('zones', [])):
-		if not isinstance(zone, dict):
-			continue
-		for key in zone:
-			if key in scene_inheritance.SOURCE_FORBIDDEN_GEOMETRY_KEYS:
-				raise ValueError(
-					f"Forbidden authored geometry 'zones[{index}].{key}' in {yaml_path}; "
-					"semantic zones may declare only zone_name, label, and align"
-				)
-			if key not in scene_inheritance.SOURCE_ZONE_ALLOWED_KEYS:
-				raise ValueError(f"Unknown source-zone key 'zones[{index}].{key}' in {yaml_path}")
-
-	for index, placement in enumerate(scene_data.get('placements', [])):
-		if not isinstance(placement, dict):
-			continue
-		for key in placement:
-			if allow_internal_deactivated and key == 'deactivated':
-				continue
-			if key in scene_inheritance.SOURCE_FORBIDDEN_GEOMETRY_KEYS:
-				raise ValueError(
-					f"Forbidden authored geometry 'placements[{index}].{key}' in {yaml_path}; "
-					"placements keep semantic identity and zone membership only"
-				)
-			if key not in scene_inheritance.SOURCE_PLACEMENT_ALLOWED_KEYS:
-				raise ValueError(f"Unknown source-placement key 'placements[{index}].{key}' in {yaml_path}")
-		layout = placement.get('layout')
-		if isinstance(layout, dict):
-			for key in layout:
-				if key in scene_inheritance.SOURCE_FORBIDDEN_GEOMETRY_KEYS:
-					raise ValueError(
-						f"Forbidden authored geometry 'placements[{index}].layout.{key}' "
-						f"in {yaml_path}; layout sizing belongs to the manager"
-					)
-				if key not in scene_inheritance.SOURCE_LAYOUT_ALLOWED_KEYS:
-					raise ValueError(
-						f"Unknown source-placement layout key 'placements[{index}].layout.{key}' "
-						f"in {yaml_path}"
-					)
 
 
 #============================================
@@ -437,7 +374,7 @@ def process_scene_yaml(
 	if not isinstance(data, dict):
 		raise ValueError(f"Scene YAML must be a dict: {yaml_path}")
 
-	reject_authored_geometry(data, yaml_path)
+	pipeline.scene_geometry_validation.reject_authored_geometry(data, yaml_path)
 
 	# Validate required fields
 	scene_name = data["scene_name"]
@@ -743,7 +680,7 @@ def load_and_resolve_protocol_scene(
 		protocol_scene_data,
 		base_scenes_dict,
 	)
-	reject_authored_geometry(
+	pipeline.scene_geometry_validation.reject_authored_geometry(
 		resolved_scene,
 		yaml_path,
 		allow_internal_deactivated=True,

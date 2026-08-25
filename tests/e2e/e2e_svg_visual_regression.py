@@ -34,7 +34,6 @@ engine, not one node launch per file. ~300-file run takes ~5-10 min vs hours.
 """
 
 # Standard Library
-import sys
 import json
 import shutil
 import random
@@ -57,11 +56,7 @@ _GIT_RESULT = subprocess.run(
 )
 REPO_ROOT = Path(_GIT_RESULT.stdout.strip())
 
-# Add tools/ to sys.path so normalize_svg_v3 is importable without install.
-_TOOLS_DIR = REPO_ROOT / "tools"
-sys.path.insert(0, str(_TOOLS_DIR))
-
-import normalize_svg_v3
+import tools.svg_normalizer.workflow
 
 # Paths
 OTHER_REPOS = REPO_ROOT / "OTHER_REPOS"
@@ -169,7 +164,7 @@ def prescreen_normalizable(
 		# md5 here names a temp file stem, not a security control.
 		stem = hashlib.md5(str(svg_path).encode(), usedforsecurity=False).hexdigest()[:10]
 		out_path = tmp_dir / f"norm_{stem}.svg"
-		result = normalize_svg_v3.normalize_svg_file(svg_path, out_path)
+		result = tools.svg_normalizer.workflow.normalize_svg_file(svg_path, out_path)
 		if result.normalized:
 			passing[svg_path] = out_path
 		elif out_path.exists():

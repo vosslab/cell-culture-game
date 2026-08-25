@@ -27,7 +27,6 @@ predict layout in Python.
 
 import json
 from pathlib import Path
-from typing import Any
 
 from validation.shared_toolkit.yaml_io import load_yaml
 
@@ -95,7 +94,7 @@ def dump_scene_geometry(
 	library_paths: list[Path] | None = None,
 	svg_root: Path | None = None,
 	viewport: dict[str, int] | None = None
-) -> dict[str, Any]:
+) -> dict[str, object]:
 	"""Load rendered scene geometry from the stats.json produced by the render.
 
 	Reads the scene YAML only to discover its scene_name, then loads the

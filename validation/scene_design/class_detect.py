@@ -10,7 +10,6 @@ Classifies scenes into one of five mutually exclusive classes:
 The 5-step detection order is applied strictly: earlier steps take precedence.
 """
 
-from typing import Any
 
 
 class SceneClassError(Exception):
@@ -18,7 +17,7 @@ class SceneClassError(Exception):
 	pass
 
 
-def detect(scene: dict[str, Any]) -> str:
+def detect(scene: dict[str, object]) -> str:
 	"""
 	Detect and return the scene class as a string.
 
@@ -70,7 +69,7 @@ def detect(scene: dict[str, Any]) -> str:
 	return 'composition'
 
 
-def _detect_primary_placement_class(scene: dict[str, Any]) -> str | None:
+def _detect_primary_placement_class(scene: dict[str, object]) -> str | None:
 	"""
 	Identify the kind of the primary placement in the scene.
 

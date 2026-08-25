@@ -7,7 +7,7 @@ import pytest
 
 from pipeline import gen_liquid_regions
 from pipeline import gen_svg_manifest
-from tools import normalize_svg_v3
+import tools.svg_normalizer.workflow
 from validation.svg.layer_recipe_validator import (
 	MaterialSvgValidationError,
 	inject_normalizer_boundary_tokens,
@@ -34,7 +34,7 @@ def _valid_body() -> str:
 <g data-vlab-layer-name="glass_front" data-vlab-layer-kind="fixed"><path d="M0 10H10" stroke="#222222"/></g>'''
 
 
-def test_validator_accepts_repeated_roles_and_nested_artwork():
+def test_validator_accepts_repeated_roles_and_nested_artwork() -> None:
 	"""Valid semantic groups preserve repeatable roles and ordinary nesting."""
 	root = lxml.etree.fromstring(_svg(_valid_body().replace('</g></g>\n<g data-vlab-layer-name="liquid_glint"', '<path d="M2 2H3V3Z" fill="#00aa00"/></g></g>\n<g data-vlab-layer-name="liquid_glint"')).encode("utf-8"))
 	signature = validate_material_svg(root)
@@ -47,7 +47,7 @@ def test_validator_accepts_repeated_roles_and_nested_artwork():
 	'''<g data-vlab-layer-name="liquid" data-vlab-layer-kind="fixed" data-vlab-paint-role="base"><path d="M0 0H1" fill="#000"/></g>''',
 	'''<g data-vlab-layer-name="a" data-vlab-layer-kind="material" data-vlab-paint-role="base"><path d="M0 0H1" fill="#000"/></g><g data-vlab-layer-name="fixed" data-vlab-layer-kind="fixed"><path d="M0 0H1" fill="#000"/></g><g data-vlab-layer-name="b" data-vlab-layer-kind="material" data-vlab-paint-role="base"><path d="M0 0H1" fill="#000"/></g>''',
 ])
-def test_validator_rejects_invalid_recipe_categories(body: str):
+def test_validator_rejects_invalid_recipe_categories(body: str) -> None:
 	"""Malformed roles, names, and material bands do not enter compilation."""
 	root = lxml.etree.fromstring(_svg(body).encode("utf-8"))
 	with pytest.raises(MaterialSvgValidationError):
@@ -71,14 +71,14 @@ def test_validator_rejects_invalid_recipe_categories(body: str):
 		),
 	],
 )
-def test_validator_enforces_closed_gravity_part_ownership(body: str, message: str):
+def test_validator_enforces_closed_gravity_part_ownership(body: str, message: str) -> None:
 	"""Only material layers own one canonical gravity-part value."""
 	root = lxml.etree.fromstring(_svg(body).encode("utf-8"))
 	with pytest.raises(MaterialSvgValidationError, match=message):
 		validate_material_svg(root)
 
 
-def test_compiler_emits_opaque_handles_and_literal_fallback(tmp_path: Path):
+def test_compiler_emits_opaque_handles_and_literal_fallback(tmp_path: Path) -> None:
 	"""Compiler produces deterministic private runtime data without color inference."""
 	source = tmp_path / "sample.svg"
 	output = tmp_path / "generated.svg"
@@ -97,7 +97,7 @@ def test_compiler_emits_opaque_handles_and_literal_fallback(tmp_path: Path):
 	assert entry["body_anchor_y"] == 10.0
 
 
-def test_compiler_derives_separate_surface_and_body_join_datums(tmp_path: Path):
+def test_compiler_derives_separate_surface_and_body_join_datums(tmp_path: Path) -> None:
 	"""A body joins the base surface at its authored tangent line, not its lower edge."""
 	source = tmp_path / "surface_depth.svg"
 	body = _valid_body().replace(
@@ -112,7 +112,7 @@ def test_compiler_derives_separate_surface_and_body_join_datums(tmp_path: Path):
 	assert entry["body_join_y"] == 2.0
 
 
-def test_compiler_carries_the_optional_root_fill_ceiling(tmp_path: Path):
+def test_compiler_carries_the_optional_root_fill_ceiling(tmp_path: Path) -> None:
 	"""A material form owns its closed fill ceiling through generated metadata."""
 	source = tmp_path / "capped.svg"
 	source.write_text(
@@ -127,7 +127,7 @@ def test_compiler_carries_the_optional_root_fill_ceiling(tmp_path: Path):
 	assert "data-vlab-max-fill-percent" not in (tmp_path / "out.svg").read_text(encoding="utf-8")
 
 
-def test_compiler_carries_optional_conical_body_start_calibration(tmp_path: Path):
+def test_compiler_carries_optional_conical_body_start_calibration(tmp_path: Path) -> None:
 	"""A material form carries its closed cone-to-body volume transition."""
 	source = tmp_path / "conical.svg"
 	source.write_text(
@@ -144,7 +144,7 @@ def test_compiler_carries_optional_conical_body_start_calibration(tmp_path: Path
 	)
 
 
-def test_compiler_carries_optional_normalized_fill_height_exponent(tmp_path: Path):
+def test_compiler_carries_optional_normalized_fill_height_exponent(tmp_path: Path) -> None:
 	"""A material form may own a normalized perceptual height calibration."""
 	source = tmp_path / "exponent.svg"
 	source.write_text(
@@ -162,7 +162,7 @@ def test_compiler_carries_optional_normalized_fill_height_exponent(tmp_path: Pat
 
 
 @pytest.mark.parametrize("value", ("0", "70.5", "101", "-1", " 70"))
-def test_validator_rejects_invalid_root_fill_ceiling(value: str):
+def test_validator_rejects_invalid_root_fill_ceiling(value: str) -> None:
 	"""The root ceiling is a bounded integer semantic term, never free-form SVG data."""
 	root = lxml.etree.fromstring(
 		_svg(_valid_body()).replace(
@@ -175,7 +175,7 @@ def test_validator_rejects_invalid_root_fill_ceiling(value: str):
 
 
 @pytest.mark.parametrize("value", ("0", "100", "-1", "+1", "NaN", "1e1", " 3.5"))
-def test_validator_rejects_invalid_conical_body_start_calibration(value: str):
+def test_validator_rejects_invalid_conical_body_start_calibration(value: str) -> None:
 	"""The cone-to-body transition is a finite bounded decimal, not free-form data."""
 	root = lxml.etree.fromstring(
 		_svg(_valid_body()).replace(
@@ -188,7 +188,7 @@ def test_validator_rejects_invalid_conical_body_start_calibration(value: str):
 
 
 @pytest.mark.parametrize("value", ("0", "10.1", "-1", "+1", "NaN", "1e1", " 0.45"))
-def test_validator_rejects_invalid_fill_height_exponent(value: str):
+def test_validator_rejects_invalid_fill_height_exponent(value: str) -> None:
 	"""The perceptual curve is a bounded decimal, never arbitrary SVG data."""
 	root = lxml.etree.fromstring(
 		_svg(_valid_body()).replace(
@@ -200,7 +200,7 @@ def test_validator_rejects_invalid_fill_height_exponent(value: str):
 		validate_material_svg(root)
 
 
-def test_validator_rejects_combining_conical_and_exponent_calibrations():
+def test_validator_rejects_combining_conical_and_exponent_calibrations() -> None:
 	"""The two height mappings have incompatible geometric interpretations."""
 	root = lxml.etree.fromstring(
 		_svg(_valid_body()).replace(
@@ -213,7 +213,7 @@ def test_validator_rejects_combining_conical_and_exponent_calibrations():
 		validate_material_svg(root)
 
 
-def test_compiler_derives_gravity_part_calibration_without_bottom_overscan(tmp_path: Path):
+def test_compiler_derives_gravity_part_calibration_without_bottom_overscan(tmp_path: Path) -> None:
 	"""Body calibration comes from its authored top and fixed lower anchor."""
 	body = _valid_body().replace(
 		"M0 0H10V10Z", "M0 4H10V24H0Z",
@@ -234,7 +234,7 @@ def test_compiler_derives_gravity_part_calibration_without_bottom_overscan(tmp_p
 	assert insufficient_entry["body_anchor_y"] == 10.0
 
 
-def test_publication_requires_compiled_material_artifact(tmp_path: Path):
+def test_publication_requires_compiled_material_artifact(tmp_path: Path) -> None:
 	"""Publication dispatch never falls back from material source to source copy."""
 	assets = tmp_path / "assets"
 	source = assets / "equipment" / "variable_volume" / "sample.svg"
@@ -244,7 +244,7 @@ def test_publication_requires_compiled_material_artifact(tmp_path: Path):
 		gen_svg_manifest.plan_svg_publication(source, assets, tmp_path / "generated")
 
 
-def test_publication_tree_selects_compiled_material_and_ordinary_source(tmp_path: Path):
+def test_publication_tree_selects_compiled_material_and_ordinary_source(tmp_path: Path) -> None:
 	"""The built URL tree never exposes an authored material SVG form."""
 	assets = tmp_path / "assets"
 	generated = tmp_path / "generated"
@@ -266,7 +266,7 @@ def test_publication_tree_selects_compiled_material_and_ordinary_source(tmp_path
 	assert (out / "equipment" / "ordinary.svg").read_bytes() == ordinary_source.read_bytes()
 
 
-def test_sanitizer_preserves_valid_semantics_but_removes_untrusted_attributes():
+def test_sanitizer_preserves_valid_semantics_but_removes_untrusted_attributes() -> None:
 	"""Manifest sanitation deliberately retains only the approved material carrier."""
 	body = _valid_body().replace(
 		'<g><path d="M0 0H10V10Z" fill="#00aa00"/></g>',
@@ -283,25 +283,25 @@ def test_sanitizer_preserves_valid_semantics_but_removes_untrusted_attributes():
 	validate_material_svg(root)
 
 
-def test_normalizer_preserves_material_boundaries_and_is_idempotent(tmp_path: Path):
+def test_normalizer_preserves_material_boundaries_and_is_idempotent(tmp_path: Path) -> None:
 	"""Material policy retains semantic order while ordinary geometry normalizes."""
 	source = tmp_path / "source.svg"
 	first = tmp_path / "first.svg"
 	second = tmp_path / "second.svg"
 	source.write_text(_svg(_valid_body()), encoding="utf-8")
-	result = normalize_svg_v3.normalize_svg_file(source, first, padding=0.0)
+	result = tools.svg_normalizer.workflow.normalize_svg_file(source, first, padding=0.0)
 	assert result.normalized, result.rejection
 	root = lxml.etree.parse(str(first)).getroot()
 	signature = validate_material_svg(root)
 	assert [layer[0] for layer in signature.layers] == [
 		"glass_back", "liquid_body", "liquid_glint", "glass_front",
 	]
-	second_result = normalize_svg_v3.normalize_svg_file(first, second, padding=0.0)
+	second_result = tools.svg_normalizer.workflow.normalize_svg_file(first, second, padding=0.0)
 	assert second_result.normalized, second_result.rejection
 	assert first.read_bytes() == second.read_bytes()
 
 
-def test_normalizer_preserves_material_authored_frame_and_anchor_coordinates(tmp_path: Path):
+def test_normalizer_preserves_material_authored_frame_and_anchor_coordinates(tmp_path: Path) -> None:
 	"""Material normalization keeps the authored viewport and structural coordinates."""
 	source = tmp_path / "source.svg"
 	first = tmp_path / "first.svg"
@@ -316,7 +316,7 @@ def test_normalizer_preserves_material_authored_frame_and_anchor_coordinates(tmp
 </svg>''',
 		encoding="utf-8",
 	)
-	result = normalize_svg_v3.normalize_svg_file(source, first, padding=37.0)
+	result = tools.svg_normalizer.workflow.normalize_svg_file(source, first, padding=37.0)
 	assert result.normalized, result.rejection
 	assert result.view_box == "10 20 100 200"
 	root = lxml.etree.parse(str(first)).getroot()
@@ -331,12 +331,12 @@ def test_normalizer_preserves_material_authored_frame_and_anchor_coordinates(tmp
 	assert clip_path.get("d") == "M25 60H75V180H25Z"
 	liquid_path = root.xpath('.//*[local-name()="g" and @data-vlab-layer-name="liquid_body"]//*[local-name()="path"]')[0]
 	assert liquid_path.get("d") == "M25 60H75V180H25Z"
-	second_result = normalize_svg_v3.normalize_svg_file(first, second, padding=0.0)
+	second_result = tools.svg_normalizer.workflow.normalize_svg_file(first, second, padding=0.0)
 	assert second_result.normalized, second_result.rejection
 	assert first.read_bytes() == second.read_bytes()
 
 
-def test_validator_requires_semantic_ownership_only_for_visible_external_geometry():
+def test_validator_requires_semantic_ownership_only_for_visible_external_geometry() -> None:
 	"""Hidden external geometry is inert; visible external geometry is not."""
 	hidden = lxml.etree.fromstring(_svg(_valid_body() + '<g display="none"><path d="M0 0H1"/></g>').encode("utf-8"))
 	validate_material_svg(hidden)
@@ -345,7 +345,7 @@ def test_validator_requires_semantic_ownership_only_for_visible_external_geometr
 		validate_material_svg(visible)
 
 
-def test_visible_geometry_uses_inline_precedence_and_channel_specific_opacity():
+def test_visible_geometry_uses_inline_precedence_and_channel_specific_opacity() -> None:
 	"""Classification follows SVG precedence without hiding a painted stroke."""
 	body = _valid_body() + '''<g display="none"><path d="M0 0H1" fill="#000" style="display:inline"/></g>
 <path d="M0 0H1" fill="none" stroke="#000" fill-opacity="0" stroke-opacity="1"/>
@@ -355,7 +355,7 @@ def test_visible_geometry_uses_inline_precedence_and_channel_specific_opacity():
 		validate_material_svg(root)
 
 
-def test_visibility_inherit_under_hidden_ancestor_is_not_renderable():
+def test_visibility_inherit_under_hidden_ancestor_is_not_renderable() -> None:
 	"""Inherited visibility cannot revive a hidden ancestor."""
 	root = lxml.etree.fromstring(
 		'<svg xmlns="http://www.w3.org/2000/svg"><g visibility="hidden"><path visibility="inherit" d="M0 0H1" fill="#000"/></g></svg>'.encode("utf-8"),
@@ -364,7 +364,7 @@ def test_visibility_inherit_under_hidden_ancestor_is_not_renderable():
 	assert not layer_recipe_validator.is_visible_renderable(path)
 
 
-def test_svg_keyword_comparisons_are_case_insensitive():
+def test_svg_keyword_comparisons_are_case_insensitive() -> None:
 	"""SVG visibility, display, paint, and inherit keywords ignore case."""
 	root = lxml.etree.fromstring(
 		'''<svg xmlns="http://www.w3.org/2000/svg" fill="NoNe">
@@ -378,7 +378,7 @@ def test_svg_keyword_comparisons_are_case_insensitive():
 	assert all(not layer_recipe_validator.is_visible_renderable(path) for path in paths)
 
 
-def test_fill_inherit_under_none_and_duplicate_inline_values_are_resolved():
+def test_fill_inherit_under_none_and_duplicate_inline_values_are_resolved() -> None:
 	"""The supported cascade has explicit inherit and last-declaration behavior."""
 	root = lxml.etree.fromstring(
 		'<svg xmlns="http://www.w3.org/2000/svg" fill="none"><path d="M0 0H1" fill="inherit"/><path d="M1 0H2" style="fill:#111; fill:none"/></svg>'.encode("utf-8"),
@@ -390,7 +390,7 @@ def test_fill_inherit_under_none_and_duplicate_inline_values_are_resolved():
 	assert layer_recipe_validator._style_value(paths[1], "fill") == "#222"
 
 
-def test_opacity_inherit_composites_parent_value_with_mixed_case_inline_important():
+def test_opacity_inherit_composites_parent_value_with_mixed_case_inline_important() -> None:
 	"""Explicit opacity inherit resolves before each nested SVG group composites."""
 	root = lxml.etree.fromstring(
 		'''<svg xmlns="http://www.w3.org/2000/svg" opacity="0.5">
@@ -401,7 +401,7 @@ def test_opacity_inherit_composites_parent_value_with_mixed_case_inline_importan
 	assert layer_recipe_validator._channel_opacity(path, "fill") == 0.125
 
 
-def test_material_validation_accepts_inert_classes_rejects_selector_paint_and_runtime_namespace():
+def test_material_validation_accepts_inert_classes_rejects_selector_paint_and_runtime_namespace() -> None:
 	"""Classes remain styling, but unresolved selector-driven paint fails loudly."""
 	class_root = lxml.etree.fromstring(_svg(_valid_body().replace('fill="#00aa00"', 'class="liquid"')).encode("utf-8"))
 	validate_material_svg(class_root)
@@ -418,7 +418,7 @@ def test_material_validation_accepts_inert_classes_rejects_selector_paint_and_ru
 	'<rect id="anchor_liquid_bounds" x="0" y="0" width="NaN" height="10" display="none"/>',
 	'<rect id="anchor_liquid_bounds" x="0" y="0" width="10" display="none"/>',
 ])
-def test_compiler_rejects_invalid_finite_bounds(bounds: str, tmp_path: Path):
+def test_compiler_rejects_invalid_finite_bounds(bounds: str, tmp_path: Path) -> None:
 	"""Runtime manifest bounds are always finite and positive."""
 	source = tmp_path / "invalid_bounds.svg"
 	source.write_text(_svg(_valid_body()).replace('<rect id="anchor_liquid_bounds" x="0" y="0" width="10" height="10" display="none"/>', bounds), encoding="utf-8")
@@ -426,7 +426,7 @@ def test_compiler_rejects_invalid_finite_bounds(bounds: str, tmp_path: Path):
 		gen_liquid_regions.compile_material_svg(source, tmp_path / "out.svg", "invalid_bounds")
 
 
-def test_compiler_keeps_clip_definition_removes_bounds_and_preserves_none_channel(tmp_path: Path):
+def test_compiler_keeps_clip_definition_removes_bounds_and_preserves_none_channel(tmp_path: Path) -> None:
 	"""Compiled output owns the level clip but not the compiler-only bounds anchor."""
 	body = _valid_body().replace('fill="#00aa00"', 'fill="none" stroke="#00aa00"')
 	source = tmp_path / "sample.svg"
@@ -439,7 +439,7 @@ def test_compiler_keeps_clip_definition_removes_bounds_and_preserves_none_channe
 	assert 'fill="none"' in compiled and 'var(--lr_' in compiled
 
 
-def test_material_layer_with_only_case_insensitive_none_is_rejected():
+def test_material_layer_with_only_case_insensitive_none_is_rejected() -> None:
 	"""A material role with no painted channel cannot satisfy the SVG contract."""
 	body = _valid_body().replace('fill="#00aa00"', 'fill="NONE" stroke="NoNe"', 1)
 	root = lxml.etree.fromstring(_svg(body).encode("utf-8"))
@@ -447,7 +447,7 @@ def test_material_layer_with_only_case_insensitive_none_is_rejected():
 		validate_material_svg(root)
 
 
-def test_compiler_keeps_case_insensitive_none_channel_unmodified(tmp_path: Path):
+def test_compiler_keeps_case_insensitive_none_channel_unmodified(tmp_path: Path) -> None:
 	"""A NONE channel stays literal and never receives a generated paint variable."""
 	body = _valid_body().replace('fill="#00aa00"', 'fill="NONE" stroke="#00aa00"', 1)
 	source = tmp_path / "sample.svg"
@@ -461,7 +461,7 @@ def test_compiler_keeps_case_insensitive_none_channel_unmodified(tmp_path: Path)
 	assert f"var(--{paint}, #00aa00)" in compiled
 
 
-def test_tree_contract_scans_ordinary_svg_reserved_attributes_before_compilation(tmp_path: Path):
+def test_tree_contract_scans_ordinary_svg_reserved_attributes_before_compilation(tmp_path: Path) -> None:
 	"""A malformed ordinary form cannot bypass the semantic compiler gate."""
 	assets = tmp_path / "assets"
 	material = assets / "equipment" / "variable_volume" / "material.svg"
@@ -475,7 +475,7 @@ def test_tree_contract_scans_ordinary_svg_reserved_attributes_before_compilation
 	assert not (tmp_path / "generated" / "liquid_regions.json").exists()
 
 
-def test_compile_failure_leaves_no_partial_material_artifact(tmp_path: Path):
+def test_compile_failure_leaves_no_partial_material_artifact(tmp_path: Path) -> None:
 	"""The normalize-to-compile seam publishes nothing when source validation fails."""
 	source = tmp_path / "bad.svg"
 	output = tmp_path / "generated.svg"
@@ -485,12 +485,12 @@ def test_compile_failure_leaves_no_partial_material_artifact(tmp_path: Path):
 	assert not output.exists()
 
 
-def test_normalizer_private_ownership_markers_detect_moved_geometry_and_are_not_serialized(tmp_path: Path):
+def test_normalizer_private_ownership_markers_detect_moved_geometry_and_are_not_serialized(tmp_path: Path) -> None:
 	"""Same-count path moves fail the material-boundary proof before output."""
 	source = tmp_path / "source.svg"
 	output = tmp_path / "out.svg"
 	source.write_text(_svg(_valid_body()), encoding="utf-8")
-	result = normalize_svg_v3.normalize_svg_file(source, output, padding=0.0)
+	result = tools.svg_normalizer.workflow.normalize_svg_file(source, output, padding=0.0)
 	assert result.normalized, result.rejection
 	assert "normalizer-boundary-token" not in output.read_text(encoding="utf-8")
 	body = _valid_body().replace(
@@ -510,7 +510,7 @@ def test_normalizer_private_ownership_markers_detect_moved_geometry_and_are_not_
 	assert "normalizer-boundary-token" not in lxml.etree.tostring(root, encoding="unicode")
 
 
-def test_aggregate_manifest_is_sorted_and_does_not_leak_authored_recipe_names(tmp_path: Path):
+def test_aggregate_manifest_is_sorted_and_does_not_leak_authored_recipe_names(tmp_path: Path) -> None:
 	"""Aggregate runtime data is deterministic and exposes only generated handles."""
 	assets = tmp_path / "assets"
 	for name in ("zeta", "alpha"):
@@ -524,7 +524,7 @@ def test_aggregate_manifest_is_sorted_and_does_not_leak_authored_recipe_names(tm
 	assert "liquid_body" not in manifest and "#00aa00" not in manifest
 
 
-def test_normalizer_preserves_private_boundary_tokens_across_shape_conversion_and_transform(tmp_path: Path):
+def test_normalizer_preserves_private_boundary_tokens_across_shape_conversion_and_transform(tmp_path: Path) -> None:
 	"""Material shapes retain boundary proof while conversion bakes transforms."""
 	body = _valid_body().replace(
 		'<g><path d="M0 0H10V10Z" fill="#00aa00"/></g>',
@@ -534,17 +534,17 @@ def test_normalizer_preserves_private_boundary_tokens_across_shape_conversion_an
 	first = tmp_path / "first.svg"
 	second = tmp_path / "second.svg"
 	source.write_text(_svg(body), encoding="utf-8")
-	result = normalize_svg_v3.normalize_svg_file(source, first, padding=0.0)
+	result = tools.svg_normalizer.workflow.normalize_svg_file(source, first, padding=0.0)
 	assert result.normalized, result.rejection
 	root = lxml.etree.parse(str(first)).getroot()
 	assert [element.get("id") for element in root.iter("{%s}rect" % "http://www.w3.org/2000/svg")] == ["anchor_liquid_bounds"]
 	assert "normalizer-boundary-token" not in first.read_text(encoding="utf-8")
-	second_result = normalize_svg_v3.normalize_svg_file(first, second, padding=0.0)
+	second_result = tools.svg_normalizer.workflow.normalize_svg_file(first, second, padding=0.0)
 	assert second_result.normalized, second_result.rejection
 	assert first.read_bytes() == second.read_bytes()
 
 
-def test_compiler_resolves_inherited_paint_without_recoloring_fixed_layers(tmp_path: Path):
+def test_compiler_resolves_inherited_paint_without_recoloring_fixed_layers(tmp_path: Path) -> None:
 	"""Generated paint lives inside material layers even when source paint is inherited."""
 	body = _valid_body().replace('fill="#00aa00"', '').replace(
 		'<g><path d="M0 0H10V10Z" /></g>',
@@ -560,7 +560,7 @@ def test_compiler_resolves_inherited_paint_without_recoloring_fixed_layers(tmp_p
 	assert 'fill="#abcdef"' in compiled and 'fill="#111111"' in compiled
 
 
-def test_compiler_uses_root_inherited_fallback_and_keeps_none_channels(tmp_path: Path):
+def test_compiler_uses_root_inherited_fallback_and_keeps_none_channels(tmp_path: Path) -> None:
 	"""The root fallback is copied to the semantic layer and stroke none remains none."""
 	body = _valid_body().replace('fill="#00aa00"', '')
 	source = tmp_path / "root_inherited.svg"
@@ -573,7 +573,7 @@ def test_compiler_uses_root_inherited_fallback_and_keeps_none_channels(tmp_path:
 	assert 'stroke="none"' not in compiled
 
 
-def test_compiler_rejects_generated_id_collision_before_mutating_source_tree(tmp_path: Path, monkeypatch):
+def test_compiler_rejects_generated_id_collision_before_mutating_source_tree(tmp_path: Path, monkeypatch: object) -> None:
 	"""Opaque output IDs are checked against every source ID, not only reserved prefixes."""
 	source = tmp_path / "sample.svg"
 	source.write_text(_svg(_valid_body()), encoding="utf-8")
@@ -582,7 +582,7 @@ def test_compiler_rejects_generated_id_collision_before_mutating_source_tree(tmp
 		gen_liquid_regions.compile_material_svg(source, tmp_path / "out.svg", "sample")
 
 
-def test_compiler_rejects_paint_handle_collision_before_writing(tmp_path: Path, monkeypatch):
+def test_compiler_rejects_paint_handle_collision_before_writing(tmp_path: Path, monkeypatch: object) -> None:
 	"""Paint identifiers share one namespace with level and element identifiers."""
 	source = tmp_path / "sample.svg"
 	output = tmp_path / "out.svg"
@@ -595,7 +595,7 @@ def test_compiler_rejects_paint_handle_collision_before_writing(tmp_path: Path, 
 	assert not output.exists()
 
 
-def test_tree_publication_removes_stale_material_outputs_and_preserves_previous_tree_on_failure(tmp_path: Path):
+def test_tree_publication_removes_stale_material_outputs_and_preserves_previous_tree_on_failure(tmp_path: Path) -> None:
 	"""Staged publication is exact and a failed replacement leaves prior artifacts intact."""
 	assets = tmp_path / "assets"
 	source = assets / "equipment" / "variable_volume" / "sample.svg"
@@ -621,13 +621,13 @@ def test_tree_publication_removes_stale_material_outputs_and_preserves_previous_
 	assert (generated / "liquid_regions.json").read_bytes() == previous_manifest
 
 
-def test_normalizer_rejects_selector_driven_paint_but_accepts_inert_class(tmp_path: Path):
+def test_normalizer_rejects_selector_driven_paint_but_accepts_inert_class(tmp_path: Path) -> None:
 	"""Classes alone remain valid; stylesheet paint reaches the normalizer loudly."""
 	inert = tmp_path / "inert.svg"
 	inert.write_text(_svg(_valid_body().replace('fill="#00aa00"', 'class="liquid"')), encoding="utf-8")
-	inert_result = normalize_svg_v3.normalize_svg_file(inert, tmp_path / "inert_out.svg", padding=0.0)
+	inert_result = tools.svg_normalizer.workflow.normalize_svg_file(inert, tmp_path / "inert_out.svg", padding=0.0)
 	assert inert_result.normalized, inert_result.rejection
 	styled = tmp_path / "styled.svg"
 	styled.write_text(_svg('<style>.liquid { display: none; }</style>' + _valid_body().replace('fill="#00aa00"', 'class="liquid"')), encoding="utf-8")
-	styled_result = normalize_svg_v3.normalize_svg_file(styled, tmp_path / "styled_out.svg", padding=0.0)
+	styled_result = tools.svg_normalizer.workflow.normalize_svg_file(styled, tmp_path / "styled_out.svg", padding=0.0)
 	assert not styled_result.normalized and styled_result.rejection.code == "MATERIAL_SEMANTIC_INVALID"

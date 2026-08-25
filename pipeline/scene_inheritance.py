@@ -7,7 +7,6 @@ remove_placements, deactivate_placements, reposition_placements, add_placements.
 Reusable helper for generator scripts that need to resolve scene inheritance.
 """
 
-from typing import Any, Dict, List
 
 
 # Source scenes name semantic groups. The renderer owns numeric geometry.
@@ -25,15 +24,15 @@ SOURCE_FORBIDDEN_GEOMETRY_KEYS = {
 
 #============================================
 
-def get_placement_name_dict(placements: list[dict]) -> Dict[str, int]:
+def get_placement_name_dict(placements: list[dict]) -> dict[str, int]:
 	"""
 	Build a dict mapping placement_name -> index in the placements list.
 
 	Args:
-		placements: List of placement dicts.
+		placements: list of placement dicts.
 
 	Returns:
-		Dict mapping placement_name -> index.
+		dict mapping placement_name -> index.
 
 	Raises:
 		RuntimeError: If duplicate placement_name values exist.
@@ -56,15 +55,15 @@ def get_placement_name_dict(placements: list[dict]) -> Dict[str, int]:
 
 def apply_remove_placements(
 	placements: list[dict],
-	remove_list: List[str],
+	remove_list: list[str],
 	scene_name: str,
 ) -> list[dict]:
 	"""
 	Remove placements by placement_name.
 
 	Args:
-		placements: List of placement dicts.
-		remove_list: List of placement_name values to remove.
+		placements: list of placement dicts.
+		remove_list: list of placement_name values to remove.
 		scene_name: Scene name (for error messages).
 
 	Returns:
@@ -91,15 +90,15 @@ def apply_remove_placements(
 
 def apply_deactivate_placements(
 	placements: list[dict],
-	deactivate_list: List[str],
+	deactivate_list: list[str],
 	scene_name: str,
 ) -> list[dict]:
 	"""
 	Deactivate placements by marking them with deactivated=True.
 
 	Args:
-		placements: List of placement dicts.
-		deactivate_list: List of placement_name values to deactivate.
+		placements: list of placement dicts.
+		deactivate_list: list of placement_name values to deactivate.
 		scene_name: Scene name (for error messages).
 
 	Returns:
@@ -141,8 +140,8 @@ def apply_reposition_placements(
 	Reposition placements by updating zone, position, depth, anchor.
 
 	Args:
-		placements: List of placement dicts.
-		reposition_list: List of reposition operation dicts.
+		placements: list of placement dicts.
+		reposition_list: list of reposition operation dicts.
 		scene_name: Scene name (for error messages).
 
 	Returns:
@@ -210,7 +209,7 @@ def apply_add_placements(
 
 	Args:
 		placements: Current placements list.
-		add_list: List of new placement dicts to add.
+		add_list: list of new placement dicts to add.
 		scene_name: Scene name (for error messages).
 
 	Returns:
@@ -255,9 +254,9 @@ def apply_add_placements(
 
 def resolve_protocol_scene(
 	scene_name: str,
-	protocol_scene_data: Dict[str, Any],
-	base_scenes: Dict[str, Dict[str, Any]],
-) -> Dict[str, Any]:
+	protocol_scene_data: dict[str, object],
+	base_scenes: dict[str, dict[str, object]],
+) -> dict[str, object]:
 	"""
 	Resolve a protocol scene by applying inheritance from its base scene.
 
@@ -272,7 +271,7 @@ def resolve_protocol_scene(
 	Args:
 		scene_name: Scene name (for error messages).
 		protocol_scene_data: Parsed protocol scene YAML.
-		base_scenes: Dict mapping base scene_name -> parsed YAML.
+		base_scenes: dict mapping base scene_name -> parsed YAML.
 
 	Returns:
 		Fully resolved scene dict with all inheritance applied.

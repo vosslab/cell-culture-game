@@ -33,13 +33,12 @@ Suppressed findings are REMOVED from the output (not emitted at all).
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Any
 
 from validation.scene_lint.findings import Finding, Verdict, Confidence
 from validation.shared_toolkit.yaml_io import load_yaml
 
 
-# Closed set of Group A rule names (decision-gated). Any suppression entry
+# Closed set of Group A rule names (decision-gated). object suppression entry
 # naming one of these rules is rejected.
 GROUP_A_RULES = {
 	'duplicate_scene_name',
@@ -76,7 +75,7 @@ class SuppressionEntry:
 		return self.placement_name == placement
 
 
-def parse_expiry_date(date_str: str | Any) -> datetime:
+def parse_expiry_date(date_str: str | object) -> datetime:
 	"""
 	Parse YYYY-MM-DD string to datetime.
 

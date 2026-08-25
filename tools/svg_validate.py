@@ -104,7 +104,7 @@ def validate(svg_path: str) -> ValidationReport:
 	return ValidationReport(ok=True, file_path=abs_path)
 
 
-def _check_no_event_handlers(elem, svg_path: str):
+def _check_no_event_handlers(elem: object, svg_path: str) -> None:
 	"""Recursively check element and children for on* attributes."""
 	for key in elem.attrib.keys():
 		if key.startswith("on"):

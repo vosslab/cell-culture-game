@@ -11,7 +11,7 @@ from pipeline.scene_inheritance import resolve_protocol_scene
 class ContentDatabase:
 	"""Holds all loaded content as a relational registry."""
 
-	def __init__(self):
+	def __init__(self) -> None:
 		"""Initialize empty registry."""
 		self.objects: dict = {}
 		self.base_scenes: dict = {}

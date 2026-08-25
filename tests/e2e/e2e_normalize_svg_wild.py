@@ -39,11 +39,7 @@ _GIT_RESULT = subprocess.run(
 )
 REPO_ROOT = Path(_GIT_RESULT.stdout.strip())
 
-# Add tools/ to sys.path so normalize_svg_v3 can be imported without install.
-_TOOLS_DIR = REPO_ROOT / "tools"
-sys.path.insert(0, str(_TOOLS_DIR))
-
-import normalize_svg_v3
+import tools.svg_normalizer.workflow
 
 # Paths
 OTHER_REPOS = REPO_ROOT / "OTHER_REPOS"
@@ -104,7 +100,7 @@ def run_one(svg_path: Path, out_dir: Path) -> dict:
 	crash_traceback = None
 
 	try:
-		result = normalize_svg_v3.normalize_svg_file(svg_path, out_path, padding=2.0)
+		result = tools.svg_normalizer.workflow.normalize_svg_file(svg_path, out_path, padding=2.0)
 		output_written = result.output_written
 		secondary_reason_codes = list(result.secondary_reason_codes)
 		if result.normalized:

@@ -25,7 +25,7 @@ def _write_object(objects_dir: Path, contents: str) -> None:
 	(objects_dir / "container.yaml").write_text(contents, encoding="utf-8")
 
 
-def test_taxonomy_rejects_bare_state_only_svg_filename(tmp_path: Path):
+def test_taxonomy_rejects_bare_state_only_svg_filename(tmp_path: Path) -> None:
 	"""A generic state filename cannot enter the recursive SVG registry."""
 	assets = tmp_path / "assets"
 	_write_svg(assets, "equipment/static/open.svg")
@@ -33,7 +33,7 @@ def test_taxonomy_rejects_bare_state_only_svg_filename(tmp_path: Path):
 		validate_asset_taxonomy(assets, tmp_path / "objects")
 
 
-def test_taxonomy_derives_mixed_form_membership_only_from_object_cases(tmp_path: Path):
+def test_taxonomy_derives_mixed_form_membership_only_from_object_cases(tmp_path: Path) -> None:
 	"""One state map may select static and material forms without a sidecar."""
 	assets = tmp_path / "assets"
 	objects = tmp_path / "objects"
@@ -54,7 +54,7 @@ def test_taxonomy_derives_mixed_form_membership_only_from_object_cases(tmp_path:
 	assert all("not_a_filename_collection" not in selection.asset_names for selection in result.selections)
 
 
-def test_taxonomy_rejects_missing_object_selected_member(tmp_path: Path):
+def test_taxonomy_rejects_missing_object_selected_member(tmp_path: Path) -> None:
 	"""A complete SVG form named in an object case must exist in the registry."""
 	assets = tmp_path / "assets"
 	objects = tmp_path / "objects"
@@ -72,7 +72,7 @@ def test_taxonomy_rejects_missing_object_selected_member(tmp_path: Path):
 		validate_asset_taxonomy(assets, objects)
 
 
-def test_taxonomy_rejects_duplicate_recursive_logical_asset_name(tmp_path: Path):
+def test_taxonomy_rejects_duplicate_recursive_logical_asset_name(tmp_path: Path) -> None:
 	"""A stem has one URL identity regardless of recursive source placement."""
 	assets = tmp_path / "assets"
 	_write_svg(assets, "equipment/static/microtube.svg")
@@ -81,7 +81,7 @@ def test_taxonomy_rejects_duplicate_recursive_logical_asset_name(tmp_path: Path)
 		validate_asset_taxonomy(assets, tmp_path / "objects")
 
 
-def test_taxonomy_enforces_yaml_derived_behavior_directory(tmp_path: Path):
+def test_taxonomy_enforces_yaml_derived_behavior_directory(tmp_path: Path) -> None:
 	"""A two-form object state places both opaque forms in binary_state."""
 	assets = tmp_path / "assets"
 	objects = tmp_path / "objects"
@@ -100,7 +100,7 @@ def test_taxonomy_enforces_yaml_derived_behavior_directory(tmp_path: Path):
 		validate_asset_taxonomy(assets, objects)
 
 
-def test_taxonomy_derives_material_root_as_variable_volume(tmp_path: Path):
+def test_taxonomy_derives_material_root_as_variable_volume(tmp_path: Path) -> None:
 	"""Internal rendering semantics outrank a single-form YAML selection."""
 	assets = tmp_path / "assets"
 	path = assets / "equipment" / "variable_volume" / "microtube.svg"
@@ -113,7 +113,7 @@ def test_taxonomy_derives_material_root_as_variable_volume(tmp_path: Path):
 	assert result.behavior_category("microtube") == "variable_volume"
 
 
-def test_missing_asset_projection_uses_fill_height_intent(tmp_path: Path):
+def test_missing_asset_projection_uses_fill_height_intent(tmp_path: Path) -> None:
 	"""The picker can place a not-yet-authored liquid asset correctly."""
 	objects = tmp_path / "objects"
 	_write_object(objects, '''visual_states:
@@ -134,7 +134,7 @@ def test_missing_asset_projection_uses_fill_height_intent(tmp_path: Path):
 	}
 
 
-def test_missing_asset_projection_uses_selection_cardinality(tmp_path: Path):
+def test_missing_asset_projection_uses_selection_cardinality(tmp_path: Path) -> None:
 	"""Opaque missing forms inherit the complete-form state cardinality."""
 	objects = tmp_path / "objects"
 	_write_object(objects, '''visual_states:
@@ -152,7 +152,7 @@ def test_missing_asset_projection_uses_selection_cardinality(tmp_path: Path):
 	}
 
 
-def test_object_fill_height_rejects_an_ordinary_selected_svg(tmp_path: Path):
+def test_object_fill_height_rejects_an_ordinary_selected_svg(tmp_path: Path) -> None:
 	"""The retired overlay path cannot return through an ordinary asset binding."""
 	assets = tmp_path / "assets"
 	objects = tmp_path / "objects"
@@ -253,7 +253,7 @@ def test_taxonomy_rejects_malformed_svg_selection_shape(
 	tmp_path: Path,
 	contents: str,
 	message: str,
-):
+) -> None:
 	"""Bounded SVG membership extraction reports its malformed structures."""
 	assets = tmp_path / "assets"
 	objects = tmp_path / "objects"
@@ -263,7 +263,7 @@ def test_taxonomy_rejects_malformed_svg_selection_shape(
 		validate_asset_taxonomy(assets, objects)
 
 
-def test_material_tree_uses_the_same_object_selected_membership_gate(tmp_path: Path):
+def test_material_tree_uses_the_same_object_selected_membership_gate(tmp_path: Path) -> None:
 	"""Material-tree scans reject a missing object-selected form before compilation."""
 	assets = tmp_path / "assets"
 	objects = tmp_path / "objects"

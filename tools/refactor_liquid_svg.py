@@ -49,7 +49,6 @@ import sys
 import tempfile
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 import lxml.etree
 
@@ -115,9 +114,9 @@ def _is_hidden(element: lxml.etree._Element) -> bool:
 	return not is_visible_renderable(element)
 
 
-def _json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+def _json_object(pairs: list[tuple[str, object]]) -> dict[str, object]:
 	"""Decode JSON objects while refusing duplicate keys."""
-	result: dict[str, Any] = {}
+	result: dict[str, object] = {}
 	for key, value in pairs:
 		if key in result:
 			raise LiquidSvgRefactorError(f"review JSON has duplicate key {key!r}")
@@ -125,19 +124,19 @@ def _json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
 	return result
 
 
-def _require_mapping(value: Any, label: str) -> dict[str, Any]:
+def _require_mapping(value: object, label: str) -> dict[str, object]:
 	if not isinstance(value, dict):
 		raise LiquidSvgRefactorError(f"{label} must be a JSON object")
 	return value
 
 
-def _require_exact_keys(mapping: dict[str, Any], allowed: frozenset[str], label: str) -> None:
+def _require_exact_keys(mapping: dict[str, object], allowed: frozenset[str], label: str) -> None:
 	unknown = set(mapping) - allowed
 	if unknown:
 		raise LiquidSvgRefactorError(f"{label} has unknown key(s): {', '.join(sorted(unknown))}")
 
 
-def _require_string(mapping: dict[str, Any], key: str, label: str) -> str:
+def _require_string(mapping: dict[str, object], key: str, label: str) -> str:
 	value = mapping.get(key)
 	if not isinstance(value, str) or not value:
 		raise LiquidSvgRefactorError(f"{label}.{key} must be a nonempty string")

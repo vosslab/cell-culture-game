@@ -29,7 +29,6 @@ an empty corpus (no labels), so callers do not crash on a missing file.
 """
 
 from pathlib import Path
-from typing import Any
 
 import yaml
 
@@ -65,7 +64,7 @@ NEGATIVE_REQUIRED_FIELDS = frozenset({
 # Corpus loader
 #============================================
 
-def load_labeled_corpus(path: Path) -> dict[str, Any]:
+def load_labeled_corpus(path: Path) -> dict[str, object]:
 	"""Load a labeled corpus YAML file into a structured dict.
 
 	Returns a dict with keys:
@@ -108,8 +107,8 @@ def load_labeled_corpus(path: Path) -> dict[str, Any]:
 	if not isinstance(raw_list, list):
 		raise RuntimeError(f"Corpus label list must be a list: {path}")
 
-	positives: list[dict[str, Any]] = []
-	negatives: list[dict[str, Any]] = []
+	positives: list[dict[str, object]] = []
+	negatives: list[dict[str, object]] = []
 
 	for i, entry in enumerate(raw_list):
 		if not isinstance(entry, dict):
@@ -154,9 +153,9 @@ def load_labeled_corpus(path: Path) -> dict[str, Any]:
 
 def compute_confusion(
 	findings: list[Finding],
-	corpus: dict[str, Any],
+	corpus: dict[str, object],
 	rule_name: str,
-) -> dict[str, Any]:
+) -> dict[str, object]:
 	"""Compute TP/FP/FN/TN confusion counts for a single rule.
 
 	Matching rules:
@@ -244,9 +243,9 @@ def compute_confusion(
 #============================================
 
 def write_confusion_markdown(
-	stats: dict[str, Any],
+	stats: dict[str, object],
 	rule_name: str,
-	corpus: dict[str, Any],
+	corpus: dict[str, object],
 	out_path: Path,
 ) -> None:
 	"""Write a per-rule confusion-table report to a Markdown file.

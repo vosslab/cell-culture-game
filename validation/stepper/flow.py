@@ -3,7 +3,7 @@
 import validation.stepper.findings
 
 
-def walk_mini_protocol(protocol: dict, emitter: validation.stepper.findings.FindingEmitter):
+def walk_mini_protocol(protocol: dict, emitter: validation.stepper.findings.FindingEmitter) -> None:
 	"""
 	Walk a mini-protocol from entry_step through next_step chain.
 

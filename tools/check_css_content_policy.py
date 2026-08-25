@@ -188,7 +188,7 @@ def check_css_policy(css_path: Path) -> tuple:
 
 #============================================
 
-def main():
+def main() -> None:
 	"""Main entry point."""
 	css_path = Path(__file__).parent.parent / 'src' / 'style.css'
 

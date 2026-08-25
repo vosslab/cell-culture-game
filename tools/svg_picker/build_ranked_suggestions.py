@@ -32,7 +32,7 @@ SOURCE_TRUST_BOOST = {
 }
 
 
-def jaccard_similarity(set_a, set_b):
+def jaccard_similarity(set_a: object, set_b: object) -> object:
 	"""Compute Jaccard similarity between two sets."""
 	if not set_a and not set_b:
 		return 0.0
@@ -42,12 +42,12 @@ def jaccard_similarity(set_a, set_b):
 		return 0.0
 	return intersection / union
 
-def tokenize_name(name):
+def tokenize_name(name: object) -> object:
 	"""Split name on underscores, lowercase, dedupe."""
 	tokens = name.split('_')
 	return set(t.lower() for t in tokens if t)
 
-def get_parent_folder_tokens(rel_path):
+def get_parent_folder_tokens(rel_path: object) -> object:
 	"""Extract tokens from parent folder path (not filename)."""
 	# Example: "assets/equipment/static/xyz.svg" -> ["assets", "equipment", "static"]
 	# Example: "OTHER_REPOS/bioicons/static/icons/cc-by-4.0/arrow.svg" -> ["other", "repos", "bioicons", "static", "icons", "cc", "by", "arrow"]
@@ -63,7 +63,7 @@ def get_parent_folder_tokens(rel_path):
 				tokens.append(subpart.lower())
 	return set(tokens)
 
-def get_source_trust_boost(candidate):
+def get_source_trust_boost(candidate: object) -> object:
 	"""Return source trust boost based on candidate's source_repo."""
 	source_repo = candidate['source_repo']
 	if source_repo == 'assets/equipment':
@@ -73,7 +73,7 @@ def get_source_trust_boost(candidate):
 	else:
 		return SOURCE_TRUST_BOOST['OTHER_REPOS/scienceicons']
 
-def compute_score(candidate, target_tokens):
+def compute_score(candidate: object, target_tokens: object) -> object:
 	"""Compute score for a candidate against target tokens."""
 	# Filename token overlap
 	candidate_search_tokens = set(candidate.get('search_tokens', []))
@@ -96,7 +96,7 @@ def compute_score(candidate, target_tokens):
 	)
 	return score, filename_overlap, parent_overlap, source_boost
 
-def load_json_file(path):
+def load_json_file(path: object) -> object:
 	"""Load JSON file, exit with error if missing."""
 	if not os.path.exists(path):
 		print(f'ERROR: {path} not found', file=sys.stderr)
@@ -104,7 +104,7 @@ def load_json_file(path):
 	with open(path) as f:
 		return json.load(f)
 
-def main():
+def main() -> None:
 	parser = argparse.ArgumentParser(
 		description='Rank candidates per target, emit suggestions.json'
 	)

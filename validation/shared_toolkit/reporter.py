@@ -14,17 +14,17 @@ import sys
 import validation.shared_toolkit.verbosity as verbosity
 
 
-def print_section_header(name):
+def print_section_header(name: object) -> None:
 	"""Print a `=== name ===` section header to stdout."""
 	print(f"=== {name} ===")
 
 
-def print_pass(label):
+def print_pass(label: object) -> None:
 	"""Print a `PASS: label` line."""
 	print(f"PASS: {label}")
 
 
-def print_fail(label, reason=None):
+def print_fail(label: object, reason: object=None) -> None:
 	"""Print a `FAIL: label` line, with optional reason on the same line."""
 	if reason:
 		print(f"FAIL: {label} - {reason}")
@@ -32,7 +32,7 @@ def print_fail(label, reason=None):
 		print(f"FAIL: {label}")
 
 
-def print_warning(label, reason=None):
+def print_warning(label: object, reason: object=None) -> None:
 	"""Print a `WARN: label` line, with optional reason on the same line."""
 	if reason:
 		print(f"WARN: {label} - {reason}")
@@ -40,12 +40,12 @@ def print_warning(label, reason=None):
 		print(f"WARN: {label}")
 
 
-def print_error(message):
+def print_error(message: object) -> None:
 	"""Print an error line to stderr."""
 	print(f"ERROR: {message}", file=sys.stderr)
 
 
-def print_summary_line(total, errors, *, item_label="files", warnings=0, advisories=0):
+def print_summary_line(total: object, errors: object, *, item_label: object="files", warnings: object=0, advisories: object=0) -> None:
 	"""
 	Print the canonical stage summary line.
 

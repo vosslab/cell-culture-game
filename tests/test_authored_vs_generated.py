@@ -71,7 +71,7 @@ def walk_ts_files_in_dir(dir_path: str) -> list[str]:
 
 
 #============================================
-def test_src_has_no_generated_markers():
+def test_src_has_no_generated_markers() -> None:
 	"""WP-1.2.1a: Assert no file under src/ carries an AUTO-GENERATED header."""
 	repo_root = file_utils.get_repo_root()
 	src_dir = os.path.join(repo_root, "src")
@@ -94,7 +94,7 @@ def test_src_has_no_generated_markers():
 
 
 #============================================
-def test_generated_ts_all_have_markers():
+def test_generated_ts_all_have_markers() -> None:
 	"""
 	WP-1.2.1b: Assert every .ts file under generated/ carries an AUTO-GENERATED marker.
 

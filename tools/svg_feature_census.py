@@ -22,7 +22,6 @@ Run:
 """
 
 # Standard Library
-import sys
 import json
 import subprocess
 from pathlib import Path
@@ -39,11 +38,11 @@ _GIT_RESULT = subprocess.run(
 )
 REPO_ROOT = Path(_GIT_RESULT.stdout.strip())
 
-# Make normalize_svg_v3 importable for the verdict cross-tab.
-_TOOLS_DIR = REPO_ROOT / "tools"
-sys.path.insert(0, str(_TOOLS_DIR))
-
-import normalize_svg_v3
+import tools.svg_normalizer.clips
+import tools.svg_normalizer.document
+import tools.svg_normalizer.model
+import tools.svg_normalizer.sanitization
+import tools.svg_normalizer.workflow
 
 OTHER_REPOS = REPO_ROOT / "OTHER_REPOS"
 REPORTS_DIR = REPO_ROOT / "docs" / "active_plans" / "reports"
@@ -72,7 +71,7 @@ def local_tag(elem: lxml.etree._Element) -> str:
 	tag = elem.tag
 	if not isinstance(tag, str):
 		return ""
-	return normalize_svg_v3.local_name(tag).lower()
+	return tools.svg_normalizer.model.local_name(tag).lower()
 
 
 #============================================
@@ -147,7 +146,7 @@ def scan_svg_features(svg_path: Path) -> dict:
 
 
 #============================================
-def _try_parse(svg_path: Path, parser: lxml.etree.XMLParser):
+def _try_parse(svg_path: Path, parser: lxml.etree.XMLParser) -> object:
 	"""Parse an SVG file, returning the tree or None on failure.
 
 	Two-line try/except is permitted here: a malformed wild SVG is expected
@@ -239,7 +238,7 @@ def _flag_attributes(record: dict, elem: lxml.etree._Element) -> None:
 		elem: The element whose attributes are inspected.
 	"""
 	for attr_name, attr_value in elem.attrib.items():
-		local = normalize_svg_v3.local_name(attr_name).lower()
+		local = tools.svg_normalizer.model.local_name(attr_name).lower()
 		if local == "transform":
 			record["transform_attr"] = True
 		elif local == "style":
@@ -286,7 +285,7 @@ def get_verdict(svg_path: Path) -> str:
 		"normalized" if accepted, else the primary rejection reason code.
 	"""
 	out_path = REPORTS_DIR / "_census_scratch_out.svg"
-	result = normalize_svg_v3.normalize_svg_file(svg_path, out_path)
+	result = tools.svg_normalizer.workflow.normalize_svg_file(svg_path, out_path)
 	if out_path.exists():
 		out_path.unlink()
 	if result.normalized:
@@ -302,19 +301,19 @@ def get_verdict(svg_path: Path) -> str:
 # DOCTYPE/ENTITY raw-text scan is handled separately in collect_reasons because
 # its signature takes source text, not the parsed root.
 _STANDALONE_DETECTORS = (
-	normalize_svg_v3._detect_text_elements,
-	normalize_svg_v3._detect_script_or_handler,
-	normalize_svg_v3._detect_animation_elements,
-	normalize_svg_v3._detect_foreignobject,
-	normalize_svg_v3._detect_use_or_symbol,
-	normalize_svg_v3._detect_filter,
-	normalize_svg_v3._detect_mask,
-	normalize_svg_v3._detect_marker,
-	normalize_svg_v3._detect_image,
-	normalize_svg_v3._detect_external_href,
-	normalize_svg_v3._detect_clippath,
-	normalize_svg_v3._detect_style_geometry,
-	normalize_svg_v3._detect_pattern,
+	tools.svg_normalizer.document._detect_text_elements,
+	tools.svg_normalizer.sanitization._detect_script_or_handler,
+	tools.svg_normalizer.sanitization._detect_animation_elements,
+	tools.svg_normalizer.sanitization._detect_foreignobject,
+	tools.svg_normalizer.sanitization._detect_use_or_symbol,
+	tools.svg_normalizer.sanitization._detect_filter,
+	tools.svg_normalizer.sanitization._detect_mask,
+	tools.svg_normalizer.sanitization._detect_marker,
+	tools.svg_normalizer.sanitization._detect_image,
+	tools.svg_normalizer.sanitization._detect_external_href,
+	tools.svg_normalizer.clips._detect_clippath,
+	tools.svg_normalizer.clips._detect_style_geometry,
+	tools.svg_normalizer.clips._detect_pattern,
 )
 
 
@@ -371,7 +370,7 @@ def collect_reasons(svg_path: Path) -> list[str]:
 	reasons: set[str] = set()
 
 	# Raw-text DOCTYPE/ENTITY scan (signature takes source text, not the root).
-	doctype_reason = normalize_svg_v3.detect_doctype_or_entity(source_text)
+	doctype_reason = tools.svg_normalizer.sanitization.detect_doctype_or_entity(source_text)
 	if doctype_reason is not None:
 		reasons.add(doctype_reason.code)
 

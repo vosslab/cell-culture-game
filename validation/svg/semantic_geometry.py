@@ -15,7 +15,8 @@ from dataclasses import dataclass
 import lxml.etree
 
 # Local application
-from tools import normalize_svg_v3
+import tools.svg_normalizer.geometry
+import tools.svg_normalizer.model
 from validation.svg.layer_recipe_validator import GEOMETRY_TAGS, is_visible_renderable
 
 
@@ -124,7 +125,7 @@ def rect_bounds(element: lxml.etree._Element, label: str) -> Bounds:
 	return Bounds(x, y, x + width, y + height)
 
 
-def to_bounds(measured: normalize_svg_v3.BBox | str | None, label: str) -> Bounds:
+def to_bounds(measured: tools.svg_normalizer.model.BBox | str | None, label: str) -> Bounds:
 	"""Convert the normalizer's bounded geometry result or fail explicitly."""
 	if measured is None or isinstance(measured, str):
 		raise SemanticGeometryError(
@@ -166,7 +167,7 @@ def _clip_child_bounds(element: lxml.etree._Element, label: str) -> Bounds:
 		copy_element.attrib.pop(name, None)
 	copy_element.set("fill", "#000000")
 	copy_element.set("stroke", "none")
-	return to_bounds(normalize_svg_v3.element_bbox(copy_element), label)
+	return to_bounds(tools.svg_normalizer.geometry.element_bbox(copy_element), label)
 
 
 def clip_bounds(root: lxml.etree._Element) -> Bounds:
@@ -220,7 +221,7 @@ def _material_bounds(
 				or not is_visible_renderable(element)
 			):
 				continue
-			bbox = normalize_svg_v3.element_bbox(element)
+			bbox = tools.svg_normalizer.geometry.element_bbox(element)
 			if bbox is not None:
 				measured.append(to_bounds(bbox, "material geometry"))
 	return union(measured, f"material {part or 'all'} layers")
