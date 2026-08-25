@@ -1,7 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 180">
-  <path d="M18 15h224l-12 150H30z" fill="#fffef5" stroke="#334155" stroke-width="5" stroke-linejoin="round"/>
-  <path d="M49 47h142M49 75h142M49 103h142M49 131h142" stroke="#a9c5dc" stroke-width="3" stroke-linecap="round"/>
-  <path d="M55 35h14M80 35h14M105 35h14" stroke="#4f85c5" stroke-width="5" stroke-linecap="round"/>
-  <path d="M194 30l24 110" stroke="#f2c94c" stroke-width="9" stroke-linecap="round"/>
-  <path d="M217 140l8 22-20-13z" fill="#263548"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 180" role="img" aria-labelledby="calculation_pad_title calculation_pad_desc">
+  <title id="calculation_pad_title">Calculation pad</title>
+  <desc id="calculation_pad_desc">A reusable lined calculation pad with a pencil.</desc>
+  <g id="calculation_pad" stroke="#263548" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M18 15h224l-12 150H30z" fill="#fffef5" stroke-width="5"/>
+    <path d="M30 15h212l-4 16H32z" fill="#dceff2" stroke="#6daeb9" stroke-width="3"/>
+    <path d="M49 48h142M49 76h142M49 104h142M49 132h142" fill="none" stroke="#a7cad3" stroke-width="3"/>
+    <path d="M55 35h14M80 35h14M105 35h14" fill="none" stroke="#5c9ca9" stroke-width="5"/>
+    <g id="calculation_pad_pencil" transform="rotate(-12 207 94)">
+      <path d="M200 28h17v111h-17z" fill="#f0c45e" stroke-width="4"/>
+      <path d="M200 28h17v15h-17z" fill="#d18955" stroke-width="3"/>
+      <path d="m200 139 8.5 22 8.5-22z" fill="#d9c2a5" stroke-width="4"/>
+      <path d="m205 153 3.5 8 3.5-8z" fill="#263548" stroke="none"/>
+    </g>
+  </g>
 </svg>

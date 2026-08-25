@@ -1,13 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 210">
-  <path d="M 22 52 L 298 52 L 278 190 L 42 190 Z" fill="#5b7383" stroke="#203846" stroke-width="8" stroke-linejoin="round"/>
-  <path d="M 36 32 L 284 32 L 298 74 L 22 74 Z" fill="#d6e4e9" stroke="#203846" stroke-width="7" stroke-linejoin="round"/>
-  <g fill="#243d4c" stroke="#152833" stroke-width="4">
+  <!-- Eight-position microtube rack: cyan plastic tray with dark, readable wells. -->
+  <path d="M22 52H298L278 190H42Z" fill="#76aeba" stroke="#263b46" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M36 32H284L298 74H22Z" fill="#cfeef2" stroke="#263b46" stroke-width="7" stroke-linejoin="round"/>
+  <path d="M42 42H278L284 56H36Z" fill="#f8ffff" opacity=".72"/>
+  <g fill="#365967" stroke="#263b46" stroke-width="4">
     <ellipse data-subpart-id="slot_A1" cx="67" cy="67" rx="20" ry="12"/><ellipse data-subpart-id="slot_A2" cx="127" cy="67" rx="20" ry="12"/><ellipse data-subpart-id="slot_A3" cx="187" cy="67" rx="20" ry="12"/><ellipse data-subpart-id="slot_A4" cx="247" cy="67" rx="20" ry="12"/>
     <ellipse data-subpart-id="slot_B1" cx="67" cy="125" rx="20" ry="12"/><ellipse data-subpart-id="slot_B2" cx="127" cy="125" rx="20" ry="12"/><ellipse data-subpart-id="slot_B3" cx="187" cy="125" rx="20" ry="12"/><ellipse data-subpart-id="slot_B4" cx="247" cy="125" rx="20" ry="12"/>
   </g>
-  <g fill="none" stroke="#e8f4f7" stroke-width="4" stroke-linecap="round">
-    <path d="M 48 66 L 86 66 M 108 66 L 146 66 M 168 66 L 206 66 M 228 66 L 266 66"/>
-    <path d="M 48 124 L 86 124 M 108 124 L 146 124 M 168 124 L 206 124 M 228 124 L 266 124"/>
-  </g>
-  <path d="M 44 160 L 276 160" fill="none" stroke="#9fc2ce" stroke-width="5" stroke-linecap="round"/>
+  <g fill="none" stroke="#eefdff" stroke-width="3.5" stroke-linecap="round" opacity=".82"><path d="M49 65H85M109 65H145M169 65H205M229 65H265"/><path d="M49 123H85M109 123H145M169 123H205M229 123H265"/></g>
+  <path d="M44 160H276" fill="none" stroke="#cdebf0" stroke-width="5" stroke-linecap="round"/>
 </svg>

@@ -15,14 +15,14 @@ Date of review: 2026-08-03. Working tree state at review time, not a commit.
 
 ## Gate status
 
-| Gate | Before review | After the two fixes below |
-| --- | --- | --- |
-| `pytest tests/` | 2 failed, 6162 passed | 6163 passed, 0 failed |
-| `node --import tsx --test 'tests/test_*.mjs'` | 658 tests, 0 fail, 690 ms | unchanged |
-| `./check_codebase.sh` | PASS (5 checks) | unchanged |
-| `./run_validate.sh` | 0 errors, 22 warnings, 117 advisories | unchanged, but see H3 |
-| `tests/playwright/test_pedagogy_outcomes.spec.ts` | 5 passed | unchanged |
-| Full Playwright suite (~105 tests) | NOT RUN | NOT RUN |
+| Gate                                              | Before review                         | After the two fixes below |
+| ------------------------------------------------- | ------------------------------------- | ------------------------- |
+| `pytest tests/`                                   | 2 failed, 6162 passed                 | 6163 passed, 0 failed     |
+| `node --import tsx --test 'tests/test_*.mjs'`     | 658 tests, 0 fail, 690 ms             | unchanged                 |
+| `./check_codebase.sh`                             | PASS (5 checks)                       | unchanged                 |
+| `./run_validate.sh`                               | 0 errors, 22 warnings, 117 advisories | unchanged, but see H3     |
+| `tests/playwright/test_pedagogy_outcomes.spec.ts` | 5 passed                              | unchanged                 |
+| Full Playwright suite (~105 tests)                | NOT RUN                               | NOT RUN                   |
 
 ## Fixes already applied
 
@@ -272,15 +272,13 @@ with a named tradeoff.
 
 ### H7, SVG attribution gap
 
-- **Recommended: add the 61 missing rows to `assets/equipment/SOURCES.md`, and
-  confirm the Servier-derivative provenance for the micropipette family.** Pro:
-  this is a CC BY 3.0 obligation, not bookkeeping, so it is the one finding with a
-  legal dimension. Con: needs the actual provenance for each asset, which may
-  require asking whoever generated them.
-- Follow-on: teach `validation/svg/asset_audit.py` to fail on an asset with no
-  SOURCES row, rather than reporting "unknown" with 0 errors. Pro: prevents the
-  next 61. Con: will fail immediately on the 40 pre-existing orphans until those
-  are triaged too.
+- **Resolved by provenance, not inferred attribution.** The re-audit established
+  that the 61 files entered this repository as authored SVG source and found no
+  external source evidence for them. `assets/equipment/SOURCES.md` now owns only
+  confirmed external mappings. Its exact Servier-path parser prevents a DBCLS,
+  CC0, or repository-authored row from entering the Servier style cohort.
+- Follow-on: add future external-origin evidence to the source ledger before
+  reusing the affected artwork.
 
 ### H8, two dead tools
 
@@ -356,8 +354,7 @@ line 455.
 
 Why it ships green: the rule has no validator behind it.
 `validation/yaml_schema/object_validator.py:279-289` implements only the narrower
-"a decoration must not declare material fields" check and returns early at line
-289. Lines 378-386 check only that `decoration_only` is mutually exclusive with
+"a decoration must not declare material fields" check and returns early at line 289. Lines 378-386 check only that `decoration_only` is mutually exclusive with
 other capabilities. Neither empty-`state_fields` nor empty-`visual_states` exists
 in code, so validate reports zero YAML errors while 42 objects contradict the
 spec.
@@ -487,6 +484,14 @@ load, pipette up); correct `PROTOCOL_VOCABULARY.md:569-571`; add the codes to
 
 Pass: docs auditor. Severity: high.
 
+Resolution note, 2026-08-24 SVG re-audit: the 67 files were introduced as new
+repository SVG source in commit `cc4e4b00`; the audit established no external
+source path for the 61 files below. `SOURCES.md` now states its external-source
+scope, and `validation/svg/asset_audit.py` recognizes Servier provenance only
+for exact `<category>/Servier/<file>.svg` mappings. DBCLS, CC0, and repository
+art therefore remain outside the Servier target cohort. Add any future evidence
+of an external origin to the ledger before reuse.
+
 Six new SVGs were added to `assets/equipment/SOURCES.md` in this change (the five
 display SVGs plus `recycle_buffer_funnel.svg`). Missing:
 `interpretation_choice_card.svg`, `calculation_pad.svg`, all electrophoresis
@@ -576,7 +581,7 @@ authored YAML. Delete six of its eight tests:
 - `:32` exact viewBox dict; `:34,35,47-50` exact pixel geometry (x 36.0, y 33.0,
   w 11.0), which are tunable layout constants.
 - `:74` `len(leaves) == 16` AND `:78` `"16 focused mini-protocols" in
-  learning["goals"]`. Adding one mini-protocol breaks it twice, once against
+learning["goals"]`. Adding one mini-protocol breaks it twice, once against
   prose.
 - `:97-108` exact float ledgers (0.9925, 0.9985, 21, 30).
 - `:142-146` an exact 9-element ordered list of target and `set_volume` pairs.
@@ -619,13 +624,13 @@ About 7.4 s of the 15.2 s suite is repeated full content-tree loads.
 
 Measured with `--durations`:
 
-| Duration | Test |
-| --- | --- |
-| 0.74 s | `test_cell_culture_mtt_content.py::test_mtt_assay_states_and_readout_are_visible_and_executable` |
-| 0.72 s | `test_media_adjustment_conservation.py::test_media_adjustment_is_executable_directly_and_in_its_runner_context` |
-| 0.54 s | `test_cell_culture_transfer_ledgers.py::test_direct_cell_transfer_protocols_complete_without_stepper_errors` |
-| 0.50 s | `test_plate_drug_addition_ledger.py::test_drug_addition_completes_with_valid_tip_and_material_state` |
-| 0.42-0.44 s each, 12 tests, ~5.0 s total | `test_protocol_initial_state.py` |
+| Duration                                 | Test                                                                                                            |
+| ---------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| 0.74 s                                   | `test_cell_culture_mtt_content.py::test_mtt_assay_states_and_readout_are_visible_and_executable`                |
+| 0.72 s                                   | `test_media_adjustment_conservation.py::test_media_adjustment_is_executable_directly_and_in_its_runner_context` |
+| 0.54 s                                   | `test_cell_culture_transfer_ledgers.py::test_direct_cell_transfer_protocols_complete_without_stepper_errors`    |
+| 0.50 s                                   | `test_plate_drug_addition_ledger.py::test_drug_addition_completes_with_valid_tip_and_material_state`            |
+| 0.42-0.44 s each, 12 tests, ~5.0 s total | `test_protocol_initial_state.py`                                                                                |
 
 All exceed the "well under one second" budget in `docs/PYTEST_STYLE.md`.
 
@@ -670,13 +675,13 @@ seeds it.
 
 Masked versus genuine breakdown of the 77 advisories:
 
-| Protocol | s-unused | Verdict |
-| --- | --- | --- |
-| `mtt_solubilization_readout` | 18 | False positive; all 18 seeded via `initial_state` |
-| `sdspage_assemble_electrode_module` | 14 | Genuine; `initial_state` sets only `lid_present` / `module_present` |
-| `sdspage_prepare_gel_cassette` | 14 | Genuine; no `initial_state` at all |
-| `sdspage_prepare_running_buffer` | 11 | Genuine; uses 3 of 14 |
-| 15 other protocols | 20 total | Not individually triaged |
+| Protocol                            | s-unused | Verdict                                                             |
+| ----------------------------------- | -------- | ------------------------------------------------------------------- |
+| `mtt_solubilization_readout`        | 18       | False positive; all 18 seeded via `initial_state`                   |
+| `sdspage_assemble_electrode_module` | 14       | Genuine; `initial_state` sets only `lid_present` / `module_present` |
+| `sdspage_prepare_gel_cassette`      | 14       | Genuine; no `initial_state` at all                                  |
+| `sdspage_prepare_running_buffer`    | 11       | Genuine; uses 3 of 14                                               |
+| 15 other protocols                  | 20 total | Not individually triaged                                            |
 
 Roughly 39 genuinely dead declarations sit behind 18 or more known false
 positives. The noise is what let the dead ones survive.
@@ -1036,7 +1041,8 @@ Pass: docs auditor. Severity: medium.
 - **Stale placeholder row.** `assets/equipment/MISSING_SVG_PLACEHOLDERS.md:16`
   lists `microtube_rack_24_placeholder.svg` for object `microtube_rack_24`, but
   `content/objects/rack/microtube_rack_24.yaml:26` uses `asset_name: tube_rack`.
-  Legacy pass.
+  Resolved 2026-08-24: the stale manifest was retired after the retained-art
+  census confirmed 146 finished SVGs. Legacy pass.
 - **Orphaned data file.** `assets/equipment/bottle.colormap.json` is read by no
   code; `grep -rln "bottle.colormap"` finds only `docs/FILE_STRUCTURE.md` and
   archived reports. Legacy pass.

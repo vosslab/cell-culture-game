@@ -1,24 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 214 308">
-  <defs>
-    <linearGradient id="cassette-plastic" x1="0" x2="1" y1="0" y2="1">
-      <stop offset="0" stop-color="#e8f3f8" stop-opacity="0.94"/>
-      <stop offset="1" stop-color="#9fb8c5" stop-opacity="0.88"/>
-    </linearGradient>
-    <linearGradient id="cassette-gel" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0" stop-color="#b8dff2"/>
-      <stop offset="1" stop-color="#6fadd0"/>
-    </linearGradient>
-  </defs>
-  <path fill="url(#cassette-plastic)" stroke="#29495a" stroke-width="7" d="M 28 16 L 186 16 A 12 12 0 0 1 198 28 L 198 280 A 12 12 0 0 1 186 292 L 28 292 A 12 12 0 0 1 16 280 L 16 28 A 12 12 0 0 1 28 16 Z"/>
-  <path d="M 32 47 L 182 47 L 182 273 L 32 273 Z" fill="url(#cassette-gel)" stroke="#456f84" stroke-width="4"/>
-  <path d="M 39 66 L 175 66 M 39 252 L 175 252" fill="none" stroke="#e8f6fb" stroke-width="3" opacity="0.75"/>
-  <g fill="#203947" stroke="#10232d" stroke-width="2">
-    <path data-subpart-id="lane_1" d="M 39 33 L 44 33 A 3 3 0 0 1 47 36 L 47 50 A 3 3 0 0 1 44 53 L 39 53 A 3 3 0 0 1 36 50 L 36 36 A 3 3 0 0 1 39 33 Z"/><path data-subpart-id="lane_2" d="M 53 33 L 58 33 A 3 3 0 0 1 61 36 L 61 50 A 3 3 0 0 1 58 53 L 53 53 A 3 3 0 0 1 50 50 L 50 36 A 3 3 0 0 1 53 33 Z"/>
-    <path data-subpart-id="lane_3" d="M 67 33 L 72 33 A 3 3 0 0 1 75 36 L 75 50 A 3 3 0 0 1 72 53 L 67 53 A 3 3 0 0 1 64 50 L 64 36 A 3 3 0 0 1 67 33 Z"/><path data-subpart-id="lane_4" d="M 81 33 L 86 33 A 3 3 0 0 1 89 36 L 89 50 A 3 3 0 0 1 86 53 L 81 53 A 3 3 0 0 1 78 50 L 78 36 A 3 3 0 0 1 81 33 Z"/>
-    <path data-subpart-id="lane_5" d="M 95 33 L 100 33 A 3 3 0 0 1 103 36 L 103 50 A 3 3 0 0 1 100 53 L 95 53 A 3 3 0 0 1 92 50 L 92 36 A 3 3 0 0 1 95 33 Z"/><path data-subpart-id="lane_6" d="M 109 33 L 114 33 A 3 3 0 0 1 117 36 L 117 50 A 3 3 0 0 1 114 53 L 109 53 A 3 3 0 0 1 106 50 L 106 36 A 3 3 0 0 1 109 33 Z"/>
-    <path data-subpart-id="lane_7" d="M 123 33 L 128 33 A 3 3 0 0 1 131 36 L 131 50 A 3 3 0 0 1 128 53 L 123 53 A 3 3 0 0 1 120 50 L 120 36 A 3 3 0 0 1 123 33 Z"/><path data-subpart-id="lane_8" d="M 137 33 L 142 33 A 3 3 0 0 1 145 36 L 145 50 A 3 3 0 0 1 142 53 L 137 53 A 3 3 0 0 1 134 50 L 134 36 A 3 3 0 0 1 137 33 Z"/>
-    <path data-subpart-id="lane_9" d="M 151 33 L 156 33 A 3 3 0 0 1 159 36 L 159 50 A 3 3 0 0 1 156 53 L 151 53 A 3 3 0 0 1 148 50 L 148 36 A 3 3 0 0 1 151 33 Z"/><path data-subpart-id="lane_10" d="M 165 33 L 170 33 A 3 3 0 0 1 173 36 L 173 50 A 3 3 0 0 1 170 53 L 165 53 A 3 3 0 0 1 162 50 L 162 36 A 3 3 0 0 1 165 33 Z"/>
-  </g>
-  <path d="M 28 282 L 186 282" stroke="#29495a" stroke-width="8" stroke-linecap="round"/>
-  <path d="M 35 82 L 35 233 M 179 82 L 179 233" fill="none" stroke="#f8fcfd" stroke-width="4" opacity="0.7"/>
+  <defs><linearGradient id="cassette-plastic" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#f7fcfd"/><stop offset="1" stop-color="#a9cbd8"/></linearGradient><linearGradient id="cassette-gel" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d8f0f5"/><stop offset="1" stop-color="#9fcddc"/></linearGradient></defs>
+  <path d="M28 16h158a12 12 0 0 1 12 12v252a12 12 0 0 1-12 12H28a12 12 0 0 1-12-12V28a12 12 0 0 1 12-12z" fill="url(#cassette-plastic)" stroke="#29495a" stroke-width="6"/>
+  <path d="M32 47h150v226H32z" fill="url(#cassette-gel)" stroke="#527d8e" stroke-width="3"/>
+  <path d="M37 68h140M37 252h140" fill="none" stroke="#f8fcfd" stroke-linecap="round" stroke-width="3" opacity=".9"/>
+  <g fill="#476d7d" stroke="#29495a" stroke-width="2"><rect data-subpart-id="lane_1" x="36" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_2" x="50" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_3" x="64" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_4" x="78" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_5" x="92" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_6" x="106" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_7" x="120" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_8" x="134" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_9" x="148" y="33" width="11" height="20" rx="3"/><rect data-subpart-id="lane_10" x="162" y="33" width="11" height="20" rx="3"/></g>
+  <path d="M28 282h158" fill="none" stroke="#29495a" stroke-linecap="round" stroke-width="7"/>
 </svg>

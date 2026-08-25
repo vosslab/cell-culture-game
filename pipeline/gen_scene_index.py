@@ -21,24 +21,15 @@ Scene discovery and classification (no curated allowlist):
 - Every base scene under content/base_scenes/ and every per-protocol scene is
   discovered and classified into exactly one outcome.
 - emitted: the scene validates and is buildable; it is written into SCENES.
-- skipped: the scene is invalid/unsupported but NON-FATAL (validation error,
-  strict-mode missing-SVG, or a documented quarantine reason). It is recorded in
-  the manifest with a machine-readable reason; the build still succeeds. No scene
-  silently disappears -- a skip always carries a reason.
-- errored: a FATAL generator condition (e.g. a per-protocol scene whose
-  inheritance chain cannot resolve). The generator exits non-zero and the build
-  STOPS. errored scenes are never written as a quiet manifest row.
+- skipped: a durable, documented quarantine decision. It is recorded in the
+  manifest with a machine-readable reason; the build still succeeds.
+- errored: a fatal generator condition, including inheritance failures and
+  missing SVG assets. The generator exits non-zero and stops before writing a
+  new scene artifact.
 
-SVG handling (controlled by --missing-svg flag):
-- placeholder (default, normal dev/build): a scene with missing-SVG placements is
-  EMITTED; each affected placement carries missing_svg: true so the renderer shows
-  a labeled placeholder. The scene does not vanish and does not become a skip.
-- strict (CI gating): a scene with a placement whose object references a missing
-  SVG asset is reported loudly and SKIPPED with a missing-SVG reason recorded in
-  the manifest.
-
-In both modes a missing-asset report is written to stderr listing every placement
-with a missing SVG, the object name, and the missing asset ids.
+Every emitted scene resolves every object and SVG asset. A missing-asset report
+lists each affected placement, object name, and missing asset id before the
+generator exits non-zero.
 
 Output:
 - generated/scenes.ts with SCENES_SKIPPED and SCENES exports.
@@ -54,7 +45,6 @@ import os
 import re
 import sys
 import json
-import argparse
 import subprocess
 from pathlib import Path
 
@@ -149,29 +139,6 @@ def get_repo_root() -> str:
 		check=True,
 	)
 	return result.stdout.strip()
-
-
-#============================================
-
-def parse_args() -> argparse.Namespace:
-	"""Parse command-line arguments."""
-	parser = argparse.ArgumentParser(
-		description="Generate generated/scenes.ts from content/base_scenes/ and per-protocol scenes."
-	)
-	parser.add_argument(
-		'--missing-svg',
-		dest='missing_svg_mode',
-		choices=('strict', 'placeholder'),
-		default='placeholder',
-		help=(
-			"How to handle scenes where a placement references an object with missing SVG assets. "
-			"placeholder (default, normal dev/build): emit the scene with missing_svg: true on "
-			"affected placements so the renderer shows a labeled placeholder. "
-			"strict (CI gating): report loudly and skip the scene with a missing-SVG reason."
-		),
-	)
-	args = parser.parse_args()
-	return args
 
 
 #============================================
@@ -319,7 +286,6 @@ def collect_resolved_placement_names(scene_data: dict) -> list:
 def emit_missing_asset_report(
 	scene_name: str,
 	gaps: list,
-	mode: str,
 ) -> None:
 	"""
 	Emit a missing-asset report to stderr for a scene with SVG gaps.
@@ -327,10 +293,9 @@ def emit_missing_asset_report(
 	Args:
 		scene_name: The scene_name field of the affected scene.
 		gaps: List of (placement_name, object_name, [missing_asset_ids]).
-		mode: 'strict' or 'placeholder', included in the report header.
 	"""
 	print(
-		f"MISSING-SVG [{mode}] scene '{scene_name}': {len(gaps)} placement(s) with missing SVG assets:",
+		f"MISSING-SVG scene '{scene_name}': {len(gaps)} placement(s) with missing SVG assets:",
 		file=sys.stderr,
 	)
 	for placement_name, object_name, missing_assets in gaps:
@@ -569,7 +534,6 @@ def emit_scene_ts(
 	scene_key: str,
 	scene_data: dict,
 	ts_lines: list,
-	missing_svg_placements: set,
 ) -> None:
 	"""
 	Emit a single scene entry into ts_lines.
@@ -578,8 +542,6 @@ def emit_scene_ts(
 		scene_key: The key used in the SCENES record (scene_name or composite_key).
 		scene_data: Resolved scene dict from YAML.
 		ts_lines: List to append TypeScript lines to.
-		missing_svg_placements: Set of placement_name values that have missing SVGs.
-			These placements get missing_svg: true in the emitted output.
 	"""
 	ts_lines.append(f"\t{repr(scene_key)}: " + "{")
 
@@ -675,10 +637,6 @@ def emit_scene_ts(
 					else:
 						ts_lines.append(f"\t\t\t\t\t{lk}: {lv},")
 				ts_lines.append("\t\t\t\t},")
-			# Mark missing-SVG placements in placeholder mode
-			pname = placement.get("placement_name")
-			if pname and pname in missing_svg_placements:
-				ts_lines.append("\t\t\t\tmissing_svg: true,")
 			ts_lines.append("\t\t\t},")
 		ts_lines.append("\t\t],")
 
@@ -797,9 +755,6 @@ def load_and_resolve_protocol_scene(
 
 def main() -> None:
 	"""Main entry point for the scene-index generator."""
-	args = parse_args()
-	missing_svg_mode = args.missing_svg_mode
-
 	repo_root = get_repo_root()
 
 	# Documented quarantine/design skips. These are NOT a hiding gate: every base
@@ -839,14 +794,11 @@ def main() -> None:
 	# Per-scene classification state.
 	# scenes_dict: scene_key -> resolved scene data for every EMITTED scene.
 	# base_scenes_dict: every base scene that validated, for inheritance resolution.
-	# scenes_missing_svg_placements: scene_key -> set of placement_names with missing
-	#   SVGs (used to write missing_svg: true markers in placeholder mode).
 	# manifest_entries: scene name -> classification row for scene_manifest.json.
 	#   Each row is {outcome, reason, source_placement_count, source_placement_names}.
 	# errored_count: number of FATAL conditions; nonzero stops the build.
 	scenes_dict = {}
 	base_scenes_dict = {}
-	scenes_missing_svg_placements = {}
 	manifest_entries = {}
 	skipped_files = []
 	errored_count = 0
@@ -887,28 +839,16 @@ def main() -> None:
 		gaps = check_scene_svg_gaps(scene_data, object_svg_refs, available_svgs)
 		if gaps:
 			all_missing_svg_findings.append((scene_name, gaps))
-			emit_missing_asset_report(scene_name, gaps, missing_svg_mode)
-			# Strict mode: SKIP with a missing-SVG reason (non-fatal; recorded
-			# in the manifest).
-			if missing_svg_mode == "strict":
-				missing_assets = sorted({a for _p, _o, assets in gaps for a in assets})
-				reason = "missing SVG assets: " + ", ".join(missing_assets)
-				print(
-					f"SKIP [strict] scene '{scene_name}': {len(gaps)} placement(s) "
-					f"have missing SVG assets. Use --missing-svg=placeholder to emit "
-					f"with placeholders instead.",
-					file=sys.stderr,
-				)
-				manifest_entries[scene_name] = {
-					"outcome": "skipped",
-					"reason": reason,
-					"source_placement_count": len(placement_names),
-					"source_placement_names": placement_names,
-				}
-				skipped_files.append(filename.replace(".yaml", ""))
-				continue
-			# Placeholder mode (default): emit with markers.
-			scenes_missing_svg_placements[scene_name] = {p for p, _o, _a in gaps}
+			emit_missing_asset_report(scene_name, gaps)
+			missing_assets = sorted({a for _p, _o, assets in gaps for a in assets})
+			manifest_entries[scene_name] = {
+				"outcome": "errored",
+				"reason": "missing SVG assets: " + ", ".join(missing_assets),
+				"source_placement_count": len(placement_names),
+				"source_placement_names": placement_names,
+			}
+			errored_count += 1
+			continue
 
 		# Emit the scene.
 		scenes_dict[scene_name] = scene_data
@@ -948,25 +888,16 @@ def main() -> None:
 		gaps = check_scene_svg_gaps(resolved_scene, object_svg_refs, available_svgs)
 		if gaps:
 			all_missing_svg_findings.append((composite_key, gaps))
-			emit_missing_asset_report(composite_key, gaps, missing_svg_mode)
-			if missing_svg_mode == "strict":
-				missing_assets = sorted({a for _p, _o, assets in gaps for a in assets})
-				reason = "missing SVG assets: " + ", ".join(missing_assets)
-				print(
-					f"SKIP [strict] per-protocol scene '{composite_key}': "
-					f"{len(gaps)} placement(s) have missing SVG assets.",
-					file=sys.stderr,
-				)
-				manifest_entries[composite_key] = {
-					"outcome": "skipped",
-					"reason": reason,
-					"source_placement_count": len(placement_names),
-					"source_placement_names": placement_names,
-				}
-				skipped_files.append(composite_key)
-				continue
-			# Placeholder mode: emit with missing_svg markers.
-			scenes_missing_svg_placements[composite_key] = {p for p, _o, _a in gaps}
+			emit_missing_asset_report(composite_key, gaps)
+			missing_assets = sorted({a for _p, _o, assets in gaps for a in assets})
+			manifest_entries[composite_key] = {
+				"outcome": "errored",
+				"reason": "missing SVG assets: " + ", ".join(missing_assets),
+				"source_placement_count": len(placement_names),
+				"source_placement_names": placement_names,
+			}
+			errored_count += 1
+			continue
 
 		scenes_dict[composite_key] = resolved_scene
 		manifest_entries[composite_key] = {
@@ -976,6 +907,14 @@ def main() -> None:
 			"source_placement_names": placement_names,
 		}
 		per_protocol_count += 1
+
+	if all_missing_svg_findings:
+		total_placements = sum(len(gaps) for _scene_name, gaps in all_missing_svg_findings)
+		print(
+			f"MISSING-SVG SUMMARY: {len(all_missing_svg_findings)} scene(s), "
+			f"{total_placements} placement(s) with missing SVG assets.",
+			file=sys.stderr,
+		)
 
 	# A FATAL condition stops the build. The manifest is NOT written in this case;
 	# a successful build's manifest carries only emitted and skipped entries.
@@ -989,21 +928,6 @@ def main() -> None:
 			f"FATAL: {errored_count} scene(s) errored; build stopped. "
 			f"Errored scenes: {', '.join(errored_scenes)}"
 		)
-
-	# Emit a consolidated missing-asset summary if any gaps were found
-	if all_missing_svg_findings:
-		total_placements = sum(len(gaps) for _sn, gaps in all_missing_svg_findings)
-		print(
-			f"MISSING-SVG SUMMARY [{missing_svg_mode}]: {len(all_missing_svg_findings)} scene(s), "
-			f"{total_placements} placement(s) with missing SVG assets.",
-			file=sys.stderr,
-		)
-		if missing_svg_mode == "placeholder":
-			print(
-				"MISSING-SVG SUMMARY: placeholder mode active -- affected placements "
-				"emitted with missing_svg: true for renderer placeholder display.",
-				file=sys.stderr,
-			)
 
 	# Generate TypeScript output
 	output_path = os.path.join(repo_root, "generated", "scenes.ts")
@@ -1025,9 +949,7 @@ def main() -> None:
 	# Emit scenes in sorted order (base scenes first, then per-protocol)
 	for scene_key in sorted(scenes_dict.keys()):
 		scene_data = scenes_dict[scene_key]
-		# Get the set of placement_names that have missing SVGs for this scene
-		missing_svg_placements = scenes_missing_svg_placements.get(scene_key, set())
-		emit_scene_ts(scene_key, scene_data, ts_lines, missing_svg_placements)
+		emit_scene_ts(scene_key, scene_data, ts_lines)
 
 	ts_lines.append("} as const;")
 
@@ -1060,8 +982,7 @@ def main() -> None:
 	emitted_count = sum(1 for e in manifest_entries.values() if e["outcome"] == "emitted")
 	skipped_count = sum(1 for e in manifest_entries.values() if e["outcome"] == "skipped")
 	print(
-		f"SCENE SUMMARY: {emitted_count} emitted, {skipped_count} skipped "
-		f"(missing-svg mode: {missing_svg_mode}).",
+		f"SCENE SUMMARY: {emitted_count} emitted, {skipped_count} skipped.",
 		file=sys.stderr,
 	)
 	for entry_name in sorted(manifest_entries.keys()):

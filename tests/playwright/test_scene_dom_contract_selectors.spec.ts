@@ -19,7 +19,6 @@
 //   - data-kind           (object kind enum)
 //   - data-depth          (depth tier enum; conditionally present)
 //   - data-asset          (asset registry key)
-//   - data-missing-svg    (present only on missing-svg placeholders)
 //   - data-label          (present on every label element)
 //   - data-label-for      (ties label to placement_name)
 //
@@ -36,7 +35,7 @@
 //
 // Selector contract (cite source file:line so a UI change surfaces the coupling):
 //   - [data-placement-name], [data-item-id], [data-object-name], [data-zone],
-//     [data-kind], [data-depth], [data-asset], [data-missing-svg]
+//     [data-kind], [data-depth], [data-asset]
 //     src/scene_runtime/renderer/scene_item.tsx
 //   - [data-label], [data-label-for]  src/scene_runtime/renderer/scene_item.tsx
 //   - #scene-root[data-viewer-ready]  src/dist_entry.tsx
@@ -74,7 +73,6 @@ interface RenderedItem {
   kind: string | null;
   depth: string | null;
   asset: string | null;
-  missingSvg: string | null;
   hasInlineSvg: boolean;
   hasLoadedStaticSvg: boolean;
 }
@@ -112,7 +110,6 @@ async function assertSceneSelectorContract(page: Page, sceneName: string): Promi
         kind: el.getAttribute("data-kind"),
         depth: el.getAttribute("data-depth"),
         asset: el.getAttribute("data-asset"),
-        missingSvg: el.getAttribute("data-missing-svg"),
         hasInlineSvg: (domSvgHost?.querySelector("svg") ?? null) !== null,
         hasLoadedStaticSvg:
           staticImage !== null &&
@@ -168,8 +165,7 @@ async function assertSceneSelectorContract(page: Page, sceneName: string): Promi
 
     // data-item-id: when present, non-empty (walker-addressable identity).
     // Absent entirely on a non-clickable item (decoration_only capability, or
-    // a missing-object placeholder bound with capabilities: []) -- see M6
-    // "Enforce capabilities in renderer and candidate enumeration".
+    // an internal render-error item bound with capabilities: []).
     if (item.itemId !== null) {
       expect(
         item.itemId.length,
@@ -205,19 +201,11 @@ async function assertSceneSelectorContract(page: Page, sceneName: string): Promi
       `${sceneName}[${id}]: data-asset non-empty`,
     ).toBe(true);
 
-    // The renderer has two real-art modes: injected inline SVG and a loaded
-    // static SVG image. A normal item must expose either one; a placeholder
-    // may instead carry data-missing-svg="true".
-    if (item.missingSvg !== null) {
-      expect(item.missingSvg, `${sceneName}[${id}]: data-missing-svg value when present`).toBe(
-        "true",
-      );
-    } else {
-      expect(
-        item.hasInlineSvg || item.hasLoadedStaticSvg,
-        `${sceneName}[${id}]: normal item has inline SVG or loaded static SVG image`,
-      ).toBe(true);
-    }
+    // Every generated scene item renders through one of the two real-art modes.
+    expect(
+      item.hasInlineSvg || item.hasLoadedStaticSvg,
+      `${sceneName}[${id}]: item has inline SVG or loaded static SVG image`,
+    ).toBe(true);
   }
 
   expect(labels.length, `${sceneName}: at least one label`).toBeGreaterThan(0);

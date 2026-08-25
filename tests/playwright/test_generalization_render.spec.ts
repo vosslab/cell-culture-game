@@ -222,7 +222,7 @@ test.describe("base scene generalization render", () => {
         }
       });
 
-      await test.step("B: no fallback/placeholder SVG (either render mode)", async () => {
+      await test.step("B: every placement renders complete SVG artwork", async () => {
         for (let i = 0; i < placements.length; i++) {
           const placement = placements[i]!;
           const info = await gatherPlacementAssetInfo(placementLocators[i]!);

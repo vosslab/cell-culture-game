@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 284 196">
   <!-- The upright transparent lid identifies this as a tip box, not a gel tray. -->
-  <path d="M 22 87 L 22 18 Q 22 8 32 8 L 252 8 Q 262 8 262 18 L 262 87" fill="#f1c6e0" fill-opacity=".35" stroke="#623752" stroke-width="5" stroke-linejoin="round"/>
-  <path d="M 34 23 L 250 23 M 34 39 L 250 39" fill="none" stroke="#b96b99" stroke-width="3" stroke-opacity=".8"/>
-  <path d="M 80 8 L 80 87 M 204 8 L 204 87" fill="none" stroke="#b96b99" stroke-width="3" stroke-opacity=".55"/>
-  <path fill="#7b3d67" stroke="#46243d" stroke-width="5" d="M 24 78 L 260 78 A 12 12 0 0 1 272 90 L 272 172 A 12 12 0 0 1 260 184 L 24 184 A 12 12 0 0 1 12 172 L 12 90 A 12 12 0 0 1 24 78 Z"/>
-  <path d="M 18 90 L 266 90 L 266 162 L 18 162 Z" fill="#faedf5" stroke="#46243d" stroke-width="4"/>
-  <path d="M 20 162 L 264 162 L 253 184 L 31 184 Z" fill="#572b49"/>
+  <path d="M 22 87 L 22 18 Q 22 8 32 8 L 252 8 Q 262 8 262 18 L 262 87" fill="#d9f0f2" fill-opacity=".40" stroke="#263b44" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M 34 23 L 250 23 M 34 39 L 250 39" fill="none" stroke="#75aebb" stroke-width="3" stroke-opacity=".8"/>
+  <path d="M 80 8 L 80 87 M 204 8 L 204 87" fill="none" stroke="#75aebb" stroke-width="3" stroke-opacity=".55"/>
+  <path fill="#5d929e" stroke="#263b44" stroke-width="5" d="M 24 78 L 260 78 A 12 12 0 0 1 272 90 L 272 172 A 12 12 0 0 1 260 184 L 24 184 A 12 12 0 0 1 12 172 L 12 90 A 12 12 0 0 1 24 78 Z"/>
+  <path d="M 18 90 L 266 90 L 266 162 L 18 162 Z" fill="#f7fbfb" stroke="#263b44" stroke-width="4"/>
+  <path d="M 20 162 L 264 162 L 253 184 L 31 184 Z" fill="#416e79"/>
   <path d="M 22 92 L 262 92" stroke="#fff" stroke-width="4" stroke-opacity=".78"/>
   <!-- Long, narrow tips are intentionally much finer than ordinary P200-style tips. -->
-  <path fill="#fff8fc" stroke="#c898b5" stroke-width="3" d="M 41 99 L 243 99 A 5 5 0 0 1 248 104 L 248 148 A 5 5 0 0 1 243 153 L 41 153 A 5 5 0 0 1 36 148 L 36 104 A 5 5 0 0 1 41 99 Z"/>
-  <g fill="#a8d8ed" stroke="#376d86" stroke-width="2" stroke-linejoin="round">
+  <path fill="#fffdf8" stroke="#9fcbd4" stroke-width="3" d="M 41 99 L 243 99 A 5 5 0 0 1 248 104 L 248 148 A 5 5 0 0 1 243 153 L 41 153 A 5 5 0 0 1 36 148 L 36 104 A 5 5 0 0 1 41 99 Z"/>
+  <g fill="#b9e3ea" stroke="#3d6976" stroke-width="2" stroke-linejoin="round">
     <path d="M 48 104 L 58 104 L 58 116 L 55 150 L 53 162 L 51 150 L 48 116 Z"/><path d="M 83 104 L 93 104 L 93 116 L 90 150 L 88 162 L 86 150 L 83 116 Z"/><path d="M 118 104 L 128 104 L 128 116 L 125 150 L 123 162 L 121 150 L 118 116 Z"/><path d="M 153 104 L 163 104 L 163 116 L 160 150 L 158 162 L 156 150 L 153 116 Z"/><path d="M 188 104 L 198 104 L 198 116 L 195 150 L 193 162 L 191 150 L 188 116 Z"/><path d="M 223 104 L 233 104 L 233 116 L 230 150 L 228 162 L 226 150 L 223 116 Z"/>
     <path d="M 48 124 L 58 124 L 58 134 L 55 154 L 53 163 L 51 154 L 48 134 Z"/><path d="M 83 124 L 93 124 L 93 134 L 90 154 L 88 163 L 86 154 L 83 134 Z"/><path d="M 118 124 L 128 124 L 128 134 L 125 154 L 123 163 L 121 154 L 118 134 Z"/><path d="M 153 124 L 163 124 L 163 134 L 160 154 L 158 163 L 156 154 L 153 134 Z"/><path d="M 188 124 L 198 124 L 198 134 L 195 154 L 193 163 L 191 154 L 188 134 Z"/><path d="M 223 124 L 233 124 L 233 134 L 230 154 L 228 163 L 226 154 L 223 134 Z"/>
   </g>

@@ -1,11 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 344 191">
   <defs>
-    <linearGradient id="cartridge" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#526577"/><stop offset="1" stop-color="#263746"/></linearGradient>
-    <linearGradient id="slide" x1="0" x2="1"><stop offset="0" stop-color="#effcff"/><stop offset="1" stop-color="#8dc4d6"/></linearGradient>
+    <linearGradient id="cartridge" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#7494a0"/><stop offset="1" stop-color="#405f6b"/></linearGradient>
+    <linearGradient id="slide" x1="0" x2="1"><stop offset="0" stop-color="#fffdf8"/><stop offset="1" stop-color="#a9d8e1"/></linearGradient>
   </defs>
-  <path d="M 10 29 Q 10 10 29 10 L 315 10 Q 334 10 334 29 L 334 147 Q 334 166 315 166 L 29 166 Q 10 166 10 147 Z" fill="url(#cartridge)" stroke="#14232e" stroke-width="4"/>
-  <path d="M 21 29 Q 21 21 31 21 L 313 21 Q 323 21 323 29 L 323 47 L 21 47 Z" fill="#71889a" opacity=".85"/>
-  <path fill="#15232e" stroke="#0c151c" stroke-width="3" d="M 43 47 L 301 47 A 7 7 0 0 1 308 54 L 308 118 A 7 7 0 0 1 301 125 L 43 125 A 7 7 0 0 1 36 118 L 36 54 A 7 7 0 0 1 43 47 Z"/>
+  <path d="M 10 29 Q 10 10 29 10 L 315 10 Q 334 10 334 29 L 334 147 Q 334 166 315 166 L 29 166 Q 10 166 10 147 Z" fill="url(#cartridge)" stroke="#263b44" stroke-width="4"/>
+  <path d="M 21 29 Q 21 21 31 21 L 313 21 Q 323 21 323 29 L 323 47 L 21 47 Z" fill="#a8c8cf" opacity=".85"/>
+  <path fill="#304a54" stroke="#263b44" stroke-width="3" d="M 43 47 L 301 47 A 7 7 0 0 1 308 54 L 308 118 A 7 7 0 0 1 301 125 L 43 125 A 7 7 0 0 1 36 118 L 36 54 A 7 7 0 0 1 43 47 Z"/>
   <g stroke="#315566" stroke-width="2">
     <path fill="url(#slide)" d="M 46 55 L 63 55 A 2 2 0 0 1 65 57 L 65 115 A 2 2 0 0 1 63 117 L 46 117 A 2 2 0 0 1 44 115 L 44 57 A 2 2 0 0 1 46 55 Z"/><path fill="url(#slide)" d="M 71 55 L 88 55 A 2 2 0 0 1 90 57 L 90 115 A 2 2 0 0 1 88 117 L 71 117 A 2 2 0 0 1 69 115 L 69 57 A 2 2 0 0 1 71 55 Z"/>
     <path fill="url(#slide)" d="M 96 55 L 113 55 A 2 2 0 0 1 115 57 L 115 115 A 2 2 0 0 1 113 117 L 96 117 A 2 2 0 0 1 94 115 L 94 57 A 2 2 0 0 1 96 55 Z"/><path fill="url(#slide)" d="M 121 55 L 138 55 A 2 2 0 0 1 140 57 L 140 115 A 2 2 0 0 1 138 117 L 121 117 A 2 2 0 0 1 119 115 L 119 57 A 2 2 0 0 1 121 55 Z"/>
@@ -20,7 +20,7 @@
   <path d="M 47 133 L 297 133" stroke="#b4ccd8" stroke-width="3" opacity=".7"/>
   <path fill="#d9e5e9" stroke="#1b2e3a" stroke-width="2" d="M 100 138 L 244 138 A 4 4 0 0 1 248 142 L 248 150 A 4 4 0 0 1 244 154 L 100 154 A 4 4 0 0 1 96 150 L 96 142 A 4 4 0 0 1 100 138 Z"/>
   <g fill="#4a7180"><path d="M 120 143 L 130 143 A 2 2 0 0 1 132 145 L 132 147 A 2 2 0 0 1 130 149 L 120 149 A 2 2 0 0 1 118 147 L 118 145 A 2 2 0 0 1 120 143 Z"/><path d="M 140 143 L 150 143 A 2 2 0 0 1 152 145 L 152 147 A 2 2 0 0 1 150 149 L 140 149 A 2 2 0 0 1 138 147 L 138 145 A 2 2 0 0 1 140 143 Z"/><path d="M 160 143 L 170 143 A 2 2 0 0 1 172 145 L 172 147 A 2 2 0 0 1 170 149 L 160 149 A 2 2 0 0 1 158 147 L 158 145 A 2 2 0 0 1 160 143 Z"/><path d="M 180 143 L 190 143 A 2 2 0 0 1 192 145 L 192 147 A 2 2 0 0 1 190 149 L 180 149 A 2 2 0 0 1 178 147 L 178 145 A 2 2 0 0 1 180 143 Z"/><path d="M 200 143 L 210 143 A 2 2 0 0 1 212 145 L 212 147 A 2 2 0 0 1 210 149 L 200 149 A 2 2 0 0 1 198 147 L 198 145 A 2 2 0 0 1 200 143 Z"/></g>
-  <path d="M 32 169 L 312 169" stroke="#14232e" stroke-width="8" stroke-linecap="round"/>
+  <path d="M 32 169 L 312 169" stroke="#263b44" stroke-width="8" stroke-linecap="round"/>
   <g id="overlay_root"/>
   <path id="anchor_label" fill="none" stroke="none" display="none" d="M 60 137 L 284 137 L 284 165 L 60 165 Z"/>
   <path id="anchor_error" fill="none" stroke="none" display="none" d="M 314 2 L 344 2 L 344 32 L 314 32 Z"/>

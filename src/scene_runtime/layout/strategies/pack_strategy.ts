@@ -56,7 +56,7 @@ const KIND_PRIORITY: Readonly<Record<Kind, number>> = {
   equipment: 3,
 };
 
-// The protection priority of one item. Unknown kinds (bound placeholders) rank
+// The protection priority of one item. Unknown kinds (diagnostic bindings) rank
 // as mid-tier fillers so a missing object never out-protects a real instrument.
 function kindPriority(it: ScaledPlacement): number {
   const k = it.kind;

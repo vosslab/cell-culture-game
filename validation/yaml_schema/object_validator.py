@@ -957,16 +957,15 @@ class ObjectValidator:
 				if asset_name:
 					asset_names.add(asset_name)
 
-		# Check for variant fan-out (multiple distinct asset_name values)
+		# Check for variant fan-out (multiple distinct asset_name values).
 		if len(asset_names) > 1:
-		# Preserve a warning for legacy declarations while historical fixtures
-		# remain readable. Current object-level effects are additionally checked
-		# by the asset-taxonomy gate, which requires one compiled material form
-		# instead of a material-specific SVG fan-out.
+			# The authored material vocabulary requires one compiled material form.
+			# Reject fan-out here at the object boundary so invalid content cannot
+			# depend on a later taxonomy pass to become an error.
 			findings.append(Finding(
 				path=path,
 				lineno=None,
-				severity=Severity.WARNING,
+				severity=Severity.ERROR,
 				code='variant-collapse',
 				message=(
 					f"[VARIANT-COLLAPSE] {paired_field} cases for volume composite "

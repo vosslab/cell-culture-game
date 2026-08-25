@@ -5,7 +5,7 @@
 // namespaceSvgIds id-isolation helper before insertion. resolveAnchor exposes a
 // bare-anchor -> namespaced-element lookup on a host that an SVG was injected
 // into. Throws loudly on empty/unparseable assets. No fallback SVG, no
-// placeholder, no silent failures. There is no bundled-SVG-markup registry path:
+// diagnostic error, with no silent failures. There is no bundled-SVG-markup registry path:
 // the giant inline SVG_REGISTRY left the runtime bundle in the registry-to-manifest cutover.
 //
 // Inline SVGs share internal ids (every Servier-normalized asset declares the

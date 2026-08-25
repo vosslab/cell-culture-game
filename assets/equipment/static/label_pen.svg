@@ -1,27 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 348">
-  <defs>
-    <linearGradient id="barrel" x1="0" x2="1">
-      <stop offset="0" stop-color="#252b34"/>
-      <stop offset="0.48" stop-color="#56616e"/>
-      <stop offset="1" stop-color="#1d2229"/>
-    </linearGradient>
-    <linearGradient id="cap" x1="0" x2="1">
-      <stop offset="0" stop-color="#147b98"/>
-      <stop offset="1" stop-color="#07506a"/>
-    </linearGradient>
-  </defs>
-  <!-- Broad permanent marker, with a colored cap and writable laboratory label band. -->
-  <path d="M 17 31 Q 17 10 38 10 L 52 10 Q 73 10 73 31 L 73 85 L 17 85 Z" fill="url(#cap)" stroke="#0b394c" stroke-width="4"/>
-  <path d="M 28 18 L 62 18 L 62 40 L 28 40 Z" fill="#55c4df" opacity="0.55"/>
-  <path fill="url(#barrel)" stroke="#11161b" stroke-width="4" d="M 28 83 L 62 83 A 18 18 0 0 1 80 101 L 80 269 A 18 18 0 0 1 62 287 L 28 287 A 18 18 0 0 1 10 269 L 10 101 A 18 18 0 0 1 28 83 Z"/>
-  <path fill="#f7f1dc" stroke="#bdaf84" stroke-width="2" d="M 20 101 L 70 101 A 4 4 0 0 1 74 105 L 74 189 A 4 4 0 0 1 70 193 L 20 193 A 4 4 0 0 1 16 189 L 16 105 A 4 4 0 0 1 20 101 Z"/>
-  <path d="M 25 158 L 65 158 M 25 168 L 57 168 M 25 178 L 62 178" stroke="#8f866d" stroke-width="2"/>
-  <path d="M 18 207 L 72 207" stroke="#8ea1ae" stroke-width="3" opacity="0.65"/>
-  <path d="M 26 287 L 64 287 L 60 312 L 30 312 Z" fill="#bcc5ca" stroke="#3f4c55" stroke-width="3"/>
-  <path d="M 30 312 L 60 312 L 45 340 Z" fill="#313940" stroke="#151a1f" stroke-width="3"/>
-  <path d="M 15 94 L 75 94" stroke="#b4c2ca" stroke-width="4" opacity="0.65"/>
-  <path d="M 23 219 L 23 267" stroke="#98aab5" stroke-width="4" opacity="0.32"/>
-  <g id="overlay_root"/>
-  <path id="anchor_label" fill="none" stroke="none" display="none" d="M 13 101 L 77 101 L 77 195 L 13 195 Z"/>
-  <path id="anchor_error" fill="none" stroke="none" display="none" d="M 74 4 L 102 4 L 102 32 L 74 32 Z"/>
+  <defs><linearGradient id="barrel" x1="0" x2="1"><stop stop-color="#263b46"/><stop offset=".5" stop-color="#596d77"/><stop offset="1" stop-color="#263b46"/></linearGradient></defs>
+  <!-- Laboratory marker with cyan cap, writable band, and unmistakable chisel tip. -->
+  <path id="cap" d="M17 31Q17 10 38 10H52Q73 10 73 31V85H17Z" fill="#5caec1" stroke="#263b46" stroke-width="4"/><path d="M28 18H62V39H28Z" fill="#d9f3f5" opacity=".72"/>
+  <path d="M28 83H62A18 18 0 0 1 80 101V269A18 18 0 0 1 62 287H28A18 18 0 0 1 10 269V101A18 18 0 0 1 28 83Z" fill="url(#barrel)" stroke="#263b46" stroke-width="4"/>
+  <path d="M20 101H70Q74 101 74 105V189Q74 193 70 193H20Q16 193 16 189V105Q16 101 20 101Z" fill="#f8f6e8" stroke="#a99b70" stroke-width="2"/><path d="M25 158H65M25 168H57M25 178H62" stroke="#837b61" stroke-width="2"/>
+  <path d="M18 207H72" stroke="#b9dce1" stroke-width="3" opacity=".75"/><path d="M26 287H64L60 312H30Z" fill="#c9dce0" stroke="#263b46" stroke-width="3"/><path d="M30 312H60L45 340Z" fill="#35434b" stroke="#263b46" stroke-width="3"/><path d="M15 94H75" stroke="#eefdff" stroke-width="3" opacity=".65"/>
+  <g id="overlay_root"/><path id="anchor_label" fill="none" stroke="none" display="none" d="M13 101H77V195H13Z"/><path id="anchor_error" fill="none" stroke="none" display="none" d="M74 4H102V32H74Z"/>
 </svg>

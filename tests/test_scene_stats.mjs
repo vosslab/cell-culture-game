@@ -38,8 +38,8 @@ function makeItem(placementName, overrides = {}) {
     kind: "object",
     depth: 0,
     bbox: { x: 0, y: 0, width: 10, height: 10 },
-    isPlaceholder: false,
-    placeholderKind: null,
+    hasRenderError: false,
+    renderErrorKind: null,
     ...overrides,
   };
 }
@@ -156,7 +156,7 @@ test("percent_empty_approx clamps to zero when items over-cover via overlap", ()
 });
 
 //============================================
-// Classification and placeholder accounting
+// Classification and render-error accounting
 //============================================
 
 test("category is empty when nothing rendered", () => {
@@ -172,11 +172,11 @@ test("category is empty when nothing rendered", () => {
   assert.equal(stats.pass_fail.renders, false);
 });
 
-test("category is placeholder-only when all rendered items are placeholders", () => {
+test("category is error-only when all rendered items are diagnostic errors", () => {
   const manifestEntry = makeManifestEntry("ph_scene", ["a", "b"]);
   const renderedItems = [
-    makeItem("a", { isPlaceholder: true, placeholderKind: "missing-svg" }),
-    makeItem("b", { isPlaceholder: true, placeholderKind: "missing-object" }),
+    makeItem("a", { hasRenderError: true, renderErrorKind: "missing-svg" }),
+    makeItem("b", { hasRenderError: true, renderErrorKind: "missing-object" }),
   ];
   const stats = computeSceneStats({
     sceneName: "ph_scene",
@@ -185,12 +185,12 @@ test("category is placeholder-only when all rendered items are placeholders", ()
     labels: [],
     sceneRootBbox: SCENE_ROOT,
   });
-  assert.equal(stats.classification.category, "placeholder-only");
+  assert.equal(stats.classification.category, "error-only");
   assert.equal(stats.counts.real_item_count, 0);
-  assert.equal(stats.counts.placeholder_item_count, 2);
+  assert.equal(stats.counts.render_error_item_count, 2);
   assert.deepEqual(stats.flags.missing_svg_names, ["a_obj"]);
   assert.deepEqual(stats.flags.missing_object_names, ["b_obj"]);
-  // placeholder-only still counts as "renders" per the shared categories.
+  // An error card still proves the renderer produced observable output.
   assert.equal(stats.pass_fail.renders, true);
 });
 

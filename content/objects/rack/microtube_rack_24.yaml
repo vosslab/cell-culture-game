@@ -7,7 +7,7 @@ state_fields:
     type: enum
     allowed: [empty]
     default: empty
-    description: Rack contents placeholder.
+    description: Shared rack-content material state.
   - field_name: material_volume
     type: float
     unit: ml
@@ -15,7 +15,7 @@ state_fields:
     max: 100
     step: 0.1
     default: 0
-    description: Rack contents volume placeholder.
+    description: Shared rack-content volume.
 
 visual_states:
   material_name:

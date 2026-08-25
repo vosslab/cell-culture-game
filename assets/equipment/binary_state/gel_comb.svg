@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 262 123">
-  <path d="M 28 16 L 234 16 A 12 12 0 0 1 246 28 L 246 60 A 12 12 0 0 1 234 72 L 28 72 A 12 12 0 0 1 16 60 L 16 28 A 12 12 0 0 1 28 16 Z" fill="#2f78a5" stroke="#163f59" stroke-width="7"/>
-  <path d="M 43 72 L 59 72 L 59 119 L 43 119 Z M 63 72 L 79 72 L 79 119 L 63 119 Z M 83 72 L 99 72 L 99 119 L 83 119 Z M 103 72 L 119 72 L 119 119 L 103 119 Z M 123 72 L 139 72 L 139 119 L 123 119 Z M 143 72 L 159 72 L 159 119 L 143 119 Z M 163 72 L 179 72 L 179 119 L 163 119 Z M 183 72 L 199 72 L 199 119 L 183 119 Z M 203 72 L 219 72 L 219 119 L 203 119 Z M 223 72 L 239 72 L 239 119 L 223 119 Z" fill="#65a9cd" stroke="#163f59" stroke-width="4" stroke-linejoin="round"/>
-  <path d="M 32 36 L 230 36" stroke="#b9e2f1" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
+  <path d="M 28 16 L 234 16 A 12 12 0 0 1 246 28 L 246 60 A 12 12 0 0 1 234 72 L 28 72 A 12 12 0 0 1 16 60 L 16 28 A 12 12 0 0 1 28 16 Z" fill="#70b6c8" stroke="#263b44" stroke-width="7"/>
+  <path d="M 43 72 L 59 72 L 59 119 L 43 119 Z M 63 72 L 79 72 L 79 119 L 63 119 Z M 83 72 L 99 72 L 99 119 L 83 119 Z M 103 72 L 119 72 L 119 119 L 103 119 Z M 123 72 L 139 72 L 139 119 L 123 119 Z M 143 72 L 159 72 L 159 119 L 143 119 Z M 163 72 L 179 72 L 179 119 L 163 119 Z M 183 72 L 199 72 L 199 119 L 183 119 Z M 203 72 L 219 72 L 219 119 L 203 119 Z M 223 72 L 239 72 L 239 119 L 223 119 Z" fill="#b7e0e8" stroke="#263b44" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M 32 36 L 230 36" stroke="#fffdf8" stroke-width="6" stroke-linecap="round" opacity="0.8"/>
 </svg>

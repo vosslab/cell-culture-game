@@ -21,10 +21,15 @@ decisions rather than another generic shell milestone:
 - Decide whether selection candidates need a closed choice-role capability
   (B6), so decision scenes can retain visible experimental context without
   presenting every clickable context object as an answer.
-- Plan the application-owned migration of embedded result screens and removable
-  labels identified by the
-  [SVG interface scope audit](active_plans/audits/svg_embedded_interface_scope.md).
-  Keep only sparse intrinsic marks such as numbers, units, and logos in SVG art.
+- Plan the later application-owned result-UI migration for
+  `cell_viability_results_display.svg`, `electrophoresis_endpoint_display.svg`,
+  `gel_image_results_display.svg`, `hemocytometer_observation_display.svg`,
+  `mtt_reader_results_display.svg`, `plate_reader_absorbance_result_panel.svg`, and
+  `plate_reader_normalized_viability_panel.svg`. Keep these seven files
+  byte-preserved until that work begins, following the
+  [SVG interface scope audit](active_plans/audits/svg_embedded_interface_scope.md),
+  keeping only sparse intrinsic marks such as numbers, units, and logos in
+  future SVG evidence art.
 - Continue evidence-led protocol expansion without weakening visible-action,
   state-continuity, or scientific-conservation gates.
 
@@ -36,56 +41,52 @@ by `data-subpart-name`, no DOM hand-editing).
 
 What shipped (M0-M4):
 
-* M0: material spec split into 5 docs under docs/specs/MATERIAL_*.md.
-* M0: SVG-namespacing/DOM-isolation contract (D13).
-* M1: per-subpart state in Python stepper; 834 state_value_not_allowed -> 0.
-* M1: D6 validator rule for structured well-plate objects.
-* M1: materials.yaml scalar display_color sweep + validator flip.
-* M1: gen_protocols.py scalar fix; MATERIAL_SENTINEL_ALLOWLIST narrowed to {empty, mixed}.
-* M2: PATH-B geometry (96 wells); determinism test.
-* M3: scalar color resolver (material_color.ts D3); generic subpart interpreter
+- M0: material spec split into 5 docs under docs/specs/MATERIAL_*.md.
+- M0: SVG-namespacing/DOM-isolation contract (D13).
+- M1: per-subpart state in Python stepper; 834 state_value_not_allowed -> 0.
+- M1: D6 validator rule for structured well-plate objects.
+- M1: materials.yaml scalar display_color sweep + validator flip.
+- M1: gen_protocols.py scalar fix; MATERIAL_SENTINEL_ALLOWLIST narrowed to {empty, mixed}.
+- M2: PATH-B geometry (96 wells); determinism test.
+- M3: scalar color resolver (material_color.ts D3); generic subpart interpreter
   (subpart_visual_state_renderer.tsx); narrow store accessor (getSubpartStateField).
-* Runtime store: accepts registry-backed subpart material_name (mirrors stepper D1).
-* M4: production render-path per-well color proven; walkthrough spec retained, honestly
+- Runtime store: accepts registry-backed subpart material_name (mirrors stepper D1).
+- M4: production render-path per-well color proven; walkthrough spec retained, honestly
   reports blocker.
 
 Visible-UI per-well-protocol walkthrough:
 
-* Completed. The in-flow set-point editor supplies the visible `adjust`
+- Completed. The in-flow set-point editor supplies the visible `adjust`
   affordance, and the per-well protocols complete through the same
   runtime-authoritative validation path as the other gestures.
 
-Non-goals of this plan:
-
-* Amount-layer (volume-driven) well rendering: wells rendering fill level by
-  `material_volume` value, not just material_name color tint.
-* Dark-mode rendering: per-subpart renderer uses the single scalar `display_color`;
-  light/dark variants are not in scope.
-* Anchor/vessel-fill render path for bottles and flasks: the CSS/SVG recolor path
-  (using `anchor_liquid_clip`/`anchor_liquid_bounds`) awaits the SVG M5 lookup seam.
+At this plan's closure, amount-layer well rendering, dark mode, and the
+anchor/vessel-fill path were non-goals. The material-SVG cutover later delivered
+per-well `material_volume` rendering and the semantic bottle/flask fill path.
+Dark-mode rendering remains out of scope; the renderer intentionally consumes one
+scalar `display_color` without light/dark variants.
 
 Future (task #27):
 
-* Declared registry-backed field affordance: retire the [empty, mixed] syntactic seam
+- Declared registry-backed field affordance: retire the [empty, mixed] syntactic seam
   in well_plate_96.yaml by making the registry-backed field explicitly declared in the
   object schema. No runtime behavior change required; schema + validator + generator
   changes only.
 
 Longer-term roadmap
 
-* Add richer lab gestures beyond click and adjust as needed.
-* Add results screen and scoring display.
-* Add better shell styling once functional coverage is stable.
-* Expand protocol library coverage.
-* Add optional debug panel for protocol state snapshots.
-* Improve authoring diagnostics for protocol / scene mismatches.
-* Consider mobile / touch support only after desktop protocol flow is stable.
+- Add richer lab gestures beyond click and adjust as needed.
+- Add results screen and scoring display.
+- Add better shell styling once functional coverage is stable.
+- Expand protocol library coverage.
+- Add optional debug panel for protocol state snapshots.
+- Improve authoring diagnostics for protocol / scene mismatches.
+- Consider mobile / touch support only after desktop protocol flow is stable.
 
 Note: keyboard navigation, ARIA, focus management, and screen-reader support for shell
 controls are deferred. See the "Accessibility scope" subsection in
 [PRIMARY_DESIGN.md](PRIMARY_DESIGN.md) for the current scope boundary and the
 conditions under which accessibility work would be re-prioritized.
-
 
 Planned features and improvements for the cell culture simulation game.
 

@@ -2,11 +2,10 @@
 """SVG asset audit tool.
 
 Walks all object YAML files, identifies asset_name references in visual_states,
-and cross-walks with recursively registered equipment SVGs and source manifests
-(SOURCES.md, MISSING_SVG_PLACEHOLDERS.md) to classify each asset and detect
-orphans. Reports enriched per-asset metadata: Servier provenance, modification
-status, attribution, normalization, forbidden constructs, file size, subpart
-coverage, enum case coverage, and reuse counts.
+and cross-walks with recursively registered equipment SVGs and SOURCES.md to
+classify each asset and detect orphans. Reports enriched per-asset metadata:
+Servier provenance, modification status, attribution, normalization, forbidden
+constructs, file size, subpart coverage, enum case coverage, and reuse counts.
 
 Usage:
 	python3 validation/svg/asset_audit.py
@@ -38,8 +37,8 @@ from validation.svg.asset_registry import build_svg_asset_registry
 REPO_ROOT = toolkit_paths.REPO_ROOT
 OBJECTS_DIR = toolkit_paths.OBJECTS_DIR
 ASSETS_DIR = os.path.join(REPO_ROOT, "assets", "equipment")
+# ASVS 5.3.2: provenance metadata is read only from this fixed repo-owned path.
 SOURCES_MD = os.path.join(ASSETS_DIR, "SOURCES.md")
-PLACEHOLDERS_MD = os.path.join(ASSETS_DIR, "MISSING_SVG_PLACEHOLDERS.md")
 OTHER_REPOS_ROOT = os.path.join(REPO_ROOT, "..", "OTHER_REPOS")
 
 
@@ -57,121 +56,53 @@ def _asset_path(asset_name: str) -> str:
 		return os.path.join(ASSETS_DIR, f"{asset_name}.svg")
 
 #============================================
-# servier source and category parsing
+# Servier source and category parsing
 #============================================
 
-def parse_servier_sources() -> dict[str, tuple[str, str]]:
-	"""Extract Servier-adopted SVG info from SOURCES.md.
+def parse_servier_source_rows(lines: list[str]) -> dict[str, tuple[str, str]]:
+	"""Extract Servier-adopted SVG info from Markdown table rows.
 
 	Returns dict mapping asset_basename -> (source_path, category)
 	where source_path is the Servier path and category is the bioicons
 	category (Lab_apparatus, Chemistry, Microbiology, etc).
 	"""
 	sources_map = {}
-	if not os.path.isfile(SOURCES_MD):
-		return sources_map
-
-	with open(SOURCES_MD, 'r', encoding='utf-8') as f:
-		lines = f.readlines()
-
-	in_table = False
-
 	for line in lines:
 		stripped = line.strip()
-
-		# Detect table start: the header separator row (contains ---)
-		if '---' in line and '|' in line:
-			in_table = True
+		if not (stripped.startswith('|') and stripped.endswith('|')):
 			continue
 
-		# Parse table rows
-		if in_table and stripped.startswith('|') and stripped.endswith('|'):
-			parts = [p.strip() for p in stripped.split('|')]
-			if len(parts) >= 3:
-				cell = parts[1]
-				# Extract backtick-wrapped filename and Servier path
-				if cell.startswith('`') and cell.endswith('.svg`'):
-					filename = cell[1:-5]  # remove ` and .svg`
-					servier_cell = parts[2]
-					# Extract backtick-wrapped path
-					if servier_cell.startswith('`') and servier_cell.endswith('.svg`'):
-						servier_path = servier_cell[1:-5]
-						# Extract category from servier_path (e.g., "Microbiology/Servier/...")
-						path_parts = servier_path.split('/')
-						if len(path_parts) >= 2:
-							category = path_parts[0]
-							full_path = f"OTHER_REPOS/bioicons/static/icons/cc-by-3.0/{servier_path}.svg"
-							sources_map[filename] = (full_path, category)
+		parts = [part.strip() for part in stripped.split('|')]
+		if len(parts) < 4:
+			continue
+
+		asset_match = re.fullmatch(r'`([^`/]+)\.svg`', parts[1])
+		servier_match = re.fullmatch(
+			r'`([^/`]+)/Servier/([^`]+\.svg)`',
+			parts[2],
+		)
+		if not asset_match or not servier_match:
+			continue
+
+		filename = asset_match.group(1)
+		category = servier_match.group(1)
+		servier_path = f"{category}/Servier/{servier_match.group(2)}"
+		full_path = f"OTHER_REPOS/bioicons/static/icons/cc-by-3.0/{servier_path}"
+		sources_map[filename] = (full_path, category)
 
 	return sources_map
 
-def parse_servier_assets() -> set[str]:
-	"""Extract Servier-adopted SVG filenames from SOURCES.md.
 
-	Scans markdown table rows for backtick-wrapped filenames in the first column.
-	Returns the set of basenames without .svg extension.
-	"""
-	servier = set()
+def parse_servier_sources() -> dict[str, tuple[str, str]]:
+	"""Extract Servier-adopted SVG info from the repository source ledger."""
 	if not os.path.isfile(SOURCES_MD):
-		return servier
+		return {}
 
 	with open(SOURCES_MD, 'r', encoding='utf-8') as f:
 		lines = f.readlines()
 
-	in_table = False
-	for line in lines:
-		line = line.strip()
-		# Detect table start: the header separator row (contains ---)
-		if '---' in line and '|' in line:
-			in_table = True
-			continue
-
-		# Parse table rows
-		if in_table and line.startswith('|') and line.endswith('|'):
-			parts = line.split('|')
-			if len(parts) >= 3:
-				# First cell after the leading |
-				cell = parts[1].strip()
-				# Extract backtick-wrapped filename
-				if cell.startswith('`') and cell.endswith('.svg`'):
-					filename = cell[1:-5]  # remove ` and .svg`
-					servier.add(filename)
-
-	return servier
-
-def parse_placeholder_assets() -> set[str]:
-	"""Extract placeholder SVG filenames from MISSING_SVG_PLACEHOLDERS.md.
-
-	Scans markdown table rows for backtick-wrapped filenames in the first column.
-	Returns the set of basenames without .svg extension.
-	"""
-	placeholders = set()
-	if not os.path.isfile(PLACEHOLDERS_MD):
-		return placeholders
-
-	with open(PLACEHOLDERS_MD, 'r', encoding='utf-8') as f:
-		lines = f.readlines()
-
-	in_table = False
-	for line in lines:
-		line = line.strip()
-		# Detect table start: the header separator row (contains ---)
-		if '---' in line and '|' in line:
-			in_table = True
-			continue
-
-		# Parse table rows
-		if in_table and line.startswith('|') and line.endswith('|'):
-			parts = line.split('|')
-			if len(parts) >= 3:
-				# First cell after the leading |
-				cell = parts[1].strip()
-				# Extract backtick-wrapped filename
-				if cell.startswith('`') and cell.endswith('.svg`'):
-					filename = cell[1:-5]  # remove ` and .svg`
-					placeholders.add(filename)
-
-	return placeholders
+	sources_map = parse_servier_source_rows(lines)
+	return sources_map
 
 #============================================
 # asset metadata checks
@@ -515,12 +446,11 @@ def load_object_yaml(path: str) -> tuple[str, str, set[str], dict[str, object]]:
 def classify_asset(
 	asset_name: str,
 	disk_svgs: set[str],
-	servier: set[str],
-	placeholders: set[str]
+	servier: set[str]
 ) -> str:
 	"""Classify the source of an asset_name.
 
-	Returns one of: 'servier', 'placeholder', 'unknown', 'missing'.
+	Returns one of: 'servier', 'other', 'missing'.
 	"""
 	if asset_name not in disk_svgs:
 		return 'missing'
@@ -528,10 +458,7 @@ def classify_asset(
 	if asset_name in servier:
 		return 'servier'
 
-	if asset_name in placeholders:
-		return 'placeholder'
-
-	return 'unknown'
+	return 'other'
 
 #============================================
 # audit logic
@@ -540,7 +467,6 @@ def classify_asset(
 def audit_repo(
 	disk_svgs: set[str],
 	servier: set[str],
-	placeholders: set[str],
 	servier_sources: dict[str, tuple[str, str]]
 ) -> tuple[dict[str, dict[str, object]], list[str], set[str], dict[str, int], dict[str, object]]:
 	"""Audit all objects and return per-object data, missing items, orphans, and metadata.
@@ -590,7 +516,7 @@ def audit_repo(
 		sources_set = set()
 
 		for asset_name in sorted(asset_names):
-			classification = classify_asset(asset_name, disk_svgs, servier, placeholders)
+			classification = classify_asset(asset_name, disk_svgs, servier)
 			assets_dict[asset_name] = classification
 			sources_set.add(classification)
 
@@ -679,8 +605,6 @@ def print_full_report(
 	missing_items: list[str],
 	orphan_svgs: set[str],
 	disk_svgs: set[str],
-	servier: set[str],
-	placeholders: set[str],
 	asset_reuse: dict[str, int],
 	per_asset_metadata: dict[str, object],
 	quiet: bool = False,
@@ -696,15 +620,13 @@ def print_full_report(
 
 	# Count breakdown by source
 	servier_objs = 0
-	placeholder_objs = 0
+	other_objs = 0
 	mixed_objs = 0
 	missing_objs = 0
-	unknown_objs = 0
 
 	servier_assets = 0
-	placeholder_assets = 0
+	other_assets = 0
 	missing_assets = 0
-	unknown_assets = 0
 
 	for obj_data in objects.values():
 		sources = obj_data['sources']
@@ -712,25 +634,21 @@ def print_full_report(
 		# Object-level classification
 		if 'missing' in sources:
 			missing_objs += 1
-		elif 'unknown' in sources:
-			unknown_objs += 1
-		elif len(sources) > 1:  # mixed servier + placeholder
+		elif len(sources) > 1:
 			mixed_objs += 1
-		elif 'placeholder' in sources:
-			placeholder_objs += 1
 		elif 'servier' in sources:
 			servier_objs += 1
+		elif 'other' in sources:
+			other_objs += 1
 
 		# Asset-level counts
 		for asset_name, classification in obj_data['assets'].items():
 			if classification == 'servier':
 				servier_assets += 1
-			elif classification == 'placeholder':
-				placeholder_assets += 1
+			elif classification == 'other':
+				other_assets += 1
 			elif classification == 'missing':
 				missing_assets += 1
-			elif classification == 'unknown':
-				unknown_assets += 1
 
 	# Compute counts for actionable findings (computed early, needed by all modes).
 	# check_normalization returns status 'normalized' or 'failed' (NOT 'OK'); a
@@ -757,29 +675,17 @@ def print_full_report(
 		if m.get('servier_source_path') and not m.get('attribution')
 	)
 
-	# Compute unknown SVGs: on disk but in neither manifest
-	referenced_in_objects = set()
-	for obj_data in objects.values():
-		referenced_in_objects.update(obj_data['assets'].keys())
-	unknown_svgs = disk_svgs - referenced_in_objects
-	for asset_name in list(unknown_svgs):
-		if asset_name in per_asset_metadata:
-			unknown_svgs.discard(asset_name)
-
-	# Deduplicate: orphan takes precedence over unknown
-	truly_unknown = unknown_svgs - orphan_svgs
-
 	# Resolve verbosity level once via the shared helper.
 	level = verbosity.resolve_level(quiet=quiet, verbose=verbose)
 
 	# Compute totals needed by all modes, split into the three severity tiers.
 	#   error    = malformed SVG (unparseable) + forbidden constructs
 	#   warning  = non-normalized SVG + unattributed Servier adoptions
-	#   advisory = orphan SVGs + unknown SVGs (cleanup, do not block)
+	#   advisory = orphan SVGs (cleanup, do not block)
 	total_checked = len(objects)
 	error_count = malformed_count + forbidden_construct_count
 	warning_count = non_normalized_count + unattributed_servier
-	advisory_count = len(orphan_svgs) + len(truly_unknown)
+	advisory_count = len(orphan_svgs)
 
 	# QUIET mode: exactly one canonical summary line.
 	if level == verbosity.VerbosityLevel.QUIET:
@@ -796,21 +702,19 @@ def print_full_report(
 	# Per-object source breakdown table (always shown in NORMAL and VERBOSE).
 	print("Per-object source breakdown:")
 	print(f"  servier:     {servier_objs} objects, {servier_assets} svgs")
-	print(f"  placeholder: {placeholder_objs} objects, {placeholder_assets} svgs")
-	print(f"  mixed:       {mixed_objs} objects (uses both servier and placeholder)")
+	print(f"  other:       {other_objs} objects, {other_assets} svgs")
+	print(f"  mixed:       {mixed_objs} objects (uses Servier and other-source art)")
 	print(f"  missing:     {missing_objs} objects (one or more asset_name has no .svg)")
-	print(f"  unknown:     {unknown_objs} objects (one or more .svg in neither manifest)")
 	print()
 
 	# Cleanup surface section: counts always shown; item listings only in VERBOSE.
 	is_verbose = (level == verbosity.VerbosityLevel.VERBOSE)
-	print_cleanup_surface_section(orphan_svgs, unknown_svgs, verbose=is_verbose)
+	print_cleanup_surface_section(orphan_svgs, verbose=is_verbose)
 	print()
 
 	# Actionable findings summary (NORMAL and VERBOSE).
 	print("Actionable findings:")
 	print(f"  Orphan SVG files: {len(orphan_svgs)}")
-	print(f"  Unknown SVG files: {len(truly_unknown)}")
 	print(f"  Normalization failures: {normalization_failures}")
 	print(f"  Forbidden constructs: {forbidden_construct_count}")
 	print(f"  Unattributed Servier adoptions: {unattributed_servier}")
@@ -847,8 +751,7 @@ def print_full_report(
 		# Build category_counts: asset classification breakdown.
 		category_counts_list = [
 			("servier", servier_assets),
-			("placeholder", placeholder_assets),
-			("unknown", unknown_assets),
+			("other", other_assets),
 			("missing", missing_assets),
 		]
 
@@ -992,17 +895,12 @@ def print_subpart_alignment_section(objects: dict[str, dict[str, object]], per_a
 	if not any_printed:
 		print("(no structured objects)")
 
-def print_cleanup_surface_section(orphan_svgs: set[str], unknown_svgs: set[str], quiet: bool = False, verbose: bool = False) -> None:
-	"""Print cleanup surface section: orphans, unknowns, superseded.
+def print_cleanup_surface_section(orphan_svgs: set[str], verbose: bool = False) -> None:
+	"""Print cleanup surface section for unreferenced retained SVGs.
 
-	quiet mode: return early (handled by caller).
 	default mode: print section header and counts only, no item listings.
 	verbose mode: print section header, counts, AND raw item listings.
 	"""
-	# Orphan and unknown may overlap: a file can have no object reference AND not be
-	# in a manifest. Deduplicate so each appears only once, with orphan taking precedence.
-	truly_unknown = unknown_svgs - orphan_svgs
-
 	print("=== Cleanup surface ===")
 
 	if orphan_svgs:
@@ -1012,16 +910,6 @@ def print_cleanup_surface_section(orphan_svgs: set[str], unknown_svgs: set[str],
 				print(f"  {svg}")
 	else:
 		print("Orphan SVGs: (none)")
-
-	if truly_unknown:
-		print(f"Unknown SVGs ({len(truly_unknown)}):")
-		if verbose:
-			for svg in sorted(truly_unknown):
-				print(f"  {svg}")
-	else:
-		print("Unknown SVGs: (none)")
-
-	print("Superseded files: (none)")
 
 #============================================
 # cli
@@ -1075,15 +963,14 @@ def main():
 	"""
 	args = parse_args()
 
-	# Load manifests and discover assets
+	# Load the provenance ledger and discover assets.
 	disk_svgs = list_disk_svgs()
-	servier = parse_servier_assets()
-	placeholders = parse_placeholder_assets()
 	servier_sources = parse_servier_sources()
+	servier = set(servier_sources)
 
 	# Run the audit
 	objects, missing_items, orphan_svgs, asset_reuse, per_asset_metadata = audit_repo(
-		disk_svgs, servier, placeholders, servier_sources
+		disk_svgs, servier, servier_sources
 	)
 
 	# --list-objects: print sorted list of object names and exit
@@ -1108,7 +995,7 @@ def main():
 	output_format = args.output_format if args.output_format != 'text' else 'table'
 
 	if output_format == 'json':
-		print_json_report(args.object_name, objects, disk_svgs, servier, placeholders, asset_reuse, per_asset_metadata, orphan_svgs)
+		print_json_report(args.object_name, objects, disk_svgs, asset_reuse, per_asset_metadata, orphan_svgs)
 	else:
 		# Table format
 		if args.object_name:
@@ -1116,13 +1003,13 @@ def main():
 				reporter.print_error(f"Object '{args.object_name}' not found.")
 				sys.exit(1)
 			# Per-object mode always prints per-asset detail
-			print_object_detail_table(args.object_name, objects, asset_reuse, per_asset_metadata, orphan_svgs, servier, placeholders)
+			print_object_detail_table(args.object_name, objects, asset_reuse, per_asset_metadata, orphan_svgs)
 		else:
 			# Repo-wide mode: honor -q and -v. Exit is ERROR-only: warnings and
 			# advisories (non-normalized, orphan) print but do not fail the run.
 			error_count = print_full_report(
-				objects, missing_items, orphan_svgs, disk_svgs, servier, placeholders,
-				asset_reuse, per_asset_metadata, quiet=args.quiet, verbose=args.verbose
+				objects, missing_items, orphan_svgs, disk_svgs, asset_reuse,
+				per_asset_metadata, quiet=args.quiet, verbose=args.verbose
 			)
 			sys.exit(1 if error_count else 0)
 
@@ -1131,9 +1018,7 @@ def print_object_detail_table(
 	objects: dict[str, dict[str, object]],
 	asset_reuse: dict[str, int],
 	per_asset_metadata: dict[str, object],
-	orphan_svgs: set[str],
-	servier: set[str],
-	placeholders: set[str]
+	orphan_svgs: set[str]
 ) -> None:
 	"""Print detailed table report for one object.
 
@@ -1159,14 +1044,12 @@ def print_object_detail_table(
 	print_subpart_alignment_section(objects, per_asset_metadata, object_name)
 	print()
 
-	print_cleanup_surface_section(orphan_svgs, set(), verbose=True)
+	print_cleanup_surface_section(orphan_svgs, verbose=True)
 
 def print_json_report(
 	object_name: str | None,
 	objects: dict[str, dict[str, object]],
 	disk_svgs: set[str],
-	servier: set[str],
-	placeholders: set[str],
 	asset_reuse: dict[str, int],
 	per_asset_metadata: dict[str, object],
 	orphan_svgs: set[str]
@@ -1240,8 +1123,6 @@ def print_json_report(
 
 	cleanup_surface = {
 		'orphans': sorted(orphan_svgs),
-		'unknown': [],
-		'superseded': [],
 	}
 
 	# Build output

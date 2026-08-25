@@ -1,14 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120">
-  <rect x="36" y="23" width="86" height="75" rx="3" fill="#dcecff" stroke="#173b49" stroke-width="2"/>
-  <text x="49" y="19" fill="#173b49" font-family="sans-serif" font-size="8">1</text>
-  <text x="65" y="19" fill="#173b49" font-family="sans-serif" font-size="8">2</text>
-  <text x="81" y="19" fill="#173b49" font-family="sans-serif" font-size="8">3</text>
-  <text x="110" y="19" fill="#173b49" font-family="sans-serif" font-size="8">L</text>
-  <g stroke="#d0dceb" stroke-width="1"><path d="M56 25V96M72 25V96M88 25V96M104 25V96"/></g>
-  <g fill="#274b9f">
+  <rect x="36" y="23" width="86" height="75" rx="3" fill="#dceff1" stroke="#203743" stroke-width="2"/>
+  <path d="M39 27h79" fill="none" stroke="#faffff" stroke-linecap="round" stroke-width="1.4"/>
+  <g stroke="#b8d5d9" stroke-width="1"><path d="M56 25V96M72 25V96M88 25V96M104 25V96"/></g>
+  <g fill="#356f9e">
     <rect x="43" y="53" width="12" height="4" rx="2"/><rect x="59" y="54" width="12" height="4" rx="2"/><rect x="75" y="55" width="12" height="4" rx="2"/>
     <rect x="108" y="33" width="10" height="3" rx="1.5"/><rect x="108" y="43" width="10" height="3" rx="1.5"/><rect x="108" y="54" width="10" height="3" rx="1.5"/><rect x="108" y="66" width="10" height="3" rx="1.5"/><rect x="108" y="78" width="10" height="3" rx="1.5"/>
   </g>
-  <text x="39" y="109" fill="#173b49" font-family="sans-serif" font-size="8">samples 1-3</text>
-  <text x="98" y="109" fill="#173b49" font-family="sans-serif" font-size="8">ladder</text>
+  <path d="M43 91h44M108 91h10" fill="none" stroke="#6a9ba3" stroke-linecap="round" stroke-width="1.2"/>
 </svg>

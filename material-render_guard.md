@@ -1,3 +1,10 @@
+# Historical material-render measurement
+
+> Status: superseded by the material-SVG cutover completed before the 2026-08-24
+> SVG consistency closeout. The measurements below preserve the pre-cutover
+> finding and method; current status lives in `docs/ROADMAP.md` and
+> `assets/SVG_ASSET_GAPS.md`.
+
 Pulled the real numbers. Two genuine defects surfaced, plus a methodology win.
 
 Data: 231 fill_height overlay entries across all scenes. 121 read 0% (empty in default state), 110 filled. Full

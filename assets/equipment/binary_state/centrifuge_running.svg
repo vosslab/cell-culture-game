@@ -44,6 +44,7 @@
   <path fill="#f0c94b" d="M 205 260 A 5 5 0 1 0 215 260 A 5 5 0 1 0 205 260 Z"/>
   <path d="M 33 318 L 71 318 L 65 346 L 39 346 Z" fill="#35454b"/>
   <path d="M 187 318 L 225 318 L 219 346 L 193 346 Z" fill="#35454b"/>
+  <path d="M 70 176 C 87 188 108 194 129 194" fill="none" stroke="#bde9f0" stroke-width="4" stroke-linecap="round" opacity=".85"/>
 
   <g id="overlay_root"/>
   <path id="anchor_label" fill="none" stroke="none" display="none" d="M 37 227 L 197 227 L 197 297 L 37 297 Z"/>

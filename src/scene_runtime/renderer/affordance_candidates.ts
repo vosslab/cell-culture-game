@@ -56,7 +56,7 @@ export function enumerate_candidate_targets(
       continue;
     }
     // Exclude non-clickable items (decoration_only, missing-object
-    // placeholders bound with capabilities: []): the renderer stamps no
+    // render-error items bound with capabilities: []): the renderer stamps no
     // data-item-id for them, so the resolver could never accept a click on
     // them either.
     if (!item.capabilities.includes("clickable")) {

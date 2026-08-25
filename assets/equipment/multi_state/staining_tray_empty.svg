@@ -1,46 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 306.973 424.97">
-  <defs>
-    <clipPath id="anchor_liquid_clip">
-      <rect x="39" y="138" width="229" height="103" rx="13"/>
-    </clipPath>
-  </defs>
-
-  <!-- A deliberately low, open dish distinguishes a gel-staining tray from an instrument. -->
-  <ellipse cx="154" cy="315" rx="119" ry="18" fill="#c9d3d9" opacity="0.48"/>
-  <rect x="21" y="104" width="265" height="175" rx="28" fill="#6e8998"/>
-  <rect x="25" y="100" width="257" height="168" rx="25" fill="#dfeaf0" stroke="#36596b" stroke-width="5"/>
-  <rect x="34" y="121" width="239" height="133" rx="18" fill="#a8c1cc" stroke="#4e7180" stroke-width="4"/>
-  <rect x="39" y="138" width="229" height="103" rx="13" fill="#eaf5f7" stroke="#527786" stroke-width="3"/>
-
-  <!-- Material overlays are inserted here and clipped to the shallow basin. -->
+  <title>Empty staining tray</title>
+  <defs><clipPath id="anchor_liquid_clip"><rect x="30" y="126" width="247" height="170" rx="18"/></clipPath></defs>
+  <path d="M25 91 48 67h211l23 24v231l-23 27H48l-23-27Z" fill="#d5edf6" stroke="#26363c" stroke-linejoin="round" stroke-width="5"/>
+  <path d="m25 91 23-24h211l23 24-22 27H47Z" fill="#f9fcfd" stroke="#26363c" stroke-linejoin="round" stroke-width="5"/>
+  <path d="M35 117h237v194H35Z" fill="#f8fcfd" stroke="#5e96aa" stroke-linejoin="round" stroke-width="3"/>
+  <rect x="30" y="126" width="247" height="170" rx="18" fill="#eaf7fb" stroke="#26363c" stroke-width="4"/>
   <g id="overlay_root"/>
-  <rect id="anchor_liquid_bounds" x="39" y="138" width="229" height="103" rx="13" fill="none" stroke="none" display="none"/>
-
-  <!-- The flat slab, loading wells, and sparse lanes make the scientific purpose legible. -->
-  <rect x="69" y="156" width="170" height="68" rx="5" fill="#b5d4df" fill-opacity="0.76" stroke="#3e6576" stroke-width="3"/>
-  <path d="M80 171H228M80 204H228" fill="none" stroke="#eff9fa" stroke-width="2" opacity="0.92"/>
-  <g fill="#759ca9" stroke="#3e6576" stroke-width="1.5">
-    <rect x="83" y="162" width="13" height="8" rx="2"/>
-    <rect x="106" y="162" width="13" height="8" rx="2"/>
-    <rect x="129" y="162" width="13" height="8" rx="2"/>
-    <rect x="152" y="162" width="13" height="8" rx="2"/>
-    <rect x="175" y="162" width="13" height="8" rx="2"/>
-    <rect x="198" y="162" width="13" height="8" rx="2"/>
-  </g>
-  <g fill="none" stroke="#5f8795" stroke-width="2" opacity="0.55">
-    <path d="M91 174V214M137 174V214M183 174V214M218 174V214"/>
-  </g>
-  <g fill="#4b7180" opacity="0.68">
-    <rect x="85" y="184" width="12" height="3" rx="1.5"/>
-    <rect x="85" y="198" width="12" height="3" rx="1.5"/>
-    <rect x="131" y="190" width="12" height="3" rx="1.5"/>
-    <rect x="177" y="181" width="12" height="3" rx="1.5"/>
-    <rect x="177" y="205" width="12" height="3" rx="1.5"/>
-    <rect x="212" y="194" width="12" height="3" rx="1.5"/>
-  </g>
-  <!-- Gentle waves stay in the liquid basin, while the gel remains visibly flat. -->
-  <path d="M48 148c14-7 29 7 43 0s29 7 43 0" fill="none" stroke="#ffffff" stroke-width="2.5" opacity="0.72"/>
-  <path d="M176 231c14-7 29 7 43 0s25 6 38 0" fill="none" stroke="#80a7b5" stroke-width="2.5" opacity="0.72"/>
-  <path d="M25 248H282" fill="none" stroke="#f7fbfc" stroke-width="3" opacity="0.85"/>
-  <path d="M35 267H272" fill="none" stroke="#36596b" stroke-width="4" opacity="0.72"/>
+  <rect id="anchor_liquid_bounds" x="30" y="126" width="247" height="170" rx="18" display="none" fill="none" stroke="none"/>
+  <g clip-path="url(#anchor_liquid_clip)" fill="none" stroke="#b4d8e5" stroke-width="3"><path d="M48 169h211M48 211h211M48 253h211"/><path d="M82 143v136M153 143v136M224 143v136"/></g>
+  <path d="M35 311h237l-13 19H48Z" fill="#b8deec" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
+  <path d="M48 349h211" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="4"/>
 </svg>

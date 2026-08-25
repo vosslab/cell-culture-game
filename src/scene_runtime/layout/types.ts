@@ -246,10 +246,6 @@ export interface PlacementAuthored {
   active?: boolean;
   // Provenance after extends: "base" or "own".
   _from?: "base" | "own";
-  // Placeholder mode only: true when the object's SVG assets are missing from assets/.
-  // Set by pipeline/gen_scene_index.py --missing-svg=placeholder. Never true in
-  // a strict (normal) build. The renderer reads this to render a labeled placeholder.
-  missing_svg?: true;
 }
 
 export interface SceneA {
@@ -302,12 +298,9 @@ export interface BoundPlacement extends PlacementAuthored {
   aspect: number;
   layout: ResolvedLayoutHint;
   _error?: string;
-  // True when the placement references an object absent from OBJECT_LIBRARY.
-  // Set during bind. The placement is bound as a renderable placeholder
-  // (missing_svg true) instead of being dropped, so the renderer can show a
-  // distinct "missing object" box and structural guards skip it. Distinguished
-  // in the DOM from a missing-SVG placeholder via data-placeholder-kind.
-  _missing_object?: true;
+  // Internal layout diagnostic for a placement whose object is absent from the
+  // object library. Authored and generated scene schemas never carry this key.
+  _render_error?: "missing-object";
 }
 
 export interface ScaledPlacement extends BoundPlacement {

@@ -19,9 +19,15 @@ Current follow-ups:
 - Reduce private-YAML snapshot assertions where the same learner-visible
   behavior is already protected by stepper and browser tests. Preserve exact
   quantities only when they are approved scientific invariants.
-- Turn the
+- Migrate the seven overloaded result SVGs into application-owned UI in a future
+  workstream. Keep `cell_viability_results_display.svg`,
+  `electrophoresis_endpoint_display.svg`, `gel_image_results_display.svg`,
+  `hemocytometer_observation_display.svg`, `mtt_reader_results_display.svg`,
+  `plate_reader_absorbance_result_panel.svg`, and
+  `plate_reader_normalized_viability_panel.svg` byte-preserved until that work
+  begins. The
   [SVG interface scope audit](active_plans/audits/svg_embedded_interface_scope.md)
-  into an approved migration plan before changing the object or protocol schema.
+  defines the migration boundary.
 
 ## On hold: scene runtime activation
 
@@ -244,25 +250,22 @@ archive. Manual reconciliation of 9 divergent materials was done (CHANGELOG 2026
 but the automated enforcement gate does not yet exist. A future protocol addition could
 re-introduce the same divergence silently.
 
-### Harden tests/test_object_asset_refs.py from soft-reporter to hard assert
+### Authored SVG asset-reference gate (resolved)
 
-After the material overlay variant-collapse plan closed (see
+The material overlay variant-collapse plan closed (see
 [archive/material_overlay_vocabulary.md](archive/material_overlay_vocabulary.md)),
-the picker gate test stays at `BASELINE_MISSING_COUNT = 48` as a soft reporter.
-Once the non-liquid hardware-state variant slots also close
-(`_idle`/`_spinning`/`_open`/`_closed`/`_with_lid` family) and the remaining
-bare-bottle base SVGs land, flip `tests/test_object_asset_refs.py` from the
-baseline-counter pattern to a hard `assert missing == 0` so new gaps fail CI
-on introduction rather than drift the floor.
+and `tests/test_object_asset_refs.py` now hard-asserts `missing == []` against
+the recursive SVG registry. New authored `asset_name` gaps fail the fast suite
+instead of drifting a baseline count.
 
 - (RESOLVED) Per-well distinct material state for `well_plate_96` -- material plan
   COMPLETE (plan `dynamic-coalescing-flask.md` M0-M4). Per-well material state (834
   `state_value_not_allowed` -> 0), registry-backed material acceptance, scalar color
   resolution, PATH-B subpart geometry, and production render-path per-well color are all
   done. Per-well render proven via production Playwright harness
-  (`tests/playwright/test_subpart_well_plate_render.mjs`). When per-well fill rendering
-  ships, remove the object-level `material_name`/`material_volume`/`material_container`
-  placeholders from `content/objects/plate/well_plate_96.yaml`.
+  (`tests/playwright/test_subpart_well_plate_render.spec.ts`). Per-well fill rendering is
+  also implemented through `fill_height`; the object now declares material identity and
+  amount only on well subparts, with no obsolete object-level material placeholders.
 
 - (RESOLVED 2026-08-03) Visible `adjust` uses the in-flow set-point editor and
   completes through the same runtime-authoritative validator path as other

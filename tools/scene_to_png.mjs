@@ -27,9 +27,6 @@
 //                            --all: PNG/summary output directory
 //                            (default: test-results/scenes/). Does not affect
 //                            stats.json location.
-// --missing-svg <mode>     : strict | placeholder. Recorded in stats.json but
-//                            does NOT trigger a rebuild. To switch mode, run:
-//                            bash build_github_pages.sh, then re-run this tool.
 // --viewport WxH           : Viewport size (default 1920x1080).
 //
 // Speed design:
@@ -41,8 +38,8 @@
 //   - A 100ms settle is the only fixed sleep; tunable via SETTLE_MS constant.
 //
 // Category classification (mutually exclusive):
-//   populated        : at least one real (non-placeholder) rendered item.
-//   placeholder-only : all rendered items are placeholders.
+//   populated        : at least one successfully rendered item.
+//   error-only       : all rendered items are diagnostic errors.
 //   empty            : viewer-ready but zero rendered items.
 //   load-failed      : page threw or timed out before ready marker.
 //   skipped          : manifest says outcome=skipped; no render attempted.
@@ -69,39 +66,6 @@ const MANIFEST_PATH = path.join(REPO_ROOT, "generated", "scene_manifest.json");
 // Machine-readable stats.json files always write here, separate from the
 // human PNG/summary outputs under test-results/scenes. --out never moves them.
 const STATS_DIR = path.join(REPO_ROOT, "generated", "scene_render_stats");
-const SVG_PLACEHOLDER_KEYS_PATH = path.join(REPO_ROOT, "generated", "svg_placeholder_keys.ts");
-
-//============================================
-// Placeholder-asset key set
-//============================================
-
-// Reads the SVG_PLACEHOLDER_KEYS array out of the generated
-// svg_placeholder_keys.ts module. The generated file is TypeScript, so rather
-// than pull in a TS loader just for this tool, parse the single string-array
-// literal directly. Returns a Set of asset keys whose render is a dashed-box
-// placeholder.
-function read_placeholder_keys() {
-  if (!fs.existsSync(SVG_PLACEHOLDER_KEYS_PATH)) {
-    throw new Error(
-      `SVG placeholder keys not found: ${SVG_PLACEHOLDER_KEYS_PATH}\nRun: bash pipeline/build_generated.sh`,
-    );
-  }
-  const text = fs.readFileSync(SVG_PLACEHOLDER_KEYS_PATH, "utf8");
-  const blockMatch = text.match(/SVG_PLACEHOLDER_KEYS[^=]*=\s*\[([\s\S]*?)\]/);
-  if (!blockMatch) {
-    throw new Error(
-      `SVG_PLACEHOLDER_KEYS export missing from ${SVG_PLACEHOLDER_KEYS_PATH}. ` +
-        "Regenerate with pipeline/gen_svg_manifest.py.",
-    );
-  }
-  const keys = [];
-  const keyRegex = /"([^"]+)"/g;
-  let m;
-  while ((m = keyRegex.exec(blockMatch[1])) !== null) {
-    keys.push(m[1]);
-  }
-  return new Set(keys);
-}
 
 //============================================
 // Timing constants
@@ -142,7 +106,6 @@ function parse_args(argv) {
     all: false,
     out: null,
     png: false,
-    missing_svg: "placeholder",
     viewport: { width: 1920, height: 1080 },
   };
 
@@ -157,12 +120,6 @@ function parse_args(argv) {
       args.out = argv[++i];
     } else if (tok === "--png") {
       args.png = true;
-    } else if (tok === "--missing-svg") {
-      const mode = argv[++i];
-      if (mode !== "strict" && mode !== "placeholder") {
-        throw new Error(`--missing-svg must be "strict" or "placeholder", got: ${mode}`);
-      }
-      args.missing_svg = mode;
     } else if (tok === "--viewport") {
       const vp = argv[++i];
       const m = vp.match(/^(\d+)[xX](\d+)$/);
@@ -274,7 +231,7 @@ async function check_playwright_installed() {
 
 // Collects all [data-placement-name] elements from the page.
 // Returns an array matching the renderedItems shape scene_stats.mjs expects.
-async function collect_rendered_items(page, placeholderKeys) {
+async function collect_rendered_items(page) {
   const snapshots = await page.evaluate(() => {
     const els = Array.from(document.querySelectorAll("[data-placement-name]"));
     return els.map((el) => {
@@ -315,9 +272,7 @@ async function collect_rendered_items(page, placeholderKeys) {
         zone: el.getAttribute("data-zone") ?? null,
         kind: el.getAttribute("data-kind") ?? null,
         depth: el.hasAttribute("data-depth") ? Number(el.getAttribute("data-depth")) : null,
-        placeholderKind: el.getAttribute("data-placeholder-kind"),
-        hasMissingSvgMarker: el.hasAttribute("data-missing-svg"),
-        assetKey: el.getAttribute("data-asset"),
+        renderErrorKind: el.getAttribute("data-render-error"),
         hasInlineSvg: baseSvgEl !== null,
         hasDomSvgHost: domSvgHost !== null,
         staticImage,
@@ -329,7 +284,7 @@ async function collect_rendered_items(page, placeholderKeys) {
   });
 
   return snapshots.map((snapshot) => {
-    const classification = classifyRenderedItem(snapshot, placeholderKeys);
+    const classification = classifyRenderedItem(snapshot);
     return {
       placementName: snapshot.placementName,
       objectName: snapshot.objectName,
@@ -445,16 +400,7 @@ function compute_render_provenance() {
 
 // Renders one scene. Returns a result object.
 // page is reused across calls; out_dir is the directory for outputs.
-async function render_scene(
-  page,
-  base_url,
-  scene_name,
-  manifest_entry,
-  out_dir,
-  missing_svg_mode,
-  placeholder_keys,
-  write_png,
-) {
+async function render_scene(page, base_url, scene_name, manifest_entry, out_dir, write_png) {
   const t_start = Date.now();
 
   const url = `${base_url}/scene_viewer.html?scene=${encodeURIComponent(scene_name)}`;
@@ -475,7 +421,7 @@ async function render_scene(
 
   if (!load_failed) {
     // Wait for the viewer-ready marker. This fires on EVERY path: populated,
-    // placeholder-only, empty scene, AND the unknown-scene error banner.
+    // error-only, empty scene, AND the unknown-scene error banner.
     try {
       await page.waitForSelector("#scene-root[data-viewer-ready='true']", {
         timeout: READY_TIMEOUT_MS,
@@ -502,7 +448,7 @@ async function render_scene(
   let scene_geometry = null;
 
   if (!load_failed) {
-    rendered_items = await collect_rendered_items(page, placeholder_keys);
+    rendered_items = await collect_rendered_items(page);
     labels = await collect_labels(page);
     scene_root_bbox = await collect_scene_root_bbox(page);
     scene_geometry = await collect_scene_geometry(page);
@@ -521,12 +467,6 @@ async function render_scene(
     provenance,
     loadFailed: load_failed,
   });
-
-  // Stamp the missing-svg mode so the JSON is self-documenting.
-  stats.build_note = {
-    missing_svg_mode,
-    note: "missing_svg_mode is a passthrough flag. Changing it requires re-running bash build_github_pages.sh.",
-  };
 
   // Save the stats JSON to the generated stats dir (NOT out_dir). Stats come
   // from DOM bbox measurement above; this write must not depend on the PNG.
@@ -578,7 +518,7 @@ function print_scene_summary(result) {
     `  rendered:       ${counts.rendered_placement_count} / ${counts.source_placement_count} placements (${counts.render_yield_percent}% yield)`,
   );
   console.log(`  real items:     ${counts.real_item_count}`);
-  console.log(`  placeholders:   ${counts.placeholder_item_count}`);
+  console.log(`  render errors:  ${counts.render_error_item_count}`);
   console.log(`  approx empty:   ${layout.percent_empty_approx}%`);
   console.log(`  overlaps:       ${layout.overlap_pair_count} pairs`);
   if (counts.dropped_placement_count > 0) {
@@ -610,7 +550,7 @@ function print_all_summary_table(results) {
     return str + " ".repeat(w - str.length);
   }
 
-  const header = `${"SCENE".padEnd(48)} ${"CAT".padEnd(18)} ${"YIELD".padEnd(7)} ${"REAL".padEnd(5)} ${"PH".padEnd(4)} ${"EMPTY%".padEnd(7)} ${"OVLP".padEnd(5)} ${"FLAGS".padEnd(20)} ${"MS".padEnd(6)}`;
+  const header = `${"SCENE".padEnd(48)} ${"CAT".padEnd(18)} ${"YIELD".padEnd(7)} ${"REAL".padEnd(5)} ${"ERR".padEnd(4)} ${"EMPTY%".padEnd(7)} ${"OVLP".padEnd(5)} ${"FLAGS".padEnd(20)} ${"MS".padEnd(6)}`;
   console.log("\n" + header);
   console.log("-".repeat(header.length));
 
@@ -618,13 +558,14 @@ function print_all_summary_table(results) {
     const cat = r.category;
     const yield_str = r.render_yield_percent !== undefined ? `${r.render_yield_percent}%` : "-";
     const real_str = r.real_item_count !== undefined ? String(r.real_item_count) : "-";
-    const ph_str = r.placeholder_item_count !== undefined ? String(r.placeholder_item_count) : "-";
+    const error_str =
+      r.render_error_item_count !== undefined ? String(r.render_error_item_count) : "-";
     const empty_str = r.percent_empty_approx !== undefined ? `${r.percent_empty_approx}%` : "-";
     const ovlp_str = r.overlap_pair_count !== undefined ? String(r.overlap_pair_count) : "-";
     const flags_str = (r.advisory_flags ?? []).join(",") || "-";
     const ms_str = r.elapsed_ms !== undefined ? String(r.elapsed_ms) : "-";
 
-    const row = `${pad(r.scene_name, 48)} ${pad(cat, 18)} ${pad(yield_str, 7)} ${pad(real_str, 5)} ${pad(ph_str, 4)} ${pad(empty_str, 7)} ${pad(ovlp_str, 5)} ${pad(flags_str, 20)} ${pad(ms_str, 6)}`;
+    const row = `${pad(r.scene_name, 48)} ${pad(cat, 18)} ${pad(yield_str, 7)} ${pad(real_str, 5)} ${pad(error_str, 4)} ${pad(empty_str, 7)} ${pad(ovlp_str, 5)} ${pad(flags_str, 20)} ${pad(ms_str, 6)}`;
     console.log(row);
   }
 }
@@ -664,8 +605,6 @@ async function run_single(args) {
 
   await check_playwright_installed();
 
-  const placeholder_keys = read_placeholder_keys();
-
   const server = await start_server(DIST_DIR);
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: args.viewport });
@@ -678,8 +617,6 @@ async function run_single(args) {
       args.scene,
       manifest_entry,
       out_dir,
-      args.missing_svg,
-      placeholder_keys,
       args.png,
     );
 
@@ -719,8 +656,6 @@ async function run_all(args) {
 
   await check_playwright_installed();
 
-  const placeholder_keys = read_placeholder_keys();
-
   const server = await start_server(DIST_DIR);
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: args.viewport });
@@ -740,8 +675,7 @@ async function run_all(args) {
           category: "skipped",
           render_yield_percent: undefined,
           real_item_count: undefined,
-          placeholder_item_count: undefined,
-          placeholder_count: undefined,
+          render_error_item_count: undefined,
           percent_empty_approx: undefined,
           overlap_pair_count: undefined,
           advisory_flags: [],
@@ -756,16 +690,7 @@ async function run_all(args) {
       // Emitted scenes: render.
       let result;
       try {
-        result = await render_scene(
-          page,
-          server.base_url,
-          entry.name,
-          entry,
-          out_dir,
-          args.missing_svg,
-          placeholder_keys,
-          args.png,
-        );
+        result = await render_scene(page, server.base_url, entry.name, entry, out_dir, args.png);
       } catch (err) {
         // Continue past a failing render -- record load-failed row.
         const elapsed_ms = Date.now() - t_scene_start;
@@ -776,8 +701,7 @@ async function run_all(args) {
           category: "load-failed",
           render_yield_percent: 0,
           real_item_count: 0,
-          placeholder_item_count: 0,
-          placeholder_count: 0,
+          render_error_item_count: 0,
           percent_empty_approx: 100,
           overlap_pair_count: 0,
           advisory_flags: [],
@@ -795,8 +719,7 @@ async function run_all(args) {
         category: stats.classification.category,
         render_yield_percent: stats.counts.render_yield_percent,
         real_item_count: stats.counts.real_item_count,
-        placeholder_item_count: stats.counts.placeholder_item_count,
-        placeholder_count: stats.counts.placeholder_item_count,
+        render_error_item_count: stats.counts.render_error_item_count,
         percent_empty_approx: stats.layout.percent_empty_approx,
         overlap_pair_count: stats.layout.overlap_pair_count,
         label_overlap_pair_count: stats.layout.label_overlap_pair_count,

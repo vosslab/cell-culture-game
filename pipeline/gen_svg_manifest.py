@@ -2,20 +2,15 @@
 """
 Generate the SVG asset manifest as a TypeScript module.
 
-Validates all SVGs under assets/**/*.svg, then emits two outputs:
+Validates all SVGs under assets/**/*.svg, then emits one output:
 
 1. generated/svg_manifest.ts (the durable runtime output): maps each asset_name
    to its RELATIVE built-site path (assets/svg/<category>/<name>.svg, no leading
    slash so it resolves under the GitHub Pages project subpath
    /virtual-lab-protocol-simulation/), plus a DERIVED per-asset
-   requires_dom_svg boolean computed from object declarations.
-
-2. generated/svg_placeholder_keys.ts (build/test-only): the small array of asset
-   keys whose markup is a dashed-box placeholder stand-in. NO inline SVG markup
-   is emitted to runtime: the giant SVG_REGISTRY markup blob left the bundle in
-   the registry-to-manifest cutover. The placeholder-key array is consumed only by build/test
-   tooling (tools/scene_to_png.mjs); it is never imported by the app render path
-   under src/scene_runtime.
+   requires_dom_svg boolean computed from object declarations. No inline SVG
+   markup is emitted to runtime: the giant SVG_REGISTRY markup blob left the
+   bundle in the registry-to-manifest cutover.
 """
 
 import os
@@ -139,7 +134,6 @@ def main() -> None:
 	print(f"Found {len(svg_files)} SVG files under {assets_dir}")
 
 	registry = {}
-	placeholder_keys = set()
 	failed_files = []
 
 	for svg_path in svg_files:
@@ -195,15 +189,6 @@ def main() -> None:
 
 		registry[key] = svg_str
 
-		# Flag dashed-box placeholder assets. A placeholder is a stand-in SVG
-		# whose body is the dashed-box-plus-label convention (CSS classes
-		# placeholder-border and placeholder-text). These resolve in the
-		# registry like real art, so without an explicit flag the render-yield
-		# and occupancy metrics treat them as populated content. Marking them
-		# here lets the stats tools exclude placeholder-resolved objects.
-		if _is_placeholder_svg(svg_str):
-			placeholder_keys.add(key)
-
 	# If there are failures, report and exit non-zero
 	if failed_files:
 		print("\nVALIDATION FAILURES:", file=sys.stderr)
@@ -230,9 +215,6 @@ def main() -> None:
 		for key in sorted(dropped):
 			print(f"  - {key}")
 
-	# Restrict the placeholder-key set to shipped keys (orphans are dropped).
-	shipped_placeholders = {k for k in placeholder_keys if k in shipped}
-
 	# Emit the durable SVG manifest: relative built-site paths + derived
 	# requires_dom_svg. This is the output the runtime moves to in the cutover.
 	shipped_keys = set(shipped.keys())
@@ -245,25 +227,16 @@ def main() -> None:
 	print(f"\nGenerated {len(shipped_keys)} SVG entries into {manifest_file}")
 	print(f"Derived requires_dom_svg = true for {dom_svg_count} asset(s).")
 
-	# Build/test-only output: the small placeholder-key array (NO inline SVG
-	# markup). The giant SVG_REGISTRY markup blob is gone from the runtime bundle
-	# after the registry-to-manifest cutover; only the manifest + per-asset fetch remain on the
-	# render path. This array is consumed solely by build/test tooling
-	# (tools/scene_to_png.mjs) and is never imported under src/scene_runtime.
-	placeholder_file = os.path.join(generated_dir, "svg_placeholder_keys.ts")
-	_emit_ts_placeholder_keys(placeholder_file, shipped_placeholders)
-
-	print(f"Flagged {len(shipped_placeholders)} placeholder asset(s): "
-		+ ", ".join(sorted(shipped_placeholders)))
-	print(f"Emitted placeholder keys into {placeholder_file} (build/test-only).")
 	print("Exit code: 0")
 
-	# Remove a stale svg_registry.ts left by a pre-cutover generation so the
-	# giant markup blob never lingers in generated/ to be imported by accident.
-	stale_registry = os.path.join(generated_dir, "svg_registry.ts")
-	if os.path.exists(stale_registry):
-		os.remove(stale_registry)
-		print(f"Removed stale {stale_registry} (registry markup is no longer emitted).")
+	# Remove outputs retired by manifest and strict-resolution cutovers. Direct
+	# generator runs must converge an older generated tree just like the full
+	# build, which starts from an empty generated directory.
+	for stale_name in ("svg_registry.ts", "svg_placeholder_keys.ts"):
+		stale_file = os.path.join(generated_dir, stale_name)
+		if os.path.exists(stale_file):
+			os.remove(stale_file)
+			print(f"Removed stale {stale_file} (this output is no longer emitted).")
 
 
 def _scan_referenced_keys(repo_root: str, candidate_keys: set) -> set:
@@ -290,7 +263,7 @@ def _scan_referenced_keys(repo_root: str, candidate_keys: set) -> set:
 				continue
 			if path.suffix not in USAGE_SCAN_SUFFIXES:
 				continue
-			# Skip the generated manifest/placeholder files so their own keys do
+			# Skip generated registries so their own keys do
 			# not self-reference (every asset_name appears in them by construction).
 			if path.name in ("svg_registry.ts", "svg_manifest.ts", "svg_placeholder_keys.ts"):
 				continue
@@ -303,26 +276,6 @@ def _scan_referenced_keys(repo_root: str, candidate_keys: set) -> set:
 				if len(referenced) == len(candidate_keys):
 					return referenced
 	return referenced
-
-
-def _is_placeholder_svg(svg_str: str) -> bool:
-	"""Return True when the SVG markup is a dashed-box placeholder stand-in.
-
-	The placeholder convention is a dashed rectangle plus a centered label,
-	styled by the CSS classes placeholder-border and placeholder-text. Both
-	class markers must be present so a real asset that happens to use one of
-	the words is not mis-flagged.
-
-	Args:
-		svg_str: sanitized SVG markup string.
-
-	Returns:
-		True if the markup uses the placeholder-border and placeholder-text
-		class convention, False otherwise.
-	"""
-	has_border = "placeholder-border" in svg_str
-	has_text = "placeholder-text" in svg_str
-	return has_border and has_text
 
 
 def _strip_unsafe_attrs(elem: lxml.etree._Element, preserve_material_semantics: bool = False) -> None:
@@ -765,38 +718,6 @@ def _emit_ts_manifest(output_file: str, asset_keys: set,
 		lines.append(f'  "{key}": {{ path: "{rel_path}", requires_dom_svg: {needs_dom} }},')
 
 	lines.append("};")
-	lines.append("")
-
-	with open(output_file, "w") as f:
-		f.write("\n".join(lines))
-
-
-def _emit_ts_placeholder_keys(output_file: str, placeholder_keys: set):
-	"""Emit the placeholder-key array as a TypeScript module.
-
-	Emits only SVG_PLACEHOLDER_KEYS: the list of asset keys whose markup is a
-	dashed-box placeholder stand-in, not real scientific art. NO inline SVG
-	markup is emitted (the SVG_REGISTRY markup blob left the runtime bundle in
-	the registry-to-manifest cutover). This array is build/test-only: stats and PNG tooling use it
-	to avoid counting placeholders as populated content. It is never imported by
-	the app render path under src/scene_runtime.
-
-	Args:
-		output_file: absolute output path for svg_placeholder_keys.ts.
-		placeholder_keys: set of asset keys that resolve to placeholder markup.
-	"""
-	lines = []
-	lines.append("// Auto-generated SVG placeholder-key array. Do not edit.")
-	lines.append("// Generated by pipeline/gen_svg_manifest.py")
-	lines.append("// Build/test-only: consumed by tools/scene_to_png.mjs, never by the")
-	lines.append("// app render path. No inline SVG markup is emitted to the runtime.")
-	lines.append("")
-	# Placeholder keys: assets that resolve in the manifest but are dashed-box
-	# stand-ins, not real scientific art.
-	lines.append("export const SVG_PLACEHOLDER_KEYS: ReadonlyArray<string> = [")
-	for key in sorted(placeholder_keys):
-		lines.append(f'  "{key}",')
-	lines.append("];")
 	lines.append("")
 
 	with open(output_file, "w") as f:

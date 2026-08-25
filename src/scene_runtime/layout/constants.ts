@@ -146,7 +146,7 @@ export const DEFAULT_LAYOUT_RULES = {
 // on object; engine multiplies by per-workspace px_per_cm.
 // Calibrated empirically so a fully-populated scene
 // lands in 15-70% occupancy with no clip or item_escapes_zone diagnostics.
-// bench: raised from 3.2 (the old fallback-width placeholder value) to 7.0;
+// bench: raised from the old 3.2 fallback width to 7.0;
 //   at 7.0 a vortex (22 cm) -> width_scale ~2.2 -> ~13% of canvas, a media
 //   bottle (12 cm) -> ~6%; 7 bench instruments together occupy ~55-65%.
 // hood: kept at 8.0; hood items are mostly bottles and pipettes which are

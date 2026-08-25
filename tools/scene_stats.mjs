@@ -35,8 +35,8 @@ import { bboxsOverlap } from "./bbox_helpers.mjs";
 //     kind: string|null,
 //     depth: number|null,
 //     bbox: { x, y, width, height } | null,
-//     isPlaceholder: boolean,
-//     placeholderKind: "missing-svg" | "missing-object" | null }
+//     hasRenderError: boolean,
+//     renderErrorKind: "missing-svg" | "missing-object" | null }
 //
 // labels: array of { bbox: {x,y,width,height}|null, text: string } (label
 // readability stats are deferred; labels are accepted for symmetry and a count).
@@ -104,7 +104,7 @@ function isClipped(itemBbox, sceneRootBbox) {
 // Count and yield section
 //============================================
 
-// Builds the counts section: source vs rendered, drops, yield, placeholders.
+// Builds the counts section: source vs rendered, drops, yield, render errors.
 function computeCounts(manifestEntry, renderedItems) {
   const sourcePlacementCount = manifestEntry.source_placement_count;
   const sourceNames = manifestEntry.source_placement_names;
@@ -117,15 +117,12 @@ function computeCounts(manifestEntry, renderedItems) {
   const renderedNameSet = new Set(renderedItems.map((item) => item.placementName));
   const droppedPlacementNames = sourceNames.filter((name) => !renderedNameSet.has(name));
 
-  const placeholderItemCount = renderedItems.filter((item) => item.isPlaceholder).length;
-  const realItemCount = renderedPlacementCount - placeholderItemCount;
+  const renderErrorItemCount = renderedItems.filter((item) => item.hasRenderError).length;
+  const realItemCount = renderedPlacementCount - renderErrorItemCount;
 
-  // Render yield: REAL (non-placeholder) rendered items / source, as a percent.
-  // Placeholders are dashed-box stand-ins, not delivered content, so they must
-  // not count toward yield. Previously yield counted every rendered placement,
-  // letting a scene whose objects are all placeholders report 100% yield while
-  // the eye saw only dashed boxes. A source count of zero yields 100% by
-  // convention (nothing to render, nothing dropped).
+  // Render yield: successfully rendered items / source, as a percent. Diagnostic
+  // error cards represent failed content and therefore stay outside the yield.
+  // A source count of zero yields 100% by convention.
   let renderYieldPercent;
   if (sourcePlacementCount === 0) {
     renderYieldPercent = 100;
@@ -133,11 +130,11 @@ function computeCounts(manifestEntry, renderedItems) {
     renderYieldPercent = round1((realItemCount / sourcePlacementCount) * 100);
   }
 
-  let placeholderFraction;
+  let renderErrorFraction;
   if (renderedPlacementCount === 0) {
-    placeholderFraction = 0;
+    renderErrorFraction = 0;
   } else {
-    placeholderFraction = round1(placeholderItemCount / renderedPlacementCount);
+    renderErrorFraction = round1(renderErrorItemCount / renderedPlacementCount);
   }
 
   const counts = {
@@ -147,12 +144,8 @@ function computeCounts(manifestEntry, renderedItems) {
     dropped_placement_names: droppedPlacementNames,
     render_yield_percent: renderYieldPercent,
     real_item_count: realItemCount,
-    placeholder_item_count: placeholderItemCount,
-    // Alias of placeholder_item_count under the name the scene-rework metric
-    // contract uses; counts dashed-box stand-ins (missing-svg, missing-object,
-    // and resolved placeholder-art assets) in this scene.
-    placeholder_count: placeholderItemCount,
-    placeholder_fraction: placeholderFraction,
+    render_error_item_count: renderErrorItemCount,
+    render_error_fraction: renderErrorFraction,
   };
   return counts;
 }
@@ -161,17 +154,17 @@ function computeCounts(manifestEntry, renderedItems) {
 // Missing-asset name collection
 //============================================
 
-// Collects object names for placeholders by placeholder kind.
+// Collects object names for diagnostic render errors by kind.
 function computeMissingNames(renderedItems) {
   const missingObjectNames = [];
   const missingSvgNames = [];
   for (const item of renderedItems) {
-    if (!item.isPlaceholder) continue;
+    if (!item.hasRenderError) continue;
     // Prefer the object name; fall back to placement name when absent.
     const label = item.objectName || item.placementName;
-    if (item.placeholderKind === "missing-object") {
+    if (item.renderErrorKind === "missing-object") {
       missingObjectNames.push(label);
-    } else if (item.placeholderKind === "missing-svg") {
+    } else if (item.renderErrorKind === "missing-svg") {
       missingSvgNames.push(label);
     }
   }
@@ -186,13 +179,12 @@ function computeMissingNames(renderedItems) {
 function computeLayout(renderedItems, sceneRootBbox, labels) {
   const sceneArea = bboxArea(sceneRootBbox);
 
-  // Naive coverage: sum of REAL item areas over scene area. Overlaps
-  // double-count. Placeholder items (dashed-box stand-ins) are excluded so a
-  // scene filled with placeholders does not read as occupied / non-empty; the
-  // occupancy estimate must reflect real delivered content only.
+  // Naive coverage: sum of successfully rendered item areas over scene area.
+  // Overlaps double-count. Diagnostic error cards stay outside the occupancy
+  // estimate so the metric reflects delivered artwork.
   let summedItemArea = 0;
   for (const item of renderedItems) {
-    if (item.isPlaceholder) continue;
+    if (item.hasRenderError) continue;
     summedItemArea += bboxArea(item.bbox);
   }
   let percentEmptyApprox;
@@ -458,14 +450,14 @@ function unionBox(a, b) {
 // Classification (mutually exclusive categories)
 //============================================
 
-// Returns one of: populated | placeholder-only | empty.
+// Returns one of: populated | error-only | empty.
 // "load-failed" is set by the caller when the page threw before render; it is
 // passed in via opts.loadFailed. "skipped" is set by the caller from the
 // manifest, never computed here.
 function classifyScene(counts, loadFailed) {
   if (loadFailed) return "load-failed";
   if (counts.rendered_placement_count === 0) return "empty";
-  if (counts.real_item_count === 0) return "placeholder-only";
+  if (counts.real_item_count === 0) return "error-only";
   return "populated";
 }
 
@@ -496,7 +488,7 @@ function computeAdvisoryFlags(category, counts, layout, missing) {
 //============================================
 
 function computePassFail(category, counts, missing) {
-  const renders = category === "populated" || category === "placeholder-only";
+  const renders = category === "populated" || category === "error-only";
   const noDroppedPlacements = counts.dropped_placement_count === 0;
   const noMissingAssets =
     missing.missingObjectNames.length === 0 && missing.missingSvgNames.length === 0;

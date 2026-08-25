@@ -369,7 +369,7 @@ test("enumerate_candidate_targets: decoration_only items are excluded", () => {
   assert.equal(result.size, 1, "should contain exactly the one clickable name");
 });
 
-test("enumerate_candidate_targets: missing-object placeholder (capabilities: []) is excluded", () => {
+test("enumerate_candidate_targets: render-error item (capabilities: []) is excluded", () => {
   const fixture = {
     final: [
       { object_name: "flask_a", placement_name: "flask_a", capabilities: ["clickable"] },
@@ -378,5 +378,5 @@ test("enumerate_candidate_targets: missing-object placeholder (capabilities: [])
   };
   const result = enumerate_candidate_targets(fixture);
   assert.ok(result.has("flask_a"), "clickable flask_a should be present");
-  assert.ok(!result.has("unknown_thing"), "capabilities:[] placeholder should be excluded");
+  assert.ok(!result.has("unknown_thing"), "capabilities:[] render-error item should be excluded");
 });

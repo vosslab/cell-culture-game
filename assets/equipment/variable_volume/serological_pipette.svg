@@ -14,12 +14,12 @@
 	<!-- Fixed artwork behind the liquid's inner-tube region. -->
 	<g data-vlab-layer-name="fixed_back" data-vlab-layer-kind="fixed">
 		<!-- cotton plug at top -->
-		<rect x="2" y="4" width="12" height="10" rx="1" fill="#e8d4c0" stroke="#cccccc" stroke-width="0.8"/>
-		<ellipse cx="8" cy="4" rx="5" ry="2" fill="#ddccb0" opacity="0.7"/>
+		<rect x="2" y="4" width="12" height="10" rx="1" fill="#e8dcc7" stroke="#9eb9c0" stroke-width="0.8"/>
+		<ellipse cx="8" cy="4" rx="5" ry="2" fill="#d7c6a8" opacity="0.7"/>
 		<!-- graduated glass tube -->
-		<rect x="4" y="13" width="8" height="105" rx="1" fill="#f0f0f0" stroke="#999999" stroke-width="0.8"/>
+		<rect x="4" y="13" width="8" height="105" rx="1" fill="#e4f3f5" stroke="#405763" stroke-width="0.8"/>
 		<!-- neutral pointed tip remains visible when the material is empty -->
-		<path d="M 4 118 L 8 140 L 12 118 Z" fill="#f0f0f0" stroke="#999999" stroke-width="0.4"/>
+		<path d="M 4 118 L 8 140 L 12 118 Z" fill="#e4f3f5" stroke="#405763" stroke-width="0.4"/>
 	</g>
 
 	<g data-vlab-layer-name="liquid_tip" data-vlab-layer-kind="material" data-vlab-paint-role="base" data-vlab-liquid-part="bottom">
@@ -41,18 +41,18 @@
 		<!-- glass shine -->
 		<rect x="6" y="18" width="1.5" height="95" fill="#ffffff" opacity="0.5"/>
 		<!-- major graduation marks -->
-		<line x1="2" y1="28" x2="14" y2="28" stroke="#999999" stroke-width="0.5"/>
-		<line x1="2" y1="48" x2="14" y2="48" stroke="#999999" stroke-width="0.5"/>
-		<line x1="2" y1="68" x2="14" y2="68" stroke="#999999" stroke-width="0.5"/>
-		<line x1="2" y1="88" x2="14" y2="88" stroke="#999999" stroke-width="0.5"/>
-		<line x1="2" y1="108" x2="14" y2="108" stroke="#999999" stroke-width="0.5"/>
+		<line x1="2" y1="28" x2="14" y2="28" stroke="#405763" stroke-width="0.5"/>
+		<line x1="2" y1="48" x2="14" y2="48" stroke="#405763" stroke-width="0.5"/>
+		<line x1="2" y1="68" x2="14" y2="68" stroke="#405763" stroke-width="0.5"/>
+		<line x1="2" y1="88" x2="14" y2="88" stroke="#405763" stroke-width="0.5"/>
+		<line x1="2" y1="108" x2="14" y2="108" stroke="#405763" stroke-width="0.5"/>
 		<!-- minor graduation marks -->
-		<line x1="4" y1="38" x2="12" y2="38" stroke="#cccccc" stroke-width="0.3"/>
-		<line x1="4" y1="58" x2="12" y2="58" stroke="#cccccc" stroke-width="0.3"/>
-		<line x1="4" y1="78" x2="12" y2="78" stroke="#cccccc" stroke-width="0.3"/>
-		<line x1="4" y1="98" x2="12" y2="98" stroke="#cccccc" stroke-width="0.3"/>
+		<line x1="4" y1="38" x2="12" y2="38" stroke="#9eb9c0" stroke-width="0.3"/>
+		<line x1="4" y1="58" x2="12" y2="58" stroke="#9eb9c0" stroke-width="0.3"/>
+		<line x1="4" y1="78" x2="12" y2="78" stroke="#9eb9c0" stroke-width="0.3"/>
+		<line x1="4" y1="98" x2="12" y2="98" stroke="#9eb9c0" stroke-width="0.3"/>
 		<!-- pointed tip at bottom -->
-		<path d="M 4 118 L 8 140 L 12 118 Z" fill="none" stroke="#999999" stroke-width="0.4"/>
+		<path d="M 4 118 L 8 140 L 12 118 Z" fill="none" stroke="#405763" stroke-width="0.4"/>
 	</g>
 
 	<!-- OVERLAY_ROOT: engine injects dynamic overlays here -->

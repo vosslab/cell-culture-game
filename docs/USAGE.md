@@ -131,3 +131,10 @@ rendered-fill diagnostics, so a result is reproducible without replacing the
 random input with a curated palette. Persistent, gitignored outputs are
 `rendered-reports/liquid_volume_contacts/all_variable_volume_assets.html` and
 `rendered-reports/liquid_volume_contacts/all_variable_volume_assets.png`.
+
+## Equipment SVG visual review
+
+The repository includes a labeled, zoomable snapshot of all retained equipment
+art at [EQUIPMENT_SVG_CONTACT_SHEET.md](EQUIPMENT_SVG_CONTACT_SHEET.md). The
+page embeds the complete contact sheet and links the full-resolution SVG for
+direct inspection or download from GitHub.

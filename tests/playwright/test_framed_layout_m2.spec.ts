@@ -164,7 +164,7 @@ test.describe(`framed layout evidence: ${EVIDENCE_PROTOCOL}`, () => {
 
     await expect(page.locator("#scene-root [data-item-id]").first()).toBeVisible({ timeout: 8000 });
     // Shell components mount asynchronously (Solid onMount); wait for the
-    // guidance text to move off its initial "Loading..." placeholder.
+    // guidance text to replace its initial "Loading..." message.
     await expect(page.locator("#guidance-text")).not.toHaveText("Loading...", { timeout: 4000 });
 
     //============================================

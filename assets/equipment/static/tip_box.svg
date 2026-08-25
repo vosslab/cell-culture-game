@@ -1,20 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 278 194">
-  <!-- Transparent hinged lid, held upright behind the loaded rack. -->
-  <path d="M 22 78 L 22 18 Q 22 8 32 8 L 245 8 Q 255 8 255 18 L 255 78" fill="#bce8f2" fill-opacity=".38" stroke="#31586a" stroke-width="5" stroke-linejoin="round"/>
-  <path d="M 34 22 L 243 22 M 34 37 L 243 37" fill="none" stroke="#6da8bc" stroke-width="3" stroke-opacity=".8"/>
-  <path d="M 80 8 L 80 78 M 197 8 L 197 78" fill="none" stroke="#6da8bc" stroke-width="3" stroke-opacity=".55"/>
-  <path fill="#46788a" stroke="#244451" stroke-width="5" d="M 24 70 L 254 70 A 12 12 0 0 1 266 82 L 266 170 A 12 12 0 0 1 254 182 L 24 182 A 12 12 0 0 1 12 170 L 12 82 A 12 12 0 0 1 24 70 Z"/>
-  <path d="M 18 83 L 260 83 L 260 162 L 18 162 Z" fill="#d8f0f5" stroke="#244451" stroke-width="4"/>
-  <path d="M 20 162 L 258 162 L 247 182 L 31 182 Z" fill="#315b6a"/>
-  <path d="M 23 85 L 256 85" stroke="#fff" stroke-width="4" stroke-opacity=".75"/>
-  <!-- White rack insert makes the orderly matrix of disposable tips unmistakable. -->
-  <path fill="#f7fbfc" stroke="#88adba" stroke-width="3" d="M 39 95 L 239 95 A 5 5 0 0 1 244 100 L 244 147 A 5 5 0 0 1 239 152 L 39 152 A 5 5 0 0 1 34 147 L 34 100 A 5 5 0 0 1 39 95 Z"/>
-  <g fill="#f5cf71" stroke="#805d1d" stroke-width="2" stroke-linejoin="round">
-    <path d="M 47 103 L 59 103 L 59 123 L 53 141 L 47 123 Z"/><path d="M 80 103 L 92 103 L 92 123 L 86 141 L 80 123 Z"/><path d="M 113 103 L 125 103 L 125 123 L 119 141 L 113 123 Z"/><path d="M 146 103 L 158 103 L 158 123 L 152 141 L 146 123 Z"/><path d="M 179 103 L 191 103 L 191 123 L 185 141 L 179 123 Z"/><path d="M 212 103 L 224 103 L 224 123 L 218 141 L 212 123 Z"/>
-    <path d="M 47 124 L 59 124 L 59 139 L 53 151 L 47 139 Z"/><path d="M 80 124 L 92 124 L 92 139 L 86 151 L 80 139 Z"/><path d="M 113 124 L 125 124 L 125 139 L 119 151 L 113 139 Z"/><path d="M 146 124 L 158 124 L 158 139 L 152 151 L 146 139 Z"/><path d="M 179 124 L 191 124 L 191 139 L 185 151 L 179 139 Z"/><path d="M 212 124 L 224 124 L 224 139 L 218 151 L 212 139 Z"/>
-  </g>
-  <g fill="none" stroke="#fff" stroke-width="2" stroke-opacity=".8"><path d="M 50 106 L 56 106 M 83 106 L 89 106 M 116 106 L 122 106 M 149 106 L 155 106 M 182 106 L 188 106 M 215 106 L 221 106"/><path d="M 50 127 L 56 127 M 83 127 L 89 127 M 116 127 L 122 127 M 149 127 L 155 127 M 182 127 L 188 127 M 215 127 L 221 127"/></g>
-  <g id="overlay_root"/>
-  <path id="anchor_label" fill="none" stroke="none" display="none" d="M 12 184 L 266 184 L 266 202 L 12 202 Z"/>
-  <path id="anchor_error" fill="none" stroke="none" display="none" d="M 245 70 L 261 70 L 261 86 L 245 86 Z"/>
+  <!-- Open pipette-tip box: clear lid, cyan tray, and a high-signal tip matrix. -->
+  <path d="M22 78V18Q22 8 32 8H245Q255 8 255 18V78" fill="#d9f3f5" fill-opacity=".45" stroke="#263b46" stroke-width="5" stroke-linejoin="round"/>
+  <path d="M34 23H243M34 38H243M80 8V78M197 8V78" fill="none" stroke="#8fc5d0" stroke-width="3"/>
+  <path d="M24 70H254Q266 70 266 82V170Q266 182 254 182H24Q12 182 12 170V82Q12 70 24 70Z" fill="#76aeba" stroke="#263b46" stroke-width="5"/>
+  <path d="M18 83H260V162H18Z" fill="#d9f3f5" stroke="#263b46" stroke-width="4"/><path d="M20 162H258L247 182H31Z" fill="#4f8997"/><path d="M23 85H256" stroke="#f8ffff" stroke-width="4" opacity=".78"/>
+  <path d="M39 95H239Q244 95 244 100V147Q244 152 239 152H39Q34 152 34 147V100Q34 95 39 95Z" fill="#f8ffff" stroke="#8fc5d0" stroke-width="3"/>
+  <g fill="#f2cf77" stroke="#735726" stroke-width="2" stroke-linejoin="round"><path d="M47 103H59V123L53 141L47 123Z"/><path d="M80 103H92V123L86 141L80 123Z"/><path d="M113 103H125V123L119 141L113 123Z"/><path d="M146 103H158V123L152 141L146 123Z"/><path d="M179 103H191V123L185 141L179 123Z"/><path d="M212 103H224V123L218 141L212 123Z"/><path d="M47 124H59V139L53 151L47 139Z"/><path d="M80 124H92V139L86 151L80 139Z"/><path d="M113 124H125V139L119 151L113 139Z"/><path d="M146 124H158V139L152 151L146 139Z"/><path d="M179 124H191V139L185 151L179 139Z"/><path d="M212 124H224V139L218 151L212 139Z"/></g>
+  <g id="overlay_root"/><path id="anchor_label" fill="none" stroke="none" display="none" d="M12 184H266V202H12Z"/><path id="anchor_error" fill="none" stroke="none" display="none" d="M245 70H261V86H245Z"/>
 </svg>

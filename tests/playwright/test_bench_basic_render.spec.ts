@@ -4,8 +4,8 @@
 // (that .mjs stays in place this phase; a later cleanup phase removes it).
 //
 // Renders content/base_scenes/bench_basic.yaml via scene_viewer.html and
-// verifies eleven layout-integrity assertions (A-K): no clipping, no
-// placeholder/fallback SVG, aspect ratio preserved, no off-page items, zone
+// verifies eleven layout-integrity assertions (A-K): no clipping, complete SVG
+// loading, aspect ratio preserved, no off-page items, zone
 // containment, no item overlap, no label overflow, no label/own-art overlap,
 // no label/label overlap, label readability, and no scene-specific branches
 // baked into the bundle.
@@ -238,7 +238,7 @@ test.describe("bench_basic scene render", () => {
       }
     });
 
-    await test.step("B: no fallback/placeholder SVG (either render mode)", async () => {
+    await test.step("B: every placement renders complete SVG artwork", async () => {
       for (let i = 0; i < placements.length; i++) {
         const placement = placements[i]!;
         const info = await gatherPlacementAssetInfo(placementLocators[i]!);

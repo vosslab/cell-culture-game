@@ -1572,28 +1572,25 @@ def test_d1_flag_on_shadow_removed_viewbox_tightens(tmp_path) -> None:
 	)
 
 
-def test_d1_dry_run_no_deletion_no_output(tmp_path) -> None:
-	"""--shadow-dry-run path: detection runs, no deletion, no output written.
-
-	We test this through the detection function directly: calling
-	detect_floor_shadow_candidates on the pre-processed root finds the candidate
-	but we do NOT call remove_floor_shadow_elements, confirming the shadow is
-	still present.
-	"""
+def test_d1_dry_run_reports_numeric_geometry_without_mutating_input(
+	tmp_path, capsys,
+) -> None:
+	"""The dry-run report formats numeric bounds and preserves source bytes."""
+	svg_in = tmp_path / "dry_run_shadow.svg"
 	svg_text = _make_shadow_svg(_REAL_OBJECT_PATH, _SHADOW_PATH_OPACITY)
-	root = _parse_svg_root(svg_text)
-	overall_bbox = normalize_svg_v3.compute_bbox(root)
-	candidates = normalize_svg_v3.detect_floor_shadow_candidates(root, overall_bbox)
-	# Candidate detected.
-	assert len(candidates) == 1
-	# NOT calling remove_floor_shadow_elements.
-	# Shadow element must still be present in the tree.
-	count_after = sum(
-		1 for elem in root.iter()
-		if isinstance(elem.tag, str) and normalize_svg_v3.local_name(elem.tag) == "path"
+	svg_in.write_text(svg_text, encoding="utf-8")
+	original_bytes = svg_in.read_bytes()
+
+	normalize_svg_v3._shadow_dry_run_report(svg_in)
+
+	report = capsys.readouterr().out
+	assert re.search(
+		r"SHADOW-CANDIDATE: .*bbox=\([^)]*\).*"
+		r"crop_delta=\(w_shrink_up_to=\d+(?:\.\d+)? "
+		r"h_shrink_up_to=\d+(?:\.\d+)?\)",
+		report,
 	)
-	# Both paths (real + shadow) must still be present.
-	assert count_after == 2, f"dry-run: expected 2 paths, got {count_after}"
+	assert svg_in.read_bytes() == original_bytes
 
 
 @pytest.mark.parametrize(

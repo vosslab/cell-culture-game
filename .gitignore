@@ -36,9 +36,15 @@ tests/playwright/artifacts/
 
 
 # === UNIVERSAL ===
-output*/
+/report_*.txt
+/output*/
+/generated/
+/graphify-out/
 _temp*.?*
-OTHER_REPOS/
+/temp/
+/OTHER_REPOS/
+/LOCAL_ONLY/
+
 # === TYPESCRIPT ===
 dist_*/
 _site/
@@ -47,4 +53,5 @@ blob-report/
 coverage/
 meta.json
 stats.html
+
 

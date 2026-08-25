@@ -1,9 +1,11 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 360">
-  <path d="M31 16h38v32H31z" fill="#e8edf4" stroke="#263548" stroke-width="3"/>
-  <path d="M21 48h58v164H21z" fill="#f5f7fa" stroke="#263548" stroke-width="3"/>
-  <path d="M14 212h72v43H14z" fill="#d8e2ee" stroke="#263548" stroke-width="3"/>
-  <path d="M29 72h42v22H29z" fill="#1f2937"/>
-  <path d="M18 104h64v14H18z" fill="#4f85c5"/>
-  <path d="M32 255h36v57H32z" fill="#f5f7fa" stroke="#263548" stroke-width="3"/>
-  <path d="M38 312h24v40H38z" fill="#a9c5dc" stroke="#263548" stroke-width="2"/>
+  <g id="pipette" stroke="#35454b" stroke-linejoin="round">
+    <path d="M31 16h38v31H31z" fill="#87b7c2" stroke-width="3"/>
+    <path d="M38 16h24" fill="none" stroke="#f9fdfd" stroke-width="2" stroke-linecap="round"/>
+    <path d="M22 47h56v165H22z" fill="#e9f3f5" stroke-width="3"/>
+    <path d="M28 69h44v31H28z" fill="#2b4148" stroke-width="2"/><path d="M35 77h30v15H35z" fill="#dff2f5" stroke="none"/>
+    <path d="M18 105h64v15H18z" fill="#739fac" stroke-width="2"/><path d="M15 212h70v42H15z" fill="#bde9f0" stroke-width="3"/>
+    <path d="M32 254h36l-4 60H36z" fill="#f9fcfc" stroke-width="3"/><path d="M42 314h16l-3 37H45z" fill="#bde9f0" stroke-width="2"/>
+  </g>
+  <path id="liquid" d="M45 328h10l-1 23H46z" fill="#bde9f0"/>
 </svg>

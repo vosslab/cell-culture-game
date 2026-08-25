@@ -50,6 +50,39 @@ universal perfection gate. Improve ambiguous assets where the evidence reveals
 an important pedagogical risk, while accepting non-material ambiguity once the
 scene communicates the intended learning task.
 
+## Visual acceptance dialect
+
+The canonical visual target for repository equipment art is **de-shadowed
+Servier Medical Art**: the Bioicons files credited to the Servier collection,
+adapted to this repository's language-neutral and material-rendering rules.
+Other Bioicons contributor collections are not style references; their visual
+languages vary too widely to define a coherent laboratory scene.
+
+This target preserves a scientifically recognizable, object-appropriate
+silhouette and projection. It uses thin dark-charcoal outer and structural
+contours; a pale cyan or blue glass/plastic body where appropriate; off-white
+highlights; muted dark mechanical parts; and a controlled object or material
+accent. Material colors remain owned by the material pipeline. A retained
+detail must clarify function or material at normal scene size: typical examples
+are a graduation band, cap ribs, lens, control, electrode, or pipette tip.
+
+Remove detached floor shadows with the repository normalizer's narrow
+floor-shadow operation before cropping the asset. This does not require flat
+art: retain only the local shade, liquid depth, recess, or highlight needed to
+read a cavity, glass, liquid, control, or physical depth. Avoid dense internal
+contours, repeated near-identical color steps, white backplates, chrome-like
+reflections, and other decorative modeling that does not survive scene-scale
+review.
+
+Every selected state family shares a stable silhouette, projection, viewBox,
+canvas, safe padding, and contour/fill roles. The visible state difference is
+authored inside that fixed frame; a state swap must not look like object motion
+or rescaling. Material-rendered forms additionally preserve the semantic
+groups, anchors, clips, and paint-role contract defined below. New artwork
+without a suitable Servier source may use this grammar, but must be an original
+scientifically recognizable drawing rather than an imitation of an unrelated
+source asset.
+
 ## Source-tree boundary
 
 | Tree                 | Contents                                                     | Hand-edited? |
@@ -513,28 +546,13 @@ Anti-patterns (forbidden):
 - Do not accept a high score if the asset is visibly cropped.
 - Do not claim visual success while glassware bottoms are cut off.
 
-## Missing-SVG flag
+## Missing SVG assets
 
-`pipeline/gen_scene_index.py` accepts a `--missing-svg` flag that controls how
-placements referencing objects with missing SVG assets are handled:
-
-| Flag value    | Behavior                                                                                                                                                                                                                                       |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `strict`      | Default; normal build. Reports missing SVGs loudly to stderr naming the object and asset ids. The scene is excluded from `SCENES` and the build fails if the scene is allowlisted. Never silently skips or blanks a placement.                 |
-| `placeholder` | Dev/test mode. Emits the scene with `missing_svg: true` on each affected placement. The renderer shows a visually obvious dashed-border labeled box (carries `data-missing-svg="true"` and the object name) instead of injecting real SVG art. |
-
-Both modes emit a missing-asset report to stderr listing every affected placement,
-its object name, and the missing asset ids.
-
-The `strict` mode is the gate: a scene that passes strict mode has all its SVG
-assets present and is safe to render. The `placeholder` mode is a development
-aid that lets authors work on protocol flow before final art is available.
-
-Example (placeholder mode for a local development build):
-
-```bash
-source source_me.sh && python3 pipeline/gen_scene_index.py --missing-svg=placeholder
-```
+`pipeline/gen_scene_index.py` emits scenes only when every placed object resolves
+all of its SVG assets. A missing-asset report names every affected placement,
+object, and asset id; the generator then exits non-zero before writing a new
+scene artifact. This single strict path keeps authored content and generated
+runtime data aligned.
 
 ## Related docs
 

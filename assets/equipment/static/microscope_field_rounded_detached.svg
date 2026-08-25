@@ -1,15 +1,15 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 283.843 489.184">
-  <defs><clipPath id="field"><circle cx="142" cy="205" r="83"/></clipPath></defs>
-  <circle cx="142" cy="205" r="89" fill="#e8f4fb" stroke="#1b4965" stroke-width="7"/>
-  <circle cx="142" cy="205" r="83" fill="#d7edf4"/>
-  <g clip-path="url(#field)" fill="#f1c56a" stroke="#8a5724" stroke-width="2">
-    <circle cx="83" cy="152" r="9"/><circle cx="115" cy="143" r="8"/><circle cx="150" cy="151" r="10"/><circle cx="187" cy="145" r="8"/>
-    <circle cx="70" cy="184" r="8"/><circle cx="103" cy="179" r="10"/><circle cx="136" cy="183" r="8"/><circle cx="171" cy="176" r="10"/><circle cx="210" cy="184" r="9"/>
-    <circle cx="83" cy="216" r="10"/><circle cx="118" cy="213" r="8"/><circle cx="151" cy="221" r="9"/><circle cx="188" cy="211" r="10"/>
-    <circle cx="67" cy="246" r="8"/><circle cx="102" cy="251" r="10"/><circle cx="137" cy="247" r="8"/><circle cx="174" cy="250" r="9"/><circle cx="210" cy="244" r="8"/>
+  <defs><clipPath id="field"><circle cx="142" cy="205" r="83"/></clipPath><circle id="rounded_cell" cx="0" cy="0" r="9"/></defs>
+  <g id="microscope_field_rounded_detached">
+    <circle id="field_frame" cx="142" cy="205" r="89" fill="#e9f7f9" stroke="#26363b" stroke-width="7"/>
+    <circle id="field_background" cx="142" cy="205" r="83" fill="#cfeaf0"/>
+    <g id="rounded_detached_cell_layer" clip-path="url(#field)" fill="#efc66d" stroke="#895c2b" stroke-width="2">
+      <use href="#rounded_cell" transform="translate(83 152)"/><use href="#rounded_cell" transform="translate(115 143)scale(.9)"/><use href="#rounded_cell" transform="translate(150 151)scale(1.1)"/><use href="#rounded_cell" transform="translate(187 145)scale(.9)"/>
+      <use href="#rounded_cell" transform="translate(70 184)scale(.9)"/><use href="#rounded_cell" transform="translate(103 179)scale(1.1)"/><use href="#rounded_cell" transform="translate(136 183)scale(.9)"/><use href="#rounded_cell" transform="translate(171 176)scale(1.1)"/><use href="#rounded_cell" transform="translate(210 184)"/>
+      <use href="#rounded_cell" transform="translate(83 216)scale(1.1)"/><use href="#rounded_cell" transform="translate(118 213)scale(.9)"/><use href="#rounded_cell" transform="translate(151 221)"/><use href="#rounded_cell" transform="translate(188 211)scale(1.1)"/>
+      <use href="#rounded_cell" transform="translate(67 246)scale(.9)"/><use href="#rounded_cell" transform="translate(102 251)scale(1.1)"/><use href="#rounded_cell" transform="translate(137 247)scale(.9)"/><use href="#rounded_cell" transform="translate(174 250)"/><use href="#rounded_cell" transform="translate(210 244)scale(.9)"/>
+    </g>
+    <g id="detachment_gaps" clip-path="url(#field)" fill="none" stroke="#8eb4ad" stroke-width="1.7" opacity=".8"><path d="M75 168c17-8 32 0 40 6M147 167c16-8 37-4 48 6M89 232c17-8 34-2 43 6M158 235c18-9 34-5 46 4"/></g>
+    <circle cx="142" cy="205" r="84.5" fill="none" stroke="#fffdf8" stroke-width="1.5"/>
   </g>
-  <g clip-path="url(#field)" fill="none" stroke="#7c9b91" stroke-width="1.8" opacity="0.7">
-    <path d="M75 168 C92 160 107 168 115 174"/><path d="M147 167 C163 159 184 163 195 173"/><path d="M89 232 C106 224 123 230 132 238"/><path d="M158 235 C176 226 192 230 204 239"/>
-  </g>
-  <circle cx="142" cy="205" r="89" fill="none" stroke="#f9fdff" stroke-width="1.5" opacity="0.85"/>
 </svg>

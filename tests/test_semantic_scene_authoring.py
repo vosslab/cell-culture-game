@@ -44,7 +44,7 @@ def test_semantic_scene_validates_and_emits_zone_identity() -> None:
 	validator = BaseSceneValidator()
 	findings = validator.validate(scene, 'memory_scene.yaml')
 	lines = []
-	gen_scene_index.emit_scene_ts('semantic_scene', scene, lines, set())
+	gen_scene_index.emit_scene_ts('semantic_scene', scene, lines)
 	output = '\n'.join(lines)
 	assert not findings
 	assert 'bounds:' not in output and "depth: 'front'," in output

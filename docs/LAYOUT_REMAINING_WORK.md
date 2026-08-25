@@ -83,13 +83,13 @@ Error-diagnostic details are in
 
 ## 2. Remaining work categories -- overview table
 
-| Category | Nature | Owner | Risk level | Crosses pedagogical-composition boundary? |
-| --- | --- | --- | --- | --- |
-| Void-collapse | Zone declaration order, membership, and `align_stop` edits | Scene author | Low per-scene; medium for multi-scene sweep | YES -- zone regrouping changes which objects appear in which curriculum context; must align with protocol intent |
-| Focal-promotion | Object intrinsic metric or semantic dedicated-zone edits | Object/scene author | Low-medium; "primary" picks are often debatable | YES -- enlarging an object implies it is the focal teaching object; must match protocol's first-interaction target |
-| Error diagnostics | 2 label Errors RESOLVED by WP-6. Remaining: 1 object-overlap Error (seeding_workspace) + severity-contract decision | Scene author | Low for remaining fix; medium if contract change needed first | Partially -- the object-overlap Error is a correctness defect; label Errors resolved |
-| Label-Error severity contract | Deciding whether cross-zone label grazes that the label layer cannot resolve should be Error or Warning | Human (contract decision) | Low implementation; high if wrong (degrades gate signal) | NO -- purely a diagnostic-system design question |
-| Baseline-tool gap | Add `severityDiagnostics` column to `tests/e2e/e2e_layout_diagnostics_baseline.mjs` | Engine/tooling developer | Low | NO -- purely a tooling fix |
+| Category                      | Nature                                                                                                              | Owner                     | Risk level                                                    | Crosses pedagogical-composition boundary?                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| Void-collapse                 | Zone declaration order, membership, and `align_stop` edits                                                          | Scene author              | Low per-scene; medium for multi-scene sweep                   | YES -- zone regrouping changes which objects appear in which curriculum context; must align with protocol intent   |
+| Focal-promotion               | Object intrinsic metric or semantic dedicated-zone edits                                                            | Object/scene author       | Low-medium; "primary" picks are often debatable               | YES -- enlarging an object implies it is the focal teaching object; must match protocol's first-interaction target |
+| Error diagnostics             | 2 label Errors RESOLVED by WP-6. Remaining: 1 object-overlap Error (seeding_workspace) + severity-contract decision | Scene author              | Low for remaining fix; medium if contract change needed first | Partially -- the object-overlap Error is a correctness defect; label Errors resolved                               |
+| Label-Error severity contract | Deciding whether cross-zone label grazes that the label layer cannot resolve should be Error or Warning             | Human (contract decision) | Low implementation; high if wrong (degrades gate signal)      | NO -- purely a diagnostic-system design question                                                                   |
+| Baseline-tool gap             | Add `severityDiagnostics` column to `tests/e2e/e2e_layout_diagnostics_baseline.mjs`                                 | Engine/tooling developer  | Low                                                           | NO -- purely a tooling fix                                                                                         |
 
 **Key principle for void-collapse and focal-promotion.** These are NOT bulk engine
 algorithm changes. The evidence in
@@ -114,17 +114,17 @@ round-0 scores from
 
 ### Round-0 score summary
 
-| Scene | r0 overall | r0 grounding | r0 focal_dominance | r0 label_clarity | r0 whitespace |
-| --- | --- | --- | --- | --- | --- |
-| `cell_counter_basic` | needs_review | 2 | 4 | 4 | 2 |
-| `staining_bench` | needs_review | 2 | 4 | 3 | 3 |
-| `sample_prep_bench` | weak | 2 | 2 | 3 | 3 |
-| `hood_basic` | needs_review | 2 | 3 | 4 | 3 |
-| `seeding_workspace` | needs_review | 2 | 3 | 3 | 3 |
-| `electrophoresis_bench` | weak | 1 | 2 | 2 | 2 |
-| `heat_block_bench` | needs_review | 2 | 3 | 4 | 3 |
-| `bench_basic` | -- | -- | -- | -- | -- |
-| `passage_hood_detachment_microscope_view` | clear | 3 | 5 | 4 | 4 |
+| Scene                                     | r0 overall   | r0 grounding | r0 focal_dominance | r0 label_clarity | r0 whitespace |
+| ----------------------------------------- | ------------ | ------------ | ------------------ | ---------------- | ------------- |
+| `cell_counter_basic`                      | needs_review | 2            | 4                  | 4                | 2             |
+| `staining_bench`                          | needs_review | 2            | 4                  | 3                | 3             |
+| `sample_prep_bench`                       | weak         | 2            | 2                  | 3                | 3             |
+| `hood_basic`                              | needs_review | 2            | 3                  | 4                | 3             |
+| `seeding_workspace`                       | needs_review | 2            | 3                  | 3                | 3             |
+| `electrophoresis_bench`                   | weak         | 1            | 2                  | 2                | 2             |
+| `heat_block_bench`                        | needs_review | 2            | 3                  | 4                | 3             |
+| `bench_basic`                             | --           | --           | --                 | --               | --            |
+| `passage_hood_detachment_microscope_view` | clear        | 3            | 5                  | 4                | 4             |
 
 `bench_basic` was rendered in the test set but was not scored in round-0 because
 it was present as a stand-in for `heat_block_bench.png` (see cross-cutting note
@@ -367,16 +367,15 @@ targets" table, where `electrophoresis_bench` is Rank 1). Re-render after
 shipping the label fix before assessing whether further zone-geometry label edits
 are needed.
 
-**Additional authoring issue -- placeholder asset.**
-The "Electrode module" renders as a dashed empty rectangle (placeholder asset).
-A real, normalized SVG asset is needed before this scene can pass visual review.
-This is a human/asset-author action.
+**Resolved authoring prerequisite.**
+The electrode module now uses finished, normalized artwork. Current visual
+review can evaluate the scene composition directly.
 
 **Recommendation.**
-This scene requires the most work but has several blockers:
-(1) Resolve the "Electrode module" placeholder asset first (human action).
-(2) Re-render after the label fix to assess the top-left label cluster.
-(3) After those two prerequisites are cleared, redesign the zone layout to
+This scene requires the most work and has several ordered steps:
+(1) Re-render with the finished electrode-module art and label fix.
+(2) Assess the top-left label cluster against the current render.
+(3) Then redesign the zone layout to
 bring the electrophoresis tank, power supply, and gel-prep items into a
 tighter cluster. This is a meaningful authoring effort -- essentially a scene
 recomposition -- and should be done as a deliberate author pass, not an
@@ -596,24 +595,13 @@ They are recorded for context. Neither is active work; both are deferred per
 an explicit user decision. Do NOT schedule, fix, or treat them as gate-blocking
 without that decision being revisited.
 
-**Finding 1: pipette and tool SVGs are un-normalized (contract item-3 gap, deferred).**
-`tools/normalize_svg_v3.py` REJECTS the micropipette and related tool assets
-with `CLIPPATH_UNSUPPORTED_COMPLEX`: they carry a `<clipPath>` applied to
-stroke-only (`fill:none`) paths that the v3 normalizer cannot flatten. The
-named assets are `assets/equipment/static/p200_micropipette_empty.svg`,
-`assets/equipment/static/p200_micropipette_filled.svg`,
-`assets/equipment/static/p10_micropipette_empty.svg`,
-`assets/equipment/static/p10_micropipette_filled.svg`, and
-`assets/equipment/static/micropipette_rack.svg` (the rack rejects on
-`TEXT_UNSUPPORTED`, a related normalization gap). A repo-wide normalizer run
-over the flat pre-organization fleet of 86 equipment SVGs rejected 26 of
-them; the current behavior-organized fleet is discovered recursively. The
-other reject reason codes are `TEXT_UNSUPPORTED`, `STYLE_GEOMETRY_UNSUPPORTED`,
-`USE_OR_SYMBOL_UNSUPPORTED`, and `EMPTY_GEOMETRY`. Because every asset that
-reaches `assets/` is supposed to pass v3 (PRIMARY_CONTRACT item 3: "All asset
-SVG files must be normalized"), each rejected asset is a contract-compliance
-gap. This is DEFERRED per user: the user will normalize these assets later.
-Cross-reference the audit at
+**Finding 1: historical pipette and tool SVG normalization gap (closed).**
+At the time of the label-offset audit, the flat pre-organization asset fleet
+included P200/P10 filled variants and a micropipette rack that the v3
+normalizer rejected. The SVG consistency sweep later removed the unreachable
+P200 empty/filled, P10 filled, and rack files; the retained P10 empty asset now
+passes the strict SVG audit. This finding is historical context, not current or
+deferred work. Cross-reference the original evidence in
 [pipette_label_offset_root_cause.md](archive/audits/pipette_label_offset_root_cause.md).
 
 **Finding 2: the alignment gate `visual_bbox` is the SVG element rect, not the
@@ -731,10 +719,9 @@ Do NOT mass-rewrite all scenes. Pick only the worst, clearest cases.
 - `staining_bench` (~85% center void in the historical render): highest priority
   in this category. Revisit zone order and membership, then re-render to inspect
   the derived composition.
-- `electrophoresis_bench` (~72% center void): second priority, but this scene
-  has a placeholder asset blocker ("Electrode module") that must be resolved
-  by a human before any layout redesign is useful. Do not invest layout effort
-  on a scene with a placeholder asset.
+- `electrophoresis_bench` (~72% center void): second priority. Its finished
+  electrode-module art makes the current render the correct composition-review
+  surface.
 
 **Intentional voids (do NOT collapse):**
 
@@ -774,7 +761,7 @@ Scenes with plausible focal-promotion value (subject to step 1-3 verification):
   If the heat block is the first-click target, a `display_width_cm` increase
   is warranted. Blocked by the missing render data question (section 3.7).
 - `electrophoresis_bench`: tank at 3.0%, visually lost in the void.
-  Blocked by the placeholder asset and the zone recomposition needed first.
+  Recompose the zone before deciding whether focal promotion is still needed.
 
 Do NOT promote:
 
@@ -794,11 +781,11 @@ Do NOT promote:
 These items cannot be done by agents under the current repo rules.
 They are recorded here so a human can action them in the appropriate order.
 
-| Item | Action | Notes |
-| --- | --- | --- |
-| Move `devel/ai_polish_review.mjs` to `tools/` | `git mv devel/ai_polish_review.mjs tools/ai_polish_review.mjs` | This script is a developer helper with no build-chain role; per AGENTS.md it belongs in `tools/`, not `devel/`. Update `docs/FILE_STRUCTURE.md` to reflect the move. |
-| Commit untracked new files | completed: all new markdown files were committed | Was: `git add` the ~11 new markdown files causing `tests/test_markdown_links.py` failures; all are now tracked. |
-| Reconcile M7 evidence table | Edit `docs/active_plans/workstreams/m7_wp_valid1_evidence_table.md` to note that the "zero Error" line was inaccurate for `seeding_workspace` | The `seeding_workspace` `unresolved_overlap` was introduced by M6 (same day as M7) and should be noted in the M7 table with a correction. |
+| Item                                          | Action                                                                                                                                        | Notes                                                                                                                                                                |
+| --------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Move `devel/ai_polish_review.mjs` to `tools/` | `git mv devel/ai_polish_review.mjs tools/ai_polish_review.mjs`                                                                                | This script is a developer helper with no build-chain role; per AGENTS.md it belongs in `tools/`, not `devel/`. Update `docs/FILE_STRUCTURE.md` to reflect the move. |
+| Commit untracked new files                    | completed: all new markdown files were committed                                                                                              | Was: `git add` the ~11 new markdown files causing `tests/test_markdown_links.py` failures; all are now tracked.                                                      |
+| Reconcile M7 evidence table                   | Edit `docs/active_plans/workstreams/m7_wp_valid1_evidence_table.md` to note that the "zero Error" line was inaccurate for `seeding_workspace` | The `seeding_workspace` `unresolved_overlap` was introduced by M6 (same day as M7) and should be noted in the M7 table with a correction.                            |
 
 ---
 
@@ -925,11 +912,11 @@ for convenience. The measurements record the June 2026 investigation; they do
 not authorize source-coordinate edits. "Owner" reflects authoring vs contract
 responsibility.
 
-| Code | Scene | Involved items | Overshoot or depth | Root cause | Owner | Minimal fix |
-| --- | --- | --- | --- | --- | --- | --- |
-| `unresolved_label_overlap` | `bench_basic` | `rear_left_waste` label vs `center_centrifuge` ARTWORK | 2.4 scene-pct | Historical render showed adjacent semantic groups competing for the same label/artwork band. | Scene author | Review membership, zone order, and categorical label placement; then re-render. |
-| `unresolved_label_overlap` | `passage_hood_detachment_microscope_view` | `left_cell_suspension` label vs `instrument_t75_flask` LABEL (symmetric, 2 entries) | ~0.95 each | Historical render showed overlapping semantic groups. | Scene author | Move `instrument_t75_flask` to `left_bench` if it matches the workflow; then re-render. |
-| `unresolved_overlap` | `seeding_workspace` | `rear_right_incubator` | 12.85 worst-axis | Historical render showed that the incubator did not fit its derived allocation. | Scene author / object author | Give the incubator a dedicated semantic zone, or correct its intrinsic object metric everywhere it appears. |
+| Code                       | Scene                                     | Involved items                                                                      | Overshoot or depth | Root cause                                                                                   | Owner                        | Minimal fix                                                                                                 |
+| -------------------------- | ----------------------------------------- | ----------------------------------------------------------------------------------- | ------------------ | -------------------------------------------------------------------------------------------- | ---------------------------- | ----------------------------------------------------------------------------------------------------------- |
+| `unresolved_label_overlap` | `bench_basic`                             | `rear_left_waste` label vs `center_centrifuge` ARTWORK                              | 2.4 scene-pct      | Historical render showed adjacent semantic groups competing for the same label/artwork band. | Scene author                 | Review membership, zone order, and categorical label placement; then re-render.                             |
+| `unresolved_label_overlap` | `passage_hood_detachment_microscope_view` | `left_cell_suspension` label vs `instrument_t75_flask` LABEL (symmetric, 2 entries) | ~0.95 each         | Historical render showed overlapping semantic groups.                                        | Scene author                 | Move `instrument_t75_flask` to `left_bench` if it matches the workflow; then re-render.                     |
+| `unresolved_overlap`       | `seeding_workspace`                       | `rear_right_incubator`                                                              | 12.85 worst-axis   | Historical render showed that the incubator did not fit its derived allocation.              | Scene author / object author | Give the incubator a dedicated semantic zone, or correct its intrinsic object metric everywhere it appears. |
 
 ---
 
@@ -938,14 +925,14 @@ responsibility.
 Data source:
 [aesthetic_geometry_levers_evidence.md](archive/reports/aesthetic_geometry_levers_evidence.md).
 
-| Scene | Approx. void % | Void assessment | Primary object | Primary area % | Focal assessment |
-| --- | --- | --- | --- | --- | --- |
-| `staining_bench` | ~85% | Real defect -- fix | `staining_tray` | 3.1% | Primary pick may be wrong; verify against protocol |
-| `electrophoresis_bench` | ~72% | Real defect -- fix (after placeholder asset resolved) | `electrophoresis_tank` | 3.0% | Needs promotion but blocked by zone recomposition |
-| `sample_prep_bench` | ~65% | Historical measurement; current composition differs | retired generic `micropipette` | 0.3% | Former wrong primary pick; do not restore or promote |
-| `cell_counter_basic` | ~55% | Real defect -- fix | `cell_counter` | 12.4% | Already adequate; no promotion needed |
-| `seeding_workspace` | ~48% | Real defect -- fix after correctness Error | `well_plate_96` | 1.4% | Incubator is likelier focal; verify |
-| `bench_basic` | ~42% | Borderline -- defer | `centrifuge` | 10.2% | Adequate |
-| `passage_hood_detachment_microscope_view` | ~38% | Intentional framing -- do NOT collapse | `microscope` | 18.1% | Dominant; do not touch |
-| `hood_basic` | ~32% | Appropriate BSC openness -- do NOT collapse broadly | `hood_surface` | 14.6% | May be zone artifact; verify |
-| `heat_block_bench` | unknown | Render data absent; confirm scene identity | `heat_block` | 1.2% | Warrants promotion if heat block is first-click target |
+| Scene                                     | Approx. void % | Void assessment                                           | Primary object                 | Primary area % | Focal assessment                                       |
+| ----------------------------------------- | -------------- | --------------------------------------------------------- | ------------------------------ | -------------- | ------------------------------------------------------ |
+| `staining_bench`                          | ~85%           | Real defect -- fix                                        | `staining_tray`                | 3.1%           | Primary pick may be wrong; verify against protocol     |
+| `electrophoresis_bench`                   | ~72%           | Historical defect; review the current finished-art render | `electrophoresis_tank`         | 3.0%           | Recompose the zone before deciding on promotion        |
+| `sample_prep_bench`                       | ~65%           | Historical measurement; current composition differs       | retired generic `micropipette` | 0.3%           | Former wrong primary pick; do not restore or promote   |
+| `cell_counter_basic`                      | ~55%           | Real defect -- fix                                        | `cell_counter`                 | 12.4%          | Already adequate; no promotion needed                  |
+| `seeding_workspace`                       | ~48%           | Real defect -- fix after correctness Error                | `well_plate_96`                | 1.4%           | Incubator is likelier focal; verify                    |
+| `bench_basic`                             | ~42%           | Borderline -- defer                                       | `centrifuge`                   | 10.2%          | Adequate                                               |
+| `passage_hood_detachment_microscope_view` | ~38%           | Intentional framing -- do NOT collapse                    | `microscope`                   | 18.1%          | Dominant; do not touch                                 |
+| `hood_basic`                              | ~32%           | Appropriate BSC openness -- do NOT collapse broadly       | `hood_surface`                 | 14.6%          | May be zone artifact; verify                           |
+| `heat_block_bench`                        | unknown        | Render data absent; confirm scene identity                | `heat_block`                   | 1.2%           | Warrants promotion if heat block is first-click target |

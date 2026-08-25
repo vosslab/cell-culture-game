@@ -1397,7 +1397,7 @@ export function create_step_machine(
       // Emit a no_active_step rejection instead of a silent return, matching
       // handle_click/handle_type_commit, so a dropped modal-close event is
       // observable (interaction_rejected) rather than vanishing. No interaction
-      // exists here, so target/gesture are neutral placeholders.
+      // exists here, so target/gesture use neutral event values.
       emit_rejection(active_step_name ?? "", 0, "", "select", "correct_target", "no_active_step");
       return;
     }
@@ -1474,7 +1474,7 @@ export function create_step_machine(
       // Emit a no_active_step rejection instead of a silent return, matching
       // handle_click/handle_type_commit, so a dropped timer-elapsed event is
       // observable (interaction_rejected). The equipment name is the target;
-      // a timer has no gesture, so "click" is a neutral placeholder.
+      // a timer has no gesture, so "click" is the neutral event value.
       emit_rejection(
         active_step_name ?? "",
         0,

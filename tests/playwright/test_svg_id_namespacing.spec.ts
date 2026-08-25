@@ -27,7 +27,7 @@
 //   2. Integration layer: loads the four real wedge pages from dist/ under a
 //      GitHub-Pages-style repo subpath in Firefox, asserts no duplicate ids
 //      among injected SVG descendants and that the shaker's clip-path resolves
-//      to ITS OWN clipPath (not bottle_green's), and saves before/after
+//      to ITS OWN clipPath rather than another SVG instance, and saves before/after
 //      screenshots.
 
 import { test, expect } from "@playwright/test";
@@ -526,7 +526,7 @@ function runNegativePathChecksInPage(): NegativeReport {
 type ShakerReport = { ok: boolean; failures: string[]; info: Record<string, string> };
 
 // Resolve the shaker placement's clip-path and confirm it lands on a clipPath
-// that lives INSIDE the shaker's own SVG, never bottle_green's.
+// that lives INSIDE the shaker's own SVG, never another SVG instance.
 function runShakerClipCheckInPage(): ShakerReport {
   const out: ShakerReport = { ok: true, failures: [], info: {} };
 
@@ -572,8 +572,8 @@ function runShakerClipCheckInPage(): ShakerReport {
       if (local === null) {
         fail(`shaker clip-path ${ref} does not resolve inside the shaker SVG`);
       }
-      // Confirm the FIRST document-order match is the local one (the bug was
-      // that document-order resolved to bottle_green's clipPath).
+      // Confirm the FIRST document-order match is the local one. The original
+      // bug resolved document order to another SVG instance's clipPath.
       const docMatch = document.getElementById(id);
       if (docMatch !== null && !svg.contains(docMatch)) {
         fail(`shaker clip id "${id}" resolves to an element OUTSIDE the shaker SVG`);

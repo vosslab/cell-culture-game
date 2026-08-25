@@ -248,7 +248,7 @@ describe("compose formula", () => {
 });
 
 //============================================
-// svg case selection: bool cases and placeholder path
+// svg case selection: bool cases and bound-asset path
 //============================================
 
 describe("svg case selection", () => {
@@ -265,10 +265,9 @@ describe("svg case selection", () => {
     };
     const out = resolve_visual_state(visual_states, { slide_loaded: true }, {});
     assert.equal(out.asset_name, "counter_loaded");
-    assert.equal(out.placeholder, undefined);
   });
 
-  test("no svg entry yields placeholder=true", () => {
+  test("no svg entry leaves the bound asset as renderer authority", () => {
     const visual_states = {
       set_volume: {
         kind: "overlay",
@@ -278,7 +277,6 @@ describe("svg case selection", () => {
     };
     const out = resolve_visual_state(visual_states, { set_volume: 3 }, {});
     assert.equal(out.asset_name, null);
-    assert.equal(out.placeholder, true);
   });
 
   test("compiler-lowered empty composite is a no-op", () => {

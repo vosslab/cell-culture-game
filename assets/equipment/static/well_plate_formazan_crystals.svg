@@ -1,32 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 393.3275 278.5243">
+  <title>Formazan crystals in a 96-well plate</title>
   <defs>
-    <!-- Six retained precipitate discs aligned to columns 1-6 of the plate. -->
-    <g id="six-well-crystals">
-      <circle cx="45.010" cy="49.260" r="5"/>
-      <circle cx="73.357" cy="49.260" r="5"/>
-      <circle cx="101.704" cy="49.260" r="5"/>
-      <circle cx="130.051" cy="49.260" r="5"/>
-      <circle cx="158.398" cy="49.260" r="5"/>
-      <circle cx="186.745" cy="49.260" r="5"/>
+    <g id="crystal-cluster">
+      <path d="m-6 1 4-8 5 3 4-2 4 7-5 6-7-1Z"/>
+      <path d="m-9-5 3-5 3 4-2 5ZM5-7l5-2 2 5-5 3Z"/>
     </g>
   </defs>
-  <g opacity="0.94" stroke="#ffffff" stroke-opacity="0.38" stroke-width="0.8">
-    <use href="#six-well-crystals" fill="#5b1479"/>
-    <use href="#six-well-crystals" transform="translate(170.082 0)" fill="#681a80"/>
-    <use href="#six-well-crystals" transform="translate(0 28.347)" fill="#6a1c86"/>
-    <use href="#six-well-crystals" transform="translate(170.082 28.347)" fill="#75268d"/>
-    <use href="#six-well-crystals" transform="translate(0 56.694)" fill="#74268f"/>
-    <use href="#six-well-crystals" transform="translate(170.082 56.694)" fill="#833695"/>
-    <use href="#six-well-crystals" transform="translate(0 85.041)" fill="#803398"/>
-    <use href="#six-well-crystals" transform="translate(170.082 85.041)" fill="#9649a2"/>
-    <use href="#six-well-crystals" transform="translate(0 113.388)" fill="#9142a4"/>
-    <use href="#six-well-crystals" transform="translate(170.082 113.388)" fill="#aa61af"/>
-    <use href="#six-well-crystals" transform="translate(0 141.735)" fill="#a454b2"/>
-    <use href="#six-well-crystals" transform="translate(170.082 141.735)" fill="#bd7bc0"/>
-    <use href="#six-well-crystals" transform="translate(0 170.082)" fill="#bb78c3"/>
-    <use href="#six-well-crystals" transform="translate(170.082 170.082)" fill="#d2a4d5"/>
-    <use href="#six-well-crystals" transform="translate(0 198.429)" fill="#d3abdc"/>
-    <use href="#six-well-crystals" transform="translate(170.082 198.429)" fill="#e6cfe7"/>
+  <g fill="#69246f" stroke="#46164b" stroke-linejoin="round" stroke-width="1.3">
+    <use href="#crystal-cluster" transform="translate(45.010 49.260)"/><use href="#crystal-cluster" transform="translate(73.357 49.260)"/><use href="#crystal-cluster" transform="translate(101.704 49.260)"/><use href="#crystal-cluster" transform="translate(130.051 49.260)"/><use href="#crystal-cluster" transform="translate(158.398 49.260)"/><use href="#crystal-cluster" transform="translate(186.745 49.260)"/>
+    <use href="#crystal-cluster" transform="translate(215.092 77.607)"/><use href="#crystal-cluster" transform="translate(243.439 77.607)"/><use href="#crystal-cluster" transform="translate(271.786 77.607)"/><use href="#crystal-cluster" transform="translate(300.133 77.607)"/><use href="#crystal-cluster" transform="translate(328.480 77.607)"/><use href="#crystal-cluster" transform="translate(356.827 77.607)"/>
+    <use href="#crystal-cluster" transform="translate(45.010 105.954)"/><use href="#crystal-cluster" transform="translate(73.357 105.954)"/><use href="#crystal-cluster" transform="translate(101.704 105.954)"/><use href="#crystal-cluster" transform="translate(130.051 105.954)"/><use href="#crystal-cluster" transform="translate(158.398 105.954)"/><use href="#crystal-cluster" transform="translate(186.745 105.954)"/>
+    <use href="#crystal-cluster" transform="translate(215.092 134.301)"/><use href="#crystal-cluster" transform="translate(243.439 134.301)"/><use href="#crystal-cluster" transform="translate(271.786 134.301)"/><use href="#crystal-cluster" transform="translate(300.133 134.301)"/><use href="#crystal-cluster" transform="translate(328.480 134.301)"/><use href="#crystal-cluster" transform="translate(356.827 134.301)"/>
+  </g>
+  <g fill="#b56eb7" opacity=".75">
+    <circle cx="45.010" cy="49.260" r="2.2"/><circle cx="101.704" cy="49.260" r="2.2"/><circle cx="158.398" cy="49.260" r="2.2"/><circle cx="215.092" cy="77.607" r="2.2"/><circle cx="271.786" cy="77.607" r="2.2"/><circle cx="328.480" cy="77.607" r="2.2"/><circle cx="45.010" cy="105.954" r="2.2"/><circle cx="101.704" cy="105.954" r="2.2"/><circle cx="158.398" cy="105.954" r="2.2"/><circle cx="215.092" cy="134.301" r="2.2"/><circle cx="271.786" cy="134.301" r="2.2"/><circle cx="328.480" cy="134.301" r="2.2"/>
   </g>
 </svg>

@@ -1,4 +1,11 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 214 308">
-  <path d="M 39 278 L 175 278" fill="none" stroke="#9a2519" stroke-width="4" stroke-linecap="round"/>
-  <text x="107" y="260" text-anchor="middle" fill="#9a2519" font-family="sans-serif" font-size="10">overrun: separation compromised</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 214 308" preserveAspectRatio="xMidYMid meet">
+  <!-- Language-neutral gel evidence: the tracking dye has run beyond the gel. -->
+  <rect x="30" y="28" width="154" height="252" rx="8" fill="#eaf7f8" stroke="#35454b" stroke-width="4"/>
+  <rect x="42" y="48" width="130" height="212" rx="3" fill="#cbe9ed" stroke="#7eaab4" stroke-width="2"/>
+  <path d="M43 91H171" fill="none" stroke="#35454b" stroke-width="5" stroke-linecap="round"/>
+  <g fill="#35454b"><rect x="52" y="69" width="14" height="15" rx="3"/><rect x="76" y="69" width="14" height="15" rx="3"/><rect x="100" y="69" width="14" height="15" rx="3"/><rect x="124" y="69" width="14" height="15" rx="3"/><rect x="148" y="69" width="14" height="15" rx="3"/></g>
+  <g fill="#5a7f8a" opacity=".8"><rect x="55" y="103" width="8" height="112" rx="4"/><rect x="79" y="103" width="8" height="112" rx="4"/><rect x="103" y="103" width="8" height="112" rx="4"/><rect x="127" y="103" width="8" height="112" rx="4"/><rect x="151" y="103" width="8" height="112" rx="4"/></g>
+  <g fill="#2c9abb"><rect x="53" y="190" width="12" height="8" rx="4"/><rect x="77" y="207" width="12" height="8" rx="4"/><rect x="101" y="223" width="12" height="8" rx="4"/><rect x="125" y="239" width="12" height="8" rx="4"/><rect x="149" y="252" width="12" height="8" rx="4"/></g>
+  <path d="M48 270H166" fill="none" stroke="#b84b4b" stroke-width="5" stroke-linecap="round"/>
+  <path d="M99 252l16 16m0-16-16 16" fill="none" stroke="#b84b4b" stroke-width="4" stroke-linecap="round"/>
 </svg>

@@ -51,33 +51,15 @@ the `e2e_*` prefix as a secondary, human-readable convention.
 
 - Run a single shell runner: `bash tests/e2e/e2e_<name>.sh`.
 - Run a single Python runner: `source source_me.sh && python3 tests/e2e/e2e_<name>.py`.
-- Run the repository's exhaustive build-and-test gate: `./super_all_tests.sh`.
-  It covers every `tests/e2e/e2e_*` file plus Playwright, pytest, validation,
-  generated render evidence, and the build.
+- Run all E2E tests: provide a `tests/e2e/run_all.sh` that iterates over the
+  `e2e_*` files and reports pass/fail for each.
 - For browser-driven Playwright runs, TypeScript repos include `PLAYWRIGHT_USAGE.md` in their propagated `docs/` folder.
 - Do not invoke E2E tests from `pytest tests/`. Keep the two suites separate.
 
-`super_all_tests.sh` is intentionally single-writer within one checkout because
-its build outputs, generated reports, browser evidence, and `SUPER_LOG.txt` are
-shared. A concurrent invocation exits before changing those files and reports
-the saved owner PID when available. PID liveness alone does not prove that the
-process is still the suite because operating systems recycle PIDs. If an
-ungraceful termination leaves `.super_all_tests.lock`, verify the process
-identity and confirm that no exhaustive suite is active before removing the
-stale lock directory. The lock artifact is ignored by Git.
-
-The exhaustive runner gives every non-browser E2E a default five-minute
-process-group boundary through `tools/run_with_timeout.py`, then executes
-connected Playwright acceptance before shell E2Es. This preserves rendered
-statistics for their Python/Node consumers and prevents an external-tool
-regression from hiding the user workflow result. Set `E2E_TIMEOUT_SECONDS` when a
-deliberately longer E2E is required. A timeout or other nonzero exit is reported
-as a normal failed gate and the summary still completes.
-
 ## Naming conventions test
 
-File naming conventions are enforced by `templates/typescript/tests/test_test_naming_conventions.py`
-(ships only to `REPO_TYPE=typescript` consumer repos) to prevent silent bugs:
+File naming conventions are enforced by `tests/test_test_naming_conventions.py`
+(present in `REPO_TYPE=typescript` repos) to prevent silent bugs:
 
 - No `test_*.py` files anywhere under `tests/e2e/` (since `collect_ignore` would skip them silently, mismatching the name).
 - No `test_*.py` files anywhere under `tests/playwright/` (same trap).
@@ -113,6 +95,6 @@ File naming conventions are enforced by `templates/typescript/tests/test_test_na
 
 - [PYTEST_STYLE.md](PYTEST_STYLE.md): fast pytest unit and integration tests under `tests/`.
 - Browser-driven test conventions: the website family (`website` and its inheriting `typescript`) includes `PLAYWRIGHT_USAGE.md` in their propagated `docs/` folder for tests under `tests/playwright/`.
-- Browser test authoring style: the website family (`website` and its inheriting `typescript`) includes `PLAYWRIGHT_TEST_STYLE.md`, shipped via the `templates/website/` overlay, in their propagated `docs/` folder for how to write Playwright tests under `tests/playwright/`.
+- Browser test authoring style: the website family (`website` and its inheriting `typescript`) includes `PLAYWRIGHT_TEST_STYLE.md` in their propagated `docs/` folder for how to write Playwright tests under `tests/playwright/`.
 - [PYTHON_STYLE.md](PYTHON_STYLE.md): repo-wide Python rules, including
   the `assert`-only-in-tests boundary.

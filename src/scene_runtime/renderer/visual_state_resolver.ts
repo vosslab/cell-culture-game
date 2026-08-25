@@ -80,9 +80,6 @@ export interface ResolvedVisualState {
   anchor_material_effects: AnchorMaterialEffect[];
   // Convenience: the first text overlay's text, when present.
   label_text?: string;
-  // True when the object should render as a labeled placeholder (no asset
-  // could be resolved). Mirrors the renderer's missing-asset path.
-  placeholder?: boolean;
   // Flat string attributes for the DOM node (data-* in the renderer layer).
   data_attrs: Record<string, string>;
 }
@@ -680,9 +677,6 @@ export function resolve_visual_state(
     }
   }
 
-  // Placeholder when no base asset could be resolved.
-  const placeholder = asset_name === null ? true : undefined;
-
   const result: ResolvedVisualState = {
     asset_name,
     asset_layers,
@@ -692,9 +686,6 @@ export function resolve_visual_state(
   };
   if (label_text !== undefined) {
     result.label_text = label_text;
-  }
-  if (placeholder !== undefined) {
-    result.placeholder = placeholder;
   }
   return result;
 }

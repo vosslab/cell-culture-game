@@ -66,6 +66,7 @@
     <path d="M 7.917 259.244 C 11.474 259.864 15.632 259.864 20.949 260.483 C 22.148 260.483 23.907 260.483 23.907 257.985 L 23.907 124.465 C 23.907 124.465 23.907 120.708 21.548 120.068 C 16.211 119.448 11.474 119.448 7.917 118.808 L 7.917 259.244 Z" fill="#f5f5f5" fill-rule="evenodd" fill-opacity="1" stroke="none"/>
     <path d="M 7.917 259.244 C 11.474 259.864 15.632 259.864 20.949 260.483 C 22.148 260.483 23.907 260.483 23.907 257.985 L 23.907 124.465 C 23.907 124.465 23.907 120.708 21.548 120.068 C 16.211 119.448 11.474 119.448 7.917 118.808 L 7.917 259.244 Z" fill="none" stroke="#333" stroke-width=".79951543px" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-dasharray="none" stroke-opacity="1"/>
     <path d="M 39.817 412.471 C 45.694 399.279 53.949 373.534 54.528 364.101 C 53.948 364.101 53.369 364.101 52.769 364.74 C 52.189 367.258 51.59 372.275 50.411 378.551 C 49.231 382.949 48.052 387.986 46.293 393.003 C 43.935 400.538 40.996 407.453 40.397 409.973 C 39.817 412.471 38.637 415.629 36.859 416.868 C 37.459 416.868 38.638 415.629 39.817 412.471 Z" fill="#fff" fill-rule="evenodd" fill-opacity="1" stroke="none"/>
+    <path d="M 12.5 60 L 12.5 332" fill="none" stroke="#d9f2f6" stroke-width="1.4" stroke-linecap="round" opacity=".75"/>
   </g>
   <rect id="anchor_liquid_bounds" x="7.917" y="35.899" width="54.846" height="383.528" fill="none" stroke="none" display="none"/>
   <rect id="anchor_label" x="21.1799" y="165.797" width="27.5452" height="83.8374" fill="none" stroke="none" display="none"/>

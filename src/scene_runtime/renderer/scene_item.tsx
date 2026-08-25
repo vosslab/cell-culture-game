@@ -21,8 +21,8 @@
 // Frozen DOM contract (plan "Frozen DOM contract"): the item div emits exactly
 // these data-* attributes:
 //   data-placement-name, data-object-name, data-zone, data-kind, data-depth,
-//   data-item-id, data-asset, and (placeholder only)
-//   data-missing-svg + data-placeholder-kind.
+//   data-item-id and data-asset. Internal diagnostic cards additionally emit
+//   data-render-error.
 // Additive failure-only marker: data-resolver-degraded="<message>" is stamped on
 // the item div when this item's visual-state resolution throws (see the resolver
 // memo below). It is absent on a clean item. The scene-root marker
@@ -34,7 +34,7 @@
 // enumeration"): data-item-id is stamped ONLY when the item's declared
 // ObjectDef.capabilities includes "clickable" (item.capabilities, bound
 // verbatim onto the ComputedItem by the layout pipeline). A decoration_only
-// object or a missing-object placeholder (bound with capabilities: []) omits
+// object or an internal render-error item (bound with capabilities: []) omits
 // data-item-id entirely, so it receives no [data-item-id] CSS affordance
 // (cursor, hover outline, active/candidate ring) and is invisible to the
 // delegated click_resolver and to enumerate_candidate_targets. This makes
@@ -450,15 +450,11 @@ function AnchorMaterialEffects(props: {
 }
 
 //============================================
-// Placeholder body (missing-svg / missing-object)
+// Render-error body
 //============================================
 
-// Render the labeled dashed-box body used for placeholder-mode items.
-// Emits a dashed border, centered label, two-line object_name + cause text.
-// NEVER an object-fit SVG container.
-function PlaceholderBody(props: { item: ComputedItem }): JSXElement {
-  const cause = (): string =>
-    props.item._missing_object === true ? "MISSING OBJECT" : "MISSING ART";
+// Render a labeled diagnostic card for an impossible layout binding.
+function RenderErrorBody(props: { item: ComputedItem }): JSXElement {
   return (
     <span
       style={{
@@ -472,7 +468,7 @@ function PlaceholderBody(props: { item: ComputedItem }): JSXElement {
         "white-space": "pre",
       }}
     >
-      {`${props.item.object_name}\n${cause()}`}
+      {`${props.item.object_name}\nMISSING OBJECT`}
     </span>
   );
 }
@@ -528,13 +524,13 @@ export function SceneItem(props: {
   // distinct.
   const placement_target = item.placement_name;
 
-  // Placeholder-mode items skip SVG/state resolution entirely.
-  const is_placeholder = item.missing_svg === true;
+  // Internal render-error items skip SVG/state resolution entirely.
+  const has_render_error = item._render_error !== undefined;
 
   // Actionability gate: an item is a click target only when its declared
   // ObjectDef.capabilities (bound verbatim onto the ComputedItem by the
   // layout pipeline) includes "clickable". decoration_only objects and
-  // missing-object placeholders (bound with capabilities: []) are excluded,
+  // render-error items (bound with capabilities: []) are excluded,
   // so they render with no data-item-id and are invisible to the delegated
   // click_resolver and to enumerate_candidate_targets.
   const is_clickable = item.capabilities.includes("clickable");
@@ -545,7 +541,7 @@ export function SceneItem(props: {
   }
 
   // Resolve the object's authored visual_states map (empty when the object is
-  // not in the library, e.g. a missing-object placeholder), filtered to the
+  // absent from the library, e.g. a render-error item), filtered to the
   // OBJECT-level entries. Subpart visual_states (applies_to: 'subpart', e.g. the
   // per-tube material on a rack, or per-well material on a plate) are NOT resolved
   // by this object-level renderer (resolving them against object-level state would
@@ -710,7 +706,7 @@ export function SceneItem(props: {
   // WITHOUT remounting the item's DOM node.
   type ResolveResult = { state: ResolvedVisualState | null; error: string };
   const resolveResult = createMemo<ResolveResult>(() => {
-    if (is_placeholder || !has_visual_states) {
+    if (has_render_error || !has_visual_states) {
       return { state: null, error: "" };
     }
     const state = read_object_state(props.store, target);
@@ -849,8 +845,7 @@ export function SceneItem(props: {
     }
   }
 
-  if (is_placeholder) {
-    const placeholder_kind = item._missing_object === true ? "missing-object" : "missing-svg";
+  if (has_render_error) {
     return (
       <div
         data-placement-name={item.placement_name}
@@ -860,8 +855,7 @@ export function SceneItem(props: {
         data-depth={item.depth ?? undefined}
         data-asset={item.asset}
         data-exact-subpart-target={active_exact_subpart() ?? undefined}
-        data-missing-svg="true"
-        data-placeholder-kind={placeholder_kind}
+        data-render-error={item._render_error}
         style={{
           ...base_style,
           "box-sizing": "border-box",
@@ -873,7 +867,7 @@ export function SceneItem(props: {
           overflow: "visible",
         }}
       >
-        <PlaceholderBody item={item} />
+        <RenderErrorBody item={item} />
         <Show when={show_interaction_envelope()}>
           <div
             data-interaction-envelope="true"

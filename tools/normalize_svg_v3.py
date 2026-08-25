@@ -2251,8 +2251,7 @@ def _element_geometry_bbox(elem: lxml.etree._Element) -> "BBox | str | None":
 		# Text elements are rejected by classify() (A5 TEXT_UNSUPPORTED) before
 		# bbox is ever computed. Return None here so that if a text element somehow
 		# reaches bbox computation it is silently skipped rather than contributing
-		# a phantom zero-size point (previously v2 returned a zero-size
-		# bbox as a placeholder).
+		# a phantom zero-size point (previously v2 returned a zero-size bbox).
 		return None
 
 	return None
@@ -5205,8 +5204,8 @@ def _shadow_dry_run_report(input_path: Path) -> None:
 		# A simple conservative estimate: the bbox contributed by this element.
 		elem_b = cand.element_bbox
 		crop_delta_str = (
-			f"w_shrink_up_to={fmt(elem_b.width):.3f} "
-			f"h_shrink_up_to={fmt(elem_b.height):.3f}"
+			f"w_shrink_up_to={elem_b.width:.3f} "
+			f"h_shrink_up_to={elem_b.height:.3f}"
 		)
 		print(
 			f"SHADOW-CANDIDATE: {input_path} | "

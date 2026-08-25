@@ -1,25 +1,25 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220">
   <defs>
     <linearGradient id="tank-shell" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0" stop-color="#e8f8fb"/>
-      <stop offset="1" stop-color="#9ccbd6"/>
+      <stop offset="0" stop-color="#f2fcfd"/>
+      <stop offset="1" stop-color="#b6dfe5"/>
     </linearGradient>
     <linearGradient id="well" x1="0" x2="0" y1="0" y2="1">
-      <stop offset="0" stop-color="#688a96"/>
-      <stop offset="1" stop-color="#33515c"/>
+      <stop offset="0" stop-color="#759ca5"/>
+      <stop offset="1" stop-color="#45636b"/>
     </linearGradient>
   </defs>
-  <rect x="22" y="39" width="276" height="158" rx="24" fill="#466b77" stroke="#173c49" stroke-width="6"/>
-  <path d="M36 67h248v104c0 7-6 12-13 12H49c-7 0-13-5-13-12z" fill="url(#tank-shell)" stroke="#204b59" stroke-width="4"/>
-  <path d="M37 67 58 48h204l22 19z" fill="#d9f0f4" stroke="#204b59" stroke-width="4" stroke-linejoin="round"/>
-  <path d="M61 78h198v79H61z" fill="#f8feff" stroke="#5d8e9b" stroke-width="4"/>
-  <path d="M74 88h58v58H74z" fill="url(#well)" stroke="#1e424e" stroke-width="4"/>
-  <path d="M188 88h58v58h-58z" fill="url(#well)" stroke="#1e424e" stroke-width="4"/>
-  <path d="M141 86h38v64h-38z" fill="#bfe3ea" stroke="#35616f" stroke-width="4"/>
-  <path d="M147 96h26M147 106h26M147 116h26M147 126h26M147 136h26" stroke="#78aab6" stroke-width="3"/>
-  <path d="M76 161h168" stroke="#6c9eaa" stroke-width="5" stroke-linecap="round"/>
+  <rect x="22" y="39" width="276" height="158" rx="24" fill="#5c8790" stroke="#24343b" stroke-width="6"/>
+  <path d="M36 67h248v104c0 7-6 12-13 12H49c-7 0-13-5-13-12z" fill="url(#tank-shell)" stroke="#314d57" stroke-width="4"/>
+  <path d="M37 67 58 48h204l22 19z" fill="#e3f5f7" stroke="#314d57" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M61 78h198v79H61z" fill="#fbffff" stroke="#78aab4" stroke-width="4"/>
+  <path d="M74 88h58v58H74z" fill="url(#well)" stroke="#314d57" stroke-width="4"/>
+  <path d="M188 88h58v58h-58z" fill="url(#well)" stroke="#314d57" stroke-width="4"/>
+  <path d="M141 86h38v64h-38z" fill="#d5eff2" stroke="#527f89" stroke-width="4"/>
+  <path d="M147 96h26M147 106h26M147 116h26M147 126h26M147 136h26" stroke="#86b9c1" stroke-width="3"/>
+  <path d="M76 161h168" stroke="#78aab4" stroke-width="5" stroke-linecap="round"/>
   <circle cx="54" cy="38" r="15" fill="#151b23" stroke="#0a1017" stroke-width="4"/>
   <circle cx="266" cy="38" r="15" fill="#d8292f" stroke="#8c1217" stroke-width="4"/>
-  <path d="M54 53v12M266 53v12" stroke="#273f49" stroke-width="5" stroke-linecap="round"/>
+  <path d="M54 53v12M266 53v12" stroke="#314d57" stroke-width="5" stroke-linecap="round"/>
   <path d="M75 181h170" stroke="#d9f1f5" stroke-width="4" stroke-linecap="round"/>
 </svg>

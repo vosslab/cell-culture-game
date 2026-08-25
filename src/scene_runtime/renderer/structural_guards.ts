@@ -303,7 +303,7 @@ function checkAspectRatio(
 
   for (const item of final) {
     // Placeholder items have no real SVG asset; skip aspect check.
-    if (item.missing_svg === true) {
+    if (item._render_error !== undefined) {
       continue;
     }
 
@@ -345,7 +345,7 @@ function checkAssetsResolved(final: ComputedItem[], scene: ResolvedScene): Struc
   const violations: StructuralViolation[] = [];
   for (const item of final) {
     // Placeholder items deliberately have missing assets; skip the manifest check.
-    if (item.missing_svg === true) {
+    if (item._render_error !== undefined) {
       continue;
     }
 

@@ -83,10 +83,10 @@ file is published, not that a user workflow reaches it.
   infer words that have already been converted to paths.
 - Visible-content classification is a rendered visual judgment backed by the
   source element text recorded below.
-- Orphan classification is intentionally conservative. `drug_vial_rack.svg`
-  and `waste_tray.svg` have no current authored reference. The static
-  `electrode_module.svg` is published but the live object uses different open
-  and closed assets, so its reachability still needs a build-graph proof.
+- Orphan classification is intentionally conservative. `drug_vial_rack.svg`,
+  `waste_tray.svg`, and the static `electrode_module.svg` were deleted after
+  fresh reachability validation confirmed they had no learner-workflow role;
+  the live object uses separate open and closed assets.
 - This audit found no visible logo or brand wordmark in the 186-asset review.
   The permitted-logo exception therefore has no current positive example.
 
@@ -203,9 +203,9 @@ These four files do not justify a new result-surface abstraction.
 | Asset | Embedded content | Migration direction |
 | --- | --- | --- |
 | [hemocytometer_slide.svg](../../../assets/equipment/static/hemocytometer_slide.svg) | `Diamond mix chamber` and `Semicircle load` | Keep target geometry; expose region identity and action guidance through [hemocytometer_slide.yaml](../../../content/objects/equipment/hemocytometer_slide.yaml) and [trypan_blue_counting/protocol.yaml](../../../content/protocols/cell_culture/trypan_blue_counting/protocol.yaml). |
-| [drug_vial_rack.svg](../../../assets/equipment/static/drug_vial_rack.svg) | `Drug Stock` | Remove the label. No current content-YAML, source-code, or generated-manifest reference was found; confirm publication reachability and delete the asset if orphaned. |
-| [electrode_module.svg](../../../assets/equipment/static/electrode_module.svg) | `GEL SLOT` and `ELECTRODE CORE` | Do not confuse this published static file with the `electrode_module_open` and `electrode_module_closed` assets used by [electrode_module.yaml](../../../content/objects/equipment/electrode_module.yaml). Prove reachability, then delete if orphaned or remove its labels. |
-| [waste_tray.svg](../../../assets/equipment/static/waste_tray.svg) | `X Waste` | Remove the label. No current content-YAML, source-code, or generated-manifest reference was found; confirm publication reachability and delete the asset if orphaned. |
+| `drug_vial_rack.svg` (deleted) | `Drug Stock` | Deleted after fresh reachability validation confirmed no authored learner workflow reference. |
+| `electrode_module.svg` (deleted) | `GEL SLOT` and `ELECTRODE CORE` | Deleted after reachability validation confirmed the legacy static asset was not the open/closed object state used by [electrode_module.yaml](../../../content/objects/equipment/electrode_module.yaml). |
+| `waste_tray.svg` (deleted) | `X Waste` | Deleted after fresh reachability validation confirmed no authored learner workflow reference. |
 
 Older repository audits independently classified `drug_vial_rack` and
 `waste_tray` as file-exists/mapping-missing orphans. See
@@ -216,18 +216,15 @@ replace a fresh reachability gate in the implementation plan.
 
 ### Intrinsic marks
 
-The following five files contain only the kinds of sparse marks the current
-policy permits, but they still contain live SVG text and therefore require
-path-only source remediation:
+The following five former files contained only the kinds of sparse marks the
+current policy permits, but they still contained live SVG text at the time of
+this audit. All five were deleted after reachability validation, so no
+path-only source remediation remains:
 
-- [micropipette_rack.svg](../../../assets/equipment/static/micropipette_rack.svg):
-  `020`, `200`, and `1000`;
-- [t75_flask_v2.svg](../../../assets/equipment/static/t75_flask_v2.svg),
-  [t75_flask_v3.svg](../../../assets/equipment/static/t75_flask_v3.svg), and
-  [t75_flask_v4.svg](../../../assets/equipment/static/t75_flask_v4.svg): `75`,
-  `50`, and `25` graduations; and
-- [well_plate_24.svg](../../../assets/equipment/static/well_plate_24.svg):
-  rows `A-D` and columns `1-6`.
+- `micropipette_rack.svg` (deleted): `020`, `200`, and `1000`;
+- `t75_flask_v2.svg`, `t75_flask_v3.svg`, and `t75_flask_v4.svg` (deleted):
+  `75`, `50`, and `25` graduations; and
+- `well_plate_24.svg` (deleted): rows `A-D` and columns `1-6`.
 
 The rendered path-only review also found already-outlined intrinsic marks:
 
@@ -252,12 +249,12 @@ contains a hidden `Created on AvatarMaker.com` text node. Remove or convert the
 attribution according to its license and provenance requirements; never expose
 hidden live text merely to preserve a credit.
 
-Eight files carry `title` and `desc` metadata:
+At the time of the census, eight files carried `title` and `desc` metadata:
 
 - [centrifuge_running.svg](../../../assets/equipment/binary_state/centrifuge_running.svg);
 - [gel_opening_tool_hidden.svg](../../../assets/equipment/binary_state/gel_opening_tool_hidden.svg);
 - [mtt_powder_vial.svg](../../../assets/equipment/binary_state/mtt_powder_vial.svg);
-- [electrode_module.svg](../../../assets/equipment/static/electrode_module.svg);
+- `electrode_module.svg` (deleted after reachability validation);
 - [kimwipe_pad.svg](../../../assets/equipment/static/kimwipe_pad.svg);
 - [lens_tissue.svg](../../../assets/equipment/static/lens_tissue.svg);
 - [paper_towel_pad.svg](../../../assets/equipment/static/paper_towel_pad.svg);
@@ -369,8 +366,8 @@ repository-native normalizer can safely accept and strip imported metadata.
 | 17 prohibited visible-text assets | High | Source text extraction plus rendered review |
 | Seven complete or partial application interfaces | High | Rendered role, opaque runtime mode, object declarations, scenes, and protocol decisions agree |
 | Five permitted intrinsic live-text assets | High | Source text plus rendered physical context |
-| `drug_vial_rack.svg` and `waste_tray.svg` lack current authored references | High | Exact-name searches across authored content and source, corroborated by historical audits |
-| Static `electrode_module.svg` is unreachable in a learner workflow | Medium | Live object uses open/closed assets, but the static file remains in the generated manifest |
+| `drug_vial_rack.svg` and `waste_tray.svg` lacked current authored references | High | Exact-name searches across authored content and source, corroborated by historical audits; both were deleted after fresh reachability validation |
+| Static `electrode_module.svg` was unreachable in a learner workflow | High | Live object uses open/closed assets; fresh reachability validation confirmed the legacy static asset could be deleted |
 | Best implementation is one reusable result-surface model | Medium | Strong common ownership need; component shape still requires a representative prototype |
 | Existing object vocabulary is sufficient without amendment | Open | Must be tested against all three representative screens before contract approval is requested |
 

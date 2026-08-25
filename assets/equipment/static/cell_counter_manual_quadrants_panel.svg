@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 372 213">
-  <path fill="#002b3c" opacity="0.94" d="M 43 102 L 145 102 A 3 3 0 0 1 148 105 L 148 148 A 3 3 0 0 1 145 151 L 43 151 A 3 3 0 0 1 40 148 L 40 105 A 3 3 0 0 1 43 102 Z"/>
-  <path fill="none" stroke="#f7d56b" stroke-width="1.8" d="M 44 106 L 144 106 L 144 147 L 44 147 Z M 69 106 L 69 147 M 94 106 L 94 147 M 119 106 L 119 147 M 44 126.5 L 144 126.5"/>
-  <g fill="#e8fff7" stroke="#4ef0bf" stroke-width="1.25">
+  <path fill="#21363d" opacity="0.96" d="M 43 102 L 145 102 A 3 3 0 0 1 148 105 L 148 148 A 3 3 0 0 1 145 151 L 43 151 A 3 3 0 0 1 40 148 L 40 105 A 3 3 0 0 1 43 102 Z"/>
+  <path fill="none" stroke="#9feff1" stroke-width="1.8" d="M 44 106 L 144 106 L 144 147 L 44 147 Z M 69 106 L 69 147 M 94 106 L 94 147 M 119 106 L 119 147 M 44 126.5 L 144 126.5"/>
+  <g fill="#f8feff" stroke="#2c9abb" stroke-width="1.25">
     <circle cx="55" cy="115" r="3"/><circle cx="62" cy="120" r="3"/><circle cx="82" cy="116" r="3"/>
     <circle cx="105" cy="116" r="3"/><circle cx="112" cy="121" r="3"/><circle cx="132" cy="118" r="3"/>
     <circle cx="55" cy="138" r="3"/><circle cx="63" cy="134" r="3"/><circle cx="82" cy="138" r="3"/>
     <circle cx="105" cy="136" r="3"/><circle cx="113" cy="141" r="3"/><circle cx="132" cy="138" r="3"/>
   </g>
-  <g fill="#3275c5" stroke="#b9dcff" stroke-width="1.1">
+  <g fill="#c95c5c" stroke="#fff1ef" stroke-width="1.1">
     <circle cx="87" cy="121" r="3"/><circle cx="119" cy="115" r="3"/><circle cx="70" cy="137" r="3"/><circle cx="122" cy="141" r="3"/>
   </g>
-  <g fill="none" stroke="#f7d56b" stroke-width="1.8" stroke-linecap="round"><path d="M 156 115 L 172 115 M 156 123 L 172 123 M 156 131 L 168 131 M 156 139 L 172 139"/></g>
+  <g fill="none" stroke="#9feff1" stroke-width="1.8" stroke-linecap="round"><path d="M 156 115 L 172 115 M 156 123 L 172 123 M 156 131 L 168 131 M 156 139 L 172 139"/></g>
 </svg>

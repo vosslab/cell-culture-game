@@ -121,11 +121,7 @@ def test_variant_fan_out_rejected_with_error_message(validator):
 	assert 'material_name' in error_msg
 	assert 'example_bottle_empty' in error_msg or 'distinct' in error_msg
 	assert 'material_volume' in error_msg
-	# TEMPORARY "for now" deferral: the display_color recolor pipeline was lost
-	# in the Solid.js rewrite, so reagent bottles fan out to distinct color
-	# variant assets. This finding is demoted to WARNING until the recolor
-	# pipeline is restored. See assets/SVG_ASSET_GAPS.md.
-	assert variant_errors[0].severity == Severity.WARNING
+	assert variant_errors[0].severity == Severity.ERROR
 
 
 #============================================
@@ -353,11 +349,7 @@ def test_pipette_with_held_material_variant_fan_out_rejected(validator):
 
 	error_msg = variant_errors[0].message
 	assert 'held_material_name' in error_msg
-	# TEMPORARY "for now" deferral: the display_color recolor pipeline was lost
-	# in the Solid.js rewrite, so material variants fan out to distinct color
-	# variant assets. This finding is demoted to WARNING until the recolor
-	# pipeline is restored. See assets/SVG_ASSET_GAPS.md.
-	assert variant_errors[0].severity == Severity.WARNING
+	assert variant_errors[0].severity == Severity.ERROR
 
 
 #============================================

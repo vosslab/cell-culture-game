@@ -72,7 +72,7 @@ placements:
     depth_tier: 1
     align_stop: center
 
-  # Center working surface: hood surface placeholder (center)
+  # Center working surface: clean hood work surface
   - placement_name: center_hood_surface
     object_name: hood_surface
     zone: center

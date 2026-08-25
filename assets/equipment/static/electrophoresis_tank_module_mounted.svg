@@ -1,10 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220">
-  <path d="M69 81h182v74H69z" fill="#4e7883" opacity=".42"/>
-  <path d="M84 86h63v61H84z" fill="#40565e" stroke="#173c49" stroke-width="3"/>
-  <path d="M173 86h63v61h-63z" fill="#40565e" stroke="#173c49" stroke-width="3"/>
-  <path d="M149 82h23v72h-23z" fill="#c7e8ee" stroke="#24515e" stroke-width="3"/>
-  <path d="M153 93h15M153 104h15M153 115h15M153 126h15M153 137h15" stroke="#427482" stroke-width="2"/>
+  <path d="M69 81h182v74H69z" fill="#6d9fa8" opacity=".3"/>
+  <path d="M84 86h63v61H84z" fill="#506d75" stroke="#2d444d" stroke-width="3"/>
+  <path d="M173 86h63v61h-63z" fill="#506d75" stroke="#2d444d" stroke-width="3"/>
+  <path d="M149 82h23v72h-23z" fill="#d4eff2" stroke="#527f89" stroke-width="3"/>
+  <path d="M153 93h15M153 104h15M153 115h15M153 126h15M153 137h15" stroke="#5a929d" stroke-width="2"/>
   <path d="M89 92h52M89 141h52M178 92h52M178 141h52" fill="none" stroke="#eefcff" stroke-width="2" opacity=".8"/>
-  <path d="M77 158h166" stroke="#1c4c5a" stroke-width="4" stroke-linecap="round"/>
-  <text x="160" y="174" text-anchor="middle" fill="#173c49" font-family="sans-serif" font-size="10">mounted module, cassette, and buffer dam</text>
+  <path d="M77 158h166" stroke="#385862" stroke-width="4" stroke-linecap="round"/>
 </svg>

@@ -62,7 +62,7 @@ import { SceneItem } from "./scene_item.js";
 // subpart in definition order. The generated `subparts` vocabulary is the
 // authoritative enumerable set; it is deliberately not inferred from rendered
 // geometry because some structured objects have no subpart overlay geometry.
-// Placeholder/missing-object placements and state-free targets are skipped.
+// Render-error placements and state-free targets are skipped.
 export function build_seed_list(result: PipelineResult): TargetSeed[] {
   const seeds: TargetSeed[] = [];
   const seenObjects = new Set<string>();
@@ -76,7 +76,7 @@ export function build_seed_list(result: PipelineResult): TargetSeed[] {
     seenObjects.add(object_name);
     const def = OBJECT_LIBRARY[object_name];
     if (def === undefined) {
-      // missing-object placeholder: no schema to seed.
+      // Render-error placement: no object schema to seed.
       continue;
     }
     if (Object.keys(def.state_schema).length > 0 && !seenTargets.has(object_name)) {

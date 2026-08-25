@@ -45,17 +45,17 @@ to one kind. The grouping uses `kind:` from object YAMLs when an asset
 is referenced by one; otherwise a filename heuristic (described in
 section 11 source-of-truth note).
 
-| Kind | SVG count | Notes |
-| --- | --- | --- |
-| bottle | 46 | includes bottles, vials, carboys, microtubes, sample tubes, falcon tubes; many ship `_empty`, `_filled` legacy variants |
-| flask | 7 | one canonical `t75_flask`; six historical variants (`_legacy`, `_servier`, `_v2`..`_v5`) |
-| pipette | 10 | aspirating, multichannel, p10 / p200 variants, serological, plus `micropipette_rack` |
-| plate | 2 | `96well_pcr_plate`, `well_plate_24` |
-| rack | 3 | `conical_15ml_rack`, `microtube_rack_24_placeholder` (named placeholder), `tip_box` |
-| decoration | 7 | tip boxes, kimwipe pad, ethanol spray, gel loading tips, professor avatar |
-| waste | 3 | `biohazard_decant`, `waste_container`, `waste_tray` |
-| equipment | 46 | centrifuge, microscope, microwave, plate reader, vortex, water bath, etc.; many ship `_new`, `_old`, `_legacy` historical variants |
-| fallback | 1 | `_placeholder.svg` (dashed-border rectangle, 100x100 viewBox) |
+| Kind       | SVG count | Notes                                                                                                                              |
+| ---------- | --------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| bottle     | 46        | includes bottles, vials, carboys, microtubes, sample tubes, falcon tubes; many ship `_empty`, `_filled` legacy variants            |
+| flask      | 7         | one canonical `t75_flask`; six historical variants (`_legacy`, `_servier`, `_v2`..`_v5`)                                           |
+| pipette    | 10        | aspirating, multichannel, p10 / p200 variants, serological, plus `micropipette_rack`                                               |
+| plate      | 2         | `96well_pcr_plate`, `well_plate_24`                                                                                                |
+| rack       | 3         | `conical_15ml_rack`, `microtube_rack_24_placeholder` (named placeholder), `tip_box`                                                |
+| decoration | 7         | tip boxes, kimwipe pad, ethanol spray, gel loading tips, professor avatar                                                          |
+| waste      | 3         | `biohazard_decant`, `waste_container`, `waste_tray`                                                                                |
+| equipment  | 46        | centrifuge, microscope, microwave, plate reader, vortex, water bath, etc.; many ship `_new`, `_old`, `_legacy` historical variants |
+| fallback   | 1         | `_placeholder.svg` (dashed-border rectangle, 100x100 viewBox)                                                                      |
 
 Total scientific SVGs: 123 (excludes `_placeholder.svg`).
 Total SVG files: 124.
@@ -72,15 +72,15 @@ script removed after this audit; see section 11).
 `visual_states`. Distribution by kind directory:
 
 | Kind directory | YAML count |
-| --- | --- |
-| bottle | 31 |
-| decoration | 7 |
-| equipment | 21 |
-| flask | 2 |
-| pipette | 7 |
-| plate | 1 |
-| rack | 4 |
-| waste | 4 |
+| -------------- | ---------- |
+| bottle         | 31         |
+| decoration     | 7          |
+| equipment      | 21         |
+| flask          | 2          |
+| pipette        | 7          |
+| plate          | 1          |
+| rack           | 4          |
+| waste          | 4          |
 
 Across the 78 YAMLs, 67 unique `asset_name` values are referenced.
 Eleven YAMLs reference more than one asset (typically state variants
@@ -144,20 +144,20 @@ production template that has no corresponding `.svg` file under
 object YAMLs (none from production templates). Source object YAMLs are
 listed alongside each name.
 
-| Missing SVG name | Referenced by |
-| --- | --- |
-| `centrifuge_idle` | `content/objects/equipment/centrifuge.yaml` |
-| `centrifuge_spinning` | `content/objects/equipment/centrifuge.yaml` |
-| `electrophoresis_tank_with_lid` | `content/objects/equipment/electrophoresis_tank.yaml` |
-| `electrophoresis_tank_with_module` | `content/objects/equipment/electrophoresis_tank.yaml` |
-| `electrophoresis_tank_without_lid` | `content/objects/equipment/electrophoresis_tank.yaml` |
+| Missing SVG name                      | Referenced by                                         |
+| ------------------------------------- | ----------------------------------------------------- |
+| `centrifuge_idle`                     | `content/objects/equipment/centrifuge.yaml`           |
+| `centrifuge_spinning`                 | `content/objects/equipment/centrifuge.yaml`           |
+| `electrophoresis_tank_with_lid`       | `content/objects/equipment/electrophoresis_tank.yaml` |
+| `electrophoresis_tank_with_module`    | `content/objects/equipment/electrophoresis_tank.yaml` |
+| `electrophoresis_tank_without_lid`    | `content/objects/equipment/electrophoresis_tank.yaml` |
 | `electrophoresis_tank_without_module` | `content/objects/equipment/electrophoresis_tank.yaml` |
-| `plate_reader_idle` | `content/objects/equipment/plate_reader.yaml` |
-| `plate_reader_reading` | `content/objects/equipment/plate_reader.yaml` |
-| `trypan_blue_bottle` | `content/objects/bottle/trypan_blue_bottle.yaml` |
-| `water_bath_heating` | `content/objects/equipment/water_bath.yaml` |
-| `water_bath_idle` | `content/objects/equipment/water_bath.yaml` |
-| `well` | `content/objects/plate/well_plate_96.yaml` |
+| `plate_reader_idle`                   | `content/objects/equipment/plate_reader.yaml`         |
+| `plate_reader_reading`                | `content/objects/equipment/plate_reader.yaml`         |
+| `trypan_blue_bottle`                  | `content/objects/bottle/trypan_blue_bottle.yaml`      |
+| `water_bath_heating`                  | `content/objects/equipment/water_bath.yaml`           |
+| `water_bath_idle`                     | `content/objects/equipment/water_bath.yaml`           |
+| `well`                                | `content/objects/plate/well_plate_96.yaml`            |
 
 Pattern observations:
 
@@ -482,12 +482,12 @@ treat this plan as authority for:
 Inventory counts in this plan come from explicit
 `git ls-files <pathspec>` queries against tracked files at HEAD:
 
-| Count | Command |
-| --- | --- |
-| 127 tracked files under assets/equipment/ | `git ls-files assets/equipment/ \| wc -l` |
-| 124 SVG files in assets/equipment/ | `git ls-files assets/equipment/ \| grep -c '\.svg$'` (piped grep allowed) |
-| 78 object YAMLs | `git ls-files content/objects/ \| wc -l` |
-| 10 production templates | `git ls-files experiments/css_native_layout/templates/ \| grep -v dir_ \| wc -l` |
+| Count                                     | Command                                                                          |
+| ----------------------------------------- | -------------------------------------------------------------------------------- |
+| 127 tracked files under assets/equipment/ | `git ls-files assets/equipment/ \| wc -l`                                        |
+| 124 SVG files in assets/equipment/        | `git ls-files assets/equipment/ \| grep -c '\.svg$'` (piped grep allowed)        |
+| 78 object YAMLs                           | `git ls-files content/objects/ \| wc -l`                                         |
+| 10 production templates                   | `git ls-files experiments/css_native_layout/templates/ \| grep -v dir_ \| wc -l` |
 
 Cross-reference data (asset references, orphan list, missing list)
 came from temp Python scripts under repo root with `_temp_` prefix.
@@ -548,8 +548,7 @@ work that follows protocol authoring, not asset-pipeline scope.
   legacy `_empty` / `_filled` variant pairs.
 - [ONBOARDING.md](ONBOARDING.md) -
   lane index and the broader clean-start context.
-- [MISSING_SVG_PLACEHOLDERS.md](../../../assets/equipment/MISSING_SVG_PLACEHOLDERS.md) -
-  pre-existing inventory of named placeholders (eleven entries) that
-  use the placeholder template rather than the fallback file. These
-  are visible-but-clearly-placeholder assets rather than `_placeholder`
-  fallbacks; the user invariant in section 1 applies to them too.
+- The retired `assets/equipment/MISSING_SVG_PLACEHOLDERS.md` inventory recorded
+  eleven named stand-in assets at the time of this plan. The 2026-08-24
+  equipment-art census replaced every retained stand-in with finished artwork
+  and removed that stale inventory; Git history preserves the original record.

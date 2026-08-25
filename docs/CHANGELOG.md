@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-08-24
+
+### Fixes and Maintenance
+
+- The equipment SVG sweep adopted the de-shadowed Servier visual dialect.
+  Detached floor shadows were removed narrowly while local form shading and
+  semantic/runtime anchors were retained.
+- Removed exactly 40 unreachable retired static SVG variants after reachability
+  validation. Seven result composites remain byte-preserved; their migration is
+  deferred.
+- Retired `assets/equipment/MISSING_SVG_PLACEHOLDERS.md` after confirming that
+  all 146 retained equipment SVGs are finished artwork. Reconciled
+  `assets/equipment/SOURCES.md` and `assets/SVG_ASSET_GAPS.md` against the current
+  recursive asset tree, including corrected DBCLS provenance for `tube_rack.svg`.
+- Made scene generation strict for object/SVG resolution. Removed the authored
+  `missing_svg` scene field, the alternate scene-emission mode, and the generated
+  `svg_placeholder_keys.ts` compatibility surface. Layout-only impossible states
+  now use an internal `render_error` diagnostic outside authored scene schema.
+- The object validator now rejects paired runtime material bindings that fan out
+  to several SVG forms. This enforces the canonical one-compiled-form rule at
+  the object boundary instead of leaving it as a compatibility warning.
+
+### Developer Tests and Notes
+
+- Audited the SVG sweep against repository test policy. Permanent additions are
+  limited to one inline provenance-parser regression and one `tmp_path` dry-run
+  behavior regression; both are offline fast-lane tests. Exact counts, hashes,
+  per-size renders, and contact-sheet construction remain one-time
+  implementation evidence. The temporary generator was removed after use. The
+  verified, self-contained final SVG was intentionally promoted to
+  `docs/figures/` and linked from the README and usage docs for GitHub-based
+  human review; the oversized PNG remains ignored implementation evidence.
+- A later template-vendored refresh invalidated the SVG-sweep tree's final-suite
+  counts as combined-tree evidence. Current revalidation remains pending because
+  newly vendored permanent gates impose an unapproved whole-repository line
+  migration and a machine-dependent checkout-size subprocess check.
+
 ## 2026-08-23
 
 ### Behavior or Interface Changes
@@ -38,6 +75,12 @@
 
 ### Developer Tests and Notes
 
+- Final SVG-sweep delivery validation passed: the production material contact
+  sheet passed, `./run_playwright_tests.sh` passed 115/115, and
+  `./super_all_tests.sh` passed 20/20. The final audit reports 131 objects,
+  146 SVGs, and zero findings. The material baseline was intentionally
+  refreshed after visual review; human visual approval of the labeled all-SVG
+  contact sheet remains pending.
 - The real Trypan Blue first step covers all five visible interactions,
   including hint pointer and keyboard use.
 - The real viability choice proves generic hint non-disclosure while preserving

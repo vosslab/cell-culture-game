@@ -44,13 +44,9 @@ export function bindObjects(
   return placements.map((p): BoundPlacement => {
     const obj = library[p.object_name];
     if (!obj) {
-      // Object absent from the library. Record the diagnostic, but DO NOT mark
-      // _error: an _error placement is orphaned in group_by_zone and never
-      // reaches the render output, blanking content. Instead bind it as a
-      // renderable placeholder (missing_svg true) carrying _missing_object so
-      // the renderer shows a distinct "missing object" box. It then flows
-      // through scale -> group -> layout normally (it has a real zone and a
-      // default layout/aspect), and structural guards skip missing_svg items.
+      // Object absent from the library. Record the diagnostic and bind an
+      // internal render-error card so diagnostic renders retain the placement's
+      // location. Authored and generated scenes resolve object names earlier.
       diagnostics.push({
         stage: "bind",
         severity: "error",
@@ -73,8 +69,7 @@ export function bindObjects(
           anchor_y: "bottom",
           anchor_y_offset: 0,
         },
-        missing_svg: true,
-        _missing_object: true,
+        _render_error: "missing-object",
       };
     }
     const asset = assets[obj.asset];
