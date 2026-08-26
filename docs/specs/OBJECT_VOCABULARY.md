@@ -234,10 +234,10 @@ Rules:
   handles for role paint and the derived gravity-part transform. Structured
   subpart material rendering remains a separate generated-geometry mechanism.
 
-  This rule does not prohibit complete discrete forms that depict genuine form,
-  geometry, or content states, including `mtt_powder_vial_empty`; they may be
-  selected by a material-like field when no paired runtime material binding
-  applies. Filenames never determine intent.
+  This rule does not prohibit complete discrete forms that depict genuine form
+  or geometry changes. Contents already carried by material state do not justify
+  a second vessel form: pre-weighed MTT powder uses the canonical microtube form
+  in both material states. Filenames never determine intent.
 
 Object YAML must not name an SVG `layer_name`, `paint_role`, `adjustment`,
 stacking phase, runtime handle, DOM id, or SVG-recipe sidecar. Runtime code

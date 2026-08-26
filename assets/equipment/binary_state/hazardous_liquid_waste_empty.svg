@@ -1,16 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 125 140">
-  <path d="M24 43c0-8 6-14 14-14h48c8 0 14 6 14 14v80c0 8-6 14-14 14H38c-8 0-14-6-14-14z" fill="#dff3f4" stroke="#334155" stroke-linejoin="round" stroke-width="3"/>
-  <path d="M29 47c0-5 4-9 9-9h48c5 0 9 4 9 9v77c0 5-4 9-9 9H38c-5 0-9-4-9-9z" fill="#f8fcfc"/>
-  <path d="M34 49v69c0 6 3 10 8 12" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="4" opacity=".9"/>
-  <path d="M70 29v-8c0-4 3-7 7-7h10c4 0 7 3 7 7v8" fill="#b9dadd" stroke="#334155" stroke-linejoin="round" stroke-width="3"/>
-  <rect x="68" y="25" width="28" height="11" rx="3" fill="#6e9fa7" stroke="#334155" stroke-width="3"/>
-  <circle cx="82" cy="25" r="6" fill="#dff3f4" stroke="#334155" stroke-width="2"/>
-  <path d="M118 11c-15 0-17 3-22 9l-11 8" fill="none" stroke="#334155" stroke-linecap="round" stroke-width="6"/>
-  <path d="M118 11c-15 0-17 3-22 9l-11 8" fill="none" stroke="#f8fcfc" stroke-linecap="round" stroke-width="2.5"/>
-  <rect x="39" y="61" width="35" height="45" rx="3" fill="#fffdf7" stroke="#334155" stroke-width="2.5"/>
-  <path d="M56 68l10 10-10 10-10-10z" fill="#fffdf7" stroke="#c5262d" stroke-width="2.5"/>
-  <path d="M56 72v8M56 84v1" stroke="#334155" stroke-linecap="round" stroke-width="3.5"/>
-  <path d="M78 48h11c5 0 9 4 9 9v28c0 5-4 9-9 9H78c-5 0-9-4-9-9V57c0-5 4-9 9-9z" fill="#b9dadd" stroke="#334155" stroke-linejoin="round" stroke-width="3"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 125 140" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Empty hazardous liquid waste container">
+  <path d="M23 47 C23 37 30 31 40 31 H82 C92 31 99 37 99 47 V120 C99 130 93 136 83 136 H39 C29 136 23 130 23 120 Z" fill="#b5d0d8" stroke="#3d6273" stroke-linejoin="round" stroke-width="2.8"/>
+  <path d="M29 49 C29 42 34 38 41 38 H80 C87 38 92 42 92 49 V120 C92 126 88 129 81 129 H40 C33 129 29 126 29 120 Z" fill="#eaf4f5"/>
+  <path d="M86 41 C90 43 92 46 92 51 V119 C92 125 88 129 81 129 H75 C80 125 82 121 82 115 V50 C82 45 84 42 86 41 Z" fill="#9fbfc9" opacity=".8"/>
+  <path d="M35 50 V114 C35 121 38 125 43 127" fill="none" stroke="#ffffff" stroke-linecap="round" stroke-width="3.3" opacity=".9"/>
+  <path d="M59 31 V22 C59 15 64 11 71 11 H80 C87 11 92 15 92 22 V31" fill="none" stroke="#3d6273" stroke-width="3" stroke-linecap="round"/>
+  <path d="M62 32 V27 C62 23 65 20 69 20 H83 C87 20 90 23 90 27 V32" fill="#edf6f7" stroke="#3d6273" stroke-width="2.4"/>
+  <ellipse cx="77" cy="34" rx="15" ry="5" fill="#759da9" stroke="#3d6273" stroke-width="2.4"/>
+  <ellipse cx="77" cy="32" rx="8" ry="3.2" fill="#dff0f2" stroke="#527887" stroke-width="1.4"/>
+  <path d="M119 11 C108 11 101 14 96 20 L84 31" fill="none" stroke="#3d6273" stroke-linecap="round" stroke-width="5.4"/>
+  <path d="M119 11 C108 11 101 14 96 20 L84 31" fill="none" stroke="#f7fbfb" stroke-linecap="round" stroke-width="2.2"/>
+  <path d="M39 63 Q39 59 43 59 H69 Q73 59 73 63 V105 Q73 109 69 109 H43 Q39 109 39 105 Z" fill="#fffdf8" stroke="#4f6570" stroke-width="2"/>
+  <path d="M56 68 L65 77 L56 86 L47 77 Z" fill="#fffdf8" stroke="#c5262d" stroke-width="2.2"/>
+  <path d="M56 72 V79 M56 83 V84" stroke="#3d4d55" stroke-linecap="round" stroke-width="3"/>
+  <path d="M78 49 C84 48 89 52 89 58 V84 C89 90 85 94 79 94 H75 V49 Z" fill="#b7d7d9" stroke="#527887" stroke-width="2.3"/>
   <rect id="anchor_highlight" x="17" y="10" width="101" height="127" fill="none" stroke="none" display="none"/>
   <rect id="anchor_label" x="39" y="61" width="35" height="45" fill="none" stroke="none" display="none"/>
   <rect id="anchor_error" x="100" y="15" width="16" height="16" fill="none" stroke="none" display="none"/>

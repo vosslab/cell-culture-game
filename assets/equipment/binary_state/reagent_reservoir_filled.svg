@@ -1,9 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 130">
-  <g stroke="#274653" stroke-linejoin="round">
-    <path d="M25 30h250l-20 75H45z" fill="#c9e9f0" stroke-width="4"/>
-    <path d="M25 30 45 55h210l20-25" fill="#e8f6fa" stroke-width="4"/>
-    <path d="M45 55h210l-13 36H58z" fill="#8ecbd9" stroke-width="2.4"/>
-    <path d="M61 64h178" fill="none" stroke="#effcff" stroke-linecap="round" stroke-width="3"/>
-    <path d="M73 101h154" fill="none" stroke="#91cbd8" stroke-width="2"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 160" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Reagent reservoir holding liquid">
+  <path d="M31 42 C33 29 39 24 51 24 H269 C281 24 287 29 289 42 L303 116 C305 128 299 136 287 137 H33 C21 136 15 128 17 116 Z" fill="#b7d3dc" stroke="#436879" stroke-width="3.4" stroke-linejoin="round"/>
+  <path d="M40 43 C42 34 46 31 54 31 H266 C274 31 278 34 280 43 L269 82 H51 Z" fill="#f7fcfc" stroke="#668b99" stroke-width="2.3" stroke-linejoin="round"/>
+  <path d="M51 82 H269 L281 121 C282 125 279 128 273 128 H47 C41 128 38 125 39 121 Z" fill="#e5f1f3" stroke="#668b99" stroke-width="2.3" stroke-linejoin="round"/>
+  <path d="M53 94 C101 98 219 98 267 94 L274 117 C275 120 272 121 268 121 H52 C48 121 46 120 47 117 Z" fill="#68a1c1"/>
+  <path d="M53 94 C101 90 219 99 267 94" fill="none" stroke="#c3e0eb" stroke-width="3" stroke-linecap="round"/>
+  <path d="M31 128 H289 C287 135 281 139 273 139 H47 C39 139 33 135 31 128 Z" fill="#8eafbb"/>
+  <path d="M54 40 C96 37 224 37 266 40" fill="none" stroke="#ffffff" stroke-width="2" opacity=".9" stroke-linecap="round"/>
+  <path d="M79 132 H241" fill="none" stroke="#dbecef" stroke-width="2.4" stroke-linecap="round"/>
 </svg>

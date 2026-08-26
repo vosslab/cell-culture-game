@@ -1,16 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 393.3275 278.5243">
   <title>96-well PCR plate</title>
-  <!-- Orthographic full-skirt plate: the deck and every well occupy one top plane. -->
-  <g id="plate_body">
-    <rect x="10" y="15" width="373.3275" height="250" rx="12" fill="#dbe9ee" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
-    <rect x="18" y="23" width="357.3275" height="234" rx="8" fill="#f6fbfc" stroke="#6f9eae" stroke-width="2.5"/>
-    <rect x="24" y="30" width="346.3275" height="230" rx="5" fill="#c9e5ee" stroke="#8ab7c6" stroke-width="2"/>
+  <defs>
+    <linearGradient id="plate_skirt" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c6dce2"/><stop offset="1" stop-color="#85a8b4"/></linearGradient>
+    <linearGradient id="plate_deck" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f9ffff"/><stop offset=".55" stop-color="#d9eef1"/><stop offset="1" stop-color="#abcdd5"/></linearGradient>
+    <radialGradient id="well_recess" cx="35%" cy="25%" r="70%"><stop stop-color="#f9ffff"/><stop offset=".52" stop-color="#c9e1e6"/><stop offset="1" stop-color="#7fa6b1"/></radialGradient>
+  </defs>
+  <!-- Molded PCR plate: the recessed deck sits inside a continuous rim, while the short front and right skirt make its shallow physical thickness legible. -->
+  <g id="plate_body" stroke-linejoin="round">
+    <path d="M20 32Q20 19 33 19H361q13 0 13 13v214l-12 14H32q-12 0-12-12z" fill="url(#plate_skirt)"/>
+    <path d="M20 246h354l-12 14H32q-12 0-12-12z" fill="#91b5bf"/>
+    <path d="M374 32v214l-12 14V46z" fill="#789ea9"/>
+    <rect x="24" y="23" width="346.3275" height="229" rx="12" fill="#eff9fa" stroke="#6f99a5" stroke-width="1.5"/>
+    <rect x="30" y="29" width="334.3275" height="217" rx="8" fill="url(#plate_deck)" stroke="#a6c7cf" stroke-width="1.5"/>
+    <path d="M39 36h314" fill="none" stroke="#fff" stroke-width="2.5" opacity=".9"/>
+    <path d="M33 252h327" fill="none" stroke="#dff0f3" stroke-width="1.5" opacity=".8"/>
   </g>
-  <g id="orientation_marker" fill="#6f9eae" stroke="#38545d" stroke-linejoin="round" stroke-width="1.5">
-    <path d="M29 34h9L29 43Z"/>
-  </g>
-  <g id="wells" fill="#faffff" stroke="#38545d" stroke-width="1.8" aria-label="96 plate wells">
+  <g id="orientation_marker" fill="#557f8b"><path d="M35 35h10L35 45Z"/></g>
+  <g id="wells" fill="url(#well_recess)" stroke="#6f99a5" stroke-width="1.15" aria-label="96 plate wells">
     <g class="well_row" data-row="A">
       <g class="well"><circle id="A1" data-subpart-id="A1" cx="45.010" cy="49.260" r="11"/><circle cx="45.010" cy="49.260" r="7.4" fill="none" stroke="#c8e1e9" stroke-width="1.2"/></g>
       <g class="well"><circle id="A2" data-subpart-id="A2" cx="73.357" cy="49.260" r="11"/><circle cx="73.357" cy="49.260" r="7.4" fill="none" stroke="#c8e1e9" stroke-width="1.2"/></g>

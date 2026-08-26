@@ -1,9 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 348">
-  <defs><linearGradient id="barrel" x1="0" x2="1"><stop stop-color="#263b46"/><stop offset=".5" stop-color="#596d77"/><stop offset="1" stop-color="#263b46"/></linearGradient></defs>
-  <!-- Laboratory marker with cyan cap, writable band, and unmistakable chisel tip. -->
-  <path id="cap" d="M17 31Q17 10 38 10H52Q73 10 73 31V85H17Z" fill="#5caec1" stroke="#263b46" stroke-width="4"/><path d="M28 18H62V39H28Z" fill="#d9f3f5" opacity=".72"/>
-  <path d="M28 83H62A18 18 0 0 1 80 101V269A18 18 0 0 1 62 287H28A18 18 0 0 1 10 269V101A18 18 0 0 1 28 83Z" fill="url(#barrel)" stroke="#263b46" stroke-width="4"/>
-  <path d="M20 101H70Q74 101 74 105V189Q74 193 70 193H20Q16 193 16 189V105Q16 101 20 101Z" fill="#f8f6e8" stroke="#a99b70" stroke-width="2"/><path d="M25 158H65M25 168H57M25 178H62" stroke="#837b61" stroke-width="2"/>
-  <path d="M18 207H72" stroke="#b9dce1" stroke-width="3" opacity=".75"/><path d="M26 287H64L60 312H30Z" fill="#c9dce0" stroke="#263b46" stroke-width="3"/><path d="M30 312H60L45 340Z" fill="#35434b" stroke="#263b46" stroke-width="3"/><path d="M15 94H75" stroke="#eefdff" stroke-width="3" opacity=".65"/>
+  <defs><linearGradient id="barrel" x1="0" x2="1"><stop stop-color="#263b46"/><stop offset=".23" stop-color="#536a74"/><stop offset=".52" stop-color="#70858b"/><stop offset=".8" stop-color="#435963"/><stop offset="1" stop-color="#263b46"/></linearGradient></defs>
+  <!-- cylindrical lab marker with cap seam, collar and chisel point -->
+  <path d="M17 31Q17 10 38 10h14q21 0 21 21v55H17z" fill="#75b9c5" stroke="#426575" stroke-width="2.2"/><path d="M22 31q0-13 16-13h14q16 0 16 13v8H22z" fill="#bde7e9"/><path d="M18 77h54v12H18z" fill="#426575"/><path d="M27 84h36c10 0 17 8 17 18v166c0 11-7 19-18 19H28c-11 0-18-8-18-19V102c0-10 7-18 17-18z" fill="url(#barrel)" stroke="#334d59" stroke-width="2.3"/>
+  <path d="M18 105h54" stroke="#b9e0e2" stroke-width="2.2" opacity=".76"/><path d="M20 111h50c3 0 5 2 5 5v75c0 3-2 5-5 5H20c-3 0-5-2-5-5v-75c0-3 2-5 5-5z" fill="#f8f5e8" stroke="#ab9f79" stroke-width="1.5"/><path d="M26 158h38m-38 10h31m-31 10h36" stroke="#8c856a" stroke-width="1.5" stroke-linecap="round"/>
+  <path d="M22 207h48" stroke="#b9dce1" stroke-width="2.2" opacity=".72"/><path d="M28 287h34l-3 22H31z" fill="#c4d8dc" stroke="#334d59" stroke-width="2.1"/><path d="M31 309h28l-14 29z" fill="#3e4f56" stroke="#263b46" stroke-width="2.1"/><path d="M37 330h16l-8 10z" fill="#1e272b"/>
   <g id="overlay_root"/><path id="anchor_label" fill="none" stroke="none" display="none" d="M13 101H77V195H13Z"/><path id="anchor_error" fill="none" stroke="none" display="none" d="M74 4H102V32H74Z"/>
 </svg>

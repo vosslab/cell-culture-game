@@ -190,7 +190,7 @@ body {
 
 .protocol-start-over:focus-visible,
 .protocol-reset-dialog button:focus-visible {
-  outline: 3px solid #f0a202;
+  outline: 3px solid #c48402;
   outline-offset: 2px;
 }
 
@@ -199,7 +199,7 @@ body {
   padding: 22px;
   color: #102a43;
   background: #fbfaf7;
-  border: 1px solid #829ab1;
+  border: 1px solid #718aa3;
   border-radius: 10px;
   box-shadow: 0 18px 48px rgb(16 42 67 / 28%);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
@@ -240,7 +240,7 @@ body {
 .protocol-reset-cancel {
   color: #102a43;
   background: #ffffff;
-  border: 1px solid #829ab1;
+  border: 1px solid #718aa3;
 }
 
 .protocol-reset-confirm {
@@ -305,6 +305,46 @@ body {
      fits using container-query units (cqw/cqh). This is what FORCES exact 16:9
      regardless of whether the panel is wider or taller than 16:9 (WP-PRECOMP2). */
   container-type: size;
+  /* A shared generic 16:9 floor keeps engine-owned labels at their readable
+     scale. The host combines this with each scene's emitted interaction frame;
+     the panel remains the single local scrollport when either floor exceeds
+     available space. */
+}
+
+/* The layout engine resolves label positions against its canonical 1152px
+   scene-percent basis. Keeping that width as the shared presentation floor
+   preserves those resolved label clearances; narrower browser viewports use
+   the owning local scrollport instead of rescaling labels into collisions. */
+.scene-panel,
+.scene-viewer-content {
+  --scene-label-safe-frame-width: 1152px;
+  /* Frame size has one canonical axis. A height-dominant emitted envelope is
+     converted to its 16:9 inline equivalent before layout derives block size
+     from aspect-ratio; independent width/height floors can distort a future
+     non-16:9 envelope. */
+  --scene-min-frame-inline-size: max(
+    var(--scene-min-interaction-width, 0px),
+    calc(var(--scene-min-interaction-height, 0px) * 16 / 9),
+    var(--scene-label-safe-frame-width)
+  );
+}
+
+.scene-bench-page {
+  margin: 0;
+  overflow: hidden;
+}
+
+.scene-bench-panel {
+  width: 100vw;
+  height: 100vh;
+}
+
+.scene-panel-content {
+  display: grid;
+  grid-template-columns: minmax(var(--scene-min-frame-inline-size), 1fr);
+  gap: 10px;
+  width: min(100cqw, calc(100cqh * 16 / 9));
+  min-inline-size: var(--scene-min-frame-inline-size);
 }
 
 /* Inner wrapper that FORCES an exact 16:9 rendered scene frame (WP-PRECOMP2).
@@ -334,14 +374,66 @@ body {
    height, yielding an off-16:9 box. The container-query min() removes that. */
 .scene-panel-inner {
   position: relative;
-  width: min(100cqw, calc(100cqh * 16 / 9));
+  width: 100%;
   aspect-ratio: 16 / 9;
   /* Host-provided precomputed scene metadata reserves a usable interaction
      frame when the grid has room. The transparent envelope itself preserves
      the 44px core in constrained desktop layouts without scaling artwork. */
-  min-width: var(--scene-min-interaction-width, 0px);
-  min-height: var(--scene-min-interaction-height, 0px);
+  min-inline-size: var(--scene-min-frame-inline-size);
   overflow: visible;
+}
+
+#scene-annotation-root {
+  min-width: 0;
+}
+
+.scene-annotation-rail {
+  display: grid;
+  gap: 5px;
+  padding: 8px 10px;
+  color: #172033;
+  background: #fbfaf7;
+  border: 1px solid #718aa3;
+  border-radius: 6px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+.scene-annotation-rail__heading {
+  margin: 0;
+  color: #334e68;
+  font-size: 0.82rem;
+  line-height: 1.2;
+}
+
+.scene-annotation-rail__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.scene-annotation-rail__item {
+  padding: 2px 5px;
+  background: #f2f7f8;
+  border-left: 3px solid #718aa3;
+  border-radius: 3px;
+  font-size: 0.74rem;
+  line-height: 1.3;
+}
+
+.scene-annotation-rail__item[data-annotation-affordance="active"] {
+  border-left-color: #9e6507;
+}
+
+.scene-annotation-rail__item[data-annotation-affordance="candidate"] {
+  border-left-color: #2563eb;
+  border-left-style: dashed;
+}
+
+.scene-annotation-rail__object {
+  font-weight: 700;
 }
 
 /* #scene-root: bounded panel -- NOT 100vw x 100vh.
@@ -617,7 +709,7 @@ body {
 }
 
 .action-rail__hint summary:focus-visible {
-  outline: 3px solid #f0a202;
+  outline: 3px solid #c48402;
   outline-offset: 2px;
 }
 
@@ -805,7 +897,7 @@ body {
   padding: 6px 9px;
   color: #102a43;
   background: #ffffff;
-  border: 1px solid #829ab1;
+  border: 1px solid #718aa3;
   border-radius: 6px;
   font: inherit;
 }
@@ -848,7 +940,7 @@ body {
 .value-entry-input:focus-visible,
 .value-entry-button:focus-visible,
 .outline-steps:focus-visible {
-  outline: 3px solid #f0a202;
+  outline: 3px solid #c48402;
   outline-offset: 2px;
 }
 
@@ -881,6 +973,14 @@ body {
     height: auto;
     min-height: 100vh;
     overflow: visible;
+  }
+
+  .scene-panel {
+    /* The narrow grid row must not collapse before its emitted interaction
+       frame and paired label-safe frame can be locally scrolled. */
+    min-block-size: max(calc(var(--scene-min-frame-inline-size) * 9 / 16), 0px);
+    align-items: start;
+    justify-items: start;
   }
 
   .protocol-header {
@@ -955,7 +1055,7 @@ body {
   .scene-panel-inner {
     /* Keep the authored minimum frame inside this element's local scrollport;
        max() preserves the normal fluid frame when no minimum is emitted. */
-    width: max(100%, var(--scene-min-interaction-width, 0px));
+    width: max(100%, var(--scene-min-frame-inline-size));
   }
 
   .value-entry-panel {
@@ -1006,13 +1106,13 @@ body {
 
   Baseline: every [data-item-id] element is a clickable scene object.
   cursor: pointer gives a universal "this is clickable" cue.
-  A faint static outline on :hover / :focus-visible reinforces the cue
+  A static outline on :hover / :focus-visible reinforces the cue
   without distracting from the scene content.
 
   Ring rules: consumed once the renderer emits the canonical affordance state
   on each interaction envelope or exact subpart surface.
     active    -- directed target for a click/drag/adjust/type gesture:
-                 3px solid orange (#f5a623)
+                 3px solid orange (#9e6507)
     candidate -- one of several selectable objects for a select gesture:
                  3px dashed blue (#2563eb)
     none      -- no active step or this object is not involved:
@@ -1047,13 +1147,13 @@ body {
 /* :focus-visible is inert under the current pointer-only scope (tabIndex removed from scene items); kept as reversible infrastructure */
 [data-item-id]:hover,
 [data-item-id]:focus-visible {
-  outline: 2px solid rgba(37, 99, 235, 0.45);
+  outline: 2px solid #2563eb;
   outline-offset: 3px;
 }
 
 /* Active ring: directed target for click/drag/adjust/type. */
 [data-interaction-envelope][data-interaction-envelope-kind="active"] {
-  outline: 3px solid #f5a623;
+  outline: 3px solid #9e6507;
   outline-offset: 3px;
 }
 
@@ -1085,8 +1185,8 @@ body {
 }
 
 .subpart-hit-target[data-subpart-affordance="active"] {
-  fill: rgba(245, 166, 35, 0.2);
-  stroke: #f5a623;
+  fill: rgba(158, 101, 7, 0.2);
+  stroke: #9e6507;
   stroke-width: 2;
   vector-effect: non-scaling-stroke;
 }
@@ -1611,5 +1711,262 @@ body {
   .protocol-card-cta::after,
   .cluster-summary::before {
     transition: none;
+  }
+}
+
+/*============================================
+  Complete equipment review through the production SVG host
+============================================*/
+
+.equipment-review-body {
+  min-height: 100%;
+  background: #e7eef0;
+}
+
+.equipment-review-page {
+  --equipment-ink: #172f35;
+  --equipment-muted: #4d676e;
+  --equipment-line: #a9bec3;
+  --equipment-surface: #f8fbfb;
+  --equipment-accent: #176b6f;
+  --equipment-dom: #285b8e;
+  --equipment-img: #6b4a24;
+  --equipment-card-size: 260px;
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: clamp(18px, 3vw, 44px);
+  color: var(--equipment-ink);
+  background: linear-gradient(160deg, rgba(118, 171, 177, 0.2), transparent 28rem), #e7eef0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+.equipment-review-header {
+  max-width: 76rem;
+  margin-inline: auto;
+}
+
+.equipment-review-kicker {
+  margin: 0 0 0.45rem;
+  color: var(--equipment-accent);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.equipment-review-header h1 {
+  max-width: 18ch;
+  margin: 0;
+  font-size: clamp(2rem, 5vw, 4.5rem);
+  letter-spacing: -0.045em;
+  line-height: 0.98;
+}
+
+.equipment-review-intro {
+  max-width: 70ch;
+  margin: 1rem 0 0;
+  color: var(--equipment-muted);
+  font-size: clamp(1rem, 2vw, 1.18rem);
+  line-height: 1.55;
+}
+
+.equipment-review-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+  margin: 1.4rem 0 0;
+}
+
+.equipment-review-summary div {
+  min-width: 7rem;
+  padding: 0.65rem 0.85rem;
+  background: rgba(248, 251, 251, 0.78);
+  border: 1px solid var(--equipment-line);
+  border-radius: 10px;
+}
+
+.equipment-review-summary dt {
+  color: var(--equipment-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.equipment-review-summary dd {
+  margin: 0.15rem 0 0;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.equipment-review-controls {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(10rem, 1fr));
+  gap: 0.8rem;
+  max-width: 76rem;
+  margin: 2rem auto 0;
+  padding: 1rem;
+  background: rgba(248, 251, 251, 0.92);
+  border: 1px solid var(--equipment-line);
+  border-radius: 14px;
+  box-shadow: 0 12px 30px rgba(23, 47, 53, 0.08);
+}
+
+.equipment-review-control {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--equipment-muted);
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
+.equipment-review-control input,
+.equipment-review-control select {
+  min-width: 0;
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 0.65rem 0.75rem;
+  color: var(--equipment-ink);
+  background: #ffffff;
+  border: 1px solid #819aa0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.equipment-review-control input:focus-visible,
+.equipment-review-control select:focus-visible {
+  outline: 3px solid #075985;
+  outline-offset: 2px;
+}
+
+.equipment-review-size-control input {
+  padding-inline: 0;
+  accent-color: var(--equipment-accent);
+}
+
+.equipment-review-result-line {
+  max-width: 76rem;
+  margin: 1.2rem auto 0.65rem;
+  color: var(--equipment-muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+.equipment-review-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, var(--equipment-card-size)), 1fr));
+  gap: 1rem;
+  max-width: 100rem;
+  margin-inline: auto;
+}
+
+.equipment-review-card {
+  align-self: start;
+  min-width: 0;
+  overflow: hidden;
+  background: var(--equipment-surface);
+  border: 1px solid var(--equipment-line);
+  border-radius: 14px;
+  box-shadow: 0 8px 20px rgba(23, 47, 53, 0.08);
+}
+
+.equipment-review-art {
+  display: grid;
+  min-height: var(--equipment-card-size);
+  padding: 1rem;
+  place-items: center;
+  background: #eef7f8;
+  border-bottom: 1px solid var(--equipment-line);
+}
+
+.equipment-review-art > * {
+  width: 100%;
+  height: var(--equipment-card-size);
+}
+
+.equipment-review-page[data-backdrop="dark"] .equipment-review-art {
+  background: #173039;
+}
+
+.equipment-review-page[data-backdrop="checker"] .equipment-review-art {
+  background-color: #ffffff;
+  background-image:
+    linear-gradient(45deg, #cbd8db 25%, transparent 25%),
+    linear-gradient(-45deg, #cbd8db 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #cbd8db 75%),
+    linear-gradient(-45deg, transparent 75%, #cbd8db 75%);
+  background-position:
+    0 0,
+    0 12px,
+    12px -12px,
+    -12px 0;
+  background-size: 24px 24px;
+}
+
+.equipment-review-copy {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.9rem 1rem 1rem;
+}
+
+.equipment-review-copy h2 {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.25;
+  text-transform: capitalize;
+}
+
+.equipment-review-mode {
+  width: fit-content;
+  padding: 0.24rem 0.5rem;
+  border: 1px solid currentcolor;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.equipment-review-mode--dom-svg {
+  color: var(--equipment-dom);
+  background: #e8f2fb;
+}
+
+.equipment-review-mode--img {
+  color: var(--equipment-img);
+  background: #f7efe4;
+}
+
+.equipment-review-copy code {
+  overflow-wrap: anywhere;
+  color: var(--equipment-muted);
+  font-size: 0.72rem;
+}
+
+.equipment-review-empty {
+  padding: 2rem;
+  background: var(--equipment-surface);
+  border: 1px dashed var(--equipment-line);
+  border-radius: 12px;
+}
+
+.svg-load-error {
+  color: #a40e26;
+  font-family: monospace;
+  font-size: 0.82rem;
+  pointer-events: none;
+}
+
+@media (max-width: 900px) {
+  .equipment-review-controls {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .equipment-review-page {
+    padding: 16px;
+  }
+
+  .equipment-review-controls {
+    grid-template-columns: 1fr;
   }
 }

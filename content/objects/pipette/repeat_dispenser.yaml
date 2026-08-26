@@ -37,32 +37,35 @@ visual_states:
     kind: svg
     cases:
       - when: empty
-        output: { asset_name: repeat_dispenser_empty }
+        output: { asset_name: repeat_dispenser }
       - when: carboplatin
-        output: { asset_name: repeat_dispenser_loaded }
+        output: { asset_name: repeat_dispenser }
       - when: carboplatin_4umol
-        output: { asset_name: repeat_dispenser_loaded }
+        output: { asset_name: repeat_dispenser }
       - when: carboplatin_8umol
-        output: { asset_name: repeat_dispenser_loaded }
+        output: { asset_name: repeat_dispenser }
       - when: carboplatin_20umol
-        output: { asset_name: repeat_dispenser_loaded }
+        output: { asset_name: repeat_dispenser }
       - when: carboplatin_40umol
-        output: { asset_name: repeat_dispenser_loaded }
+        output: { asset_name: repeat_dispenser }
       - when: carboplatin_80umol
-        output: { asset_name: repeat_dispenser_loaded }
+        output: { asset_name: repeat_dispenser }
       - when: carboplatin_200umol
-        output: { asset_name: repeat_dispenser_loaded }
+        output: { asset_name: repeat_dispenser }
       - when: carboplatin_400umol
-        output: { asset_name: repeat_dispenser_loaded }
+        output: { asset_name: repeat_dispenser }
       - when: metformin
-        output: { asset_name: repeat_dispenser_loaded }
+        output: { asset_name: repeat_dispenser }
       - when: metformin_200mmol
-        output: { asset_name: repeat_dispenser_loaded }
+        output: { asset_name: repeat_dispenser }
       - when: media
-        output: { asset_name: repeat_dispenser_loaded }
+        output: { asset_name: repeat_dispenser }
   held_material_volume:
-    kind: overlay
-    formula: 'label(state(held_material_volume), format="Remaining: {value} &micro;L")'
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ul: 120
   tip_status:
     kind: overlay
     formula: 'label(state(tip_status), format="Tip: {value}")'

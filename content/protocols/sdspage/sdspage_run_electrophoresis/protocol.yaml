@@ -3,35 +3,40 @@ protocol_name: sdspage_run_electrophoresis
 entry_step: set_voltage
 initial_state:
   - target: electrophoresis_tank
-    state: { lid_present: true, module_present: true }
+    state:
+      {
+        lid_present: true,
+        module_present: true,
+        black_lead_connected: true,
+        red_lead_connected: true,
+      }
   - target: electrode_module
     state: { mounted: true, cassette_mounted: true, wing_clamps_open: false }
   - target: electrophoresis_buffer_dam
     state: { seated: true }
-  - target: electrophoresis_black_lead
-    state: { attached: true }
-  - target: electrophoresis_red_lead
-    state: { attached: true }
   - target: gel_cassette
-    state: { tape_present: false, comb_present: false, wing_clamps_locked: true, migration_state: not_started, lane_pattern: samples_1_to_3_ladder_5 }
+    state:
+      {
+        tape_present: false,
+        comb_present: false,
+        wing_clamps_locked: true,
+        migration_state: not_started,
+        lane_pattern: samples_1_to_3_ladder_5,
+      }
   - target: electrophoresis_inner_chamber
     state: { material_name: running_buffer_1x, material_volume: 200, fill_state: filled }
   - target: electrophoresis_outer_chamber
     state: { material_name: running_buffer_1x, material_volume: 500, fill_state: filled }
   - target: power_supply
-    state:
-      { running: false, cathode_lead_attached: true, anode_lead_attached: true }
+    state: { running: false }
 learning:
-  objectives:
-    Students completing this mini-protocol will have achieved fluency with
+  objectives: Students completing this mini-protocol will have achieved fluency with
     setting the power supply and stopping an SDS-PAGE run when the tracking dye reaches
     its safe endpoint.
-  outcomes:
-    Students completing this mini-protocol will be able to set 150 V, start a lidded
+  outcomes: Students completing this mini-protocol will be able to set 150 V, start a lidded
     and connected apparatus, monitor the run for 30 minutes, and turn off the supply when
     the tracking dye is near the bottom of the gel.
-  goals:
-    Overall, this mini-protocol aims to accomplish electrophoretic separation while
+  goals: Overall, this mini-protocol aims to accomplish electrophoretic separation while
     connecting the voltage and stop decision to the observable migration endpoint.
 steps:
   - step_name: set_voltage
@@ -63,8 +68,7 @@ steps:
       on_failure: retry
     next_step: run_to_tracking_dye_endpoint
   - step_name: run_to_tracking_dye_endpoint
-    prompt:
-      Start the run with the lid seated and both leads connected. Monitor the gel at
+    prompt: Start the run with the lid seated and both leads connected. Monitor the gel at
       150 V for 30 minutes; the tracking dye should approach, not pass, the bottom edge.
     sequence:
       - target: power_supply
@@ -103,8 +107,7 @@ steps:
       on_failure: retry
     next_step: stop_at_tracking_dye_endpoint
   - step_name: stop_at_tracking_dye_endpoint
-    prompt:
-      The visible tracking dye is near the bottom of the gel. First choose the scientifically
+    prompt: The visible tracking dye is near the bottom of the gel. First choose the scientifically
       appropriate endpoint decision, then turn off the power supply. Letting the dye run off
       the gel compromises the separation before the apparatus is opened.
     sequence:

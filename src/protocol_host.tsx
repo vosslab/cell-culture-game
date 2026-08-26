@@ -265,6 +265,16 @@ function mount(): void {
     throw new Error("protocol_host: #scene-root must be inside .scene-panel-inner");
   }
   const scene_frame: HTMLElement = scene_frame_element;
+  const scene_panel_element = scene_frame.closest(".scene-panel");
+  if (!(scene_panel_element instanceof HTMLElement)) {
+    throw new Error("protocol_host: #scene-root must be inside .scene-panel");
+  }
+  const scene_panel: HTMLElement = scene_panel_element;
+  const scene_annotation_root_element = document.getElementById("scene-annotation-root");
+  if (!(scene_annotation_root_element instanceof HTMLElement)) {
+    throw new Error("protocol_host: #scene-annotation-root element not found");
+  }
+  const scene_annotation_root: HTMLElement = scene_annotation_root_element;
   const shell_root = document.getElementById("shell-root");
   if (!(shell_root instanceof HTMLElement)) {
     throw new Error("protocol_host: #shell-root element not found");
@@ -384,13 +394,17 @@ function mount(): void {
       );
     }
     const minimum_frame = interaction_geometry.minimum_frame;
+    const minimum_frame_text = `${minimum_frame.width_px}x${minimum_frame.height_px}`;
+    const hit_core_text = String(minimum_frame.hit_core_px);
     // The host owns shell sizing, but it consumes the precomputed scene contract
     // verbatim: no browser-side envelope or frame calculation is permitted.
-    scene_frame.style.setProperty("--scene-min-interaction-width", `${minimum_frame.width_px}px`);
-    scene_frame.style.setProperty("--scene-min-interaction-height", `${minimum_frame.height_px}px`);
-    scene_frame.style.setProperty("--scene-interaction-hit-core", `${minimum_frame.hit_core_px}px`);
-    scene_frame.dataset.minimumInteractionFrame = `${minimum_frame.width_px}x${minimum_frame.height_px}`;
-    scene_frame.dataset.interactionHitCorePx = String(minimum_frame.hit_core_px);
+    for (const element of [scene_panel, scene_frame]) {
+      element.style.setProperty("--scene-min-interaction-width", `${minimum_frame.width_px}px`);
+      element.style.setProperty("--scene-min-interaction-height", `${minimum_frame.height_px}px`);
+      element.style.setProperty("--scene-interaction-hit-core", `${minimum_frame.hit_core_px}px`);
+      element.dataset.minimumInteractionFrame = minimum_frame_text;
+      element.dataset.interactionHitCorePx = hit_core_text;
+    }
 
     // Rebuild the scene-scoped target-identity adapter from this scene's
     // placements. Every ComputedItem carries its unique placement_name and its
@@ -448,6 +462,7 @@ function mount(): void {
       seedMode: effective_seed_mode,
       viewport: scene_viewport,
       activeAffordance: active_affordance,
+      annotationRoot: scene_annotation_root,
     });
     active_scene_root.setAttribute("data-active-scene", next_scene_name);
   }

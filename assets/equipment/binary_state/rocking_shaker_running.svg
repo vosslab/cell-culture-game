@@ -1,23 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 348 213.5" role="img">
-  <path d="M25 129h298l17 38H8z" fill="#5b7078" stroke="#26343b" stroke-width="7" stroke-linejoin="round"/>
-  <path d="M27 129h294" fill="none" stroke="#d7e8ea" stroke-width="4" stroke-linecap="round"/>
-  <path d="M44 171h44m172 0h44" fill="none" stroke="#26343b" stroke-width="11" stroke-linecap="round"/>
-  <rect x="48" y="138" width="130" height="23" rx="2" fill="#26343b" stroke="#1a272d" stroke-width="3"/>
-  <rect x="58" y="144" width="54" height="11" rx="1" fill="#9bd6dc" stroke="#295560" stroke-width="2"/>
-  <circle cx="133" cy="149" r="7" fill="#3fb675" stroke="#26343b" stroke-width="2.5"/>
-  <circle cx="158" cy="149" r="7" fill="#f0ad3d" stroke="#26343b" stroke-width="2.5"/>
-  <path d="M204 149h96" fill="none" stroke="#dce9eb" stroke-width="6" stroke-linecap="round"/>
-  <path d="m174 124-37-35h74z" fill="#7c959d" stroke="#26343b" stroke-width="5" stroke-linejoin="round"/>
-  <circle cx="174" cy="104" r="13" fill="#eaf4f5" stroke="#26343b" stroke-width="4"/>
-  <path d="M174 97v14m-7-7h14" fill="none" stroke="#58717a" stroke-width="2.5" stroke-linecap="round"/>
-  <path d="M41 73h266l-19 19H60z" fill="none" stroke="#77b7c4" stroke-width="4" stroke-dasharray="7 6" opacity=".75"/>
-  <g transform="rotate(7 174 74)">
-    <path d="M50 54h248l9 19H41z" fill="#e4f1f2" stroke="#26343b" stroke-width="6" stroke-linejoin="round"/>
-    <path d="M63 44h222l13 10H50z" fill="#f9fdfd" stroke="#26343b" stroke-width="5" stroke-linejoin="round"/>
-    <path d="M76 50h196l7 8H69z" fill="#b8d9dd" stroke="#5f8088" stroke-width="3" stroke-linejoin="round"/>
-    <path d="M89 59v10m30-10v10m30-10v10m30-10v10m30-10v10m30-10v10" fill="none" stroke="#63858e" stroke-width="3" stroke-linecap="round"/>
-    <path d="M72 83h204" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round"/>
-  </g>
-  <path d="M82 44c22-19 50-21 73-8m31-1c23-12 51-10 73 9" fill="none" stroke="#f0ad3d" stroke-width="6" stroke-linecap="round"/>
-  <path d="m145 23 11 13-17 3m52-3 11-13 6 16" fill="none" stroke="#f0ad3d" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 348 213.5" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="rocking_shaker_running_title rocking_shaker_running_desc">
+  <title id="rocking_shaker_running_title">Running rocking shaker</title>
+  <desc id="rocking_shaker_running_desc">A low motorized rocking platform tilted about its visible pivot, with a grippy tray, active controls, and broad feet.</desc>
+  <!-- The tray is the same rigid structure as idle, rotated 8 degrees about the visible central pivot. -->
+  <g id="rocking_shaker">
+    <g id="shaker_base"><path d="M20 167V151Q21 137 40 132H284Q307 133 321 148L329 158L320 184Q316 197 299 199H47Q30 197 25 184Z" fill="#bfced1"/><path d="M21 151Q31 139 46 138H282Q300 140 314 151L322 157Q326 161 319 164L60 164Q40 164 28 158Z" fill="#f4f8f6"/><path d="M282 138Q304 140 321 153L329 158L320 184Q316 197 299 199H273L262 178Q272 161 268 146Z" fill="#9bb5ba"/><path d="M44 170Q49 165 60 165H145Q153 166 152 176L150 187Q149 191 140 191H52Q43 190 43 182Z" fill="#dce7e5"/><path d="M53 173H104Q109 174 108 180L107 184H52Z" fill="#43616a"/><circle cx="122" cy="179" r="6" fill="#3ca761"/><circle cx="139" cy="179" r="6" fill="#dfa847"/><path d="M177 179Q223 179 270 178" fill="none" stroke="#9eb6ba" stroke-width="2.5" stroke-linecap="round"/><path d="M48 194H81L77 206H55ZM268 195H299L295 206H274Z" fill="#5e7880"/></g>
+    <g id="platform_pivot"><path d="M146 144L151 119Q155 106 174 98Q194 107 199 120L205 143L196 153H154Z" fill="#708a92"/><path d="M151 137Q158 111 174 106Q191 113 199 137" fill="none" stroke="#d9e5e3" stroke-width="3" stroke-linecap="round"/><ellipse cx="175" cy="138" rx="18" ry="13" fill="#9db5b9"/><ellipse cx="175" cy="137" rx="7" ry="5" fill="#f6f9f7"/></g>
+    <g id="shaker_platform" transform="rotate(8 175 138)"><path d="M40 103Q43 91 59 86L250 86Q265 87 279 96L299 109Q306 114 299 119L278 130Q269 134 255 133L77 129Q63 129 52 122L37 112Q33 108 40 103Z" fill="#90abb0"/><path d="M45 98Q50 87 64 82H246Q259 83 271 90L287 101Q292 105 286 109L266 117Q257 121 244 120L80 117Q69 117 59 111L47 104Q42 101 45 98Z" fill="#f9fbf9"/><path d="M66 95Q72 89 83 89H235Q246 90 255 96L267 103Q271 106 264 109L249 114Q241 116 232 115L93 112Q84 112 76 107L67 102Q63 99 66 95Z" fill="#c6d6d6"/><path d="M82 99Q145 101 253 106" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/><path d="M98 95L97 105M124 96L123 107M150 97L149 108M176 98L175 109M202 99L201 110M228 100L227 111" fill="none" stroke="#78949a" stroke-width="2" stroke-linecap="round"/><path d="M53 116L76 127M271 94L292 109" fill="none" stroke="#69848b" stroke-width="2" stroke-linecap="round"/></g>
+  </g><g id="overlay_root"/><path id="anchor_label" fill="none" stroke="none" display="none" d="M42 168 L151 170 L149 187 L40 185 Z"/><path id="anchor_error" fill="none" stroke="none" display="none" d="M10 68 L312 68 L332 154 L26 154 Z"/>
 </svg>

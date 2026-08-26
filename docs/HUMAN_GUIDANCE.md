@@ -49,6 +49,13 @@ Bioicons subset as the target visual language: remove detached floor shadows
 while preserving local shading that explains form. Treat other Bioicons source
 families as references rather than style targets.
 
+Build physical depth from a real far plane, cavity, or overlap, and keep the
+dark value limited to that relation. At a literal-minimum placement, simplify
+sub-pixel detail instead of thickening every line; silhouette, face separation,
+visible state, and the scene interaction treatment carry the remaining cue.
+Inspect both a normal task-relevant placement and the literal minimum before
+accepting an equipment redraw.
+
 Reuse one canonical physical SVG form when semantic objects use the same
 labware and differ only by identity, contents, or volume. Keep distinct object
 names when protocols need distinct state contracts, then let their
@@ -56,6 +63,12 @@ names when protocols need distinct state contracts, then let their
 contents. Encode state changes in equipment art when the physical object makes
 them observable. An opaque sharps container, for example, uses one SVG whether
 its recorded state is empty or full.
+
+Represent pre-weighed MTT powder inside the canonical Servier-derived
+microtube shell. Keep the distinct MTT object for its milligram state contract.
+Both powder and empty states select `microtube`; runtime material rendering
+paints the contained MTT to the authored mass level and hides it when empty.
+Do not create or select a material-specific vessel SVG for a content state.
 
 Keep genuinely different labware distinct. A T75 tissue-culture flask is a flat
 growth-surface vessel with a canted neck. Microtubes and conical centrifuge
@@ -65,7 +78,17 @@ and procedure rather than from a generic "tube" label.
 When the user identifies repository-authored artwork as the intended source,
 compare that artwork and its history before replacing it with a generic redraw.
 Use focused standalone and composite renders during implementation, then use
-the labeled equipment contact sheet as the final human visual review surface.
+`docs/figures/equipment_kit/review.html` as the complete current-library
+source-art review surface. Use the built `/equipment_review.html` page over
+HTTP to inspect every asset through its shipping image or inline-DOM renderer.
+Treat the labeled 139-asset contact sheet as historical evidence.
+
+Preserve one camera/view and one housing across an equipment state pair; change
+only the physical part that the state names. Inspect named pairs together so
+connectors visibly seat or separate, lids hinge from one attachment point, and
+contents remain inside their vessel. Blind, filename-free inspection is useful
+diagnostic evidence, but human review of identity, state logic, and established
+repository artwork decides visual acceptance.
 
 ## Connected learner acceptance
 

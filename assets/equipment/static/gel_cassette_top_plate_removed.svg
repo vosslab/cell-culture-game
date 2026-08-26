@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 214 308">
-  <!-- The cassette base already renders the gel resting on its lower plate.
-       This composited layer shows the separated upper plate tipped aside. -->
-  <g id="removed-top-plate" stroke="#29495a" stroke-linecap="round" stroke-linejoin="round">
-    <path d="m113 35 70 25-20 218-70-25z" fill="#a9cbd8" opacity=".32" stroke-width="4"/>
-    <path d="m118 47 58 21-17 194-58-21z" fill="#f7fcfd" opacity=".4" stroke="none"/>
-    <path d="m113 35 70 25m-70-25-20 218m90-193-20 218M93 253l70 25" fill="none" stroke-width="4"/>
-    <path d="m183 60 7 4-20 218-7-4z" fill="#527d8e" opacity=".65" stroke-width="2.5"/>
-    <path d="m110 56 11 4m-14 164 11 4m47-142 11 4m-14 164 11 4" fill="none" stroke="#527d8e" stroke-width="3"/>
-    <path d="m122 48 49 18m-62 171 49 18" fill="none" stroke="#fff" stroke-width="2.5" opacity=".9"/>
-  </g>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 214 308"><defs><linearGradient id="plate" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f8feff" stop-opacity=".9"/><stop offset="1" stop-color="#8ebcc7" stop-opacity=".62"/></linearGradient></defs><g id="removed_top_plate"><rect x="105" y="25" width="71" height="232" rx="10" fill="url(#plate)" stroke="#487987" stroke-width="3" transform="rotate(8 140 141)"/><rect x="114" y="35" width="53" height="211" rx="6" fill="#effafb" fill-opacity=".45" stroke="#75a1ad" stroke-width="2" transform="rotate(8 140 141)"/><path d="m121 48 48 7m-65 178 48 7" stroke="#fff" stroke-width="2.5" opacity=".8"/></g></svg>

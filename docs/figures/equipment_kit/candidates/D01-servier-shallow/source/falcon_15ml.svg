@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" preserveAspectRatio="xMidYMid meet" data-equipment-kit-fixture="review-only" data-runtime-material-contract="not-applicable">
+  <defs>
+    <clipPath id="d01-falcon-liquid-clip"><path d="M121 111 H199 V238 L177 283 Q160 293 143 283 L121 238 Z"/></clipPath>
+  </defs>
+  <g id="candidate-root" data-material-preview-surrogate="true">
+    <g id="back-masses">
+      <path d="M121 111 H199 V238 L177 283 Q160 293 143 283 L121 238 Z" fill="#DDEBF1" stroke="#294657" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M178 112 H199 V238 L177 283 Q171 287 165 288 V116 Z" fill="#7895A5" opacity=".72"/>
+      <path d="M121 111 H199 V122 H121 Z" fill="#E8F0F4"/>
+    </g>
+    <g id="material-band">
+      <g id="material-bottom"><path d="M143 250 H177 L177 283 Q160 293 143 283 Z" fill="#1E40AF" opacity=".82" clip-path="url(#d01-falcon-liquid-clip)"/></g>
+      <g id="material-body"><path d="M123 190 H197 V253 H123 Z" fill="#1E40AF" opacity=".78" clip-path="url(#d01-falcon-liquid-clip)"/><path d="M178 190 H197 V252 H178 Z" fill="#1E40AF" opacity=".56" clip-path="url(#d01-falcon-liquid-clip)"/></g>
+      <g id="material-surface"><ellipse cx="160" cy="190" rx="37" ry="6" fill="#1E40AF" opacity=".92" clip-path="url(#d01-falcon-liquid-clip)"/><path d="M126 189 Q160 197 194 189" fill="none" stroke="#E8F0F4" stroke-width="1.5" opacity=".85" clip-path="url(#d01-falcon-liquid-clip)"/></g>
+    </g>
+    <g id="front-masses">
+      <ellipse cx="160" cy="111" rx="39" ry="8" fill="#E8F0F4" stroke="#294657" stroke-width="3"/>
+      <path d="M125 116 V236 L144 279 Q151 286 160 289 Q152 273 151 241 V116 Z" fill="#F5F7F8" opacity=".55"/>
+      <path d="M128 137 H145 V188 H128 Z" fill="#F5F7F8" stroke="#7895A5" stroke-width="1.5"/>
+      <path d="M183 143 H195 M183 158 H195 M183 173 H195" stroke="#294657" stroke-width="2" stroke-linecap="round"/>
+      <path d="M116 70 H204 V105 Q204 114 196 118 H124 Q116 114 116 105 Z" fill="#B9CCD7" stroke="#294657" stroke-width="3" stroke-linejoin="round"/>
+      <ellipse cx="160" cy="70" rx="44" ry="10" fill="#E8F0F4" stroke="#294657" stroke-width="3"/>
+      <path d="M181 77 H204 V105 Q204 114 196 118 H181 Z" fill="#7895A5"/>
+      <path d="M125 84 H195 M125 92 H195" stroke="#E8F0F4" stroke-width="2" stroke-linecap="round" opacity=".75"/>
+    </g>
+    <g id="contours">
+      <path d="M121 111 V238 L143 283 Q160 293 177 283 L199 238 V111" fill="none" stroke="#294657" stroke-width="3" stroke-linejoin="round"/>
+      <ellipse cx="160" cy="111" rx="39" ry="8" fill="none" stroke="#294657" stroke-width="3"/>
+      <path d="M121 238 Q160 250 199 238 M143 250 Q160 257 177 250" fill="none" stroke="#7895A5" stroke-width="1.5"/>
+    </g>
+    <g id="anchors">
+      <circle id="anchor-center" cx="160" cy="160" r="0" fill="none"/>
+      <circle id="anchor-baseline" cx="160" cy="289" r="0" fill="none"/>
+      <circle id="anchor-left" cx="116" cy="160" r="0" fill="none"/>
+      <circle id="anchor-right" cx="204" cy="160" r="0" fill="none"/>
+    </g>
+  </g>
+</svg>

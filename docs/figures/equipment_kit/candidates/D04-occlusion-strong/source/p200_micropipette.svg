@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Generic single-channel adjustable micropipette candidate">
+  <g id="candidate-root">
+    <g id="back-masses">
+      <path d="M170 58 L194 69 L194 153 L202 164 L192 177 L181 169 L181 74 Z" fill="#7895A5"/>
+      <path d="M168 169 L187 177 L179 205 L169 205 Z" fill="#3B5668"/>
+      <path d="M165 205 L178 207 L171 236 L163 236 Z" fill="#7895A5"/>
+      <path d="M160 236 L171 236 L166 253 L157 253 Z" fill="#7895A5"/>
+    </g>
+    <g id="material-band"/>
+    <g id="front-masses">
+      <ellipse cx="152" cy="46" rx="18" ry="6" fill="#E8F0F4"/>
+      <path d="M134 46 L170 46 L170 61 Q152 68 134 61 Z" fill="#7895A5"/>
+      <ellipse cx="152" cy="61" rx="18" ry="6" fill="#B9CCD7"/>
+      <path d="M120 65 Q145 56 170 65 L181 74 L181 150 Q170 164 152 168 Q132 165 116 151 L116 78 Z" fill="#B9CCD7"/>
+      <path d="M120 65 Q145 56 170 65 L181 74 L172 82 Q145 74 120 83 Z" fill="#E8F0F4"/>
+      <path d="M116 151 Q132 165 152 168 Q170 164 181 150 L181 170 Q169 185 151 187 Q132 184 116 169 Z" fill="#E8F0F4"/>
+      <path d="M127 89 L165 86 L165 119 L127 122 Z" fill="#3B5668"/>
+      <path d="M131 92 L160 90 L160 114 L131 116 Z" fill="#E8F0F4"/>
+      <path d="M114 128 Q128 120 138 128 L138 177 Q127 187 114 178 Z" fill="#E8F0F4"/>
+      <path d="M118 170 Q149 179 181 164 L186 180 Q152 202 118 189 Z" fill="#3B5668"/>
+      <path d="M118 182 Q150 191 181 176 L181 193 Q151 211 121 201 Z" fill="#B9CCD7"/>
+      <path d="M128 201 L171 201 L164 236 L136 236 Z" fill="#E8F0F4"/>
+      <path d="M136 236 L164 236 L159 253 L141 253 Z" fill="#B9CCD7"/>
+      <path d="M143 253 L158 253 L156 262 L145 262 Z" fill="#E8F0F4"/>
+    </g>
+    <g id="contours">
+      <ellipse fill="none" stroke="#294657" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" cx="152" cy="46" rx="18" ry="6"/>
+      <path fill="none" stroke="#294657" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" d="M134 46 L134 61 Q152 68 170 61 L170 46 M120 65 Q145 56 170 65 L181 74 L181 150 Q170 164 152 168 Q132 165 116 151 L116 78 Z"/>
+      <path fill="none" stroke="#294657" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" d="M120 83 Q145 74 172 82 M127 89 L165 86 L165 119 L127 122"/>
+      <path fill="none" stroke="#294657" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" d="M114 128 Q128 120 138 128 L138 177 Q127 187 114 178 Z M118 170 Q149 179 181 164 L186 180 Q152 202 118 189 Z M118 182 Q150 191 181 176 L181 193 Q151 211 121 201 Z"/>
+      <path fill="none" stroke="#294657" stroke-width="3" stroke-linejoin="round" stroke-linecap="round" d="M128 201 L171 201 L164 236 L136 236 Z M136 236 L164 236 L159 253 L141 253 Z M143 253 L158 253 L156 262 L145 262 Z"/>
+    </g>
+    <g id="anchors">
+      <g id="anchor-center"><circle cx="160" cy="160" r="0" fill="none"/></g>
+      <g id="anchor-baseline"><circle cx="151" cy="262" r="0" fill="none"/></g>
+      <g id="anchor-left"><circle cx="114" cy="160" r="0" fill="none"/></g>
+      <g id="anchor-right"><circle cx="202" cy="160" r="0" fill="none"/></g>
+    </g>
+  </g>
+</svg>

@@ -134,7 +134,30 @@ random input with a curated palette. Persistent, gitignored outputs are
 
 ## Equipment SVG visual review
 
-The repository includes a labeled, zoomable snapshot of all retained equipment
-art at [EQUIPMENT_SVG_CONTACT_SHEET.md](EQUIPMENT_SVG_CONTACT_SHEET.md). The
-page embeds the complete contact sheet and links the full-resolution SVG for
-direct inspection or download from GitHub.
+Regenerate the current human review page from the authored equipment tree:
+
+```bash
+node tools/render_svg_library_review.mjs
+```
+
+Open `docs/figures/equipment_kit/review.html`. This intentional generated,
+shipped static page live-links every current authored equipment SVG in a
+searchable, behavior-filtered inventory and works through `file://`. It does
+not embed scene captures or reproduce runtime material painting.
+
+Use that page to inspect source-art shape, source-card transparency, and
+coverage. To inspect every asset through its actual shipping renderer, run
+`./run_web_server.sh` and append `/equipment_review.html` to the printed HTTP
+origin. That built page uses the same shared SVG host as production scenes:
+DOM-required art is fetched, ID-namespaced, and injected, while ordinary art
+remains an image. It provides render-mode, backdrop, search, and size controls.
+Because the inline path fetches built artifacts, use HTTP rather than
+`file://` for this page.
+
+For scene scale, layout, and runtime material painting in context, use a route
+such as `/scene_viewer.html?scene=bench_basic` from the same server.
+
+`docs/figures/equipment_kit/candidates/review.html` redirects to the gallery.
+The D01-D05 candidate artifacts and the older
+[EQUIPMENT_SVG_CONTACT_SHEET.md](EQUIPMENT_SVG_CONTACT_SHEET.md) are rejected
+historical snapshots, not current-production review surfaces.

@@ -52,7 +52,7 @@ describe("declarative anchor material effects", () => {
     assert.equal(out.anchor_material_effects[0].color, "#076dad");
   });
 
-  test("empty or zero material effects remain explicit no-fill descriptions", () => {
+  test("zero-amount material effects remain explicit no-fill descriptions", () => {
     const visual_states = {
       material_volume: {
         applies_to: "object",
@@ -64,10 +64,10 @@ describe("declarative anchor material effects", () => {
     };
     const out = resolve_visual_state(
       visual_states,
-      { material_name: "empty", material_volume: 0 },
+      { material_name: "pbs", material_volume: 0 },
       MATERIAL_REGISTRY,
     );
-    assert.equal(out.anchor_material_effects[0].color, null);
+    assert.equal(out.anchor_material_effects[0].color, "#076dad");
     assert.equal(out.anchor_material_effects[0].fill_percent, 0);
   });
 
@@ -87,7 +87,7 @@ describe("declarative anchor material effects", () => {
     );
   });
 
-  test("non-empty material plus zero paired amount degrades loudly", () => {
+  test("non-empty material plus zero paired amount remains an explicit no-fill", () => {
     const visual_states = {
       material_name: {
         applies_to: "object",
@@ -96,15 +96,12 @@ describe("declarative anchor material effects", () => {
         clip: "anchor_liquid_clip",
       },
     };
-    assert.throws(
-      () =>
-        resolve_visual_state(
-          visual_states,
-          { material_name: "pbs", material_volume: 0 },
-          MATERIAL_REGISTRY,
-        ),
-      /non-empty material 'pbs' has zero paired amount/,
+    const out = resolve_visual_state(
+      visual_states,
+      { material_name: "pbs", material_volume: 0 },
+      MATERIAL_REGISTRY,
     );
+    assert.equal(out.anchor_material_effects[0].fill_percent, 0);
   });
 
   test("fill_height rejects non-empty material with a missing amount", () => {

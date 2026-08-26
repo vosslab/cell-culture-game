@@ -1,9 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 210">
-  <path d="M25 16h130v178H25z" fill="#d8eef4" stroke="#334155" stroke-width="5" stroke-linejoin="round"/>
-  <path d="M39 29h102v153H39z" fill="#f8fcfd" stroke="#708895" stroke-width="4" stroke-linejoin="round"/>
-  <path d="M58 49h64v113H58z" fill="#71bad9" stroke="#526875" stroke-width="4" stroke-linejoin="round"/>
-  <path d="M62 56h56" fill="none" stroke="#e8f8fc" stroke-width="4" stroke-linecap="round"/>
-  <path d="M68 61v92M112 61v92" fill="none" stroke="#b9e1ed" stroke-width="4" stroke-linecap="round" opacity=".8"/>
-  <path d="M18 57h21v96H18zM141 57h21v96h-21z" fill="#526875" stroke="#334155" stroke-width="3" stroke-linejoin="round"/>
-  <path d="M48 174h84" fill="none" stroke="#9fc4d2" stroke-width="5" stroke-linecap="round"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 210"><defs><linearGradient id="dam" x1="0" x2="0" y2="1"><stop stop-color="#d8edf0"/><stop offset=".5" stop-color="#86b9c4"/><stop offset="1" stop-color="#5b909e"/></linearGradient></defs><path d="M28 158q0-12 12-12h100q12 0 12 12v17q0 12-12 12H40q-12 0-12-12z" fill="#416f79" stroke="#315760" stroke-width="3"/><path d="M42 45q0-14 14-14h68q14 0 14 14v105q0 12-12 12h-8v18q0 7-7 7H69q-7 0-7-7v-18h-8q-12 0-12-12z" fill="url(#dam)" stroke="#3c6d78" stroke-width="3"/><path d="M54 47q0-5 5-5h62q5 0 5 5v71q0 6-6 6H60q-6 0-6-6z" fill="#f7fcfc" stroke="#578a95" stroke-width="2"/><path d="M61 51h58v65H61z" fill="#8fd3df" opacity=".76"/><path d="M62 137h56v23H62z" fill="#6eabb6" stroke="#3c6d78" stroke-width="2"/><path d="M34 158h112" stroke="#d9f7f8" stroke-width="3" opacity=".8"/></svg>

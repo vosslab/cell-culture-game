@@ -1,13 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 306.973 424.97">
-  <title>Staining tray with rinsed gel in water</title>
-  <defs><clipPath id="anchor_liquid_clip"><path d="M44 145H262L244 279H62Z"/></clipPath></defs>
-  <path d="M43 112H263L278 143H28Z" fill="#e6f5fa" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
-  <path d="m28 143 15-31 19 167-14 27Z" fill="#c4e4ef" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
-  <path d="m278 143-15-31-19 167 14 27Z" fill="#b6dce9" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
-  <path d="M44 145H262L244 279H62Z" fill="#c9edf4" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
-  <g id="overlay_root"/>
-  <rect id="anchor_liquid_bounds" x="44" y="145" width="218" height="134" display="none" fill="none" stroke="none"/>
-  <g clip-path="url(#anchor_liquid_clip)"><path d="M44 158H260" fill="none" stroke="#fff" stroke-width="3"/><path d="M91 169H215L202 250H104Z" fill="#f8fcfc" stroke="#456773" stroke-linejoin="round" stroke-width="3"/><g fill="none" stroke="#47788f" stroke-width="2.4"><path d="m107 177-12 65M124 177l-12 65M141 177l-12 65M158 177l-12 65M175 177l-12 65M192 177l-12 65"/></g><g stroke="#c3e0e7" stroke-width="2.5"><path d="m103 203 99 0M99 224h100"/></g></g>
-  <path d="M62 279H244L258 304H48Z" fill="#d6edf4" stroke="#26363c" stroke-linejoin="round" stroke-width="4"/>
-  <path d="M65 286H241" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="3" opacity=".9"/>
+  <defs><clipPath id="anchor_liquid_clip"><path d="M49 146C50 137 56 133 65 133H241C250 133 256 137 257 146L244 272C243 279 237 284 229 284H77C69 284 63 279 62 272Z"/></clipPath><linearGradient id="tray_wall" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#effafb"/><stop offset="1" stop-color="#b8d5dc"/></linearGradient></defs>
+  <path d="M45 128Q45 112 61 112H246Q262 112 262 128L253 282Q252 298 236 304H71Q55 298 54 282Z" fill="url(#tray_wall)" stroke="#66848c" stroke-width="2.6" stroke-linejoin="round"/>
+  <path d="M54 132Q55 121 67 121H240Q252 121 253 132L249 145H58Z" fill="#f9feff" stroke="#9ab8c0" stroke-width="1.5"/>
+  <path d="M49 146C50 137 56 133 65 133H241C250 133 256 137 257 146L244 272C243 279 237 284 229 284H77C69 284 63 279 62 272Z" fill="#e9f5f6" stroke="#7c9ba4" stroke-width="2"/>
+  <path d="M57 169Q153 162 249 169L244 272Q243 279 229 284H77Q63 279 62 272Z" fill="#b7e5ed"/><path d="M57 169Q153 162 249 169" fill="none" stroke="#f8ffff" stroke-width="3"/>
+  <path d="M92 179H214L202 248H104Z" fill="#eef9f9" stroke="#7295a0" stroke-width="2" stroke-linejoin="round"/><path d="M106 190 96 235M124 190 114 235M142 190 132 235M160 190 150 235M178 190 168 235M196 190 186 235" stroke="#8eb7c1" stroke-width="1.6"/>
+  <g id="overlay_root"/><rect id="anchor_liquid_bounds" x="48" y="132" width="213" height="152" display="none" fill="none" stroke="none"/>
+  <path d="M55 282Q57 299 72 304H235Q250 299 252 282L247 300Q245 311 234 314H73Q62 311 60 300Z" fill="#9dbfc7" stroke="#66848c" stroke-width="2" stroke-linejoin="round"/><path d="M74 305H232" stroke="#f8ffff" stroke-width="2" stroke-linecap="round" opacity=".8"/>
 </svg>

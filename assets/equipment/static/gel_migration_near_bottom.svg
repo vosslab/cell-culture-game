@@ -1,11 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 214 308" preserveAspectRatio="xMidYMid meet">
-  <!-- Language-neutral gel evidence: the tracking dye has reached the stop zone. -->
-  <rect x="30" y="28" width="154" height="252" rx="8" fill="#eaf7f8" stroke="#35454b" stroke-width="4"/>
-  <rect x="42" y="48" width="130" height="212" rx="3" fill="#cbe9ed" stroke="#7eaab4" stroke-width="2"/>
-  <path d="M43 91H171" fill="none" stroke="#35454b" stroke-width="5" stroke-linecap="round"/>
-  <g fill="#35454b"><rect x="52" y="69" width="14" height="15" rx="3"/><rect x="76" y="69" width="14" height="15" rx="3"/><rect x="100" y="69" width="14" height="15" rx="3"/><rect x="124" y="69" width="14" height="15" rx="3"/><rect x="148" y="69" width="14" height="15" rx="3"/></g>
-  <g fill="#5a7f8a" opacity=".8"><rect x="55" y="103" width="8" height="112" rx="4"/><rect x="79" y="103" width="8" height="112" rx="4"/><rect x="103" y="103" width="8" height="112" rx="4"/><rect x="127" y="103" width="8" height="112" rx="4"/><rect x="151" y="103" width="8" height="112" rx="4"/></g>
-  <g fill="#2c9abb"><rect x="53" y="174" width="12" height="8" rx="4"/><rect x="77" y="190" width="12" height="8" rx="4"/><rect x="101" y="206" width="12" height="8" rx="4"/><rect x="125" y="220" width="12" height="8" rx="4"/><rect x="149" y="230" width="12" height="8" rx="4"/></g>
-  <path d="M48 239H166" fill="none" stroke="#2c9abb" stroke-width="5" stroke-linecap="round"/>
-  <path d="M107 247V266M100 260l7 8 7-8" fill="none" stroke="#35454b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <g id="migration_near_bottom" fill="none" stroke-linecap="round">
+    <path d="M50 239h106" stroke="#356f9e" stroke-width="5" opacity=".88"/>
+    <path d="M52 237h102" stroke="#9bd5e1" stroke-width="1.5" opacity=".78"/>
+    <g fill="#356f9e" stroke="none" opacity=".62"><rect x="53" y="232" width="8" height="4" rx="2"/><rect x="68" y="235" width="8" height="4" rx="2"/><rect x="83" y="231" width="8" height="4" rx="2"/><rect x="98" y="234" width="8" height="4" rx="2"/><rect x="113" y="232" width="8" height="4" rx="2"/><rect x="128" y="235" width="8" height="4" rx="2"/><rect x="143" y="232" width="8" height="4" rx="2"/></g>
+    <path d="M48 252h110" stroke="#2c9abb" stroke-width="4"/>
+    <path d="M107 258v13m-7-6 7 8 7-8" stroke="#294657" stroke-width="3.5" stroke-linejoin="round"/>
+  </g>
 </svg>

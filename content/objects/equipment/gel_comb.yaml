@@ -3,19 +3,17 @@ kind: equipment
 label: Gel comb
 
 state_fields:
-  - field_name: position
+  - field_name: status
     type: enum
-    allowed: [not_in_cassette, in_cassette]
-    default: in_cassette
-    description: Position state of the comb.
+    allowed: [ready]
+    default: ready
+    description: Standalone gel comb after removal from its cassette.
 
 visual_states:
-  position:
+  status:
     kind: svg
     cases:
-      - when: in_cassette
-        output: { asset_name: gel_comb_in_cassette }
-      - when: not_in_cassette
+      - when: ready
         output: { asset_name: gel_comb }
 
 capabilities: [clickable]

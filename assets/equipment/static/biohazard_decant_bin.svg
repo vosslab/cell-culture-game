@@ -1,30 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 140 100">
-  <!-- Wide MTT-liquid collection bin, distinct from the upright clinical decant vessel. -->
-  <defs>
-    <clipPath id="anchor_liquid_clip">
-      <path d="M22 43h96l-9 42c-1 5-5 8-10 8H41c-5 0-9-3-10-8z"/>
-    </clipPath>
-  </defs>
-  <path d="M16 35h108l-13 53c-1 5-6 8-12 8H41c-6 0-11-3-12-8z" fill="#d85245"/>
-  <path d="M22 43h96l-9 42c-1 5-5 8-10 8H41c-5 0-9-3-10-8z" fill="#f58a72" opacity=".36"/>
-  <!-- The renderer mounts the clipped material here; receiving rim and warning mark remain visible. -->
-  <g id="overlay_root"/>
-  <path data-liquid-foreground="true" d="M16 35h108l-13 53c-1 5-6 8-12 8H41c-6 0-11-3-12-8z" fill="none" stroke="#592b2c" stroke-width="3" stroke-linejoin="round"/>
-  <!-- Broad open rim and rear splash guard communicate a receiving bin. -->
-  <path d="M13 34l12-16h90l12 16z" fill="#a63f38" stroke="#592b2c" stroke-width="3" stroke-linejoin="round"/>
-  <path d="M25 29h90l-6-7H31z" fill="#501613"/>
-  <path d="M19 38h102" stroke="#fff4e8" stroke-width="3" opacity=".78"/>
-  <!-- Warning triangle plus a three-lobed biohazard trefoil, all shape-only. -->
-  <path d="M70 46l22 37H48z" fill="#fff8df" stroke="#592b2c" stroke-width="2.8" stroke-linejoin="round"/>
-  <g fill="#592b2c">
-    <path d="M68 66c-9-1-13-7-11-13 2-6 9-7 13-2-3 3-4 6-2 9z"/>
-    <path d="M72 66c6-7 13-7 16-2 3 5 0 11-7 12 1-4-1-7-5-8z"/>
-    <path d="M70 70c3 8 0 14-7 15-6 0-10-6-6-11 3 2 7 1 9-2z"/>
-  </g>
-  <circle cx="70" cy="69" r="5" fill="#fff8df" stroke="#592b2c" stroke-width="1.8"/>
-  <circle cx="70" cy="69" r="2" fill="#592b2c"/>
-  <rect id="anchor_liquid_bounds" x="22" y="43" width="96" height="50" fill="none" stroke="none" display="none"/>
-  <rect id="anchor_highlight" x="10" y="14" width="120" height="82" fill="none" stroke="none" display="none"/>
-  <rect id="anchor_label" x="30" y="76" width="80" height="17" fill="none" stroke="none" display="none"/>
-  <rect id="anchor_error" x="116" y="18" width="16" height="16" fill="none" stroke="none" display="none"/>
+  <!-- Low, wide bench-top decant bin with an integrated rear splash guard. -->
+  <defs><clipPath id="anchor_liquid_clip"><path d="M22 42h96l-9 43c-1 5-5 8-10 8H41c-5 0-9-3-10-8z"/></clipPath></defs>
+  <path d="M16 35l11-17h86l12 17z" fill="#a9433d" stroke="#733b3c" stroke-width="1.8" stroke-linejoin="round"/><path d="M27 18h86l-6 11H33z" fill="#cf5a4c" stroke="#733b3c" stroke-width="1.8" stroke-linejoin="round"/><path d="M33 24h74l-4 4H37z" fill="#692724"/>
+  <path d="M14 34h112l-13 54c-2 6-7 9-14 9H41c-7 0-12-3-14-9z" fill="#d85b50" stroke="#733b3c" stroke-width="2" stroke-linejoin="round"/><path d="M22 42h96l-9 43c-1 5-5 8-10 8H41c-5 0-9-3-10-8z" fill="#ed806d" opacity=".55"/><path d="M18 36h104l-4 7H22z" fill="#f1a08b" stroke="#873733" stroke-width="1.5" stroke-linejoin="round"/><path d="M24 40h92l-3 4H27z" fill="#7d302d"/><path d="M28 46l5 37c1 4 4 6 8 7M112 46l-5 37c-1 4-4 6-8 7" fill="none" stroke="#ffb39d" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
+  <g id="overlay_root"/><path data-liquid-foreground="true" d="M14 34h112l-13 54c-2 6-7 9-14 9H41c-7 0-12-3-14-9z" fill="none" stroke="#733b3c" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M70 49l19 33H51z" fill="#fff5d8" stroke="#6e3432" stroke-width="1.8" stroke-linejoin="round"/><g fill="#642827"><path d="M68 66c-7-1-10-5-8-10 2-4 7-5 10-2-2 2-3 5-2 7z"/><path d="M72 66c5-5 10-5 13-2 2 4 0 9-6 10 1-4-1-6-4-7z"/><path d="M70 70c3 6 0 11-5 12-5 0-8-5-5-9 3 2 6 1 8-3z"/></g><circle cx="70" cy="69" r="4.1" fill="#fff5d8" stroke="#642827" stroke-width="1.1"/><circle cx="70" cy="69" r="1.6" fill="#642827"/>
+  <rect id="anchor_liquid_bounds" x="22" y="42" width="96" height="51" fill="none" stroke="none" display="none"/><rect id="anchor_highlight" x="10" y="14" width="120" height="82" fill="none" stroke="none" display="none"/><rect id="anchor_label" x="30" y="76" width="80" height="17" fill="none" stroke="none" display="none"/><rect id="anchor_error" x="116" y="18" width="16" height="16" fill="none" stroke="none" display="none"/>
 </svg>

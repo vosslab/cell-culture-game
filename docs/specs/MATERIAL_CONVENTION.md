@@ -243,10 +243,11 @@ Typed params:
 | `clip`          | no       | enum  | `anchor_liquid_clip`                         | compiler source clip for an object-level material SVG                                                   |
 | `capacity_ul`   | one of   | float | positive number                              | the vessel capacity in microliters; the volume/capacity denominator                                     |
 | `capacity_ml`   | one of   | float | positive number                              | the vessel capacity in milliliters; the volume/capacity denominator                                     |
+| `capacity_mg`   | one of   | float | positive number                              | the vessel capacity in milligrams; the mass/capacity denominator                                         |
 
-Exactly one of `capacity_ul` / `capacity_ml` is declared, matching the driving
-volume field's unit. The driving field is the `visual_states` key the effect is
-declared under (a material-volume field).
+Exactly one of `capacity_ul` / `capacity_ml` / `capacity_mg` is declared,
+matching the driving material-amount field's unit. The driving field is the
+`visual_states` key the effect is declared under.
 
 Example (a serological pipette filled by the amount it holds, for reference; the
 existing vessel fill behavior):
@@ -520,11 +521,12 @@ and its derived gravity-part region from that state. Material identity and amoun
 therefore change runtime paint and level, not the selected SVG filename.
 
 This rule is deliberately narrower than a filename rule. Complete discrete forms
-remain valid when they represent genuine form, geometry, or content states, even
-when their names include words such as `empty` or `full`, or when the selecting
-field is material-like but has no paired runtime material binding. For example,
-`mtt_powder_vial.svg` / `mtt_powder_vial_empty.svg` are legitimate ordinary
-discrete forms. Names alone never classify an asset's intent.
+remain valid when they represent a genuine change in physical form or geometry,
+even when their names include words such as `empty` or `full`. A material being a
+solid does not by itself justify material-specific vessel artwork. For example,
+pre-weighed MTT powder remains material identity and amount state inside the
+canonical microtube form; it does not select a dedicated powder-vial SVG. Names
+alone never classify an asset's intent.
 
 The prohibited fan-out is selecting different forms solely to encode the color
 or liquid level of a paired runtime material binding, such as making the same

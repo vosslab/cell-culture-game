@@ -2,9 +2,9 @@ scene_name: mtt_reagent_prep_bench_workspace
 extends: bench_basic
 
 scene_notes: |
-  Bench workspace for MTT reagent preparation. MTT powder container at rear left,
-  PBS bottle at rear center (additional from base), MTT solution tube in center
-  for mixing. Vortex from base used for vortex mixing to dissolve MTT powder.
+  Bench workspace for MTT reagent preparation. Pre-weighed MTT microtube at rear
+  left, PBS bottle at rear center (additional from base), MTT solution tube in
+  center for mixing. Vortex from base used to dissolve MTT powder.
 
 remove_placements:
   - rear_left_media_bottle
@@ -18,7 +18,7 @@ remove_placements:
   - rear_right_heat_block
 
 add_placements:
-  # MTT powder container at rear left (right stop beside waste)
+  # Pre-weighed MTT microtube at rear left (right stop beside waste)
   - placement_name: rear_left_mtt_powder
     object_name: mtt_powder_container
     zone: rear_left

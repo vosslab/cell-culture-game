@@ -1,13 +1,10 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 150" role="img" aria-labelledby="lens-tissue-title lens-tissue-desc">
-  <title id="lens-tissue-title">Lens-cleaning tissue</title>
-  <desc id="lens-tissue-desc">One thin rectangular lint-free paper sheet, shown slightly folded with a lifted corner and subtle paper fibers.</desc>
-  <path d="M30 35l142-12 20 17-10 80-143 11-18-18z" fill="#f8ffff" stroke="#526b73" stroke-width="3.2" stroke-linejoin="round"/>
-  <path d="M172 23l20 17-31 18-20-16z" fill="#d9f0ee" stroke="#526b73" stroke-width="2.8" stroke-linejoin="round"/>
-  <path d="M21 113l18 18 143-11-14-15-129 10z" fill="#e3f0ed" stroke="#718b8e" stroke-width="2.6" stroke-linejoin="round"/>
-  <path d="M47 52l110-10m-105 31 110-10m-105 31 105-9" fill="none" stroke="#ddd8c7" stroke-width="2.2" stroke-linecap="round"/>
-  <path d="M73 36l11 83m37-90 11 84m28-69-11 58" fill="none" stroke="#e8e3d3" stroke-width="2" stroke-linecap="round"/>
-  <path d="M141 42l20 16m-20-16 7 20m-109 53 18-1m11-1 18-1m11-1 18-2m11-1 18-1m11-1 18-2" fill="none" stroke="#c9c4b2" stroke-width="2" stroke-linecap="round"/>
-  <g fill="#d4cebb" opacity=".72">
-    <circle cx="59" cy="58" r="1.1"/><circle cx="92" cy="52" r="1"/><circle cx="130" cy="48" r="1.1"/><circle cx="72" cy="84" r="1"/><circle cx="109" cy="78" r="1.1"/><circle cx="145" cy="72" r="1"/><circle cx="93" cy="102" r="1"/><circle cx="135" cy="96" r="1.1"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 150">
+  <!-- Single folded lens tissue with a fine, almost transparent paper edge. -->
+  <path d="M29 38l143-13 20 17-10 77-143 12-18-18z" fill="#dcebe7" stroke="#81999c" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M30 35l142-12 20 17-12 76-141 12-18-18z" fill="#fbfdf8" stroke="#81999c" stroke-width="1.7" stroke-linejoin="round"/>
+  <path d="M172 23l20 17-28 16-21-15z" fill="#e3efec" stroke="#9baead" stroke-width="1.2" stroke-linejoin="round"/>
+  <path d="M21 113l18 18 141-12-13-14z" fill="#e0ece8" stroke="#9baead" stroke-width="1.2" stroke-linejoin="round"/>
+  <path d="M49 55l110-10m-106 28 110-10m-105 28 105-9M77 33l10 83m37-89 10 84m29-67-9 58" fill="none" stroke="#e2ddd0" stroke-width="1.35" stroke-linecap="round"/>
+  <path d="M142 42l22 14m-22-14 6 19M42 108l124-10" fill="none" stroke="#cdd8d3" stroke-width="1.2" stroke-linecap="round"/>
+  <g fill="#d8d2c0" opacity=".62"><circle cx="61" cy="57" r=".9"/><circle cx="97" cy="51" r=".9"/><circle cx="132" cy="48" r=".9"/><circle cx="79" cy="82" r=".9"/><circle cx="116" cy="77" r=".9"/><circle cx="148" cy="71" r=".9"/><circle cx="99" cy="103" r=".9"/></g>
 </svg>

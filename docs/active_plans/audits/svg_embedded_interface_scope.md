@@ -254,7 +254,6 @@ At the time of the census, eight files carried `title` and `desc` metadata:
 - [centrifuge_running.svg](../../../assets/equipment/binary_state/centrifuge_running.svg);
 - `gel_opening_tool_hidden.svg` (retired after the census when the tool was corrected to one
   observable [static aluminum lever](../../../assets/equipment/static/gel_opening_tool.svg));
-- [mtt_powder_vial.svg](../../../assets/equipment/binary_state/mtt_powder_vial.svg);
 - `electrode_module.svg` (deleted after reachability validation);
 - [kimwipe_pad.svg](../../../assets/equipment/static/kimwipe_pad.svg);
 - [lens_tissue.svg](../../../assets/equipment/static/lens_tissue.svg);

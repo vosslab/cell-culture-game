@@ -44,15 +44,7 @@
 // this component adds NO per-item click handler.
 
 import type { JSXElement } from "solid-js";
-import {
-  createMemo,
-  createSignal,
-  createEffect,
-  createResource,
-  Show,
-  For,
-  onCleanup,
-} from "solid-js";
+import { createMemo, createSignal, createEffect, Show, For, onCleanup } from "solid-js";
 
 import type {
   ComputedItem,
@@ -68,13 +60,17 @@ import {
   type ObjectState,
   type ResolvedVisualState,
 } from "./visual_state_resolver.js";
-import { injectSvgFromManifest } from "./inject_svg.js";
 import { render_liquid_material_effects } from "./liquid_paint.js";
-import { resolveSvgUrl, requiresDomSvg } from "./svg_manifest_loader.js";
+import { ImgSvgHost, SvgHost } from "./svg_host.js";
 import { SubpartVisualStateOverlay } from "./subpart_visual_state_renderer.js";
 import { SubpartHitSurface, resolve_active_subpart_selection } from "./subpart_hit_surface.js";
 import { find_subpart_material_contract } from "./subpart_dispatch.js";
 import { OBJECT_LIBRARY } from "../../../generated/object_library.js";
+import {
+  annotation_id,
+  build_scene_annotations,
+  type SceneAnnotation,
+} from "./scene_annotations.js";
 
 //============================================
 // Depth -> z-index mapping
@@ -213,213 +209,8 @@ function read_flags(
 }
 
 //============================================
-// SVG host (tiered: <img> for static assets, fetched SVG DOM for DOM-required)
-//============================================
-
-// A fixed-size box that fills the item geometry. Both render tiers use it so the
-// host keeps a stable layout box before SVG file text arrives (no layout shift
-// while the async fetch is in flight).
-const SVG_HOST_BOX_STYLE: Record<string, string> = { width: "100%", height: "100%" };
-
-// Render a DOM-SVG-required asset: fetch its file text once (cached per URL),
-// namespace ids per render instance, and inject the resulting SVG DOM. The whole
-// fetch+namespace+inject runs inside a Solid resource so a failure is captured by
-// the resource (no unhandled promise rejection). The ref records the host element
-// and signals readiness; the resource (keyed on asset + key + host readiness)
-// performs the injection only once a host exists. A fetch/parse failure flows to
-// the resource's error state, which renders a visible error marker and stamps
-// data-svg-load-error on the host. Success inserts ONLY already-resolved markup.
-function DomSvgHost(props: {
-  asset: string;
-  svgInstanceKey: string;
-  onDomSvgHostReady?: (host: HTMLElement) => void;
-}): JSXElement {
-  let hostEl: HTMLDivElement | undefined;
-  // Readiness flips true once the ref has set hostEl, so the resource does not
-  // run before a host exists to inject into.
-  const [hostReady, setHostReady] = createSignal<boolean>(false);
-
-  // The resource source bundles asset, key, and the host-ready flag. A changed
-  // asset (e.g. an SvgSwap-style enum visual_state) re-runs the injection. The
-  // resolver does the fetch+namespace+inject; its rejection becomes the
-  // resource's error state, surfaced visibly below.
-  const [injected] = createResource(
-    () => ({ asset: props.asset, key: props.svgInstanceKey, ready: hostReady() }),
-    async (k: { asset: string; key: string; ready: boolean }): Promise<boolean> => {
-      if (!k.ready || hostEl === undefined) {
-        // No host yet; resolve falsy and let the source re-trigger on readiness.
-        return false;
-      }
-      // Fetch (cached by URL) + namespace per instance + insert. A failure
-      // rejects, which Solid records as injected.error (handled below).
-      await injectSvgFromManifest(hostEl, k.asset, k.key);
-      props.onDomSvgHostReady?.(hostEl);
-      return true;
-    },
-  );
-
-  // Loud, visible failure: a resource error becomes an explicit rendered error
-  // state plus a data-svg-load-error stamp -- never an unhandled rejection or a
-  // silent blank. Reading injected.error subscribes this memo to the resource.
-  const loadError = createMemo<string>(() => {
-    const err: unknown = injected.error;
-    if (err === undefined) {
-      return "";
-    }
-    if (err instanceof Error) {
-      return err.message;
-    }
-    if (typeof err === "string") {
-      return err;
-    }
-    // Non-Error, non-string resource error: serialize safely rather than
-    // relying on Object's default "[object Object]" stringification.
-    return JSON.stringify(err);
-  });
-
-  let lastLoggedError = "";
-  createEffect(() => {
-    const message = loadError();
-    if (message.length > 0 && message !== lastLoggedError) {
-      // eslint-disable-next-line no-console
-      console.error(`SVG load failed for asset "${props.asset}": ${message}`);
-    }
-    lastLoggedError = message;
-  });
-
-  return (
-    <div
-      style={SVG_HOST_BOX_STYLE}
-      data-svg-render-mode="dom-svg"
-      data-svg-load-error={loadError().length > 0 ? loadError() : undefined}
-      ref={(el: HTMLDivElement) => {
-        hostEl = el;
-        setHostReady(true);
-      }}
-    >
-      <Show when={loadError().length > 0}>
-        <span
-          style={{
-            "font-size": "14px",
-            "font-family": "monospace",
-            color: "#c0392b",
-            "pointer-events": "none",
-          }}
-        >
-          {`SVG load failed: ${props.asset}`}
-        </span>
-      </Show>
-    </div>
-  );
-}
-
-// Render a static (non-DOM-SVG-required) asset as an <img>. The container item
-// div already carries the data-* attributes and the delegated click affordance,
-// so the image must not intercept pointer events; pointer-events:none keeps the
-// container clickable/highlightable. object-fit:contain preserves aspect (never
-// crop/stretch a scientific asset, per PRIMARY_DESIGN.md). The fixed box style
-// keeps layout stable.
-function ImgSvgHost(props: { asset: string }): JSXElement {
-  const url = createMemo<string>(() => resolveSvgUrl(props.asset));
-  return (
-    <img
-      src={url()}
-      alt=""
-      data-svg-render-mode="img"
-      style={{
-        ...SVG_HOST_BOX_STYLE,
-        "object-fit": "contain",
-        "pointer-events": "none",
-        display: "block",
-      }}
-    />
-  );
-}
-
-// Tiered SVG host. The render mode is chosen from the asset's DECLARED
-// requires_dom_svg value in the manifest (derived at generation time from object
-// declarations), never from current material/visual state -- so it is stable
-// across the object's lifetime. DOM-SVG-required assets fetch + namespace +
-// inject SVG DOM; static assets render as an opaque <img>. svgInstanceKey is a
-// stable unique render-instance key (scene_name + placement_name) used to
-// namespace internal SVG ids so two injected instances never collide on a shared
-// id (e.g. clipPath id="a").
-function SvgHost(props: {
-  asset: string;
-  svgInstanceKey: string;
-  onDomSvgHostReady?: (host: HTMLElement) => void;
-}): JSXElement {
-  // requiresDomSvg reads the manifest's generation-time-derived boolean. It is a
-  // declaration property, not runtime state, so reading it once per asset (memo)
-  // is correct and stable.
-  const isDomSvg = createMemo<boolean>(() => requiresDomSvg(props.asset));
-  const dom_svg_props: {
-    asset: string;
-    svgInstanceKey: string;
-    onDomSvgHostReady?: (host: HTMLElement) => void;
-  } = {
-    asset: props.asset,
-    svgInstanceKey: props.svgInstanceKey,
-  };
-  if (props.onDomSvgHostReady !== undefined) {
-    dom_svg_props.onDomSvgHostReady = props.onDomSvgHostReady;
-  }
-  return (
-    <Show when={isDomSvg()} fallback={<ImgSvgHost asset={props.asset} />}>
-      <DomSvgHost {...dom_svg_props} />
-    </Show>
-  );
-}
-
-//============================================
 // Text-overlay rendering, bottom-anchored
 //============================================
-
-// Render resolved text overlays as centered captions. Multiple overlays stack
-// above the bottom of the item box and do not change item geometry.
-function Overlays(props: { resolved: ResolvedVisualState }): JSXElement {
-  return (
-    <For each={props.resolved.overlays}>
-      {(overlay, index) => {
-        // Multiple declared text overlays represent distinct state facts (for
-        // example, an instrument's completed analysis plus its numeric
-        // results). Stack them rather than placing each in the same pixels.
-        // Use a pixel rhythm rather than a percentage of the object height.
-        // Percentage spacing collapsed all state facts onto the same few
-        // pixels on physically small objects (slides, tubes, and cassettes).
-        // A compact opaque-backed caption keeps each authored observation
-        // legible without changing the object's measured scene geometry.
-        const bottom = 2 + index() * 16;
-        return (
-          <div
-            data-overlay="text"
-            data-overlay-field={overlay.field_name}
-            style={{
-              position: "absolute",
-              left: "50%",
-              bottom: `${bottom}px`,
-              transform: "translateX(-50%)",
-              "text-align": "center",
-              "font-family": "monospace",
-              "font-size": "10px",
-              "line-height": "1.25",
-              "white-space": "nowrap",
-              color: "#222222",
-              background: "rgba(255, 255, 255, 0.88)",
-              border: "1px solid rgba(23, 59, 73, 0.22)",
-              "border-radius": "3px",
-              padding: "1px 4px",
-              "z-index": "3",
-              "pointer-events": "none",
-            }}
-          >
-            {overlay.text}
-          </div>
-        );
-      }}
-    </For>
-  );
-}
 
 // Render object-level declarative material effects into the already-injected
 // compiled SVG. Ordinary assets may have no effects, but an authored effect on
@@ -498,6 +289,7 @@ export function SceneItem(props: {
   // child closest()/onMount race. Optional so unit harnesses can mount a bare
   // SceneItem without wiring the callback.
   onDegrade?: (target: string, message: string) => void;
+  onAnnotations?: (placement_name: string, annotations: readonly SceneAnnotation[]) => void;
   // Active-affordance accessor (affordance plumbing). Read in
   // ARROW form INSIDE the per-object highlight memo (never as a plain object
   // snapshot) so the snapshot dependency is tracked reactively. Optional: absent
@@ -758,6 +550,12 @@ export function SceneItem(props: {
   createEffect(() => {
     props.onDegrade?.(target, degradationMessage());
   });
+  createEffect(() => {
+    props.onAnnotations?.(
+      item.placement_name,
+      build_scene_annotations(item.placement_name, item.label, resolved()?.overlays ?? []),
+    );
+  });
 
   // The base asset to inject. When visual_states drive the asset, use the
   // resolved asset; otherwise fall back to the bound item.asset (static).
@@ -769,6 +567,11 @@ export function SceneItem(props: {
     return item.asset;
   });
   const asset_layers = createMemo<readonly string[]>(() => resolved()?.asset_layers ?? []);
+  const annotation_description_ids = createMemo<string>(() => {
+    return build_scene_annotations(item.placement_name, item.label, resolved()?.overlays ?? [])
+      .map((annotation) => annotation_id(annotation))
+      .join(" ");
+  });
   const [domSvgHost, setDomSvgHost] = createSignal<HTMLElement | undefined>(undefined);
 
   // Reactive highlight flags.
@@ -873,6 +676,7 @@ export function SceneItem(props: {
             data-interaction-envelope="true"
             data-interaction-envelope-kind={affordance_kind()}
             data-item-id={placement_target}
+            aria-describedby={annotation_description_ids() || undefined}
           />
         </Show>
       </div>
@@ -911,6 +715,7 @@ export function SceneItem(props: {
           data-interaction-envelope="true"
           data-interaction-envelope-kind={affordance_kind()}
           data-item-id={placement_target}
+          aria-describedby={annotation_description_ids() || undefined}
         />
       </Show>
       <For each={asset_layers()}>
@@ -928,9 +733,6 @@ export function SceneItem(props: {
         resolved={resolved()}
         onDegrade={setAnchorMaterialDegraded}
       />
-      <Show when={resolved() !== null}>
-        <Overlays resolved={resolved()!} />
-      </Show>
       {/* Structured-subpart material overlay. Rendered
           only when this object DECLARES the subpart material-tint contract
           (subpart_contract non-null + object_def present). The generic

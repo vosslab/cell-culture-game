@@ -19,18 +19,18 @@ initial_state:
 learning:
   objectives:
     Students completing this mini-protocol will have achieved fluency with
-    handling a pre-weighed powder vial, aseptic dissolution technique, and
+    handling a pre-weighed MTT microtube, aseptic dissolution technique, and
     verification of final reagent concentration.
   outcomes:
-    Students completing this mini-protocol will be able to combine a pre-weighed
-    20 mg MTT powder vial with 4 mL PBS, dissolve it to reach 12 mM MTT, and verify
-    solution readiness for use in the MTT assay.
+    Students completing this mini-protocol will be able to combine 20 mg of MTT
+    powder from a pre-weighed microtube with 4 mL PBS, dissolve it to reach 12 mM
+    MTT, and verify solution readiness for use in the MTT assay.
   goals:
     Overall, this mini-protocol aims to accomplish the MTT reagent preparation
     step (Part 3, Day 4, action A39 of the OVCAR8 assay). A 12 mM MTT solution is
     the critical reagent for the colorimetric viability assay; preparation requires
-    adding PBS, transferring the pre-weighed 20 mg powder, and mixing to ensure complete
-    solubilization before use in downstream assay steps.
+    adding PBS, transferring the pre-weighed 20 mg powder from its microtube, and
+    mixing to ensure complete solubilization before use in downstream assay steps.
 steps:
   - step_name: prepare_solution_tube
     prompt:
@@ -113,12 +113,12 @@ steps:
   - step_name: dissolve_and_mix
     prompt:
       Transfer the 20 mg MTT powder into the solution tube by tapping the powder
-      vial over the tube. Then vortex the tube for 30 seconds to fully dissolve the
-      powder.
+      microtube over the tube. Then vortex the tube for 30 seconds to fully dissolve
+      the powder.
     sequence:
       - target: mtt_powder_container
         gesture: click
-        instruction: "Tap the MTT powder vial over the solution tube."
+        instruction: "Tap the pre-weighed MTT microtube over the solution tube."
         hint: "Transfer the full 20 mg powder into the PBS-filled tube before vortexing."
         validator:
           preset: correct_target
@@ -131,7 +131,7 @@ steps:
                 material_volume: 0
       - target: mtt_solution_tube
         gesture: click
-        instruction: "Tap the MTT vial over the solution tube to transfer the powder."
+        instruction: "Tap the MTT microtube over the solution tube to transfer the powder."
         hint: "The PBS-filled tube is the receiving vessel; tap in the powder before vortexing."
         validator:
           preset: correct_target

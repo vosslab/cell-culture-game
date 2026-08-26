@@ -17,6 +17,12 @@ The exact source-by-source disposition and protected result-screen hashes live i
 the [SVG consistency sweep ledger](../reports/svg_consistency_sweep.md). This plan owns
 the execution sequence and acceptance gates; the ledger owns the 186-row inventory.
 
+This completed plan and its 139-asset contact sheet are historical snapshots as
+of 2026-08-24. The later [SVG visual-quality rebuild plan](svg_visual_quality_rebuild_plan.md)
+supersedes their current-review role with a 135-asset tree, canonical
+variable-volume tool forms, and built-consumer M12 evidence. Counts and asset
+paths below remain unchanged so the earlier sweep's evidence stays auditable.
+
 ## Objectives
 
 - Establish one documented de-shadowed Servier visual dialect for retained equipment SVGs.

@@ -4,11 +4,15 @@
 // shared by every page in dist/:
 //
 //   - dist/index.html        -> #launcher-root present -> launcher mount
-//   - dist/<protocol>.html   -> #scene-root + #shell-root + window.__PROTOCOL_NAME__
+//   - dist/<protocol>.html   -> #scene-root + #scene-annotation-root + #shell-root
+//                                + window.__PROTOCOL_NAME__
 //                                -> protocol_host mount
-//   - dist/scene_viewer.html -> #scene-root only, no protocol name, ?scene=<name>
+//   - dist/scene_viewer.html -> #scene-root + #scene-annotation-root, no protocol name,
+//                                ?scene=<name>
 //                                -> scene viewer mount (defaults to hood_basic when
 //                                   ?scene= is absent; also serves as bench smoke target)
+//   - dist/equipment_review.html -> #equipment-review-root
+//                                -> complete production-renderer SVG review
 //
 // Note: dist/bench_basic.html loads protocol_host.js, not main.js, so this
 // entry never routes bench_basic.html traffic. The scene viewer path above is
@@ -82,7 +86,11 @@ async function mount_scene_viewer(root: HTMLElement, scene_name: string): Promis
   // carries _scale_source and aspect, so attachSceneGeometry still has the
   // pipeline-truth fields it needs. No runPipeline call path ships here.
   const result = resolvePrecomputedResult(scene_name, scene);
-  renderScene(root, result);
+  const annotation_root = document.getElementById("scene-annotation-root");
+  if (!(annotation_root instanceof HTMLElement)) {
+    throw new Error("dist_entry: #scene-annotation-root element not found for scene viewer");
+  }
+  renderScene(root, result, undefined, annotation_root);
   // Stash pipeline-truth geometry the render tool needs but cannot read from the
   // DOM: per-placement scale_source + intended SVG aspect, and the resolved zone
   // bounds (scene-percent). scene_to_png.mjs reads this together with rendered
@@ -144,6 +152,16 @@ async function mount_launcher(root: HTMLElement): Promise<void> {
 }
 
 //============================================
+// Equipment runtime review mount
+//============================================
+
+async function mount_equipment_review(root: HTMLElement): Promise<void> {
+  const { render } = await import("solid-js/web");
+  const { EquipmentRuntimeReview } = await import("./equipment_runtime_review.js");
+  render(() => <EquipmentRuntimeReview />, root);
+}
+
+//============================================
 // Protocol host mount
 //============================================
 
@@ -158,10 +176,14 @@ async function mount_protocol_host(): Promise<void> {
 //============================================
 
 function route(): Promise<void> {
-  // Order matters. Protocol host is the most specific: it requires a
-  // protocol name set on window AND a scene-root. If only scene-root is
-  // present, check for ?scene= to use the scene viewer, else fall back
-  // to bench (hood_basic). Launcher uses its own dedicated root.
+  // The independent equipment-review root is resolved before the learner
+  // launcher and scene hosts. Within the scene-root branch, the protocol host
+  // is most specific: it requires a protocol name and shell root. A bare
+  // scene-root uses ?scene= or falls back to hood_basic.
+  const equipment_review_root = document.getElementById("equipment-review-root");
+  if (equipment_review_root instanceof HTMLElement) {
+    return mount_equipment_review(equipment_review_root);
+  }
   const launcher_root = document.getElementById("launcher-root");
   if (launcher_root instanceof HTMLElement) {
     return mount_launcher(launcher_root);
@@ -181,7 +203,10 @@ function route(): Promise<void> {
     const scene_name = scene_param !== null && scene_param !== "" ? scene_param : "hood_basic";
     return mount_scene_viewer(scene_root, scene_name);
   }
-  throw new Error("dist_entry: no recognized root element (#launcher-root or #scene-root)");
+  throw new Error(
+    "dist_entry: no recognized root element " +
+      "(#equipment-review-root, #launcher-root, or #scene-root)",
+  );
 }
 
 route().catch((err: unknown) => {

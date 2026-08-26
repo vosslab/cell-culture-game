@@ -5,44 +5,47 @@ initial_state:
   # Match the stopped-run endpoint so this protocol is a viable standalone
   # continuation as well as the next block in the full SDS-PAGE runner.
   - target: electrophoresis_tank
-    state: { lid_present: true, module_present: true }
+    state:
+      {
+        lid_present: true,
+        module_present: true,
+        black_lead_connected: true,
+        red_lead_connected: true,
+      }
   - target: electrode_module
     state: { mounted: true, cassette_mounted: true, wing_clamps_open: false }
   - target: electrophoresis_buffer_dam
     state: { seated: true }
-  - target: electrophoresis_black_lead
-    state: { attached: true }
-  - target: electrophoresis_red_lead
-    state: { attached: true }
   - target: power_supply
-    state: { set_voltage: 150, running: false, cathode_lead_attached: true, anode_lead_attached: true }
+    state: { set_voltage: 150, running: false }
   - target: gel_cassette
     state:
-      { tape_present: false, comb_present: false, wing_clamps_locked: true,
-        migration_state: near_bottom, gel_state: separated_unstained,
-        lane_pattern: samples_1_to_3_ladder_5 }
+      {
+        tape_present: false,
+        comb_present: false,
+        wing_clamps_locked: true,
+        migration_state: near_bottom,
+        gel_state: separated_unstained,
+        lane_pattern: samples_1_to_3_ladder_5,
+      }
 learning:
-  objectives:
-    Students completing this mini-protocol will have achieved hands-on competency
+  objectives: Students completing this mini-protocol will have achieved hands-on competency
     in de-energizing an electrophoresis system, safely removing the sealed chamber,
     recovering the electrode assembly, and extracting a polyacrylamide gel from its
     protective cassette.
-  outcomes:
-    Students completing this mini-protocol will be able to disconnect the
+  outcomes: Students completing this mini-protocol will be able to disconnect the
     power supply leads from the electrode module, open and remove the electrophoresis
     tank lid, lift the electrode module out of the tank, pry open the gel cassette
     plates using a specialized gel-opening tool, and transfer the intact gel to a
     staining tray for post-electrophoresis processing.
-  goals:
-    "Overall, this mini-protocol aims to accomplish the gel extraction phase
+  goals: "Overall, this mini-protocol aims to accomplish the gel extraction phase
     of SDS-PAGE: transitioning from the closed electrophoresis chamber (powered down)
     to a gel ready for staining. This step comes immediately after the run is complete
     and power is off; it bridges the completed electrophoresis chamber to the staining
     workflow by safely recovering the gel."
 steps:
   - step_name: disconnect_power_and_remove_lid
-    prompt:
-      Disconnect the power supply leads and open the electrophoresis tank. Turn
+    prompt: Disconnect the power supply leads and open the electrophoresis tank. Turn
       off the supply first, remove both leads, then lift the lid. Never open a
       powered electrophoresis chamber.
     sequence:
@@ -68,38 +71,30 @@ steps:
               target: power_supply
               state:
                 running: false
-      - target: electrophoresis_black_lead
+      - target: electrophoresis_tank.black_terminal
         gesture: click
-        instruction: Disconnect the black cathode lead.
-        hint: Remove the black lead only after the supply is off.
+        instruction: Disconnect the black cathode lead at the black terminal.
+        hint: Select the black terminal only after the supply is off.
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: electrophoresis_black_lead
+              target: electrophoresis_tank
               state:
-                attached: false
-            - type: ObjectStateChange
-              target: power_supply
-              state:
-                cathode_lead_attached: false
-      - target: electrophoresis_red_lead
+                black_lead_connected: false
+      - target: electrophoresis_tank.red_terminal
         gesture: click
-        instruction: Disconnect the red anode lead.
-        hint: Remove the red lead so both electrical connections are clear.
+        instruction: Disconnect the red anode lead at the red terminal.
+        hint: Select the red terminal so both electrical connections are clear.
         validator:
           preset: correct_target
         response:
           scene_operations:
             - type: ObjectStateChange
-              target: electrophoresis_red_lead
+              target: electrophoresis_tank
               state:
-                attached: false
-            - type: ObjectStateChange
-              target: power_supply
-              state:
-                anode_lead_attached: false
+                red_lead_connected: false
       - target: electrophoresis_tank
         gesture: click
         instruction: Lift the tank lid after both leads are disconnected.
@@ -122,8 +117,7 @@ steps:
       on_failure: retry
     next_step: remove_electrode_module
   - step_name: remove_electrode_module
-    prompt:
-      Lift the electrode module out of the electrophoresis tank and set it aside
+    prompt: Lift the electrode module out of the electrophoresis tank and set it aside
       on the work surface.
     sequence:
       - target: electrode_module
@@ -149,8 +143,7 @@ steps:
       on_failure: retry
     next_step: pry_cassette_open
   - step_name: pry_cassette_open
-    prompt:
-      Locate the arrows on the cassette, align the gel-opening tool with an arrow,
+    prompt: Locate the arrows on the cassette, align the gel-opening tool with an arrow,
       and use gentle downward pressure to break the seal. Do not twist the tool,
       which can crack or tear the gel.
     sequence:

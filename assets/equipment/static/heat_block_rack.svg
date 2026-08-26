@@ -1,17 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120">
-  <g stroke="#26323b" stroke-width="2.8" stroke-linejoin="round">
-    <path d="M25 56h110v37c0 7-5 12-12 12H37c-7 0-12-5-12-12z" fill="#7fa8b5"/>
-    <path d="M31 49h98l-8 15H39z" fill="#527b89"/>
-    <rect x="38" y="40" width="84" height="27" rx="5" fill="#c8d1d2"/>
-    <g fill="#435a62" stroke="#26323b" stroke-width="1.6">
-      <circle cx="51" cy="49" r="4"/><circle cx="69" cy="49" r="4"/><circle cx="87" cy="49" r="4"/><circle cx="105" cy="49" r="4"/>
-      <circle cx="51" cy="59" r="4"/><circle cx="69" cy="59" r="4"/><circle cx="87" cy="59" r="4"/><circle cx="105" cy="59" r="4"/>
-    </g>
-  </g>
-  <g stroke="#26323b" stroke-width="2" stroke-linejoin="round">
-    <path d="M47 49V29h8v20z" fill="#d7ebf7"/><path d="M65 59V35h8v24z" fill="#e5c878"/>
-    <path d="M83 49V25h8v24z" fill="#d7ebf7"/><path d="M101 59V33h8v26z" fill="#d9bddd"/>
-  </g>
-  <path d="M51 30h0M69 36h0M87 26h0M105 34h0" stroke="#f8fcfd" stroke-width="2" stroke-linecap="round"/>
-  <path d="M38 96h84" fill="none" stroke="#dceff3" stroke-width="2" stroke-linecap="round"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120" preserveAspectRatio="xMidYMid meet">
+  <defs><linearGradient id="block" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c8dce2"/><stop offset="1" stop-color="#6c909e"/></linearGradient><linearGradient id="glass" x1="0" x2="1"><stop stop-color="#82afbd"/><stop offset=".38" stop-color="#f5ffff"/><stop offset="1" stop-color="#739dac"/></linearGradient></defs>
+  <g id="loaded_tubes" fill="url(#glass)" stroke="#294657" stroke-width="1.15"><path d="M48.5 21v38c0 3 2.4 5.3 5.5 6.8 3.1-1.5 5.5-3.8 5.5-6.8V21z"/><ellipse cx="54" cy="21" rx="5.5" ry="2.35" fill="#f7ffff"/><path d="M70.5 28v31c0 3 2.4 5.3 5.5 6.8 3.1-1.5 5.5-3.8 5.5-6.8V28z"/><ellipse cx="76" cy="28" rx="5.5" ry="2.35" fill="#f7ffff"/><path d="M92.5 17v42c0 3 2.4 5.3 5.5 6.8 3.1-1.5 5.5-3.8 5.5-6.8V17z"/><ellipse cx="98" cy="17" rx="5.5" ry="2.35" fill="#f7ffff"/></g>
+  <g id="rack_body" stroke="#294657" stroke-linejoin="round"><rect x="30" y="57" width="100" height="43" rx="4" fill="url(#block)" stroke-width="2"/><path d="M30 57h100v11H30z" fill="#e8f2f4" stroke-width="1.5"/><path d="M39 68h82v28H39z" fill="none" stroke="#5a7d8a" stroke-width="1"/><path d="M39 92h82" fill="none" stroke="#edf8fa" stroke-width="1.4" opacity=".72"/></g>
+  <g id="well_block" fill="#183e4a" stroke="#294657" stroke-width="1"><ellipse cx="54" cy="59.2" rx="6.2" ry="2.9"/><ellipse cx="76" cy="59.2" rx="6.2" ry="2.9"/><ellipse cx="98" cy="59.2" rx="6.2" ry="2.9"/><ellipse cx="54" cy="78" rx="6.2" ry="2.9"/><ellipse cx="76" cy="78" rx="6.2" ry="2.9"/><ellipse cx="98" cy="78" rx="6.2" ry="2.9"/></g>
 </svg>

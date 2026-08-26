@@ -1,11 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 135">
-  <g id="pack" stroke="#35454b" stroke-linejoin="round">
-    <path d="M20 30h200v78H20z" fill="#e9f3f5" stroke-width="5"/>
-    <path d="M34 43h172v50H34z" fill="#f9fcfc" stroke="#86a9b2" stroke-width="3"/>
-    <path d="M42 51h156v34H42z" fill="#e9f3f5" stroke="none"/>
-  </g>
-  <g id="contents" fill="none" stroke="#86a9b2" stroke-linecap="round">
-    <path d="M51 68h138" stroke-width="4"/>
-    <path d="M51 78h138" stroke="#dff2f5" stroke-width="2"/>
-  </g>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 250 145">
+  <defs><linearGradient id="carton_top" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fcffff"/><stop offset="1" stop-color="#d8e9ec"/></linearGradient><linearGradient id="carton_front" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#e9f5f6"/><stop offset="1" stop-color="#bdd8de"/></linearGradient></defs>
+  <g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M49 50c1-5 6-8 11-8l144-16c7-1 13 1 18 6l20 18-167 23Z" fill="url(#carton_top)" stroke="#587780" stroke-width="1.7"/><path d="M75 73 242 50v62c0 6-4 10-10 11L75 144Z" fill="url(#carton_front)" stroke="#587780" stroke-width="1.7"/><path d="M49 50 75 73v71L43 116V59c0-4 2-7 6-9Z" fill="#b2d0d6" stroke="#587780" stroke-width="1.7"/><path d="M55 52 201 35c7-1 11 0 15 4l14 12-154 20Z" fill="#fafdfe" stroke="#9abcc3" stroke-width="1.1"/><path d="M55 52 76 71l-5 10-23-20" fill="#d0e3e6" stroke="#9abcc3" stroke-width="1.1"/><path d="M82 78 226 58" stroke="#fff" stroke-width="2.5" opacity=".85"/><path d="M80 128 234 107" stroke="#95b8c0" stroke-width="1.3" opacity=".7"/></g>
+  <path d="M88 86c2-3 5-5 9-5l106-15 16 13-117 17c-5 1-9-1-14-10Z" fill="#b8d3d9" stroke="#6e949e" stroke-linejoin="round" stroke-width="1.3"/><path d="M99 84 204 69" fill="none" stroke="#effafb" stroke-linecap="round" stroke-width="1.7" opacity=".85"/>
 </svg>

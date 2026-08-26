@@ -40,7 +40,8 @@
 // remounts the scene.
 
 import type { JSXElement } from "solid-js";
-import { For, onMount, createMemo, createSignal, createEffect } from "solid-js";
+import { For, Show, onMount, createMemo, createSignal, createEffect } from "solid-js";
+import { Portal } from "solid-js/web";
 
 import type { ComputedItem, PipelineResult } from "../layout/types.js";
 import type { SceneStore, TargetSeed } from "../state/scene_store.js";
@@ -51,6 +52,7 @@ import { collectStructuralViolations, enforceNoLabelOwnSvgOverlap } from "./stru
 import { LABEL_FONT_MIN_PX, LABEL_FONT_WIDTH_FRACTION } from "../layout/constants.js";
 import { renderBackground } from "./render_background.js";
 import { SceneItem } from "./scene_item.js";
+import { SceneAnnotationRail, type SceneAnnotation } from "./scene_annotations.js";
 
 //============================================
 // Seed-list derivation from a PipelineResult
@@ -169,6 +171,7 @@ export function SceneView(props: {
   // Resolver-accepted candidate object names for this scene, computed once per
   // scene mount in mountScene. Passed by reference; SceneItem only calls .has().
   candidateTargets?: ReadonlySet<string> | undefined;
+  annotationRoot?: HTMLElement | undefined;
 }): JSXElement {
   const result = props.result;
   if (!result.interactionGeometry.valid) {
@@ -181,10 +184,11 @@ export function SceneView(props: {
   const root = props.root;
 
   // The active interaction supplies a placement-normalized target. Select is
-  // deliberately excluded: moving the scrollport to the correct candidate
-  // would disclose an answer before the learner chooses. The memo preserves
-  // equality across unrelated snapshot updates, so feedback/recovery changes
-  // do not restart scene motion.
+  // deliberately excluded from the single-target path: moving to one target
+  // could disclose an answer before the learner chooses. Select instead
+  // reveals the union of every equally ringed candidate below. The memo
+  // preserves equality across unrelated snapshot updates, so feedback/recovery
+  // changes do not restart scene motion.
   const visible_action_target = createMemo<string | null>(() => {
     const affordance = props.activeAffordance?.();
     if (affordance?.active_gesture === "select") {
@@ -199,13 +203,17 @@ export function SceneView(props: {
   // usable 44px interaction surface is visible rather than merely its artwork.
   // This writes only the scrollport's scroll position; it never calls
   // Element.scrollIntoView(), which could also move the document viewport.
-  function reveal_active_target(target: string): void {
+  function reveal_targets(targets: readonly string[]): void {
+    if (targets.length === 0) {
+      return;
+    }
     const scrollport = root.closest(".scene-panel");
     if (!(scrollport instanceof HTMLElement)) {
       return;
     }
-    const target_elements = Array.from(root.querySelectorAll("[data-item-id]")).filter(
-      (element) => element.getAttribute("data-item-id") === target,
+    const target_set = new Set(targets);
+    const target_elements = Array.from(root.querySelectorAll("[data-item-id]")).filter((element) =>
+      target_set.has(element.getAttribute("data-item-id") ?? ""),
     );
     if (target_elements.length === 0) {
       return;
@@ -263,6 +271,14 @@ export function SceneView(props: {
   }
 
   createEffect(() => {
+    const active_affordance = props.activeAffordance?.();
+    if (active_affordance?.active_gesture === "select") {
+      // The candidate set is generated from the same resolved affordance
+      // semantics that paint candidate rings. Revealing their combined bounds
+      // keeps all choices reachable without signaling which one is correct.
+      reveal_targets(Array.from(props.candidateTargets ?? []));
+      return;
+    }
     const target = visible_action_target();
     if (target === null) {
       return;
@@ -271,7 +287,7 @@ export function SceneView(props: {
     // hit surfaces are already present. Keep alignment in this same reactive
     // turn: a later microtask leaves a visible but not-yet-reachable target
     // between the runtime action update and the scrollport update.
-    reveal_active_target(target);
+    reveal_targets([target]);
   });
 
   // Structural classification in report mode (never throws). Most violations
@@ -290,6 +306,38 @@ export function SceneView(props: {
   // is the single source of truth for resolver-driven degrade, replacing the
   // old child closest("[data-scene-root]") DOM walk.
   const [degradedTargets, setDegradedTargets] = createSignal<Set<string>>(new Set());
+  const [annotationsByPlacement, setAnnotationsByPlacement] = createSignal<
+    ReadonlyMap<string, readonly SceneAnnotation[]>
+  >(new Map());
+
+  function onAnnotations(placement_name: string, annotations: readonly SceneAnnotation[]): void {
+    setAnnotationsByPlacement((previous) => {
+      const next = new Map(previous);
+      if (annotations.length === 0) {
+        next.delete(placement_name);
+      } else {
+        next.set(placement_name, annotations);
+      }
+      return next;
+    });
+  }
+
+  const scene_annotations = createMemo<readonly SceneAnnotation[]>(() => {
+    const annotations = annotationsByPlacement();
+    return result.final.flatMap((item) => annotations.get(item.placement_name) ?? []);
+  });
+
+  // A stateful production scene must provide the shell-owned rail mount. This
+  // keeps every resolved learner-visible fact present exactly once instead of
+  // silently losing it when a host omits the sibling root. State-free renderer
+  // harnesses may intentionally omit the root.
+  createEffect(() => {
+    if (props.annotationRoot === undefined && scene_annotations().length > 0) {
+      throw new Error(
+        "SceneView: annotationRoot is required when resolved scene annotations are present",
+      );
+    }
+  });
 
   // Record or clear a target's degraded membership. Called by SceneItem when
   // its resolver throws (message non-empty) or recovers (message empty). We
@@ -364,22 +412,35 @@ export function SceneView(props: {
   // depth_tier order (result.final is already sorted). Reference-identity
   // reconciliation means an ObjectStateChange never remounts an item's DOM node.
   return (
-    <For each={result.final}>
-      {(item: ComputedItem) => (
-        <>
-          <SceneItem
-            item={item}
-            store={props.store}
-            materialRegistry={props.materialRegistry}
-            sceneName={result.scene.scene_name}
-            onDegrade={onDegrade}
-            activeAffordance={props.activeAffordance}
-            candidateTargets={props.candidateTargets}
-            interactionGeometry={result.interactionGeometry.envelopes[item.placement_name]}
+    <>
+      <For each={result.final}>
+        {(item: ComputedItem) => (
+          <>
+            <SceneItem
+              item={item}
+              store={props.store}
+              materialRegistry={props.materialRegistry}
+              sceneName={result.scene.scene_name}
+              onDegrade={onDegrade}
+              onAnnotations={onAnnotations}
+              activeAffordance={props.activeAffordance}
+              candidateTargets={props.candidateTargets}
+              interactionGeometry={result.interactionGeometry.envelopes[item.placement_name]}
+            />
+            <SceneLabel item={item} fontSize={label_font_size} />
+          </>
+        )}
+      </For>
+      <Show when={props.annotationRoot !== undefined}>
+        <Portal mount={props.annotationRoot!}>
+          <SceneAnnotationRail
+            annotations={scene_annotations()}
+            active_target={visible_action_target()}
+            active_gesture={props.activeAffordance?.().active_gesture ?? null}
+            candidate_targets={props.candidateTargets ?? new Set<string>()}
           />
-          <SceneLabel item={item} fontSize={label_font_size} />
-        </>
-      )}
-    </For>
+        </Portal>
+      </Show>
+    </>
   );
 }

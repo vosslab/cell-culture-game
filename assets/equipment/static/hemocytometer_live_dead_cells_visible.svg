@@ -1,12 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 220">
-  <g fill="#f8feff" stroke="#2c9abb" stroke-width="1.5">
+  <g id="live_dead_cells_visible"><g id="viable_cells" fill="#f8feff" stroke="#2c9abb" stroke-width="1.5">
     <circle cx="163" cy="87" r="3.3"/><circle cx="178" cy="95" r="3.2"/><circle cx="198" cy="87" r="3.3"/>
     <circle cx="222" cy="94" r="3.2"/><circle cx="238" cy="88" r="3.3"/><circle cx="169" cy="112" r="3.2"/>
     <circle cx="193" cy="119" r="3.3"/><circle cx="216" cy="112" r="3.2"/><circle cx="236" cy="122" r="3.3"/>
     <circle cx="181" cy="133" r="3.2"/><circle cx="207" cy="132" r="3.3"/><circle cx="228" cy="137" r="3.2"/>
   </g>
-  <g fill="#c95c5c" stroke="#fff1ef" stroke-width="1.3">
+  <g id="nonviable_cells" fill="#c95c5c" stroke="#fff1ef" stroke-width="1.3">
     <circle cx="188" cy="87" r="3.4"/><circle cx="209" cy="101" r="3.4"/><circle cx="229" cy="108" r="3.4"/>
     <circle cx="175" cy="124" r="3.4"/><circle cx="202" cy="140" r="3.4"/>
-  </g>
+  </g></g>
 </svg>

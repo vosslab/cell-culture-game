@@ -8,6 +8,14 @@ sweep. It records the baseline discovered by
 2026-08-24. It is a planning and review ledger, not a second SVG behavioral
 specification; [SVG_PIPELINE.md](../../specs/SVG_PIPELINE.md) remains canonical.
 
+This ledger is the historical 2026-08-24 sweep baseline. The later
+[frozen-tree validation record](svg_m12_validation_record.md) records both the
+former 135-asset reconciliation and the later 134-asset recovered tree. The
+current second-pass tree contains 130 assets after also deleting four standalone
+binary lead cards and replacing them with two apparatus-coordinate connection overlays.
+Retired paths below are preserved as dated disposition evidence, not as
+supported production assets.
+
 <!-- prettier-ignore -->
 | Baseline SVGs | Edit | Delete | Preserve and defer |
 | ---: | ---: | ---: | ---: |
@@ -16,7 +24,7 @@ specification; [SVG_PIPELINE.md](../../specs/SVG_PIPELINE.md) remains canonical.
 - **edit:** retain the named source SVG and revise it to the visual acceptance
   dialect; filenames, selected object bindings, semantic anchors, and material
   declarations remain stable.
-- **delete:** approved M1 cleanup deletion. Each name is an exact current
+- **delete:** approved M1 cleanup deletion at the time of the sweep. Each name was an exact
   `cleanup_surface.orphans` advisory. Re-run the audit and confirm no new
   authored reference before removal.
 - **defer:** preserve the source SVG unchanged in this sweep. These are
@@ -62,8 +70,8 @@ that grammar without copying an unrelated icon.
 | `binary_state/electrophoresis_red_lead_unattached.svg` | edit | WS-B state families |
 | `binary_state/electrophoresis_tank_lidded.svg` | edit | WS-B state families |
 | `binary_state/electrophoresis_tank_open.svg` | edit | WS-B state families |
-| `binary_state/gel_comb.svg` | edit | WS-B state families |
-| `binary_state/gel_comb_in_cassette.svg` | edit | WS-B state families |
+| `static/gel_comb.svg` | edit | WS-B state families; moved from `binary_state` after inserted-comb ownership moved solely to the cassette |
+| `binary_state/gel_comb_in_cassette.svg` | delete | Retired after review: this was a full cassette composite masquerading as a comb state |
 | `binary_state/gel_opening_tool.svg` | edit | WS-B state families |
 | `binary_state/gel_opening_tool_hidden.svg` | edit | WS-B state families |
 | `binary_state/hazardous_liquid_waste_empty.svg` | edit | WS-B state families |
@@ -78,8 +86,8 @@ that grammar without copying an unrelated icon.
 | `binary_state/microwave_heating.svg` | edit | WS-B state families |
 | `binary_state/mini_protean_gel.svg` | edit | WS-B state families |
 | `binary_state/mini_protean_gel_unsealed.svg` | edit | WS-B state families |
-| `binary_state/mtt_powder_vial.svg` | edit | WS-B state families |
-| `binary_state/mtt_powder_vial_empty.svg` | edit | WS-B state families |
+| `binary_state/mtt_powder_vial.svg` | delete | Retired after review: MTT is material inside the canonical microtube, not a separate vessel form |
+| `binary_state/mtt_powder_vial_empty.svg` | delete | Retired before final review: empty MTT selects the canonical microtube |
 | `binary_state/p1000_micropipette_empty.svg` | edit | WS-B state families |
 | `binary_state/p1000_micropipette_filled.svg` | edit | WS-B state families |
 | `binary_state/p200_micropipette_loaded.svg` | edit | WS-B state families |
@@ -269,7 +277,7 @@ learner-facing language boundaries. Do not use pixel-equivalence as a visual
 quality gate. After each integrated wave, regenerate the inventory and reconcile
 this table before proceeding to the next one.
 
-## Final closeout
+## Historical 2026-08-24 closeout
 
 ### Post-sweep human-review disposition
 
@@ -286,9 +294,9 @@ approved these pre-production canonicalization changes:
 | `static/mtt_vial.svg`                         | deleted           | the authored powder source uses ordinary microtube geometry; solution remains in the authored 15 mL conical |
 | `binary_state/gel_opening_tool_hidden.svg`    | deleted           | one approximately 8 cm aluminum lever lives at `static/gel_opening_tool.svg`                                |
 
-- Current disposition: 132 ordinary SVGs retained, 47 SVGs retired, and seven
+- Historical disposition at that closeout: 132 ordinary SVGs retained, 47 SVGs retired, and seven
   result composites byte-preserved, for 139 final SVGs.
-- The current production build discovers 139 SVGs and generates 139 manifest
+- The then-current production build discovered 139 SVGs and generated 139 manifest
   entries for 129 objects. The final strict SVG audit passes with no findings or
   orphans.
 - The material baseline was intentionally refreshed after visual review; the
@@ -305,6 +313,6 @@ approved these pre-production canonicalization changes:
 - Human findings supersede the earlier agent-only visual-stream pass as final
   acceptance evidence. Independent re-review and the corrected 139-asset
   contact-sheet presentation check pass; human acceptance remains open.
-- The contact sheet embeds all 139 current assets, marks exactly seven protected
+- The contact sheet embeds all 139 assets from that historical tree, marks exactly seven protected
   result composites, has no external references, parses as XML, and renders at
   2400 x 7776 px.

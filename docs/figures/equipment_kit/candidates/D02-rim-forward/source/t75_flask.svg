@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Generic filled T75 tissue-culture flask candidate, rim-forward construction" data-fixture-state="fixed-filled-review-proxy" data-production-empty-state="same geometry without contained liquid" data-runtime-material-contract="not-applicable">
+  <defs>
+    <clipPath id="liquid-clip"><path d="M58 154 109 103 239 120 278 151 216 189 91 204Z"/></clipPath>
+  </defs>
+  <g id="candidate-root">
+    <g id="back-masses">
+      <path d="M58 154 109 103 239 120 278 151 216 189 91 204Z" fill="#E8F0F4" stroke="#294657" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M58 154 91 204 91 225 55 172Z" fill="#7895A5" stroke="#294657" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M216 189 278 151 276 177 216 213Z" fill="#7895A5" stroke="#294657" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M91 204 216 189 216 213 91 232Z" fill="#B9CCD7" stroke="#294657" stroke-width="3" stroke-linejoin="round"/>
+      <path d="M76 151 47 129 70 94 109 103 92 137Z" fill="#B9CCD7" stroke="#294657" stroke-width="3" stroke-linejoin="round"/>
+      <ellipse cx="50" cy="116" rx="22" ry="13" transform="rotate(-34 50 116)" fill="#3B5668" stroke="#294657" stroke-width="3"/>
+    </g>
+    <g id="material-band">
+      <path d="M48 166 289 140 289 193 78 229Z" fill="#1E40AF" fill-opacity=".67" clip-path="url(#liquid-clip)"/>
+      <path d="M59 167 238 145 278 151 216 189 91 204Z" fill="#1E40AF" fill-opacity=".83" clip-path="url(#liquid-clip)"/>
+    </g>
+    <g id="front-masses">
+      <path d="M58 154 109 103 239 120 278 151 216 189 91 204Z" fill="none" stroke="#B9CCD7" stroke-width="11" stroke-linejoin="round"/>
+      <path d="M67 154 112 114 232 130 264 153 211 180 99 193Z" fill="none" stroke="#E8F0F4" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M76 151 47 129 70 94 109 103 92 137Z" fill="#B9CCD7" stroke="#294657" stroke-width="3" stroke-linejoin="round"/>
+      <ellipse cx="50" cy="116" rx="15" ry="8" transform="rotate(-34 50 116)" fill="#E8F0F4" stroke="#294657" stroke-width="3"/>
+      <path d="M33 108 59 91 79 102 78 122 51 139 32 128Z" fill="#B9CCD7" stroke="#294657" stroke-width="3" stroke-linejoin="round"/>
+      <ellipse cx="57" cy="96" rx="21" ry="10" transform="rotate(-34 57 96)" fill="#E8F0F4" stroke="#294657" stroke-width="3"/>
+    </g>
+    <g id="contours" fill="none" stroke="#294657" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M58 154 109 103 239 120 278 151 216 189 91 204Z" stroke-width="3"/>
+      <path d="M67 154 112 114 232 130 264 153 211 180 99 193Z" stroke-width="3"/>
+      <path d="M91 204 91 232 216 213 276 177" stroke-width="3"/>
+      <path d="M76 151 47 129 70 94" stroke-width="3"/>
+    </g>
+    <g id="anchors" fill="none" stroke="none">
+      <circle id="anchor-center" cx="160" cy="165" r="0"/><circle id="anchor-baseline" cx="160" cy="221" r="0"/><circle id="anchor-left" cx="33" cy="165" r="0"/><circle id="anchor-right" cx="287" cy="165" r="0"/>
+    </g>
+  </g>
+</svg>

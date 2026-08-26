@@ -42,8 +42,8 @@ test("visible protocol actions persist, resume, complete, and reset", async ({
   const currentAction = page.locator("[data-current-action]");
   const activeTarget = page.locator(
     [
-      "#scene-root [data-interaction-envelope-kind='active']",
-      "#scene-root [data-subpart-affordance='active']",
+      "#scene-root [data-interaction-envelope][data-interaction-envelope-kind='active']",
+      "#scene-root [data-subpart-hit][data-subpart-affordance='active']",
     ].join(", "),
   );
   const startOver = page.getByRole("button", { name: "Start over" });
@@ -74,7 +74,14 @@ test("visible protocol actions persist, resume, complete, and reset", async ({
 
   await expect(sessionStatus).toHaveText("Progress saved");
   await expect(guidedProgress).toContainText("1 / 3");
-  await expect(currentAction).toHaveAttribute("data-action-label", "Black cathode lead");
+  await expect(currentAction).toHaveAttribute(
+    "data-action-label",
+    "Electrophoresis tank black terminal",
+  );
+  await expect(currentAction).toHaveAttribute(
+    "data-action-target",
+    "rear_center_electrophoresis_tank.black_terminal",
+  );
 
   const beforeReloadPath = testInfo.outputPath("01-progress-saved-before-reload.png");
   await waitForStablePaint(page);
@@ -107,7 +114,14 @@ test("visible protocol actions persist, resume, complete, and reset", async ({
 
   await expect(sessionStatus).toHaveText("Progress restored");
   await expect(guidedProgress).toContainText("1 / 3");
-  await expect(currentAction).toHaveAttribute("data-action-label", "Black cathode lead");
+  await expect(currentAction).toHaveAttribute(
+    "data-action-label",
+    "Electrophoresis tank black terminal",
+  );
+  await expect(currentAction).toHaveAttribute(
+    "data-action-target",
+    "rear_center_electrophoresis_tank.black_terminal",
+  );
   const restoredRevisionText = await page
     .locator("html")
     .getAttribute("data-protocol-session-revision");
@@ -142,7 +156,14 @@ test("visible protocol actions persist, resume, complete, and reset", async ({
   await expect(sessionStatus).toHaveText("Progress saved");
   await expect(guidedProgress).toContainText("2 / 3");
 
-  await expect(currentAction).toHaveAttribute("data-action-label", "Red anode lead");
+  await expect(currentAction).toHaveAttribute(
+    "data-action-label",
+    "Electrophoresis tank red terminal",
+  );
+  await expect(currentAction).toHaveAttribute(
+    "data-action-target",
+    "rear_center_electrophoresis_tank.red_terminal",
+  );
   await expect(activeTarget).toHaveCount(1);
   await expect(activeTarget).toBeVisible();
   await activeTarget.click();
@@ -185,8 +206,8 @@ test("invalid persisted domain state is discarded before the first render", asyn
   const guidedProgress = page.locator("[data-region='step-counter']");
   const activeTarget = page.locator(
     [
-      "#scene-root [data-interaction-envelope-kind='active']",
-      "#scene-root [data-subpart-affordance='active']",
+      "#scene-root [data-interaction-envelope][data-interaction-envelope-kind='active']",
+      "#scene-root [data-subpart-hit][data-subpart-affordance='active']",
     ].join(", "),
   );
 

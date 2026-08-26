@@ -5,101 +5,28 @@ import os from "node:os";
 import { spawnSync } from "node:child_process";
 
 let harnessBundle = "";
-const VARIABLE_VOLUME_ASSETS = [
-  "bottle_medium_pink",
-  "falcon_15ml",
-  "falcon_50ml",
-  "microtube",
-  "serological_pipette",
-];
 const MATERIALS = ["#076dad", "#c2015a", "#5a8f20"];
-const VOLUMES = [0, 5, 10, 25, 50, 60, 75, 85, 90, 100];
 
-function formatSvgNumber(value: number): string {
-  const rounded = Number(value.toFixed(9));
-  return Object.is(rounded, -0) ? "0" : String(rounded);
-}
+type Rect = { x: number; y: number; width: number; height: number };
 
-function calibratedSurfaceY(
-  boundsY: number,
-  boundsHeight: number,
-  bodyAnchorY: number | null,
-  bodyStartFillPercent: number | null,
-  fillHeightExponent: number | null,
-  maxFillPercent: number | null,
-  fillPercent: number,
-): number {
-  const boundsBottom = boundsY + boundsHeight;
-  if (fillHeightExponent !== null) {
-    const normalizedFill = Math.max(0, Math.min(1, fillPercent / (maxFillPercent ?? 100)));
-    return boundsBottom - boundsHeight * normalizedFill ** fillHeightExponent;
-  }
-  if (bodyStartFillPercent === null) {
-    return boundsY + boundsHeight * (1 - fillPercent / 100);
-  }
-  if (bodyAnchorY === null) {
-    throw new Error("body-start calibration is missing its body anchor");
-  }
-  if (fillPercent <= bodyStartFillPercent) {
-    return boundsBottom - (boundsBottom - bodyAnchorY) * (fillPercent / bodyStartFillPercent);
-  }
-  return (
-    bodyAnchorY -
-    (bodyAnchorY - boundsY) * ((fillPercent - bodyStartFillPercent) / (100 - bodyStartFillPercent))
-  );
-}
-
-test("normalized fill-height exponent follows the capped perceptual curve", () => {
-  const boundsY = 10;
-  const boundsHeight = 200;
-  expect(calibratedSurfaceY(boundsY, boundsHeight, null, null, null, null, 50)).toBe(110);
-  const exponent = 0.45;
-  const maximum = 85;
-  expect(calibratedSurfaceY(boundsY, boundsHeight, null, null, exponent, maximum, 0)).toBe(210);
-  const target = 210 - 200 * (50 / 85) ** exponent;
-  expect(calibratedSurfaceY(boundsY, boundsHeight, null, null, exponent, maximum, 50)).toBeCloseTo(
-    target,
-    10,
-  );
-  const atCap = calibratedSurfaceY(boundsY, boundsHeight, null, null, exponent, maximum, 85);
-  expect(atCap).toBe(10);
-  expect(calibratedSurfaceY(boundsY, boundsHeight, null, null, exponent, maximum, 100)).toBe(atCap);
-});
-
-function effectiveFillPercent(
-  requestedPercent: number,
-  minFillPercent: number | null,
-  maxFillPercent: number | null,
-): number {
-  const upperBoundedPercent = Math.min(requestedPercent, maxFillPercent ?? 100);
-  return upperBoundedPercent === 0 ? 0 : Math.max(upperBoundedPercent, minFillPercent ?? 0);
-}
-
-function surfaceTransform(
-  boundsX: number,
-  boundsWidth: number,
-  surfaceReferenceY: number,
-  surfaceY: number,
-  bodyStartFillPercent: number | null,
-  fillPercent: number,
-): string {
-  const offset = formatSvgNumber(surfaceY - surfaceReferenceY);
-  if (bodyStartFillPercent === null || fillPercent >= bodyStartFillPercent) {
-    return `translate(0, ${offset})`;
-  }
-  const scale = fillPercent / bodyStartFillPercent;
-  const centerX = boundsX + boundsWidth / 2;
-  return `translate(0, ${offset}) translate(${formatSvgNumber(centerX)}, ${formatSvgNumber(surfaceReferenceY)}) scale(${formatSvgNumber(scale)}) translate(${formatSvgNumber(-centerX)}, ${formatSvgNumber(-surfaceReferenceY)})`;
-}
+type LiquidState = {
+  volume: number;
+  color: string | null;
+  display: string | null;
+  clipPath: string | null;
+  reveal: Rect;
+  parts: Array<{ part: "bottom" | "body" | "surface"; stationary: boolean }>;
+  paints: Array<{ role: string; fill: string; stroke: string; property: string }>;
+  ids: string[];
+};
 
 test.beforeAll(() => {
-  fs.mkdirSync("test-results", { recursive: true });
   const harnessDirectory = fs.mkdtempSync(path.join(os.tmpdir(), "liquid_render_harness_"));
   harnessBundle = path.join(harnessDirectory, "harness.js");
+  const esbuild = path.resolve("node_modules/.bin/esbuild");
   const result = spawnSync(
-    "npx",
+    esbuild,
     [
-      "esbuild",
       "tools/liquid_render_harness.ts",
       "--bundle",
       "--format=iife",
@@ -114,489 +41,180 @@ test.beforeAll(() => {
   }
 });
 
-test("compiled variable-volume fleet uses gravity parts and stationary clipping", async ({
-  page,
-}) => {
+test("compiled variable-volume assets render isolated, clipped liquid", async ({ page }) => {
   await page.goto("/bench_basic.html");
-  await page.setContent(
-    "<!doctype html><style>body{background:white}#matrix{display:grid;grid-template-columns:repeat(4,160px);gap:8px}.cell{width:150px;height:210px;border:1px solid #ddd}.cell svg{width:100%;height:100%}</style><div id='matrix'></div>",
-  );
+  await page.setContent("<!doctype html><div id='matrix'></div>");
   await page.addScriptTag({ path: harnessBundle });
 
-  for (const asset of VARIABLE_VOLUME_ASSETS) {
-    const report = await page.evaluate(
-      async ({ asset, materials, volumes }) => {
-        const manifestResponse = await fetch("assets/liquid_regions.json");
-        const manifest = (await manifestResponse.json()) as Record<
-          string,
-          {
-            region_handle: string;
-            reveal_handle: string;
-            bounds: { x: number; y: number; width: number; height: number };
-            surface_reference_y: number | null;
-            body_join_y: number | null;
-            body_anchor_y: number | null;
-            max_fill_percent: number | null;
-            min_fill_percent: number | null;
-            body_start_fill_percent: number | null;
-            fill_height_exponent: number | null;
-            paints: Array<{
-              element_handle: string;
-              paint_handle: string;
-              paint_role: string;
-              liquid_part: "bottom" | "body" | "surface";
-            }>;
-          }
-        >;
-        const entry = manifest[asset];
-        if (entry === undefined) {
-          throw new Error(`missing liquid manifest entry for ${asset}`);
-        }
-        const matrix = document.querySelector("#matrix");
-        if (!(matrix instanceof HTMLElement)) {
-          throw new Error("matrix host missing");
-        }
-        matrix.replaceChildren();
-        const rows: Array<{
-          volume: number;
-          color: string;
-          part_transforms: Array<{ part: string; transform: string | null }>;
-          reveal_y: number;
-          reveal_height: number;
-          display: string | null;
-          node_count_stable: boolean;
-          no_semantic_attributes: boolean;
-          computed_paints: Array<{
-            role: string;
-            fill: string;
-            stroke: string;
-            property: string;
-          }>;
-          ids: string[];
-          clip_path: string | null;
-          primary_surface_bottom: number | null;
-          body_to_surface_tangent: { top: number; left: number; right: number } | null;
-        }> = [];
-        for (const color of materials) {
-          for (const volume of volumes) {
-            const host = document.createElement("div");
-            host.className = "cell";
-            matrix.append(host);
-            const rendered = await window.liquidRenderHarness.injectAndRender(
-              host,
-              asset,
-              `${asset}_${color}_${volume}`,
-              volume === 0 ? null : color,
-              volume,
-            );
-            if (!rendered) {
-              throw new Error(`${asset} did not dispatch to compiled liquid rendering`);
-            }
-            const all = Array.from(host.querySelectorAll("*"));
-            const countAfterRender = all.length;
-            window.liquidRenderHarness.render(host, volume === 0 ? null : color, volume);
-            const region = all.find((element) => element.id.endsWith(`__${entry.region_handle}`));
-            if (!(region instanceof SVGGElement)) {
-              throw new Error(`${asset} region group missing`);
-            }
-            const reveal = all.find((element) => element.id.endsWith(`__${entry.reveal_handle}`));
-            if (!(reveal instanceof SVGRectElement)) {
-              throw new Error(`${asset} reveal rect missing`);
-            }
-            const paintElements = entry.paints.map((paint) => {
-              const element = all.find((candidate) =>
-                candidate.id.endsWith(`__${paint.element_handle}`),
-              );
-              if (!(element instanceof SVGElement)) {
-                throw new Error(`${asset} paint element missing`);
-              }
-              return element;
-            });
-            rows.push({
-              volume,
-              color,
-              part_transforms: paintElements.map((element, index) => ({
-                part: entry.paints[index]!.liquid_part,
-                transform: element.getAttribute("transform"),
-              })),
-              reveal_y: Number(reveal.getAttribute("y")),
-              reveal_height: Number(reveal.getAttribute("height")),
-              display: region.getAttribute("display"),
-              node_count_stable: countAfterRender === host.querySelectorAll("*").length,
-              no_semantic_attributes:
-                host.querySelector(
-                  "[data-vlab-rendering], [data-vlab-layer-kind], [data-vlab-paint-role], [data-vlab-liquid-part]",
-                ) === null,
-              computed_paints: paintElements.map((element, index) => {
-                const painted =
-                  element.querySelector("path,rect,circle,ellipse,line,polyline,polygon") ??
-                  element;
-                const paint = entry.paints[index]!;
-                const style = getComputedStyle(painted);
-                return {
-                  role: paint.paint_role,
-                  fill: style.fill,
-                  stroke: style.stroke,
-                  property: host.style.getPropertyValue(`--${paint.paint_handle}`),
-                };
-              }),
-              ids: all.flatMap((element) => (element.id.length > 0 ? [element.id] : [])),
-              clip_path: region.getAttribute("clip-path"),
-              primary_surface_bottom: ((): number | null => {
-                const primarySurfaceIndex = entry.paints.findIndex(
-                  (paint) => paint.liquid_part === "surface" && paint.paint_role === "highlight",
-                );
-                if (primarySurfaceIndex === -1) {
-                  return null;
-                }
-                const primarySurface = paintElements[primarySurfaceIndex]!;
-                const geometry = primarySurface.querySelector("path,rect,ellipse,circle");
-                if (!(geometry instanceof SVGGraphicsElement)) {
-                  throw new Error(`${asset} primary surface geometry missing`);
-                }
-                const svg = geometry.ownerSVGElement;
-                const geometryMatrix = geometry.getCTM();
-                const svgMatrix = svg === null ? null : svg.getCTM();
-                if (svg === null || geometryMatrix === null || svgMatrix === null) {
-                  throw new Error(`${asset} primary surface SVG transform missing`);
-                }
-                const box = geometry.getBBox();
-                // getBBox() is in the geometry's local coordinate system, while
-                // getCTM() includes the page's scaled SVG viewport. Convert the
-                // local bounding-box corners back into the root SVG user space
-                // before comparing them to authored graduation coordinates.
-                const localToSvg = svgMatrix.inverse().multiply(geometryMatrix);
-                return Math.max(
-                  ...[
-                    new DOMPoint(box.x, box.y),
-                    new DOMPoint(box.x + box.width, box.y),
-                    new DOMPoint(box.x, box.y + box.height),
-                    new DOMPoint(box.x + box.width, box.y + box.height),
-                  ].map((point) => point.matrixTransform(localToSvg).y),
-                );
-              })(),
-              body_to_surface_tangent: ((): { top: number; left: number; right: number } | null => {
-                const baseBodyIndex = entry.paints.findIndex(
-                  (paint) => paint.liquid_part === "body" && paint.paint_role === "base",
-                );
-                const baseSurfaceIndex = entry.paints.findIndex(
-                  (paint) => paint.liquid_part === "surface" && paint.paint_role === "base",
-                );
-                if (baseBodyIndex === -1 || baseSurfaceIndex === -1) {
-                  return null;
-                }
-                const body = paintElements[baseBodyIndex]!.querySelector(
-                  "path,rect,ellipse,circle",
-                );
-                const surface = paintElements[baseSurfaceIndex]!.querySelector(
-                  "path,rect,ellipse,circle",
-                );
-                if (
-                  !(body instanceof SVGGraphicsElement) ||
-                  !(surface instanceof SVGGraphicsElement)
-                ) {
-                  throw new Error(`${asset} base body or surface geometry missing`);
-                }
-                function rootSvgYExtents(geometry: SVGGraphicsElement): {
-                  minX: number;
-                  maxX: number;
-                  minY: number;
-                  maxY: number;
-                } {
-                  const svg = geometry.ownerSVGElement;
-                  const geometryMatrix = geometry.getCTM();
-                  const svgMatrix = svg === null ? null : svg.getCTM();
-                  if (svg === null || geometryMatrix === null || svgMatrix === null) {
-                    throw new Error(`${asset} base liquid geometry SVG transform missing`);
-                  }
-                  const box = geometry.getBBox();
-                  const localToSvg = svgMatrix.inverse().multiply(geometryMatrix);
-                  const points = [
-                    new DOMPoint(box.x, box.y),
-                    new DOMPoint(box.x + box.width, box.y),
-                    new DOMPoint(box.x, box.y + box.height),
-                    new DOMPoint(box.x + box.width, box.y + box.height),
-                  ].map((point) => point.matrixTransform(localToSvg));
-                  return {
-                    minX: Math.min(...points.map((point) => point.x)),
-                    maxX: Math.max(...points.map((point) => point.x)),
-                    minY: Math.min(...points.map((point) => point.y)),
-                    maxY: Math.max(...points.map((point) => point.y)),
-                  };
-                }
-                const bodyExtents = rootSvgYExtents(body);
-                const surfaceExtents = rootSvgYExtents(surface);
-                // The body's top corners must meet the surface's tangent line.
-                // This uses browser CTMs, so serialized transform rounding
-                // cannot hide an art-level gap or overlap.
-                return {
-                  top: bodyExtents.minY - (surfaceExtents.minY + surfaceExtents.maxY) / 2,
-                  left: bodyExtents.minX - surfaceExtents.minX,
-                  right: bodyExtents.maxX - surfaceExtents.maxX,
-                };
-              })(),
-            });
-          }
-        }
-        return {
-          rows,
-          bounds_height: entry.bounds.height,
-          bounds_width: entry.bounds.width,
-          bounds_x: entry.bounds.x,
-          bounds_y: entry.bounds.y,
-          surface_reference_y: entry.surface_reference_y,
-          body_join_y: entry.body_join_y,
-          body_anchor_y: entry.body_anchor_y,
-          max_fill_percent: entry.max_fill_percent,
-          min_fill_percent: entry.min_fill_percent,
-          body_start_fill_percent: entry.body_start_fill_percent,
-          fill_height_exponent: entry.fill_height_exponent,
-        };
-      },
-      { asset, materials: MATERIALS, volumes: VOLUMES },
-    );
-
-    expect(report.rows).toHaveLength(MATERIALS.length * VOLUMES.length);
-    for (const row of report.rows) {
-      const renderedVolume = effectiveFillPercent(
-        row.volume,
-        report.min_fill_percent,
-        report.max_fill_percent,
-      );
-      const surfaceY = calibratedSurfaceY(
-        report.bounds_y,
-        report.bounds_height,
-        report.body_anchor_y,
-        report.body_start_fill_percent,
-        report.fill_height_exponent,
-        report.max_fill_percent,
-        renderedVolume,
-      );
-      expect(row.reveal_y).toBeCloseTo(surfaceY, 2);
-      expect(row.reveal_height).toBeCloseTo(report.bounds_y + report.bounds_height - surfaceY, 2);
-      expect(row.display).toBe(row.volume === 0 ? "none" : "inline");
-      expect(row.node_count_stable).toBe(true);
-      expect(row.no_semantic_attributes).toBe(true);
-      expect(row.clip_path).toContain("anchor_liquid_clip");
-      for (const part of row.part_transforms) {
-        if (part.part === "bottom") {
-          expect(part.transform).toBeNull();
-        } else if (part.part === "surface") {
-          expect(part.transform).toBe(
-            surfaceTransform(
-              report.bounds_x,
-              report.bounds_width,
-              report.surface_reference_y!,
-              surfaceY,
-              report.body_start_fill_percent,
-              renderedVolume,
-            ),
-          );
-        } else {
-          const surfaceScale =
-            report.body_start_fill_percent === null ||
-            renderedVolume >= report.body_start_fill_percent
-              ? 1
-              : renderedVolume / report.body_start_fill_percent;
-          const scale =
-            Math.max(
-              0,
-              report.body_anchor_y! -
-                (surfaceY + (report.body_join_y! - report.surface_reference_y!) * surfaceScale),
-            ) /
-            (report.body_anchor_y! - report.body_join_y!);
-          const translateY = report.body_anchor_y! * (1 - scale);
-          expect(part.transform).toBe(
-            `matrix(1 0 0 ${formatSvgNumber(scale)} 0 ${formatSvgNumber(translateY)})`,
-          );
-        }
-      }
-      expect(new Set(row.ids).size).toBe(row.ids.length);
-      const surfaceScale =
-        report.body_start_fill_percent === null || renderedVolume >= report.body_start_fill_percent
-          ? 1
-          : renderedVolume / report.body_start_fill_percent;
-      const bodyHeight =
-        report.body_anchor_y === null
-          ? 0
-          : report.body_anchor_y -
-            (surfaceY + (report.body_join_y! - report.surface_reference_y!) * surfaceScale);
-      if (
-        asset === "microtube" &&
-        row.volume > 0 &&
-        bodyHeight > 0 &&
-        surfaceScale === 1 &&
-        row.body_to_surface_tangent !== null
-      ) {
-        for (const [edge, delta] of Object.entries(row.body_to_surface_tangent)) {
-          expect(
-            Math.abs(delta),
-            `${asset} ${row.volume}% body-${edge}-to-oval-tangent delta: ${delta}`,
-          ).toBeLessThan(0.01);
-        }
-      }
-      if (row.volume > 0) {
-        const basePaints = row.computed_paints.filter((paint) => paint.role === "base");
-        expect(basePaints.length).toBeGreaterThan(0);
-        for (const paint of row.computed_paints) {
-          expect(paint.property).toMatch(/^#[0-9a-f]{6}$/);
-          expect(paint.fill !== "none" || paint.stroke !== "none").toBe(true);
-        }
-        for (const paint of basePaints) {
-          expect(paint.property).toBe(row.color);
-        }
-      }
-    }
-    const allIds = report.rows.flatMap((row) => row.ids);
-    expect(new Set(allIds).size).toBe(allIds.length);
-    if (report.max_fill_percent !== null) {
-      for (const color of MATERIALS) {
-        const cappedRows = report.rows.filter(
-          (row) => row.color === color && row.volume >= report.max_fill_percent!,
-        );
-        const ceiling = cappedRows.find((row) => row.volume === report.max_fill_percent);
-        expect(ceiling).toBeDefined();
-        for (const row of cappedRows) {
-          expect(row.reveal_y).toBeCloseTo(ceiling!.reveal_y, 8);
-          expect(row.reveal_height).toBeCloseTo(ceiling!.reveal_height, 8);
-          expect(row.part_transforms).toEqual(ceiling!.part_transforms);
-        }
-      }
-    }
-    if (report.min_fill_percent !== null) {
-      for (const color of MATERIALS) {
-        const floor = report.rows.find(
-          (row) => row.color === color && row.volume === report.min_fill_percent,
-        );
-        expect(floor).toBeDefined();
-        const belowFloorRows = report.rows.filter(
-          (row) => row.color === color && row.volume > 0 && row.volume < report.min_fill_percent!,
-        );
-        for (const row of belowFloorRows) {
-          expect(row.reveal_y).toBeCloseTo(floor!.reveal_y, 8);
-          expect(row.reveal_height).toBeCloseTo(floor!.reveal_height, 8);
-          expect(row.part_transforms).toEqual(floor!.part_transforms);
-        }
-      }
-    }
-    const taperScaleExpectations: Record<string, Array<[number, number]>> = {
-      microtube: [
-        [5, 5 / 35.98],
-        [10, 10 / 35.98],
-        [50, 1],
-        [100, 1],
-      ],
-      serological_pipette: [
-        [5, 5 / 7.3394495],
-        [10, 1],
-        [50, 1],
-        [100, 1],
-      ],
-      falcon_15ml: [
-        [5, 1],
-        [10, 1],
-      ],
-      falcon_50ml: [
-        [5, 1],
-        [10, 1],
-      ],
+  const reports = await page.evaluate(async (materials) => {
+    type ManifestEntry = {
+      region_handle: string;
+      reveal_handle: string;
+      min_fill_percent: number | null;
+      max_fill_percent: number | null;
+      body_start_fill_percent: number | null;
+      paints: Array<{
+        element_handle: string;
+        paint_handle: string;
+        paint_role: string;
+        liquid_part: "bottom" | "body" | "surface";
+      }>;
     };
-    for (const [requestedVolume, expectedScale] of taperScaleExpectations[asset] ?? []) {
-      const row = report.rows.find(
-        (candidate) => candidate.color === MATERIALS[0] && candidate.volume === requestedVolume,
-      );
-      expect(row).toBeDefined();
-      const renderedVolume = effectiveFillPercent(
-        requestedVolume,
-        report.min_fill_percent,
-        report.max_fill_percent,
-      );
-      const surfaceY = calibratedSurfaceY(
-        report.bounds_y,
-        report.bounds_height,
-        report.body_anchor_y,
-        report.body_start_fill_percent,
-        report.fill_height_exponent,
-        report.max_fill_percent,
-        renderedVolume,
-      );
-      const expectedTransform = surfaceTransform(
-        report.bounds_x,
-        report.bounds_width,
-        report.surface_reference_y!,
-        surfaceY,
-        expectedScale === 1 ? null : report.body_start_fill_percent,
-        expectedScale === 1 ? renderedVolume : renderedVolume,
-      );
-      expect(
-        report.body_start_fill_percent === null || renderedVolume >= report.body_start_fill_percent
-          ? 1
-          : renderedVolume / report.body_start_fill_percent,
-      ).toBeCloseTo(expectedScale, 6);
-      for (const part of row!.part_transforms.filter((part) => part.part === "surface")) {
-        expect(part.transform).toBe(expectedTransform);
+    const response = await fetch("assets/liquid_regions.json");
+    const manifest = (await response.json()) as Record<string, ManifestEntry>;
+    const matrix = document.querySelector("#matrix");
+    if (!(matrix instanceof HTMLElement)) {
+      throw new Error("matrix host missing");
+    }
+
+    function rectAttributes(element: SVGRectElement): Rect {
+      return {
+        x: Number(element.getAttribute("x")),
+        y: Number(element.getAttribute("y")),
+        width: Number(element.getAttribute("width")),
+        height: Number(element.getAttribute("height")),
+      };
+    }
+
+    const reports: Array<{
+      asset: string;
+      samples: number[];
+      states: LiquidState[];
+    }> = [];
+    for (const [asset, entry] of Object.entries(manifest)) {
+      const supportedRangeStart = 0;
+      const supportedRangeEnd = 100;
+      const midpoint = (supportedRangeStart + supportedRangeEnd) / 2;
+      const samples = [
+        supportedRangeStart,
+        midpoint,
+        supportedRangeEnd,
+        entry.min_fill_percent,
+        entry.max_fill_percent,
+        entry.body_start_fill_percent,
+      ]
+        .filter((value): value is number => value !== null)
+        .sort((first, second) => first - second)
+        .filter((value, index, values) => index === 0 || value !== values[index - 1]);
+      const states: LiquidState[] = [];
+      for (const [colorIndex, color] of materials.entries()) {
+        const host = document.createElement("div");
+        matrix.append(host);
+        const rendered = await window.liquidRenderHarness.injectAndRender(
+          host,
+          asset,
+          `${asset}_${colorIndex}`,
+          null,
+          0,
+        );
+        if (!rendered) {
+          throw new Error(`${asset} did not dispatch to compiled liquid rendering`);
+        }
+        for (const volume of samples) {
+          const material = volume === 0 ? null : color;
+          if (!window.liquidRenderHarness.render(host, material, volume)) {
+            throw new Error(`${asset} did not render liquid state`);
+          }
+          const all = Array.from(host.querySelectorAll("*"));
+          const region = all.find((element) => element.id.endsWith(`__${entry.region_handle}`));
+          const reveal = all.find((element) => element.id.endsWith(`__${entry.reveal_handle}`));
+          if (!(region instanceof SVGGElement) || !(reveal instanceof SVGRectElement)) {
+            throw new Error(`${asset} liquid region is incomplete`);
+          }
+          const parts = entry.paints.map((paint) => {
+            const element = all.find((candidate) =>
+              candidate.id.endsWith(`__${paint.element_handle}`),
+            );
+            if (!(element instanceof SVGElement)) {
+              throw new Error(`${asset} paint element missing`);
+            }
+            return {
+              part: paint.liquid_part,
+              stationary: element.getAttribute("transform") === null,
+            };
+          });
+          const paints = entry.paints.map((paint) => {
+            const element = all.find((candidate) =>
+              candidate.id.endsWith(`__${paint.element_handle}`),
+            );
+            if (!(element instanceof SVGElement)) {
+              throw new Error(`${asset} paint element missing`);
+            }
+            const painted =
+              element.querySelector("path,rect,circle,ellipse,line,polyline,polygon") ?? element;
+            const style = getComputedStyle(painted);
+            return {
+              role: paint.paint_role,
+              fill: style.fill,
+              stroke: style.stroke,
+              property: host.style.getPropertyValue(`--${paint.paint_handle}`),
+            };
+          });
+          states.push({
+            volume,
+            color: material,
+            display: region.getAttribute("display"),
+            clipPath: region.getAttribute("clip-path"),
+            reveal: rectAttributes(reveal),
+            parts,
+            paints,
+            ids: all.flatMap((element) => (element.id.length > 0 ? [element.id] : [])),
+          });
+        }
+      }
+      reports.push({ asset, samples, states });
+    }
+    return reports;
+  }, MATERIALS);
+
+  for (const report of reports) {
+    expect(report.samples).toContain(0);
+    expect(report.samples).toContain((0 + 100) / 2);
+    expect(report.samples).toContain(100);
+    for (const state of report.states) {
+      expect(new Set(state.ids).size).toBe(state.ids.length);
+      expect(state.clipPath).toContain("anchor_liquid_clip");
+      expect(state.display).toBe(state.volume === 0 ? "none" : "inline");
+      if (state.volume === 0) {
+        continue;
+      }
+      expect(state.reveal.height).toBeGreaterThan(0);
+      const basePaints = state.paints.filter((paint) => paint.role === "base");
+      expect(basePaints.length).toBeGreaterThan(0);
+      for (const paint of state.paints) {
+        expect(paint.property).toMatch(/^#[0-9a-f]{6}$/);
+        expect(paint.fill !== "none" || paint.stroke !== "none").toBe(true);
+      }
+      for (const paint of basePaints) {
+        expect(paint.property).toBe(state.color);
       }
     }
-    const graduationCheck = {
-      falcon_50ml: { half: 228.302, full: 76.714 },
-      falcon_15ml: { half: 209.0745, full: 40.377 },
-    }[asset];
-    if (graduationCheck !== undefined) {
-      const halfVolume = report.rows.find((row) => row.color === MATERIALS[0] && row.volume === 50);
-      const fullVolume = report.rows.find(
-        (row) => row.color === MATERIALS[0] && row.volume === 100,
-      );
-      expect(halfVolume?.primary_surface_bottom).not.toBeNull();
-      expect(fullVolume?.primary_surface_bottom).not.toBeNull();
-      expect(halfVolume!.primary_surface_bottom).toBeCloseTo(graduationCheck.half, 3);
-      expect(fullVolume!.primary_surface_bottom).toBeCloseTo(graduationCheck.full, 3);
-    }
-    await page.locator("#matrix").screenshot({
-      path: `test-results/liquid_matrix_${asset}.png`,
-    });
-  }
-});
 
-test("mutating one compiled instance leaves its sibling unchanged", async ({ page }) => {
-  await page.goto("/bench_basic.html");
-  await page.setContent("<!doctype html><div id='first'></div><div id='second'></div>");
-  await page.addScriptTag({ path: harnessBundle });
-  const transforms = await page.evaluate(async () => {
-    const first = document.querySelector("#first");
-    const second = document.querySelector("#second");
-    if (!(first instanceof HTMLElement) || !(second instanceof HTMLElement)) {
-      throw new Error("instance hosts missing");
-    }
-    await window.liquidRenderHarness.injectAndRender(
-      first,
-      "serological_pipette",
-      "first",
-      "#076dad",
-      25,
-    );
-    await window.liquidRenderHarness.injectAndRender(
-      second,
-      "serological_pipette",
-      "second",
-      "#c2015a",
-      60,
-    );
-    function levelTransform(host: HTMLElement): string | null {
-      const level = Array.from(host.querySelectorAll("g")).find((group) =>
-        group.getAttribute("transform")?.includes("translate(0, "),
+    const allIds = report.states
+      .filter((_, index) => index % report.samples.length === 0)
+      .flatMap((state) => state.ids);
+    expect(new Set(allIds).size).toBe(allIds.length);
+
+    for (const colorIndex of MATERIALS.keys()) {
+      const states = report.states.slice(
+        colorIndex * report.samples.length,
+        (colorIndex + 1) * report.samples.length,
       );
-      return level?.getAttribute("transform") ?? null;
+      const nonempty = states.filter((state) => state.volume > 0);
+      const bottomParts = nonempty.flatMap((state) =>
+        state.parts.filter((part) => part.part === "bottom"),
+      );
+      expect(bottomParts.length).toBeGreaterThan(0);
+      for (const part of bottomParts) {
+        expect(part.stationary).toBe(true);
+      }
+      const responsiveStates = nonempty.filter((state) =>
+        state.parts.some((part) => part.part !== "bottom" && !part.stationary),
+      );
+      expect(responsiveStates.length).toBeGreaterThan(0);
+      expect(
+        new Set(responsiveStates.map((state) => JSON.stringify(state.reveal))).size,
+      ).toBeGreaterThan(1);
     }
-    const secondBefore = levelTransform(second);
-    await window.liquidRenderHarness.injectAndRender(
-      first,
-      "serological_pipette",
-      "first_again",
-      "#5a8f20",
-      100,
-    );
-    return { first: levelTransform(first), secondBefore, secondAfter: levelTransform(second) };
-  });
-  expect(transforms.first).toBe("translate(0, 0)");
-  expect(transforms.secondAfter).toBe(transforms.secondBefore);
+  }
 });

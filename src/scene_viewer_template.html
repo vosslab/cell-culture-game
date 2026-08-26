@@ -11,9 +11,7 @@
         margin: 0;
         padding: 16px;
         background: #e8e0cc;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
+        overflow: hidden;
         min-height: 100vh;
         box-sizing: border-box;
       }
@@ -22,19 +20,38 @@
          real protocol host render. The inner element enforces 16:9; #scene-root
          fills it 100% x 100% per style.css rules. */
       .scene-panel-inner {
-        width: min(100%, calc(100vh * 16 / 9));
+        width: 100%;
+      }
+
+      .scene-viewer-content {
+        display: grid;
+        gap: 10px;
+        --scene-min-interaction-width: 0px;
+        --scene-min-interaction-height: 0px;
+        min-inline-size: var(--scene-min-frame-inline-size);
+      }
+
+      .scene-viewer-scrollport {
+        width: 100%;
+        height: calc(100vh - 32px);
+        overflow: auto;
       }
     </style>
   </head>
   <body>
     <!--
       Scene viewer host.
-      Only #scene-root is present -- no #shell-root, no window.__PROTOCOL_NAME__.
-      dist_entry.tsx / route() sees only #scene-root and reads ?scene=<name>
-      from the URL to dispatch to mount_scene_viewer.
+      #scene-root and its sibling #scene-annotation-root are present; #shell-root
+      and window.__PROTOCOL_NAME__ are absent. dist_entry.tsx / route() uses that
+      host shape and reads ?scene=<name> to dispatch to mount_scene_viewer.
     -->
-    <div class="scene-panel-inner">
-      <div id="scene-root"></div>
+    <div class="scene-viewer-scrollport">
+      <div class="scene-viewer-content">
+        <div class="scene-panel-inner">
+          <div id="scene-root"></div>
+        </div>
+        <div id="scene-annotation-root"></div>
+      </div>
     </div>
     <script type="module" src="./scene_viewer.js"></script>
   </body>

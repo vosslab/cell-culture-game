@@ -1,0 +1,3917 @@
+{
+  "date": "2026-08-26",
+  "evidenceDesignation": "one-time current built-consumer evidence",
+  "method": "Built dist served by owned ephemeral 127.0.0.1 HTTP server; Playwright Chromium screenshots and visible learner UI actions; no mock, CSS injection, or state injection.",
+  "finalBuild": "npm run build completed before the final compact-capture attempt: 135 SVG entries and 57 emitted scenes.",
+  "compactCaptureStatus": {
+    "status": "not freshly remeasured after the final build",
+    "reason": "Fresh Chromium processes at 546x307 stalled after opening bench_basic, before the ready marker or screenshot; the runner supplied no Playwright exception. Earlier compact PNGs are retained as residual one-time evidence only.",
+    "residualEvidence": "Each scene retains compact_left_stage, compact_right_stage, compact_left_lower_stage, compact_right_lower_stage, and compact_annotation_rail PNGs at 546x307."
+  },
+  "scenes": [
+    {
+      "scene": "bench_basic",
+      "errors": {
+        "console": [],
+        "page": [],
+        "request": [],
+        "render": []
+      },
+      "captures": [
+        "bench_basic_full.png",
+        "bench_basic_compact_left_stage.png",
+        "bench_basic_compact_right_stage.png",
+        "bench_basic_compact_left_lower_stage.png",
+        "bench_basic_compact_right_lower_stage.png",
+        "bench_basic_compact_annotation_rail.png"
+      ],
+      "full": {
+        "tag": "full",
+        "ready": "true",
+        "placements": 9,
+        "labels": 9,
+        "annotations": 0,
+        "modes": {
+          "img": 5,
+          "dom-svg": 4
+        },
+        "documentWidth": 1920,
+        "viewport": {
+          "width": 1920,
+          "height": 1080
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 1888,
+          "height": 1048,
+          "scrollWidth": 1888,
+          "scrollHeight": 1130
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_left_stage": {
+        "tag": "compact_left_stage",
+        "ready": "true",
+        "placements": 9,
+        "labels": 9,
+        "annotations": 0,
+        "modes": {
+          "img": 5,
+          "dom-svg": 4
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 716
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_right_stage": {
+        "tag": "compact_right_stage",
+        "ready": "true",
+        "placements": 9,
+        "labels": 9,
+        "annotations": 0,
+        "modes": {
+          "img": 5,
+          "dom-svg": 4
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 716
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_left_lower_stage": {
+        "tag": "compact_left_lower_stage",
+        "ready": "true",
+        "placements": 9,
+        "labels": 9,
+        "annotations": 0,
+        "modes": {
+          "img": 5,
+          "dom-svg": 4
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 716
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_right_lower_stage": {
+        "tag": "compact_right_lower_stage",
+        "ready": "true",
+        "placements": 9,
+        "labels": 9,
+        "annotations": 0,
+        "modes": {
+          "img": 5,
+          "dom-svg": 4
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 716
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_annotation_rail": {
+        "tag": "compact_annotation_rail",
+        "ready": "true",
+        "placements": 9,
+        "labels": 9,
+        "annotations": 0,
+        "modes": {
+          "img": 5,
+          "dom-svg": 4
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 716
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      }
+    },
+    {
+      "scene": "hood_basic",
+      "errors": {
+        "console": [],
+        "page": [],
+        "request": [],
+        "render": []
+      },
+      "captures": [
+        "hood_basic_full.png",
+        "hood_basic_compact_left_stage.png",
+        "hood_basic_compact_right_stage.png",
+        "hood_basic_compact_left_lower_stage.png",
+        "hood_basic_compact_right_lower_stage.png",
+        "hood_basic_compact_annotation_rail.png"
+      ],
+      "full": {
+        "tag": "full",
+        "ready": "true",
+        "placements": 9,
+        "labels": 9,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 7,
+          "img": 2
+        },
+        "documentWidth": 1920,
+        "viewport": {
+          "width": 1920,
+          "height": 1080
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 1888,
+          "height": 1048,
+          "scrollWidth": 1888,
+          "scrollHeight": 1130
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_left_stage": {
+        "tag": "compact_left_stage",
+        "ready": "true",
+        "placements": 9,
+        "labels": 9,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 7,
+          "img": 2
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 716
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_right_stage": {
+        "tag": "compact_right_stage",
+        "ready": "true",
+        "placements": 9,
+        "labels": 9,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 7,
+          "img": 2
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 716
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_left_lower_stage": {
+        "tag": "compact_left_lower_stage",
+        "ready": "true",
+        "placements": 9,
+        "labels": 9,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 7,
+          "img": 2
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 716
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_right_lower_stage": {
+        "tag": "compact_right_lower_stage",
+        "ready": "true",
+        "placements": 9,
+        "labels": 9,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 7,
+          "img": 2
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 716
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_annotation_rail": {
+        "tag": "compact_annotation_rail",
+        "ready": "true",
+        "placements": 9,
+        "labels": 9,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 7,
+          "img": 2
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 716
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      }
+    },
+    {
+      "scene": "cell_counter_basic",
+      "errors": {
+        "console": [],
+        "page": [],
+        "request": [],
+        "render": []
+      },
+      "captures": [
+        "cell_counter_basic_full.png",
+        "cell_counter_basic_compact_left_stage.png",
+        "cell_counter_basic_compact_right_stage.png",
+        "cell_counter_basic_compact_left_lower_stage.png",
+        "cell_counter_basic_compact_right_lower_stage.png",
+        "cell_counter_basic_compact_annotation_rail.png"
+      ],
+      "full": {
+        "tag": "full",
+        "ready": "true",
+        "placements": 7,
+        "labels": 7,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 4,
+          "img": 3
+        },
+        "documentWidth": 1920,
+        "viewport": {
+          "width": 1920,
+          "height": 1080
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 1888,
+          "height": 1048,
+          "scrollWidth": 1888,
+          "scrollHeight": 1155
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_left_stage": {
+        "tag": "compact_left_stage",
+        "ready": "true",
+        "placements": 7,
+        "labels": 7,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 4,
+          "img": 3
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 741
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_right_stage": {
+        "tag": "compact_right_stage",
+        "ready": "true",
+        "placements": 7,
+        "labels": 7,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 4,
+          "img": 3
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 741
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_left_lower_stage": {
+        "tag": "compact_left_lower_stage",
+        "ready": "true",
+        "placements": 7,
+        "labels": 7,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 4,
+          "img": 3
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 741
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_right_lower_stage": {
+        "tag": "compact_right_lower_stage",
+        "ready": "true",
+        "placements": 7,
+        "labels": 7,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 4,
+          "img": 3
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 741
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_annotation_rail": {
+        "tag": "compact_annotation_rail",
+        "ready": "true",
+        "placements": 7,
+        "labels": 7,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 4,
+          "img": 3
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 741
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      }
+    },
+    {
+      "scene": "microscope_basic",
+      "errors": {
+        "console": [],
+        "page": [],
+        "request": [],
+        "render": []
+      },
+      "captures": [
+        "microscope_basic_full.png",
+        "microscope_basic_compact_left_stage.png",
+        "microscope_basic_compact_right_stage.png",
+        "microscope_basic_compact_left_lower_stage.png",
+        "microscope_basic_compact_right_lower_stage.png",
+        "microscope_basic_compact_annotation_rail.png"
+      ],
+      "full": {
+        "tag": "full",
+        "ready": "true",
+        "placements": 7,
+        "labels": 7,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 4,
+          "img": 3
+        },
+        "documentWidth": 1920,
+        "viewport": {
+          "width": 1920,
+          "height": 1080
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 1888,
+          "height": 1048,
+          "scrollWidth": 1888,
+          "scrollHeight": 1130
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_left_stage": {
+        "tag": "compact_left_stage",
+        "ready": "true",
+        "placements": 7,
+        "labels": 7,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 4,
+          "img": 3
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 716
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_right_stage": {
+        "tag": "compact_right_stage",
+        "ready": "true",
+        "placements": 7,
+        "labels": 7,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 4,
+          "img": 3
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 716
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_left_lower_stage": {
+        "tag": "compact_left_lower_stage",
+        "ready": "true",
+        "placements": 7,
+        "labels": 7,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 4,
+          "img": 3
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 716
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_right_lower_stage": {
+        "tag": "compact_right_lower_stage",
+        "ready": "true",
+        "placements": 7,
+        "labels": 7,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 4,
+          "img": 3
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 716
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_annotation_rail": {
+        "tag": "compact_annotation_rail",
+        "ready": "true",
+        "placements": 7,
+        "labels": 7,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 4,
+          "img": 3
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 716
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      }
+    },
+    {
+      "scene": "electrophoresis_bench",
+      "errors": {
+        "console": [],
+        "page": [],
+        "request": [],
+        "render": []
+      },
+      "captures": [
+        "electrophoresis_bench_full.png",
+        "electrophoresis_bench_compact_left_stage.png",
+        "electrophoresis_bench_compact_right_stage.png",
+        "electrophoresis_bench_compact_left_lower_stage.png",
+        "electrophoresis_bench_compact_right_lower_stage.png",
+        "electrophoresis_bench_compact_annotation_rail.png"
+      ],
+      "full": {
+        "tag": "full",
+        "ready": "true",
+        "placements": 16,
+        "labels": 16,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 9,
+          "img": 10
+        },
+        "documentWidth": 1920,
+        "viewport": {
+          "width": 1920,
+          "height": 1080
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 1888,
+          "height": 1048,
+          "scrollWidth": 1888,
+          "scrollHeight": 1179
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_left_stage": {
+        "tag": "compact_left_stage",
+        "ready": "true",
+        "placements": 16,
+        "labels": 16,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 9,
+          "img": 10
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 789
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_right_stage": {
+        "tag": "compact_right_stage",
+        "ready": "true",
+        "placements": 16,
+        "labels": 16,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 9,
+          "img": 10
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 789
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_left_lower_stage": {
+        "tag": "compact_left_lower_stage",
+        "ready": "true",
+        "placements": 16,
+        "labels": 16,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 9,
+          "img": 10
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 789
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_right_lower_stage": {
+        "tag": "compact_right_lower_stage",
+        "ready": "true",
+        "placements": 16,
+        "labels": 16,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 9,
+          "img": 10
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 789
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_annotation_rail": {
+        "tag": "compact_annotation_rail",
+        "ready": "true",
+        "placements": 16,
+        "labels": 16,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 9,
+          "img": 10
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 789
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      }
+    },
+    {
+      "scene": "imaging_bench",
+      "errors": {
+        "console": [],
+        "page": [],
+        "request": [],
+        "render": []
+      },
+      "captures": [
+        "imaging_bench_full.png",
+        "imaging_bench_compact_left_stage.png",
+        "imaging_bench_compact_right_stage.png",
+        "imaging_bench_compact_left_lower_stage.png",
+        "imaging_bench_compact_right_lower_stage.png",
+        "imaging_bench_compact_annotation_rail.png"
+      ],
+      "full": {
+        "tag": "full",
+        "ready": "true",
+        "placements": 11,
+        "labels": 11,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 7,
+          "img": 4
+        },
+        "documentWidth": 1920,
+        "viewport": {
+          "width": 1920,
+          "height": 1080
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 1888,
+          "height": 1048,
+          "scrollWidth": 1888,
+          "scrollHeight": 1155
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_left_stage": {
+        "tag": "compact_left_stage",
+        "ready": "true",
+        "placements": 11,
+        "labels": 11,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 7,
+          "img": 4
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 765
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_right_stage": {
+        "tag": "compact_right_stage",
+        "ready": "true",
+        "placements": 11,
+        "labels": 11,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 7,
+          "img": 4
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 765
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_left_lower_stage": {
+        "tag": "compact_left_lower_stage",
+        "ready": "true",
+        "placements": 11,
+        "labels": 11,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 7,
+          "img": 4
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 765
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_right_lower_stage": {
+        "tag": "compact_right_lower_stage",
+        "ready": "true",
+        "placements": 11,
+        "labels": 11,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 7,
+          "img": 4
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 765
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      },
+      "compact_annotation_rail": {
+        "tag": "compact_annotation_rail",
+        "ready": "true",
+        "placements": 11,
+        "labels": 11,
+        "annotations": 0,
+        "modes": {
+          "dom-svg": 7,
+          "img": 4
+        },
+        "documentWidth": 546,
+        "viewport": {
+          "width": 546,
+          "height": 307
+        },
+        "port": {
+          "left": 16,
+          "top": 16,
+          "width": 514,
+          "height": 275,
+          "scrollWidth": 1152,
+          "scrollHeight": 765
+        },
+        "stage": null,
+        "imageFailures": [],
+        "labelsOverlap": [],
+        "annotationsOverlap": [],
+        "preserveAspectRatioNone": 0,
+        "badObjectFit": []
+      }
+    }
+  ],
+  "protocols": [
+    {
+      "protocol": "sdspage_full",
+      "file": "protocol_active_whole_full.png",
+      "errors": {
+        "console": [],
+        "page": [],
+        "request": [],
+        "render": []
+      },
+      "state": {
+        "activeStepId": "mp6__load_ladder_into_lane_5",
+        "interactionIndex": 1,
+        "activeScene": "sdspage_load_protein_ladder_workspace",
+        "completedSteps": [
+          "mp0__combine_concentrate_and_water",
+          "mp1__prepare_batch",
+          "mp2__denature_samples",
+          "mp2__retrieve_denatured_rack",
+          "mp3__unpack_cassette",
+          "mp3__remove_bottom_tape",
+          "mp3__remove_comb",
+          "mp4__seat_cassette_and_buffer_dam",
+          "mp4__close_clamping_frame",
+          "mp4__dock_module_in_tank",
+          "mp5__check_upper_chamber_seal",
+          "mp5__fill_upper_chamber",
+          "mp5__fill_lower_chamber",
+          "mp6__rinse_wells_before_loading"
+        ],
+        "selectedTool": "p200_micropipette",
+        "heldLiquid": {
+          "tool": "p200_micropipette",
+          "liquid": null
+        },
+        "wrongOrderClicks": 0,
+        "stepsOutOfOrder": 0,
+        "isComplete": false,
+        "activeTarget": "center_p200_micropipette",
+        "activeGesture": "adjust",
+        "activeMaterialEffects": [],
+        "stateRevision": 101,
+        "lastStateDelta": {
+          "target": "p200_micropipette",
+          "before": {
+            "tip_status": "used"
+          },
+          "after": {
+            "tip_status": "fresh"
+          }
+        },
+        "stateDeltaLog": [
+          {
+            "target": "running_buffer_10x_bottle",
+            "before": {
+              "material_name": "running_buffer_10x",
+              "material_volume": 500
+            },
+            "after": {
+              "material_name": "running_buffer_10x",
+              "material_volume": 400
+            }
+          },
+          {
+            "target": "running_buffer_preparation_carboy",
+            "before": {
+              "material_name": "empty",
+              "material_volume": 0
+            },
+            "after": {
+              "material_name": "running_buffer_10x",
+              "material_volume": 100
+            }
+          },
+          {
+            "target": "ddh2o_carboy",
+            "before": {
+              "material_name": "ddh2o",
+              "material_volume": 1000
+            },
+            "after": {
+              "material_name": "ddh2o",
+              "material_volume": 100
+            }
+          },
+          {
+            "target": "running_buffer_preparation_carboy",
+            "before": {
+              "material_name": "running_buffer_10x",
+              "material_volume": 100
+            },
+            "after": {
+              "material_name": "running_buffer_1x",
+              "material_volume": 1000
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "tip_status": "none"
+            },
+            "after": {
+              "tip_status": "fresh"
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "set_volume": 100
+            },
+            "after": {
+              "set_volume": 21
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_A1",
+            "before": {
+              "material_name": "protein_sample_raw",
+              "material_volume": 21
+            },
+            "after": {
+              "material_name": "empty",
+              "material_volume": 0
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "held_material_name": "protein_sample_raw",
+              "held_material_volume": 21
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_B1",
+            "before": {
+              "material_name": "empty",
+              "material_volume": 0
+            },
+            "after": {
+              "material_name": "protein_sample_raw",
+              "material_volume": 21
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "held_material_name": "protein_sample_raw",
+              "held_material_volume": 21,
+              "tip_status": "fresh"
+            },
+            "after": {
+              "held_material_name": "empty",
+              "held_material_volume": 0,
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "tip_status": "none"
+            },
+            "after": {
+              "tip_status": "fresh"
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "set_volume": 5
+            },
+            "after": {
+              "set_volume": 7.5
+            }
+          },
+          {
+            "target": "laemmli_4x_tube",
+            "before": {
+              "material_name": "laemmli_4x",
+              "material_volume": 1
+            },
+            "after": {
+              "material_name": "laemmli_4x",
+              "material_volume": 0.9925
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "held_material_name": "laemmli_4x",
+              "held_material_volume": 7.5
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_B1",
+            "before": {
+              "material_name": "protein_sample_raw",
+              "material_volume": 21
+            },
+            "after": {
+              "material_name": "protein_sample_mixed",
+              "material_volume": 28.5
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "held_material_name": "laemmli_4x",
+              "held_material_volume": 7.5,
+              "tip_status": "fresh"
+            },
+            "after": {
+              "held_material_name": "empty",
+              "held_material_volume": 0,
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "tip_status": "used"
+            },
+            "after": {
+              "tip_status": "fresh"
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "set_volume": 7.5
+            },
+            "after": {
+              "set_volume": 1.5
+            }
+          },
+          {
+            "target": "bme_tube",
+            "before": {
+              "material_name": "bme",
+              "material_volume": 1
+            },
+            "after": {
+              "material_name": "bme",
+              "material_volume": 0.9985
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "held_material_name": "bme",
+              "held_material_volume": 1.5
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_B1",
+            "before": {
+              "material_name": "protein_sample_mixed",
+              "material_volume": 28.5
+            },
+            "after": {
+              "material_name": "protein_sample_mixed",
+              "material_volume": 30
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "held_material_name": "bme",
+              "held_material_volume": 1.5,
+              "tip_status": "fresh"
+            },
+            "after": {
+              "held_material_name": "empty",
+              "held_material_volume": 0,
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "tip_status": "used"
+            },
+            "after": {
+              "tip_status": "fresh"
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "set_volume": 21
+            },
+            "after": {
+              "set_volume": 21
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_A2",
+            "before": {
+              "material_name": "protein_sample_raw",
+              "material_volume": 21
+            },
+            "after": {
+              "material_name": "empty",
+              "material_volume": 0
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "held_material_name": "protein_sample_raw",
+              "held_material_volume": 21
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_B2",
+            "before": {
+              "material_name": "empty",
+              "material_volume": 0
+            },
+            "after": {
+              "material_name": "protein_sample_raw",
+              "material_volume": 21
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "held_material_name": "protein_sample_raw",
+              "held_material_volume": 21,
+              "tip_status": "fresh"
+            },
+            "after": {
+              "held_material_name": "empty",
+              "held_material_volume": 0,
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "tip_status": "used"
+            },
+            "after": {
+              "tip_status": "fresh"
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "set_volume": 1.5
+            },
+            "after": {
+              "set_volume": 7.5
+            }
+          },
+          {
+            "target": "laemmli_4x_tube",
+            "before": {
+              "material_name": "laemmli_4x",
+              "material_volume": 0.9925
+            },
+            "after": {
+              "material_name": "laemmli_4x",
+              "material_volume": 0.985
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "held_material_name": "laemmli_4x",
+              "held_material_volume": 7.5
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_B2",
+            "before": {
+              "material_name": "protein_sample_raw",
+              "material_volume": 21
+            },
+            "after": {
+              "material_name": "protein_sample_mixed",
+              "material_volume": 28.5
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "held_material_name": "laemmli_4x",
+              "held_material_volume": 7.5,
+              "tip_status": "fresh"
+            },
+            "after": {
+              "held_material_name": "empty",
+              "held_material_volume": 0,
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "tip_status": "used"
+            },
+            "after": {
+              "tip_status": "fresh"
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "set_volume": 7.5
+            },
+            "after": {
+              "set_volume": 1.5
+            }
+          },
+          {
+            "target": "bme_tube",
+            "before": {
+              "material_name": "bme",
+              "material_volume": 0.9985
+            },
+            "after": {
+              "material_name": "bme",
+              "material_volume": 0.997
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "held_material_name": "bme",
+              "held_material_volume": 1.5
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_B2",
+            "before": {
+              "material_name": "protein_sample_mixed",
+              "material_volume": 28.5
+            },
+            "after": {
+              "material_name": "protein_sample_mixed",
+              "material_volume": 30
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "held_material_name": "bme",
+              "held_material_volume": 1.5,
+              "tip_status": "fresh"
+            },
+            "after": {
+              "held_material_name": "empty",
+              "held_material_volume": 0,
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "tip_status": "used"
+            },
+            "after": {
+              "tip_status": "fresh"
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "set_volume": 21
+            },
+            "after": {
+              "set_volume": 21
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_A3",
+            "before": {
+              "material_name": "protein_sample_raw",
+              "material_volume": 21
+            },
+            "after": {
+              "material_name": "empty",
+              "material_volume": 0
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "held_material_name": "protein_sample_raw",
+              "held_material_volume": 21
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_B3",
+            "before": {
+              "material_name": "empty",
+              "material_volume": 0
+            },
+            "after": {
+              "material_name": "protein_sample_raw",
+              "material_volume": 21
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "held_material_name": "protein_sample_raw",
+              "held_material_volume": 21,
+              "tip_status": "fresh"
+            },
+            "after": {
+              "held_material_name": "empty",
+              "held_material_volume": 0,
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "tip_status": "used"
+            },
+            "after": {
+              "tip_status": "fresh"
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "set_volume": 1.5
+            },
+            "after": {
+              "set_volume": 7.5
+            }
+          },
+          {
+            "target": "laemmli_4x_tube",
+            "before": {
+              "material_name": "laemmli_4x",
+              "material_volume": 0.985
+            },
+            "after": {
+              "material_name": "laemmli_4x",
+              "material_volume": 0.9775
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "held_material_name": "laemmli_4x",
+              "held_material_volume": 7.5
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_B3",
+            "before": {
+              "material_name": "protein_sample_raw",
+              "material_volume": 21
+            },
+            "after": {
+              "material_name": "protein_sample_mixed",
+              "material_volume": 28.5
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "held_material_name": "laemmli_4x",
+              "held_material_volume": 7.5,
+              "tip_status": "fresh"
+            },
+            "after": {
+              "held_material_name": "empty",
+              "held_material_volume": 0,
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "tip_status": "used"
+            },
+            "after": {
+              "tip_status": "fresh"
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "set_volume": 7.5
+            },
+            "after": {
+              "set_volume": 1.5
+            }
+          },
+          {
+            "target": "bme_tube",
+            "before": {
+              "material_name": "bme",
+              "material_volume": 0.997
+            },
+            "after": {
+              "material_name": "bme",
+              "material_volume": 0.9955
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "held_material_name": "bme",
+              "held_material_volume": 1.5
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_B3",
+            "before": {
+              "material_name": "protein_sample_mixed",
+              "material_volume": 28.5
+            },
+            "after": {
+              "material_name": "protein_sample_mixed",
+              "material_volume": 30
+            }
+          },
+          {
+            "target": "p10_micropipette",
+            "before": {
+              "held_material_name": "bme",
+              "held_material_volume": 1.5,
+              "tip_status": "fresh"
+            },
+            "after": {
+              "held_material_name": "empty",
+              "held_material_volume": 0,
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "heat_block",
+            "before": {
+              "lid_open": false
+            },
+            "after": {
+              "lid_open": true
+            }
+          },
+          {
+            "target": "heat_block",
+            "before": {
+              "rack_present": false
+            },
+            "after": {
+              "rack_present": true
+            }
+          },
+          {
+            "target": "heat_block",
+            "before": {
+              "lid_open": true
+            },
+            "after": {
+              "lid_open": false
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_B1",
+            "before": {
+              "material_name": "protein_sample_mixed",
+              "material_volume": 30
+            },
+            "after": {
+              "material_name": "protein_sample_denatured",
+              "material_volume": 30
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_B2",
+            "before": {
+              "material_name": "protein_sample_mixed",
+              "material_volume": 30
+            },
+            "after": {
+              "material_name": "protein_sample_denatured",
+              "material_volume": 30
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_B3",
+            "before": {
+              "material_name": "protein_sample_mixed",
+              "material_volume": 30
+            },
+            "after": {
+              "material_name": "protein_sample_denatured",
+              "material_volume": 30
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_B4",
+            "before": {
+              "material_name": "protein_ladder",
+              "material_volume": 20
+            },
+            "after": {
+              "material_name": "protein_ladder_denatured",
+              "material_volume": 20
+            }
+          },
+          {
+            "target": "heat_block",
+            "before": {
+              "lid_open": false
+            },
+            "after": {
+              "lid_open": true
+            }
+          },
+          {
+            "target": "heat_block",
+            "before": {
+              "rack_present": true
+            },
+            "after": {
+              "rack_present": false
+            }
+          },
+          {
+            "target": "mini_protean_gel",
+            "before": {
+              "sealed": true
+            },
+            "after": {
+              "sealed": false
+            }
+          },
+          {
+            "target": "gel_cassette",
+            "before": {
+              "tape_present": true
+            },
+            "after": {
+              "tape_present": false
+            }
+          },
+          {
+            "target": "gel_cassette",
+            "before": {
+              "comb_present": true
+            },
+            "after": {
+              "comb_present": false
+            }
+          },
+          {
+            "target": "gel_comb",
+            "before": {
+              "position": "in_cassette"
+            },
+            "after": {
+              "position": "not_in_cassette"
+            }
+          },
+          {
+            "target": "electrode_module",
+            "before": {
+              "wing_clamps_open": true
+            },
+            "after": {
+              "wing_clamps_open": true
+            }
+          },
+          {
+            "target": "electrode_module",
+            "before": {
+              "cassette_mounted": false
+            },
+            "after": {
+              "cassette_mounted": true
+            }
+          },
+          {
+            "target": "electrophoresis_buffer_dam",
+            "before": {
+              "seated": false
+            },
+            "after": {
+              "seated": true
+            }
+          },
+          {
+            "target": "electrode_module",
+            "before": {
+              "wing_clamps_open": true
+            },
+            "after": {
+              "wing_clamps_open": false
+            }
+          },
+          {
+            "target": "gel_cassette",
+            "before": {
+              "wing_clamps_locked": false
+            },
+            "after": {
+              "wing_clamps_locked": true
+            }
+          },
+          {
+            "target": "electrode_module",
+            "before": {
+              "mounted": false
+            },
+            "after": {
+              "mounted": true
+            }
+          },
+          {
+            "target": "electrophoresis_tank",
+            "before": {
+              "module_present": false,
+              "lid_present": true
+            },
+            "after": {
+              "module_present": true,
+              "lid_present": false
+            }
+          },
+          {
+            "target": "electrophoresis_inner_chamber",
+            "before": {
+              "material_name": "empty",
+              "material_volume": 0,
+              "fill_state": "empty"
+            },
+            "after": {
+              "material_name": "running_buffer_1x",
+              "material_volume": 25,
+              "fill_state": "leak_checked"
+            }
+          },
+          {
+            "target": "running_buffer_preparation_carboy",
+            "before": {
+              "material_name": "running_buffer_1x",
+              "material_volume": 1000
+            },
+            "after": {
+              "material_name": "running_buffer_1x",
+              "material_volume": 975
+            }
+          },
+          {
+            "target": "electrophoresis_inner_chamber",
+            "before": {
+              "material_name": "running_buffer_1x",
+              "material_volume": 25,
+              "fill_state": "leak_checked"
+            },
+            "after": {
+              "material_name": "running_buffer_1x",
+              "material_volume": 200,
+              "fill_state": "filled"
+            }
+          },
+          {
+            "target": "running_buffer_preparation_carboy",
+            "before": {
+              "material_name": "running_buffer_1x",
+              "material_volume": 975
+            },
+            "after": {
+              "material_name": "running_buffer_1x",
+              "material_volume": 800
+            }
+          },
+          {
+            "target": "electrophoresis_outer_chamber",
+            "before": {
+              "material_name": "empty",
+              "material_volume": 0,
+              "fill_state": "empty"
+            },
+            "after": {
+              "material_name": "running_buffer_1x",
+              "material_volume": 500,
+              "fill_state": "filled"
+            }
+          },
+          {
+            "target": "running_buffer_preparation_carboy",
+            "before": {
+              "material_name": "running_buffer_1x",
+              "material_volume": 800
+            },
+            "after": {
+              "material_name": "running_buffer_1x",
+              "material_volume": 300
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "tip_status": "used"
+            },
+            "after": {
+              "tip_status": "fresh"
+            }
+          },
+          {
+            "target": "gel_cassette",
+            "before": {
+              "wells_rinsed": false
+            },
+            "after": {
+              "wells_rinsed": true
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "tip_status": "fresh",
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "tip_status": "used",
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "tip_status": "used"
+            },
+            "after": {
+              "tip_status": "fresh"
+            }
+          }
+        ],
+        "declaredState": {
+          "electrophoresis_inner_chamber": {
+            "fill_state": "filled",
+            "material_name": "running_buffer_1x",
+            "material_volume": 200
+          },
+          "gel_cassette": {
+            "comb_present": false,
+            "gel_state": "empty",
+            "gel_transfer_status": "cassette_supported",
+            "lane_pattern": "unassigned",
+            "migration_state": "not_started",
+            "opening_status": "sealed",
+            "side_clamps_locked": false,
+            "tape_present": false,
+            "top_plate_inserted": true,
+            "wells_rinsed": true,
+            "wing_clamps_locked": true
+          },
+          "gel_cassette.lane_1": {
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "gel_cassette.lane_10": {
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "gel_cassette.lane_2": {
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "gel_cassette.lane_3": {
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "gel_cassette.lane_4": {
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "gel_cassette.lane_5": {
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "gel_cassette.lane_6": {
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "gel_cassette.lane_7": {
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "gel_cassette.lane_8": {
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "gel_cassette.lane_9": {
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "gel_loading_tip_box": {
+            "visible": true
+          },
+          "microtube_rack_8.slot_A1": {
+            "cap_status": "open",
+            "label_status": "unlabeled",
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "microtube_rack_8.slot_A2": {
+            "cap_status": "open",
+            "label_status": "unlabeled",
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "microtube_rack_8.slot_A3": {
+            "cap_status": "open",
+            "label_status": "unlabeled",
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "microtube_rack_8.slot_A4": {
+            "cap_status": "open",
+            "label_status": "unlabeled",
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "microtube_rack_8.slot_B1": {
+            "cap_status": "open",
+            "label_status": "unlabeled",
+            "material_name": "protein_sample_denatured",
+            "material_volume": 30
+          },
+          "microtube_rack_8.slot_B2": {
+            "cap_status": "open",
+            "label_status": "unlabeled",
+            "material_name": "protein_sample_denatured",
+            "material_volume": 30
+          },
+          "microtube_rack_8.slot_B3": {
+            "cap_status": "open",
+            "label_status": "unlabeled",
+            "material_name": "protein_sample_denatured",
+            "material_volume": 30
+          },
+          "microtube_rack_8.slot_B4": {
+            "cap_status": "open",
+            "label_status": "unlabeled",
+            "material_name": "protein_ladder_denatured",
+            "material_volume": 20
+          },
+          "p200_micropipette": {
+            "held_material_name": "empty",
+            "held_material_volume": 0,
+            "set_volume": 21,
+            "tip_status": "fresh"
+          },
+          "protein_ladder_tube": {
+            "material_name": "protein_ladder",
+            "material_volume": 500
+          },
+          "waste_container": {
+            "material_name": "empty",
+            "material_volume": 0
+          }
+        },
+        "activeStateWrites": [
+          {
+            "target": "p200_micropipette",
+            "state": {
+              "set_volume": 20
+            }
+          }
+        ]
+      },
+      "affordances": [
+        {
+          "item": "center_p200_micropipette",
+          "kind": "active",
+          "className": null,
+          "width": 44,
+          "height": 85.34375,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "center_p200_micropipette"
+        },
+        {
+          "item": "front_center_gel_cassette",
+          "kind": "none",
+          "className": null,
+          "width": 89.046875,
+          "height": 128.171875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "front_center_gel_cassette"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 4.5771484375,
+          "height": 8.3221435546875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_gel_cassette"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 4.5772705078125,
+          "height": 8.3221435546875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_gel_cassette"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 4.5771484375,
+          "height": 8.3221435546875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_gel_cassette"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 4.5772705078125,
+          "height": 8.3221435546875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_gel_cassette"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 4.5771484375,
+          "height": 8.3221435546875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_gel_cassette"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 4.5771484375,
+          "height": 8.3221435546875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_gel_cassette"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 4.5771484375,
+          "height": 8.3221435546875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_gel_cassette"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 4.5771484375,
+          "height": 8.3221435546875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_gel_cassette"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 4.5771484375,
+          "height": 8.3221435546875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_gel_cassette"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 4.5771484375,
+          "height": 8.3221435546875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_gel_cassette"
+        },
+        {
+          "item": "front_center_sds_microtube_rack",
+          "kind": "none",
+          "className": null,
+          "width": 133.578125,
+          "height": 87.65625,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "front_center_sds_microtube_rack"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 16.6964111328125,
+          "height": 16.696426391601562,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_sds_microtube_rack"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 16.6964111328125,
+          "height": 16.696426391601562,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_sds_microtube_rack"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 16.6964111328125,
+          "height": 16.696426391601562,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_sds_microtube_rack"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 16.6964111328125,
+          "height": 16.696426391601562,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_sds_microtube_rack"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 16.6964111328125,
+          "height": 16.696441650390625,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_sds_microtube_rack"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 16.6964111328125,
+          "height": 16.696441650390625,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_sds_microtube_rack"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 16.6964111328125,
+          "height": 16.696441650390625,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_sds_microtube_rack"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 16.6964111328125,
+          "height": 16.696441650390625,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "front_center_sds_microtube_rack"
+        },
+        {
+          "item": "front_center_waste_container",
+          "kind": "none",
+          "className": null,
+          "width": 66.78125,
+          "height": 74.796875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "front_center_waste_container"
+        },
+        {
+          "item": "front_left_electrophoresis_inner_chamber",
+          "kind": "none",
+          "className": null,
+          "width": 155.84375,
+          "height": 171.4375,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "front_left_electrophoresis_inner_chamber"
+        },
+        {
+          "item": "rear_left_protein_ladder_tube",
+          "kind": "none",
+          "className": null,
+          "width": 44,
+          "height": 44,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "rear_left_protein_ladder_tube"
+        },
+        {
+          "item": "right_tool_area_gel_loading_tip_box",
+          "kind": "none",
+          "className": null,
+          "width": 66.78125,
+          "height": 46.09375,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "right_tool_area_gel_loading_tip_box"
+        }
+      ],
+      "compactFile": "protocol_active_whole_compact_reached.png"
+    },
+    {
+      "protocol": "sdspage_full",
+      "file": "protocol_p200_partial_exact_subpart.png",
+      "errors": {
+        "console": [],
+        "page": [],
+        "request": [],
+        "render": []
+      },
+      "state": {
+        "activeStepId": "mp1__prepare_batch",
+        "interactionIndex": 4,
+        "activeScene": "sdspage_prepare_sample_mix_batch_workspace",
+        "completedSteps": [
+          "mp0__combine_concentrate_and_water"
+        ],
+        "selectedTool": null,
+        "heldLiquid": {
+          "tool": null,
+          "liquid": null
+        },
+        "wrongOrderClicks": 0,
+        "stepsOutOfOrder": 0,
+        "isComplete": false,
+        "activeTarget": "center_sds_microtube_rack.slot_B1",
+        "activeGesture": "click",
+        "activeMaterialEffects": [],
+        "stateRevision": 12,
+        "lastStateDelta": {
+          "target": "p200_micropipette",
+          "before": {
+            "held_material_name": "empty",
+            "held_material_volume": 0
+          },
+          "after": {
+            "held_material_name": "protein_sample_raw",
+            "held_material_volume": 21
+          }
+        },
+        "stateDeltaLog": [
+          {
+            "target": "running_buffer_10x_bottle",
+            "before": {
+              "material_name": "running_buffer_10x",
+              "material_volume": 500
+            },
+            "after": {
+              "material_name": "running_buffer_10x",
+              "material_volume": 400
+            }
+          },
+          {
+            "target": "running_buffer_preparation_carboy",
+            "before": {
+              "material_name": "empty",
+              "material_volume": 0
+            },
+            "after": {
+              "material_name": "running_buffer_10x",
+              "material_volume": 100
+            }
+          },
+          {
+            "target": "ddh2o_carboy",
+            "before": {
+              "material_name": "ddh2o",
+              "material_volume": 1000
+            },
+            "after": {
+              "material_name": "ddh2o",
+              "material_volume": 100
+            }
+          },
+          {
+            "target": "running_buffer_preparation_carboy",
+            "before": {
+              "material_name": "running_buffer_10x",
+              "material_volume": 100
+            },
+            "after": {
+              "material_name": "running_buffer_1x",
+              "material_volume": 1000
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "tip_status": "none"
+            },
+            "after": {
+              "tip_status": "fresh"
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "set_volume": 100
+            },
+            "after": {
+              "set_volume": 21
+            }
+          },
+          {
+            "target": "microtube_rack_8.slot_A1",
+            "before": {
+              "material_name": "protein_sample_raw",
+              "material_volume": 21
+            },
+            "after": {
+              "material_name": "empty",
+              "material_volume": 0
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "before": {
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "held_material_name": "protein_sample_raw",
+              "held_material_volume": 21
+            }
+          }
+        ],
+        "declaredState": {
+          "bme_tube": {
+            "material_name": "bme",
+            "material_volume": 1
+          },
+          "hood_surface": {
+            "contact_status": "not_wiped",
+            "surface_cleanliness": "dirty"
+          },
+          "laemmli_4x_tube": {
+            "material_name": "laemmli_4x",
+            "material_volume": 1
+          },
+          "micropipette_tip_box": {
+            "visible": true
+          },
+          "microtube_rack_8.slot_A1": {
+            "cap_status": "open",
+            "label_status": "unlabeled",
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "microtube_rack_8.slot_A2": {
+            "cap_status": "open",
+            "label_status": "unlabeled",
+            "material_name": "protein_sample_raw",
+            "material_volume": 21
+          },
+          "microtube_rack_8.slot_A3": {
+            "cap_status": "open",
+            "label_status": "unlabeled",
+            "material_name": "protein_sample_raw",
+            "material_volume": 21
+          },
+          "microtube_rack_8.slot_A4": {
+            "cap_status": "open",
+            "label_status": "unlabeled",
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "microtube_rack_8.slot_B1": {
+            "cap_status": "open",
+            "label_status": "unlabeled",
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "microtube_rack_8.slot_B2": {
+            "cap_status": "open",
+            "label_status": "unlabeled",
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "microtube_rack_8.slot_B3": {
+            "cap_status": "open",
+            "label_status": "unlabeled",
+            "material_name": "empty",
+            "material_volume": 0
+          },
+          "microtube_rack_8.slot_B4": {
+            "cap_status": "open",
+            "label_status": "unlabeled",
+            "material_name": "protein_ladder",
+            "material_volume": 20
+          },
+          "p10_micropipette": {
+            "held_material_name": "empty",
+            "held_material_volume": 0,
+            "set_volume": 5,
+            "tip_status": "none"
+          },
+          "p200_micropipette": {
+            "held_material_name": "protein_sample_raw",
+            "held_material_volume": 21,
+            "set_volume": 21,
+            "tip_status": "fresh"
+          },
+          "protein_sample_tube": {
+            "material_name": "protein_sample_raw",
+            "material_volume": 500
+          }
+        },
+        "activeStateWrites": [
+          {
+            "target": "microtube_rack_8.slot_B1",
+            "state": {
+              "material_name": "protein_sample_raw",
+              "material_volume": 21
+            }
+          },
+          {
+            "target": "p200_micropipette",
+            "state": {
+              "held_material_name": "empty",
+              "held_material_volume": 0,
+              "tip_status": "used"
+            }
+          }
+        ]
+      },
+      "affordances": [
+        {
+          "item": "center_hood_surface",
+          "kind": "none",
+          "className": null,
+          "width": 298.84375,
+          "height": 180.4375,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "center_hood_surface"
+        },
+        {
+          "item": "center_p10_reagent_micropipette",
+          "kind": "none",
+          "className": null,
+          "width": 44,
+          "height": 91.640625,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "center_p10_reagent_micropipette"
+        },
+        {
+          "item": "center_p200_sample_micropipette",
+          "kind": "none",
+          "className": null,
+          "width": 44,
+          "height": 91.640625,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "center_p200_sample_micropipette"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 26,
+          "height": 26,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "center_sds_microtube_rack.slot_A1"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 26,
+          "height": 26,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "center_sds_microtube_rack.slot_A2"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 26,
+          "height": 26,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "center_sds_microtube_rack.slot_A3"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 26,
+          "height": 26,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "center_sds_microtube_rack.slot_A4"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 26,
+          "height": 26,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgb(158, 101, 7)",
+          "fill": "rgba(158, 101, 7, 0.2)",
+          "centerOwner": "center_sds_microtube_rack.slot_B1"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 26,
+          "height": 26,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "center_sds_microtube_rack.slot_B2"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 26,
+          "height": 26,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "center_sds_microtube_rack.slot_B3"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 26,
+          "height": 26,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgba(0, 0, 0, 0)",
+          "fill": "rgba(0, 0, 0, 0)",
+          "centerOwner": "center_sds_microtube_rack.slot_B4"
+        },
+        {
+          "item": "rear_center_laemmli",
+          "kind": "none",
+          "className": null,
+          "width": 44,
+          "height": 178.1875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "rear_center_laemmli"
+        },
+        {
+          "item": "rear_left_micropipette_tip_box",
+          "kind": "none",
+          "className": null,
+          "width": 83.671875,
+          "height": 58.390625,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "rear_left_micropipette_tip_box"
+        },
+        {
+          "item": "rear_left_protein_sample",
+          "kind": "none",
+          "className": null,
+          "width": 44,
+          "height": 44,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "rear_left_protein_sample"
+        },
+        {
+          "item": "rear_right_bme",
+          "kind": "none",
+          "className": null,
+          "width": 44,
+          "height": 178.1875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "rear_right_bme"
+        }
+      ]
+    },
+    {
+      "protocol": "trypan_blue_counting",
+      "file": "protocol_trypan_candidate_full.png",
+      "errors": {
+        "console": [],
+        "page": [],
+        "request": [],
+        "render": []
+      },
+      "state": {
+        "activeStepId": "observe_manual_live_dead_cells",
+        "interactionIndex": 2,
+        "activeScene": "hemocytometer_count_review",
+        "completedSteps": [
+          "add_trypan_blue_to_chamber",
+          "add_cell_suspension_to_chamber",
+          "mix_by_pipetting",
+          "load_semicircle_chamber",
+          "wipe_off_excess"
+        ],
+        "selectedTool": null,
+        "heldLiquid": {
+          "tool": null,
+          "liquid": null
+        },
+        "wrongOrderClicks": 0,
+        "stepsOutOfOrder": 0,
+        "isComplete": false,
+        "activeTarget": "manual_count_correct_choice",
+        "activeGesture": "select",
+        "activeMaterialEffects": [],
+        "stateRevision": 33,
+        "lastStateDelta": {
+          "target": "hemocytometer_slide",
+          "before": {
+            "observation_state": "not_observed"
+          },
+          "after": {
+            "observation_state": "live_dead_cells_visible"
+          }
+        },
+        "stateDeltaLog": [
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "tip_status": "none"
+            },
+            "after": {
+              "tip_status": "fresh"
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "set_volume": 10
+            },
+            "after": {
+              "set_volume": 10
+            }
+          },
+          {
+            "target": "trypan_blue_tube",
+            "before": {
+              "material_volume": 10
+            },
+            "after": {
+              "material_volume": 9.99
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "held_material_name": "trypan_blue",
+              "held_material_volume": 10
+            }
+          },
+          {
+            "target": "hemocytometer_slide.diamond",
+            "before": {
+              "material_name": "empty",
+              "material_volume": 0
+            },
+            "after": {
+              "material_name": "trypan_blue",
+              "material_volume": 0.01
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "held_material_name": "trypan_blue",
+              "held_material_volume": 10,
+              "tip_status": "fresh"
+            },
+            "after": {
+              "held_material_name": "empty",
+              "held_material_volume": 0,
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "tip_status": "used"
+            },
+            "after": {
+              "tip_status": "fresh"
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "set_volume": 10
+            },
+            "after": {
+              "set_volume": 10
+            }
+          },
+          {
+            "target": "conical_15ml",
+            "before": {
+              "material_volume": 6.86
+            },
+            "after": {
+              "material_volume": 6.85
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "held_material_name": "cell_suspension",
+              "held_material_volume": 10
+            }
+          },
+          {
+            "target": "hemocytometer_slide.diamond",
+            "before": {
+              "material_name": "trypan_blue",
+              "material_volume": 0.01
+            },
+            "after": {
+              "material_name": "trypan_blue_mixture",
+              "material_volume": 0.02
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "held_material_name": "cell_suspension",
+              "held_material_volume": 10,
+              "tip_status": "fresh"
+            },
+            "after": {
+              "held_material_name": "empty",
+              "held_material_volume": 0,
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "hemocytometer_slide.diamond",
+            "before": {
+              "material_name": "trypan_blue_mixture"
+            },
+            "after": {
+              "material_name": "trypan_blue_mixture"
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "mix_cycles": 0
+            },
+            "after": {
+              "mix_cycles": 1
+            }
+          },
+          {
+            "target": "hemocytometer_slide.diamond",
+            "before": {
+              "material_name": "trypan_blue_mixture"
+            },
+            "after": {
+              "material_name": "trypan_blue_mixture"
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "mix_cycles": 1
+            },
+            "after": {
+              "mix_cycles": 2
+            }
+          },
+          {
+            "target": "hemocytometer_slide.diamond",
+            "before": {
+              "material_name": "trypan_blue_mixture"
+            },
+            "after": {
+              "material_name": "trypan_blue_mixture"
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "mix_cycles": 2
+            },
+            "after": {
+              "mix_cycles": 3
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "mixture_homogeneous": false
+            },
+            "after": {
+              "mixture_homogeneous": true
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "tip_status": "used"
+            },
+            "after": {
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "set_volume": 10
+            },
+            "after": {
+              "set_volume": 10
+            }
+          },
+          {
+            "target": "hemocytometer_slide.diamond",
+            "before": {
+              "material_name": "trypan_blue_mixture",
+              "material_volume": 0.02
+            },
+            "after": {
+              "material_name": "trypan_blue_mixture",
+              "material_volume": 0.01
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "chamber_load_quality": "not_loaded"
+            },
+            "after": {
+              "chamber_load_quality": "capillary_loading"
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "held_material_name": "trypan_blue_mixture",
+              "held_material_volume": 10
+            }
+          },
+          {
+            "target": "hemocytometer_slide.semicircle",
+            "before": {
+              "material_name": "empty",
+              "material_volume": 0
+            },
+            "after": {
+              "material_name": "trypan_blue_mixture",
+              "material_volume": 0.01
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "chamber_load_quality": "capillary_loading"
+            },
+            "after": {
+              "chamber_load_quality": "bubble_free"
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "held_material_name": "trypan_blue_mixture",
+              "held_material_volume": 10,
+              "tip_status": "used"
+            },
+            "after": {
+              "held_material_name": "empty",
+              "held_material_volume": 0,
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "excess_wiped": false
+            },
+            "after": {
+              "excess_wiped": true
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "observation_state": "not_observed"
+            },
+            "after": {
+              "observation_state": "live_dead_cells_visible"
+            }
+          }
+        ],
+        "declaredState": {
+          "hemocytometer_observation_display": {
+            "visible": true
+          },
+          "hemocytometer_slide": {
+            "chamber_load_quality": "bubble_free",
+            "excess_wiped": true,
+            "mix_cycles": 3,
+            "mixture_homogeneous": true,
+            "observation_state": "live_dead_cells_visible",
+            "slide_status": "ready"
+          },
+          "hemocytometer_slide.diamond": {
+            "material_name": "trypan_blue_mixture",
+            "material_volume": 0.01
+          },
+          "hemocytometer_slide.semicircle": {
+            "material_name": "trypan_blue_mixture",
+            "material_volume": 0.01
+          },
+          "manual_count_46_live_46_dead": {
+            "visible": true
+          },
+          "manual_count_85_live_7_dead": {
+            "visible": true
+          }
+        },
+        "activeStateWrites": [
+          {
+            "target": "hemocytometer_slide",
+            "state": {
+              "observation_state": "quadrants_counted"
+            }
+          }
+        ]
+      },
+      "affordances": [
+        {
+          "item": "manual_count_correct_choice",
+          "kind": "candidate",
+          "className": null,
+          "width": 211.5,
+          "height": 90.640625,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "manual_count_correct_choice"
+        },
+        {
+          "item": "manual_count_incorrect_choice",
+          "kind": "candidate",
+          "className": null,
+          "width": 211.5,
+          "height": 90.640625,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "manual_count_incorrect_choice"
+        },
+        {
+          "item": "right_counted_hemocytometer_slide",
+          "kind": "candidate",
+          "className": null,
+          "width": 94,
+          "height": 51.6875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "right_counted_hemocytometer_slide"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 22.084716796875,
+          "height": 12.686920166015625,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgb(37, 99, 235)",
+          "fill": "rgba(37, 99, 235, 0.14)",
+          "centerOwner": "right_counted_hemocytometer_slide"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 12.921875,
+          "height": 12.686920166015625,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgb(37, 99, 235)",
+          "fill": "rgba(37, 99, 235, 0.14)",
+          "centerOwner": "right_counted_hemocytometer_slide"
+        }
+      ],
+      "railFile": "protocol_trypan_candidate_annotation_rail.png"
+    },
+    {
+      "protocol": "trypan_blue_counting",
+      "file": "protocol_trypan_viability_gate_candidate_union.png",
+      "errors": {
+        "console": [],
+        "page": [],
+        "request": [],
+        "render": []
+      },
+      "state": {
+        "activeStepId": "verify_viability_gate",
+        "interactionIndex": 0,
+        "activeScene": "viability_review",
+        "completedSteps": [
+          "add_trypan_blue_to_chamber",
+          "add_cell_suspension_to_chamber",
+          "mix_by_pipetting",
+          "load_semicircle_chamber",
+          "wipe_off_excess",
+          "observe_manual_live_dead_cells",
+          "insert_slide_into_counter",
+          "press_capture"
+        ],
+        "selectedTool": null,
+        "heldLiquid": {
+          "tool": null,
+          "liquid": null
+        },
+        "wrongOrderClicks": 0,
+        "stepsOutOfOrder": 0,
+        "isComplete": false,
+        "activeTarget": "viability_proceed_choice",
+        "activeGesture": "select",
+        "activeMaterialEffects": [],
+        "stateRevision": 39,
+        "lastStateDelta": {
+          "target": "cell_counter",
+          "before": {
+            "capture_pressed": false,
+            "cell_count": 0,
+            "cell_concentration_per_ml": 0,
+            "viability_percent": 0
+          },
+          "after": {
+            "capture_pressed": true,
+            "cell_count": 850000,
+            "cell_concentration_per_ml": 850000,
+            "viability_percent": 92.5
+          }
+        },
+        "stateDeltaLog": [
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "tip_status": "none"
+            },
+            "after": {
+              "tip_status": "fresh"
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "set_volume": 10
+            },
+            "after": {
+              "set_volume": 10
+            }
+          },
+          {
+            "target": "trypan_blue_tube",
+            "before": {
+              "material_volume": 10
+            },
+            "after": {
+              "material_volume": 9.99
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "held_material_name": "trypan_blue",
+              "held_material_volume": 10
+            }
+          },
+          {
+            "target": "hemocytometer_slide.diamond",
+            "before": {
+              "material_name": "empty",
+              "material_volume": 0
+            },
+            "after": {
+              "material_name": "trypan_blue",
+              "material_volume": 0.01
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "held_material_name": "trypan_blue",
+              "held_material_volume": 10,
+              "tip_status": "fresh"
+            },
+            "after": {
+              "held_material_name": "empty",
+              "held_material_volume": 0,
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "tip_status": "used"
+            },
+            "after": {
+              "tip_status": "fresh"
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "set_volume": 10
+            },
+            "after": {
+              "set_volume": 10
+            }
+          },
+          {
+            "target": "conical_15ml",
+            "before": {
+              "material_volume": 6.86
+            },
+            "after": {
+              "material_volume": 6.85
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "held_material_name": "cell_suspension",
+              "held_material_volume": 10
+            }
+          },
+          {
+            "target": "hemocytometer_slide.diamond",
+            "before": {
+              "material_name": "trypan_blue",
+              "material_volume": 0.01
+            },
+            "after": {
+              "material_name": "trypan_blue_mixture",
+              "material_volume": 0.02
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "held_material_name": "cell_suspension",
+              "held_material_volume": 10,
+              "tip_status": "fresh"
+            },
+            "after": {
+              "held_material_name": "empty",
+              "held_material_volume": 0,
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "hemocytometer_slide.diamond",
+            "before": {
+              "material_name": "trypan_blue_mixture"
+            },
+            "after": {
+              "material_name": "trypan_blue_mixture"
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "mix_cycles": 0
+            },
+            "after": {
+              "mix_cycles": 1
+            }
+          },
+          {
+            "target": "hemocytometer_slide.diamond",
+            "before": {
+              "material_name": "trypan_blue_mixture"
+            },
+            "after": {
+              "material_name": "trypan_blue_mixture"
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "mix_cycles": 1
+            },
+            "after": {
+              "mix_cycles": 2
+            }
+          },
+          {
+            "target": "hemocytometer_slide.diamond",
+            "before": {
+              "material_name": "trypan_blue_mixture"
+            },
+            "after": {
+              "material_name": "trypan_blue_mixture"
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "mix_cycles": 2
+            },
+            "after": {
+              "mix_cycles": 3
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "mixture_homogeneous": false
+            },
+            "after": {
+              "mixture_homogeneous": true
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "tip_status": "used"
+            },
+            "after": {
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "set_volume": 10
+            },
+            "after": {
+              "set_volume": 10
+            }
+          },
+          {
+            "target": "hemocytometer_slide.diamond",
+            "before": {
+              "material_name": "trypan_blue_mixture",
+              "material_volume": 0.02
+            },
+            "after": {
+              "material_name": "trypan_blue_mixture",
+              "material_volume": 0.01
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "chamber_load_quality": "not_loaded"
+            },
+            "after": {
+              "chamber_load_quality": "capillary_loading"
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "held_material_name": "empty",
+              "held_material_volume": 0
+            },
+            "after": {
+              "held_material_name": "trypan_blue_mixture",
+              "held_material_volume": 10
+            }
+          },
+          {
+            "target": "hemocytometer_slide.semicircle",
+            "before": {
+              "material_name": "empty",
+              "material_volume": 0
+            },
+            "after": {
+              "material_name": "trypan_blue_mixture",
+              "material_volume": 0.01
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "chamber_load_quality": "capillary_loading"
+            },
+            "after": {
+              "chamber_load_quality": "bubble_free"
+            }
+          },
+          {
+            "target": "p20_micropipette",
+            "before": {
+              "held_material_name": "trypan_blue_mixture",
+              "held_material_volume": 10,
+              "tip_status": "used"
+            },
+            "after": {
+              "held_material_name": "empty",
+              "held_material_volume": 0,
+              "tip_status": "used"
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "excess_wiped": false
+            },
+            "after": {
+              "excess_wiped": true
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "observation_state": "not_observed"
+            },
+            "after": {
+              "observation_state": "live_dead_cells_visible"
+            }
+          },
+          {
+            "target": "hemocytometer_slide",
+            "before": {
+              "observation_state": "live_dead_cells_visible"
+            },
+            "after": {
+              "observation_state": "quadrants_counted"
+            }
+          },
+          {
+            "target": "cell_counter",
+            "before": {
+              "slide_loaded": false,
+              "manual_observation": "not_observed"
+            },
+            "after": {
+              "slide_loaded": true,
+              "manual_observation": "quadrants_counted"
+            }
+          },
+          {
+            "target": "cell_counter",
+            "before": {
+              "focused": false
+            },
+            "after": {
+              "focused": true
+            }
+          },
+          {
+            "target": "cell_counter",
+            "before": {
+              "capture_pressed": false,
+              "cell_count": 0,
+              "cell_concentration_per_ml": 0,
+              "viability_percent": 0
+            },
+            "after": {
+              "capture_pressed": true,
+              "cell_count": 850000,
+              "cell_concentration_per_ml": 850000,
+              "viability_percent": 92.5
+            }
+          }
+        ],
+        "declaredState": {
+          "cell_counter": {
+            "capture_pressed": true,
+            "cell_concentration_per_ml": 850000,
+            "cell_count": 850000,
+            "focused": true,
+            "manual_observation": "quadrants_counted",
+            "slide_loaded": true,
+            "viability_percent": 92.5,
+            "viability_verified": false
+          },
+          "cell_viability_results_display": {
+            "visible": true
+          },
+          "hemocytometer_slide": {
+            "chamber_load_quality": "bubble_free",
+            "excess_wiped": true,
+            "mix_cycles": 3,
+            "mixture_homogeneous": true,
+            "observation_state": "quadrants_counted",
+            "slide_status": "ready"
+          },
+          "hemocytometer_slide.diamond": {
+            "material_name": "trypan_blue_mixture",
+            "material_volume": 0.01
+          },
+          "hemocytometer_slide.semicircle": {
+            "material_name": "trypan_blue_mixture",
+            "material_volume": 0.01
+          },
+          "viability_decision_proceed": {
+            "visible": true
+          },
+          "viability_decision_recount": {
+            "visible": true
+          }
+        },
+        "activeStateWrites": [
+          {
+            "target": "cell_counter",
+            "state": {
+              "viability_verified": true
+            }
+          }
+        ]
+      },
+      "affordances": [
+        {
+          "item": "rear_counted_slide",
+          "kind": "candidate",
+          "className": null,
+          "width": 84.59375,
+          "height": 46.515625,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "rear_counted_slide"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 19.8748779296875,
+          "height": 11.41748046875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgb(37, 99, 235)",
+          "fill": "rgba(37, 99, 235, 0.14)",
+          "centerOwner": "rear_counted_slide"
+        },
+        {
+          "item": null,
+          "kind": null,
+          "className": "subpart-focus-indicator",
+          "width": 11.62890625,
+          "height": 11.41748046875,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "rgb(37, 99, 235)",
+          "fill": "rgba(37, 99, 235, 0.14)",
+          "centerOwner": "rear_counted_slide"
+        },
+        {
+          "item": "rear_counter_instrument",
+          "kind": "candidate",
+          "className": null,
+          "width": 401.84375,
+          "height": 230.078125,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "rear_counter_instrument"
+        },
+        {
+          "item": "viability_proceed_choice",
+          "kind": "candidate",
+          "className": null,
+          "width": 232.640625,
+          "height": 99.703125,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "viability_proceed_choice"
+        },
+        {
+          "item": "viability_recount_choice",
+          "kind": "candidate",
+          "className": null,
+          "width": 190.34375,
+          "height": 81.578125,
+          "border": "0px none rgb(0, 0, 0)",
+          "stroke": "none",
+          "fill": "rgb(0, 0, 0)",
+          "centerOwner": "viability_recount_choice"
+        }
+      ]
+    }
+  ],
+  "errors": {
+    "console": [],
+    "page": [],
+    "request": [],
+    "render": []
+  },
+  "baseUrl": "http://127.0.0.1:54110",
+  "grayscale": [
+    "bench_basic_full_grayscale.png",
+    "hood_basic_full_grayscale.png",
+    "cell_counter_basic_full_grayscale.png",
+    "microscope_basic_full_grayscale.png",
+    "electrophoresis_bench_full_grayscale.png",
+    "imaging_bench_full_grayscale.png",
+    "protocol_active_whole_full_grayscale.png",
+    "protocol_p200_partial_exact_subpart_grayscale.png",
+    "protocol_trypan_candidate_full_grayscale.png"
+  ]
+}

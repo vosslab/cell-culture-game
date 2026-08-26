@@ -10,9 +10,10 @@ import re
 # src/scene_runtime/layout/types.ts.
 RENDER_EFFECTS = ("material_tint", "fill_height")
 RENDER_TARGETS = ("subpart_geometry", "anchor_liquid_bounds", "anchor_liquid_clip")
+CAPACITY_KEYS = ("capacity_ul", "capacity_ml", "capacity_mg")
 FILL_HEIGHT_FORMULA = re.compile(
 	r"fill_height\(state\((?P<field>[A-Za-z_][A-Za-z0-9_]*)\), "
-	r"(?P<capacity_key>capacity_(?:ul|ml))=(?P<capacity>"
+	r"(?P<capacity_key>capacity_(?:ul|ml|mg))=(?P<capacity>"
 	r"[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][-+]?\d+)?)\)"
 )
 
@@ -28,7 +29,7 @@ def parse_visual_states(data: dict, yaml_path: str) -> dict:
 	- render-effect-based (MATERIAL_CONVENTION.md D12) with render_effect +
 	  target, the declarative material form, which omits kind.
 	Returns {field_name: {applies_to, kind?, cases?, formula?, render_effect?,
-	target?, clip?, capacity_ul?, capacity_ml?}}.
+	target?, clip?, capacity_ul?, capacity_ml?, capacity_mg?}}.
 	"""
 	raw_vs = data.get("visual_states", {})
 	if not raw_vs:
@@ -52,6 +53,15 @@ def parse_visual_states(data: dict, yaml_path: str) -> dict:
 					f"visual_states.{field_name}.render_effect"
 					f" '{render_effect}' not in {RENDER_EFFECTS}: {yaml_path}"
 				)
+			allowed_keys = {"applies_to", "render_effect", "target"}
+			if render_effect == "fill_height":
+				allowed_keys.update({"clip", *CAPACITY_KEYS})
+			unknown_keys = sorted(set(vs_def) - allowed_keys)
+			if unknown_keys:
+				raise ValueError(
+					f"visual_states.{field_name} has unknown render-effect keys "
+					f"{unknown_keys}: {yaml_path}"
+				)
 			target = vs_def["target"]
 			if target not in RENDER_TARGETS:
 				raise ValueError(
@@ -69,19 +79,23 @@ def parse_visual_states(data: dict, yaml_path: str) -> dict:
 						f" '{clip}' not in {RENDER_TARGETS}: {yaml_path}"
 					)
 				entry["clip"] = clip
-			if "capacity_ul" in vs_def:
-				entry["capacity_ul"] = vs_def["capacity_ul"]
-			if "capacity_ml" in vs_def:
-				entry["capacity_ml"] = vs_def["capacity_ml"]
+			for capacity_key in CAPACITY_KEYS:
+				if capacity_key in vs_def:
+					entry[capacity_key] = vs_def[capacity_key]
 			if render_effect == "fill_height":
-				capacities = [key for key in ("capacity_ul", "capacity_ml") if key in entry]
+				capacities = [key for key in CAPACITY_KEYS if key in entry]
 				if len(capacities) != 1:
 					raise ValueError(
 						f"visual_states.{field_name}.fill_height must declare exactly one "
-						f"of capacity_ul/capacity_ml: {yaml_path}"
+						f"of {'/'.join(CAPACITY_KEYS)}: {yaml_path}"
 					)
 				capacity = entry[capacities[0]]
-				if not isinstance(capacity, (int, float)) or isinstance(capacity, bool) or capacity <= 0:
+				if (
+					not isinstance(capacity, (int, float))
+					or isinstance(capacity, bool)
+					or not math.isfinite(capacity)
+					or capacity <= 0
+				):
 					raise ValueError(
 						f"visual_states.{field_name}.{capacities[0]} must be a positive number: "
 						f"{yaml_path}"
@@ -115,7 +129,7 @@ def parse_fill_height_formula(formula: object, yaml_path: str, field_name: str) 
 	if match is None:
 		raise ValueError(
 			f"visual_states.{field_name}.formula must be an exact fill_height "
-			f"formula with capacity_ul or capacity_ml: {yaml_path}"
+			f"formula with capacity_ul, capacity_ml, or capacity_mg: {yaml_path}"
 		)
 	capacity = float(match.group("capacity"))
 	if not math.isfinite(capacity) or capacity <= 0:

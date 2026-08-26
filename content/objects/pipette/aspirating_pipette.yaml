@@ -31,8 +31,11 @@ visual_states:
       - when: cell_supernatant
         output: { asset_name: aspirating_pipette }
   held_material_volume:
-    kind: composite
-    composite: []
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ml: 10.0
 capabilities: [clickable, material_container, cursor_attachable]
 
 layout:

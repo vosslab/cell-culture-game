@@ -17,7 +17,6 @@ import os
 import re
 import shutil
 import sys
-import subprocess
 from pathlib import Path
 
 import yaml
@@ -725,20 +724,8 @@ def _emit_ts_manifest(output_file: str, asset_keys: set,
 
 
 def _get_repo_root() -> str:
-	"""Get repository root via git."""
-	try:
-		result = subprocess.run(
-			["git", "rev-parse", "--show-toplevel"],
-			capture_output=True,
-			text=True,
-			timeout=5,
-		)
-		if result.returncode == 0:
-			return result.stdout.strip()
-	except (OSError, subprocess.TimeoutExpired, subprocess.SubprocessError):
-		pass
-
-	raise RuntimeError("Could not determine repo root via git")
+	"""Resolve the repository from this pipeline module's stable location."""
+	return str(Path(__file__).resolve().parent.parent)
 
 
 if __name__ == "__main__":

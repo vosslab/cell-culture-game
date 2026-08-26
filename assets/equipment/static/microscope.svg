@@ -1,32 +1,60 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 283.843 489.184">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 288.947 492.903">
   <defs>
-    <linearGradient id="microscopeGlass" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#f8feff"/><stop offset="1" stop-color="#b9e1eb"/></linearGradient>
-    <linearGradient id="microscopeMetal" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a9c3c8"/><stop offset="1" stop-color="#607a80"/></linearGradient>
+    <linearGradient id="scope-metal" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#f5f7f5"/><stop offset=".48" stop-color="#c4d0d1"/><stop offset="1" stop-color="#7e969b"/></linearGradient>
+    <linearGradient id="scope-arm" x1="0" x2="1"><stop stop-color="#eef3f2"/><stop offset=".48" stop-color="#b2c3c4"/><stop offset="1" stop-color="#637b81"/></linearGradient>
+    <linearGradient id="scope-black" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#526970"/><stop offset="1" stop-color="#1f3339"/></linearGradient>
+    <radialGradient id="scope-lamp"><stop stop-color="#ffffef"/><stop offset=".55" stop-color="#d4f1df"/><stop offset="1" stop-color="#75a193"/></radialGradient>
   </defs>
-  <g id="microscope" stroke="#26363b" stroke-linejoin="round" stroke-linecap="round">
-    <path id="microscope_base" d="M39 454h192c19 0 31 9 38 24H17c5-16 10-24 22-24Z" fill="#6f898f" stroke-width="5"/>
-    <path d="M37 454h197c12 0 23 5 30 14H22c4-9 8-14 15-14Z" fill="#a8c2c7" stroke="none"/>
-    <path id="microscope_pillar" d="M82 454c17-31 13-72 9-104h48c-1 38-7 76 18 104Z" fill="url(#microscopeMetal)" stroke-width="5"/>
-    <path d="M103 359c5 38 2 67-10 90h43c-15-27-16-57-13-90Z" fill="#d9f1f3" stroke="none"/>
-    <path id="microscope_arm" d="M92 367c-43-15-60-50-50-89 9-35 38-51 69-63l18 37c-22 10-38 21-43 40-6 22 5 36 29 44 23 8 45 14 58 26l-25 36c-13-14-34-22-56-31Z" fill="#91c4d3" stroke-width="6"/>
-    <path d="M64 282c-8 31 11 55 51 67 15 5 29 11 40 20l-9 13c-14-13-35-21-55-28-37-13-53-40-41-75 8-24 24-39 52-52l8 16c-25 11-39 24-46 39Z" fill="#c9eaf0" stroke="none"/>
-    <path id="microscope_head" d="m73 79 87-39 70 117-63 34Z" fill="#8fc3d3" stroke-width="6"/>
-    <path d="m91 82 66-30 12 20-66 31Z" fill="#d5f0f4" stroke="none"/>
-    <path id="microscope_objective_tube" d="m158 180 43-23 23 42-43 24Z" fill="url(#microscopeMetal)" stroke-width="5"/>
-    <path d="m180 210 32-17 8 15-31 17Z" fill="#d8f0f3" stroke="none"/>
-    <path id="microscope_stage" d="m119 265 105-55 17 30-105 56Z" fill="#455f65" stroke-width="5"/>
-    <path d="m136 265 85-45 9 16-86 46Z" fill="#d5ebee" stroke="none"/>
-    <path id="microscope_slide" d="m124 247 96-50 12 21-96 51Z" fill="#fffdf8" stroke="#26363b" stroke-width="3"/>
-    <path d="m140 247 67-35" fill="none" stroke="#f2bc82" stroke-width="7"/>
-    <path id="microscope_nosepiece" d="m157 189 34-18 13 24-34 18Z" fill="#637b81" stroke-width="5"/>
-    <path id="microscope_objective" d="m173 207 19-10 19 35-20 11Z" fill="#b9d9df" stroke-width="5"/>
-    <path d="m191 237 20-11 5 10-20 11Z" fill="#26363b" stroke-width="4"/>
-    <g id="microscope_focus_knobs" fill="#769399" stroke-width="5"><circle cx="95" cy="309" r="25"/><circle cx="95" cy="309" r="14" fill="#d8f2f4"/><circle cx="122" cy="282" r="17"/><circle cx="122" cy="282" r="9" fill="#d8f2f4"/></g>
-    <path id="microscope_eyepiece" d="m54 40 40-18 20 35-41 20Z" fill="#607a80" stroke-width="5"/>
-    <path d="m62 40 30-13 8 14-30 14Z" fill="#b9e1eb" stroke="none"/>
+  <!-- weighted base -->
+  <g id="microscope_base">
+    <path d="M39 454c0-22 16-42 38-48l31-9h73l30 9c23 6 39 26 39 48v19H39z" fill="#60777d"/>
+    <path d="M51 452c2-15 14-29 30-34l30-9h67l28 9c16 5 28 19 30 34z" fill="url(#scope-metal)"/>
+    <path d="M58 465h175" fill="none" stroke="#354a50" stroke-width="5" stroke-linecap="round"/>
+    <path d="M76 467v7m131-7v7" fill="none" stroke="#536a70" stroke-width="9" stroke-linecap="round"/>
+  </g>
+  <!-- curved pillar: its open interior is deliberately visible -->
+  <g id="microscope_arm">
+    <path d="M91 407c-2-50 6-92 31-127 18-26 31-47 31-87V154h51v43c0 57-18 94-48 128-18 20-23 47-22 82z" fill="url(#scope-arm)"/>
+    <path d="M107 400c1-49 11-84 34-116 21-29 36-56 36-94v-27" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round" opacity=".72"/>
+    <path d="M99 406h42" stroke="#71898e" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="135" cy="283" r="25" fill="#70878d"/><circle cx="135" cy="283" r="18" fill="#d6e0e0"/><circle cx="135" cy="283" r="10" fill="#82999e"/>
+    <circle cx="103" cy="305" r="16" fill="#667e84"/><circle cx="103" cy="305" r="10" fill="#dae4e4"/>
+  </g>
+  <!-- binocular head and body tube -->
+  <g id="microscope_head">
+    <path d="M157 58h63c8 0 14 6 14 14v23h-77z" fill="url(#scope-black)"/>
+    <path d="M165 36h23v57h-23zm35 0h23v57h-23z" fill="url(#scope-metal)"/>
+    <ellipse cx="176.5" cy="36" rx="11.5" ry="6" fill="#263b42"/><ellipse cx="211.5" cy="36" rx="11.5" ry="6" fill="#263b42"/>
+    <ellipse cx="176.5" cy="35" rx="7" ry="3" fill="#87a6aa"/><ellipse cx="211.5" cy="35" rx="7" ry="3" fill="#87a6aa"/>
+    <path d="M159 94h72l-9 45h-54z" fill="url(#scope-metal)"/>
+    <path d="M164 101h60" stroke="#ffffff" stroke-width="3" opacity=".6"/>
+  </g>
+  <!-- nosepiece and four differently sized objectives -->
+  <g id="microscope_objectives">
+    <ellipse cx="195" cy="142" rx="38" ry="14" fill="#445c63"/><ellipse cx="195" cy="139" rx="31" ry="10" fill="#718a8f"/>
+    <path d="M169 145l12 2-5 45h-14z" fill="#d7e1e1"/><ellipse cx="169" cy="192" rx="7" ry="4" fill="#293e45"/>
+    <path d="M187 145l13 1-2 61h-16z" fill="#c5d2d3"/><ellipse cx="190" cy="207" rx="8" ry="4" fill="#293e45"/>
+    <path d="M205 145l12-2 6 43h-14z" fill="#dbe5e4"/><ellipse cx="216" cy="186" rx="7" ry="4" fill="#293e45"/>
+    <path d="M224 141l11-5 13 29-12 6z" fill="#bfced0"/><ellipse cx="242" cy="168" rx="6" ry="4" fill="#293e45" transform="rotate(27 242 168)"/>
+  </g>
+  <!-- stage, slide and clips -->
+  <g id="microscope_stage">
+    <path d="M54 216h142l19 18-19 20H54l-15-20z" fill="#354d55"/>
+    <path d="M60 220h130l12 14-12 14H60l-10-14z" fill="#607980"/>
+    <rect x="100" y="224" width="66" height="20" rx="2" fill="#d7eced"/>
+    <path d="M106 228h53" stroke="#ffffff" stroke-width="2" opacity=".85"/>
+    <path d="M91 224v18m83-18v18" fill="none" stroke="#e8efef" stroke-width="3" stroke-linecap="round"/>
+    <path d="M49 240H34m171 0h16" fill="none" stroke="#536a70" stroke-width="8" stroke-linecap="round"/>
+    <path d="M127 254v67" fill="none" stroke="#8aa0a5" stroke-width="9"/><ellipse cx="127" cy="327" rx="28" ry="11" fill="#536b72"/><ellipse cx="127" cy="325" rx="20" ry="7" fill="#c9d8d8"/>
+  </g>
+  <!-- condenser and lamp are centered below the slide -->
+  <g id="microscope_illumination">
+    <ellipse cx="127" cy="270" rx="16" ry="8" fill="#405860"/><ellipse cx="127" cy="268" rx="10" ry="5" fill="#cce5dc"/>
+    <path d="M99 398v-37c0-14 11-25 25-25h8c14 0 25 11 25 25v37z" fill="#698188"/>
+    <ellipse cx="128" cy="358" rx="19" ry="11" fill="url(#scope-lamp)"/><ellipse cx="128" cy="358" rx="10" ry="5" fill="#fffff2"/>
+    <path d="M106 397h44" stroke="#dce8e6" stroke-width="3" opacity=".65"/>
   </g>
   <g id="overlay_root"/>
-  <!-- ANCHORS: invisible positioning elements -->
-  <rect id="anchor_label" x="28.384300000000003" y="342.4288" width="227.07440000000003" height="73.3776" fill="none" stroke="none" display="none"/>
-  <rect id="anchor_error" x="235.45870000000002" y="322.4288" width="16" height="16" fill="none" stroke="none" display="none"/>
+  <rect id="anchor_label" x="28.3843" y="342.4288" width="227.0744" height="73.3776" fill="none" stroke="none" display="none"/>
+  <rect id="anchor_error" x="235.4587" y="322.4288" width="16" height="16" fill="none" stroke="none" display="none"/>
 </svg>

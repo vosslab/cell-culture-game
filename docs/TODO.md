@@ -9,6 +9,13 @@ the remaining evidence or contract boundaries.
 
 Current follow-ups:
 
+- Replace the rejected SVG visual direction with reference-backed, recognizably
+  realistic laboratory-equipment archetypes before another family-wide redraw.
+  The 2026-08-26 user verdict supersedes D01-D05 as visual candidates while
+  preserving the completed SVG schemas, material semantics, state ownership,
+  and browser consumer. Use the current production-art review workflow in
+  [USAGE.md](USAGE.md#equipment-svg-visual-review) rather than the four-object
+  candidate fixture.
 - Obtain faculty-owned inputs for blockers B1-B4 before replacing the fixed,
   internally coherent teaching scenarios.
 - Obtain approval for conditional step graphs before implementing B5.

@@ -2,8 +2,8 @@
 //
 // Protocol-host bundle entry. Imports the full scene runtime, renderer,
 // SVG registry, protocol data, shell adapter, and ProtocolHud. Also
-// covers the bench smoke page (dist/bench_basic.html) which only has
-// #scene-root and no protocol name; sharing the bundle keeps the build
+// covers the bench smoke page (dist/bench_basic.html), which has a standalone
+// scene shell but no protocol name; sharing the bundle keeps the build
 // simple and avoids a third esbuild output.
 //
 // Builds to dist/protocol_host.js, loaded by:
@@ -29,7 +29,11 @@ async function mount_bench(root: HTMLElement): Promise<void> {
   // hood_basic instead of running the runtime engine. No runPipeline call path
   // ships in this bundle.
   const result = resolvePrecomputedResult("hood_basic", scene);
-  renderScene(root, result);
+  const annotation_root = document.getElementById("scene-annotation-root");
+  if (!(annotation_root instanceof HTMLElement)) {
+    throw new Error("protocol_host_entry: #scene-annotation-root element not found for bench");
+  }
+  renderScene(root, result, undefined, annotation_root);
 }
 
 //============================================

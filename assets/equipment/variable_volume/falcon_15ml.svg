@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<svg xmlns="http://www.w3.org/2000/svg" version="1.0" viewBox="0 0 70.68 421.427" data-vlab-rendering="material" data-vlab-min-fill-percent="10" data-vlab-body-start-fill-percent="2.8672624">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.0" viewBox="0 0 70.68 421.427" data-vlab-rendering="material" data-vlab-body-start-fill-percent="2.8672624">
   <defs>
     <clipPath id="anchor_liquid_clip">
       <rect x="8.636" y="35.899" width="53.408" height="327.662"/>
@@ -24,6 +24,9 @@
   </g>
   <g data-vlab-layer-name="liquid_inner_base" data-vlab-layer-kind="material" data-vlab-paint-role="base" data-vlab-liquid-part="body">
     <path d="M 35.58 189.566 C 27.944 189.566 20.869 188.926 16.152 188.926 L 16.152 345.252 C 16.152 355.925 24.407 358.424 35.58 358.424 C 46.193 358.424 55.008 355.925 55.008 345.252 L 55.008 188.926 C 49.711 188.926 43.235 189.566 35.58 189.566 Z" fill="#e04e82" fill-rule="evenodd" fill-opacity="1" stroke="none"/>
+  </g>
+  <g data-vlab-layer-name="liquid_surface_base" data-vlab-layer-kind="material" data-vlab-paint-role="base" data-vlab-liquid-part="surface">
+    <path d="M 8.636 187.207 C 9.236 189.706 20.969 191.565 35.64 191.565 C 49.132 191.565 60.884 189.705 62.044 187.847 L 62.044 187.207 C 61.464 184.729 49.731 182.85 35.06 182.85 C 21.548 182.85 9.815 184.729 8.636 187.207 Z" fill="#e67198" fill-rule="evenodd" fill-opacity="1" stroke="none"/>
   </g>
   <g data-vlab-layer-name="liquid_surface_highlight" data-vlab-layer-kind="material" data-vlab-paint-role="highlight" data-vlab-adjustment="0.18" data-vlab-liquid-part="surface">
     <path d="M 8.636 187.207 C 9.236 189.706 20.969 191.565 35.64 191.565 C 49.132 191.565 60.884 189.705 62.044 187.847 L 62.044 187.207 C 61.464 184.729 49.731 182.85 35.06 182.85 C 21.548 182.85 9.815 184.729 8.636 187.207 Z" fill="#f0adc0" fill-rule="evenodd" fill-opacity="1" stroke="none"/>

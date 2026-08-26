@@ -21,12 +21,15 @@ visual_states:
     kind: svg
     cases:
       - when: mtt_powder
-        output: { asset_name: mtt_powder_vial }
+        output: { asset_name: microtube }
       - when: empty
-        output: { asset_name: mtt_powder_vial_empty }
+        output: { asset_name: microtube }
   material_volume:
-    kind: composite
-    composite: []
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_mg: 250
 
 capabilities: [clickable, material_container, cursor_attachable]
 

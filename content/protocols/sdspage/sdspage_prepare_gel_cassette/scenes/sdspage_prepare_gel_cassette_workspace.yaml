@@ -34,7 +34,3 @@ add_placements:
     zone: center
     depth_tier: 1
     align_stop: center
-  - placement_name: front_right_removed_gel_comb
-    object_name: gel_comb
-    zone: front_right
-    depth_tier: 1

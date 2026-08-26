@@ -1,31 +1,38 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 320">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 320" preserveAspectRatio="xMidYMid meet" role="img" aria-labelledby="plate_reader_idle_title plate_reader_idle_desc">
+  <title id="plate_reader_idle_title">Idle microplate reader</title>
+  <desc id="plate_reader_idle_desc">A low benchtop microplate reader with a front-loading plate chamber, inset controls, and stable feet.</desc>
   <g id="plate_reader">
-    <path fill="#d9f1f2" stroke="#203b43" stroke-width="7" stroke-linejoin="round" d="M54 75 84 42h392l30 33v172H54Z"/>
-    <path fill="#a7d8dc" stroke="#203b43" stroke-width="6" stroke-linejoin="round" d="m54 75 30-33h392l30 33-34 27H88Z"/>
-    <path fill="#f7ffff" d="m92 70 18-18h294l-14 18Z"/>
-    <path fill="#8abec4" stroke="#203b43" stroke-width="5" stroke-linejoin="round" d="m472 102 34-27v172l-34-23Z"/>
-    <path fill="#eaf8f7" stroke="#203b43" stroke-width="5" stroke-linejoin="round" d="M89 102h318l24 24v68H89Z"/>
-    <path fill="#173842" stroke="#203b43" stroke-width="5" stroke-linejoin="round" d="M111 121h160v53H111Z"/>
-    <path fill="#80cbd4" d="M123 133h136v29H123Z"/>
-    <path fill="#dfffff" d="M128 138h38v7h-38Zm51 0h75v7h-75Zm-51 12h126v7H128Z"/>
-    <g fill="#315864" stroke="#203b43" stroke-width="3">
-      <circle cx="313" cy="137" r="10"/>
-      <circle cx="344" cy="137" r="10"/>
-      <circle cx="375" cy="137" r="10"/>
-      <circle cx="313" cy="166" r="10"/>
-      <circle cx="344" cy="166" r="10"/>
-      <circle cx="375" cy="166" r="10"/>
+    <g id="reader_housing">
+      <path d="M62 224V139Q62 111 86 94Q104 81 136 80H404Q438 80 461 97L486 116Q501 128 501 149V224Q501 251 481 267Q466 279 439 279H117Q90 279 76 263Q62 248 62 224Z" fill="#c7d6da"/>
+      <path d="M62 139Q62 111 86 94Q104 81 136 80H404Q438 80 461 97L486 116Q498 126 500 140L453 157Q438 162 419 161L126 149Q99 148 78 142Z" fill="#f4f8f7"/>
+      <path d="M453 157L500 140Q502 146 501 161V224Q501 251 481 267Q466 279 439 279H416L400 260Q409 229 405 186Q404 171 416 164Z" fill="#9eb8be"/>
+      <path d="M91 123Q104 101 136 98H398Q423 98 442 111L457 122Q463 128 455 132L424 143Q415 146 399 145L139 135Q120 135 108 130Z" fill="#ffffff"/>
+      <path d="M83 145Q130 153 207 156L407 164" fill="none" stroke="#9bb4ba" stroke-width="2.5" stroke-linecap="round"/>
+      <path d="M67 224V139Q67 116 89 100M501 151V224Q501 249 483 264" fill="none" stroke="#69858d" stroke-width="2.5" stroke-linecap="round"/>
     </g>
-    <path fill="#eefbfa" stroke="#203b43" stroke-width="6" stroke-linejoin="round" d="M104 203h338l22 40H82Z"/>
-    <path fill="#6eaeb6" stroke="#203b43" stroke-width="5" stroke-linejoin="round" d="m104 203 18-16h302l18 16-24 14H128Z"/>
-    <path fill="#173842" stroke="#203b43" stroke-width="5" stroke-linejoin="round" d="M128 218h290l12 17H116Z"/>
-    <path fill="#90cfd5" d="M149 222h248l7 8H142Z"/>
-    <path fill="#203b43" d="M75 247h410v17H75Z"/>
-    <path fill="#a7d8dc" stroke="#203b43" stroke-width="5" stroke-linejoin="round" d="M65 264h430l-20 25H85Z"/>
-    <path fill="#f8ffff" d="M94 271h372l-10 10H104Z"/>
-    <path fill="#203b43" d="M102 289h56v12h-56Zm300 0h56v12h-56Z"/>
+    <g id="plate_opening">
+      <path d="M126 143Q136 138 154 139L364 147Q382 148 397 157L421 171Q429 176 421 182L393 198Q384 203 366 202L159 193Q143 192 129 184L113 174Q105 167 113 159Z" fill="#6a848c"/>
+      <path d="M135 148Q145 144 159 145L358 152Q374 153 388 161L408 173Q414 176 408 180L385 192Q378 196 364 195L167 187Q153 186 141 179L125 170Q120 165 125 158Z" fill="#344f58"/>
+      <path d="M157 153Q166 149 181 150L340 156Q354 157 366 164L382 174Q387 177 380 180L362 189Q355 192 342 191L191 185Q180 184 170 178L153 169Q148 164 157 153Z" fill="#dbe8e7"/>
+      <path d="M172 158Q181 154 193 155L330 160Q341 160 352 167L365 175Q368 177 363 180L348 185L202 179Q194 179 185 174L171 166Q168 162 172 158Z" fill="#f9fbfa"/>
+      <path d="M147 151Q225 149 368 158" fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
+    <g id="reader_controls">
+      <path d="M84 194Q88 184 104 184L384 193Q402 194 403 211L400 244Q398 257 382 260L106 252Q91 251 89 239Z" fill="#7f9ba2"/>
+      <path d="M94 197Q101 191 113 192L374 200Q389 201 391 214L388 241Q387 249 377 250L110 243Q100 242 99 233Z" fill="#dbe5e4"/>
+      <path d="M110 202Q115 199 123 199L238 203Q246 204 246 212L244 229Q243 235 235 234L116 230Q109 230 108 223Z" fill="#34515b"/>
+      <path d="M116 205L236 209L234 226L114 222Z" fill="#98c6cc"/>
+      <path d="M125 214L171 216M181 217L223 218" fill="none" stroke="#eaf7f5" stroke-width="2.5" stroke-linecap="round"/>
+      <circle cx="279" cy="218" r="12" fill="#edf2ef" stroke="#7d969c" stroke-width="2"/><circle cx="318" cy="220" r="9" fill="#edf2ef" stroke="#7d969c" stroke-width="2"/><circle cx="351" cy="221" r="9" fill="#edf2ef" stroke="#7d969c" stroke-width="2"/><circle cx="379" cy="222" r="7" fill="#dfa847"/>
+      <path d="M109 244Q177 249 255 249" fill="none" stroke="#afc3c4" stroke-width="2" stroke-linecap="round"/>
+    </g>
+    <g id="reader_base">
+      <path d="M71 250Q84 266 113 270L431 276Q461 276 485 255L480 280Q476 294 457 299H106Q86 297 79 283Z" fill="#91aab0"/>
+      <path d="M96 269Q263 280 462 276Q452 289 434 291L123 287Q106 286 96 269Z" fill="#eef4f2"/><path d="M114 288H157L153 303H120ZM400 291H441L437 303H405Z" fill="#546f78"/>
+      <path d="M82 257Q246 271 481 259" fill="none" stroke="#6e8991" stroke-width="2.5" stroke-linecap="round"/>
+    </g>
   </g>
   <g id="overlay_root"/>
-  <path id="anchor_label" fill="none" stroke="none" display="none" d="M89 102h342v72H89Z"/>
-  <path id="anchor_error" fill="none" stroke="none" display="none" d="M54 187h452v114H54Z"/>
+  <path id="anchor_label" fill="none" stroke="none" display="none" d="M102 199 L253 202 L251 232 L100 229 Z"/>
+  <path id="anchor_error" fill="none" stroke="none" display="none" d="M72 183 L409 188 L407 260 L70 255 Z"/>
 </svg>

@@ -101,6 +101,23 @@ RECORDED_SUBPART_GRIDS = {
 			"height": 220.0,
 		},
 	},
+	# electrophoresis_tank (asset electrophoresis_tank_lidded.svg,
+	# viewBox 0 0 320 220): the two lid terminal discs are the exact physical
+	# connection targets.  Their geometry belongs to the tank rather than to
+	# standalone cable cards; a protocol can therefore address polarity without
+	# pretending that a lead's identity changes when its plug is seated.
+	"electrophoresis_tank": {
+		"explicit_geometry": {
+			"black_terminal": {"shape": "circle", "cx": 67.0, "cy": 60.0, "r": 13.0},
+			"red_terminal": {"shape": "circle", "cx": 253.0, "cy": 60.0, "r": 13.0},
+		},
+		"view_box": {
+			"min_x": 0.0,
+			"min_y": 0.0,
+			"width": 320.0,
+			"height": 220.0,
+		},
+	},
 	# microtube_rack_8 (asset microtube_rack_8.svg, viewBox 0 0 320 210):
 	# measured circular tube interiors, row-major to match slot_A1..slot_B4.
 	"microtube_rack_8": {

@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # build_github_pages.sh - canonical production build for GitHub Pages.
 #
-# WP-3-10 extension. The build now produces:
+# The canonical Pages build produces:
 #
 #   dist/index.html              -- launcher entry (from src/launcher/index.html)
 #   dist/launcher.js             -- launcher bundle (src/launcher_entry.tsx)
@@ -12,6 +12,8 @@
 #                                   (renamed from the legacy dist/index.html)
 #   dist/scene_viewer.html       -- minimal host: only #scene-root, loads ?scene=<name>
 #                                   (from src/scene_viewer_template.html)
+#   dist/equipment_review.html   -- complete SVG library through the production
+#                                   tiered renderer
 #   dist/<protocol_name>.html    -- one per entry in generated PROTOCOLS_INDEX,
 #                                   templated from src/protocol_host_template.html
 #   dist/.nojekyll               -- GitHub Pages flag
@@ -21,7 +23,8 @@
 #   - Verifies required source files: src/dist_entry.tsx,
 #     src/launcher_entry.tsx, src/protocol_host_entry.tsx,
 #     src/launcher/index.html, src/protocol_host_template.html,
-#     src/scene_viewer_template.html, src/index.html (bench),
+#     src/scene_viewer_template.html, src/equipment_review_template.html,
+#     src/index.html (bench),
 #     src/style.css. Aborts on missing.
 #   - Type-checks via 'tsc --noEmit -p tsconfig.json'.
 #   - Bundles three entry points with esbuild (ESM, es2020, browser,
@@ -74,6 +77,7 @@ REQUIRED_SOURCES=(
 	"src/launcher/index.html"
 	"src/protocol_host_template.html"
 	"src/scene_viewer_template.html"
+	"src/equipment_review_template.html"
 	"src/index.html"
 	"src/style.css"
 	"generated/protocols.ts"
@@ -116,6 +120,9 @@ cp src/scene_viewer_template.html dist/scene_viewer.html
 # 6. Copy stylesheet.
 cp src/style.css dist/style.css
 
+# 6a. Copy the production-renderer equipment review host.
+cp src/equipment_review_template.html dist/equipment_review.html
+
 # 6b. Copy bundled fonts so the @font-face url() in style.css resolves.
 #     style.css references assets/fonts/*.woff2 relative to dist/style.css;
 #     both the PNG render server (tools/scene_to_png.mjs) and GitHub Pages
@@ -154,6 +161,7 @@ test -f dist/scene_viewer.js
 test -f dist/style.css
 test -f dist/bench_basic.html
 test -f dist/scene_viewer.html
+test -f dist/equipment_review.html
 test -f dist/assets/liquid_regions.json
 
 echo "Built dist/ (GitHub Pages-ready)."

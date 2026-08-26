@@ -72,6 +72,17 @@ that metadata verbatim: it applies the frame dimensions and 44-pixel hit-core
 size to the scene hosts so a dense scene can remain usable through the panel's
 normal scrolling behavior.
 
+The protocol shell combines that emitted minimum with one generic label-safe
+16:9 frame floor in CSS; a single derived inline-size axis preserves exact
+16:9 even if a future emitted envelope is height-dominant. It does not modify
+the emitted interaction contract.
+The same panel is the only scrollport for the stage and its scene-observation
+rail. `SceneView` keeps layout-engine labels in the stage, while resolved
+state-text facts are projected by placement, field, and occurrence into the
+shell-owned rail outside the stage, so facts remain visible without covering
+artwork or rings. Browser hosts must provide that rail root; a stateful mount
+without one fails loudly rather than omitting learner-visible facts.
+
 `SceneView` rejects invalid interaction geometry and passes each placement's
 envelope to `SceneItem`. For a clickable top-level placement, the transparent
 envelope owns the delegated whole-object `data-item-id`; the visual root stays
@@ -180,10 +191,10 @@ itself at module load and provides `dispatchInteraction(itemId, ctx)` and
 | Scene                | Adapter file              | Notes                                                                                                                                                                                                                                                                        |
 | -------------------- | ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Bench                | `bench.ts`                | Persistent equipment-bench scene; layout-engine-driven items. Split by responsibility seam: `bench.ts` holds module-load registrations and the `SceneAdapter` shell; `render.ts` owns assembly + event wiring; `dispatch.ts` owns click handling and completionPath routing. |
-| Cell-culture hood    | `cell_culture_hood.ts`    | Split across the adapter file (dispatch + registration) and a sibling render.ts (assembly seam). Dispatch is K2-only: compatibility-token handling folded into completionPath dispatch.                             |
+| Cell-culture hood    | `cell_culture_hood.ts`    | Split across the adapter file (dispatch + registration) and a sibling render.ts (assembly seam). Dispatch is K2-only: compatibility-token handling folded into completionPath dispatch.                                                                                      |
 | Incubator            | `incubator.ts`            | Modal overlay scene for incubation timing.                                                                                                                                                                                                                                   |
 | Microscope           | `microscope.ts`           | Modal overlay scene; mounts to the shared `instrument-overlay` element. Manual hemocytometer flow extracted into sibling `manual_hemocytometer.ts` so the automated cell-counter and manual grid-counting paths no longer share a single dispatcher.                         |
-| Well-plate workspace | `well_plate_workspace.ts` | First-class workspace scene for plate-transfer and tube-prep mini-protocols. Render assembly and dispatch live in sibling render.ts and `dispatch.ts`.                                                              |
+| Well-plate workspace | `well_plate_workspace.ts` | First-class workspace scene for plate-transfer and tube-prep mini-protocols. Render assembly and dispatch live in sibling render.ts and `dispatch.ts`.                                                                                                                       |
 | Plate reader         | `plate_reader.ts`         | Render-only modal scene; click handlers are wired directly inside the renderer rather than dispatched through `data-item-id`. Mounts to the shared `instrument-overlay` element.                                                                                             |
 
 The microscope and plate_reader adapters share a single DOM modal slot, the

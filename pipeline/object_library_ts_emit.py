@@ -123,6 +123,8 @@ def emit_visual_states_ts(visual_states: dict, indent: str) -> list:
 				lines.append(f"{indent}\t\tcapacity_ul: {vs_def['capacity_ul']},")
 			if "capacity_ml" in vs_def:
 				lines.append(f"{indent}\t\tcapacity_ml: {vs_def['capacity_ml']},")
+			if "capacity_mg" in vs_def:
+				lines.append(f"{indent}\t\tcapacity_mg: {vs_def['capacity_mg']},")
 		lines.append(f"{indent}\t" + "},")
 	lines.append(f"{indent}" + "},")
 	return lines

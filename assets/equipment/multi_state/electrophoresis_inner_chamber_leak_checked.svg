@@ -1,10 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220">
-  <path d="M48 20h104v170H48z" fill="#d8eef4" stroke="#334155" stroke-width="6" stroke-linejoin="round"/>
-  <path d="M67 42h66v126H67z" fill="#71bad9" stroke="#708895" stroke-width="4" stroke-linejoin="round"/>
-  <path d="M72 50h56" fill="none" stroke="#e8f8fc" stroke-width="4" stroke-linecap="round"/>
-  <path d="M75 55v102" fill="none" stroke="#b9e1ed" stroke-width="4" stroke-linecap="round" opacity=".8"/>
-  <circle cx="117" cy="151" r="10" fill="#e7f6ed" stroke="#287a58" stroke-width="3"/>
-  <path d="m112 151 4 4 7-8" fill="none" stroke="#287a58" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
-  <path d="M60 194h80" fill="none" stroke="#334155" stroke-width="8" stroke-linecap="round"/>
-  <path d="M65 184h70" fill="none" stroke="#9fc4d2" stroke-width="4" stroke-linecap="round"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 220"><defs><linearGradient id="wall" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fbfeff" stop-opacity=".88"/><stop offset="1" stop-color="#91bec9" stop-opacity=".58"/></linearGradient><linearGradient id="rim" x1="0" x2="1"><stop stop-color="#eefbfc"/><stop offset="1" stop-color="#81b1be"/></linearGradient><linearGradient id="buffer" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c8f1f4" stop-opacity=".78"/><stop offset="1" stop-color="#5aa8b9" stop-opacity=".82"/></linearGradient></defs><path d="M41 39Q41 30 50 30h109q9 0 9 9v139q0 11-11 11H52q-11 0-11-11z" fill="url(#wall)" stroke="#3c7180" stroke-width="3"/><path d="M53 72q0-5 5-5h92q5 0 5 5v100q0 5-5 5H58q-5 0-5-5z" fill="url(#buffer)"/><path d="M54 72q0-5 5-5h90q5 0 5 5" fill="none" stroke="#438696" stroke-width="2"/><path d="M41 39Q41 30 50 30h109q9 0 9 9v16H41z" fill="url(#rim)" stroke="#3c7180" stroke-width="3"/><path d="M53 53h102v119q0 5-5 5H58q-5 0-5-5z" fill="none" stroke="#6396a3" stroke-width="2"/><circle cx="151" cy="54" r="15" fill="#ecf8f2" stroke="#4b9278" stroke-width="2.5"/><path d="m143 54 5 5 10-12" fill="none" stroke="#34765f" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>

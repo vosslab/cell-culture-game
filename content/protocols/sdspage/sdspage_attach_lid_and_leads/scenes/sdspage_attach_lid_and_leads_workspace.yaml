@@ -19,9 +19,10 @@ remove_placements:
   - front_right_gel_comb
 
 scene_notes: |
-  Focused electrical-assembly view. The lidded tank and mounted module stay central;
-  the power supply sits nearby as the next target, while the cassette and buffer dam
-  remain visible as the sealed upper-chamber pair.
+  Focused electrical-assembly view. The tank owns its black and red terminal
+  targets and connected-lead overlays; no standalone cable card duplicates that
+  connection relationship. The power supply, mounted module, cassette, and buffer
+  dam remain visible as apparatus context.
 
 add_placements:
   - placement_name: front_center_electrophoresis_buffer_dam
@@ -29,11 +30,3 @@ add_placements:
     zone: front_center
     depth_tier: 2
     align_stop: right
-  - placement_name: right_tool_area_electrophoresis_black_lead
-    object_name: electrophoresis_black_lead
-    zone: right_tool_area
-    depth_tier: 1
-  - placement_name: right_tool_area_electrophoresis_red_lead
-    object_name: electrophoresis_red_lead
-    zone: right_tool_area
-    depth_tier: 1

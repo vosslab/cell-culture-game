@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Generic filled T75 tissue-culture flask candidate, mass-first construction" data-fixture-state="fixed-filled-review-proxy" data-production-empty-state="same geometry without contained liquid" data-runtime-material-contract="not-applicable">
+  <defs>
+    <clipPath id="liquid-clip"><path d="M 57.4067 142.492 L 112.964 110.13 L 241.509 122.405 L 279.636 146.956 L 217.543 178.202 L 94.4449 191.594 Z"/></clipPath>
+  </defs>
+  <g id="candidate-root">
+    <g id="back-masses">
+      <path d="M 57.4067 142.492 L 112.964 110.13 L 241.509 122.405 L 279.636 146.956 L 217.543 178.202 L 94.4449 191.594 Z" fill="#E8F0F4" stroke="#294657" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M 57.4067 142.492 L 94.4449 191.594 L 94.4449 222.84 L 54.1386 171.507 Z" fill="#7895A5"/>
+      <path d="M 217.543 178.202 L 279.636 146.956 L 279.636 178.202 L 217.543 210.565 Z" fill="#7895A5"/>
+      <path d="M 94.4449 191.594 L 217.543 178.202 L 217.543 210.565 L 94.4449 231.767 Z" fill="#B9CCD7"/>
+      <path d="M 73.7471 142.492 L 47.6024 121.289 L 71.5684 96.7387 L 112.964 110.13 L 94.4449 134.681 Z" fill="#B9CCD7" stroke="#294657" stroke-width="4" stroke-linejoin="round"/>
+      <path fill="#7895A5" stroke="#294657" stroke-width="4" d="M 30.9205 117.503 A 19.6964 11.1096 -26.027 1 0 66.4631 100.525 A 19.6964 11.1096 -26.027 1 0 30.9205 117.503 Z"/>
+    </g>
+    <g id="material-band">
+      <path d="M 47.6024 156.999 L 293.798 134.681 L 293.798 194.941 L 77.0152 230.651 Z" fill="#1E40AF" fill-opacity=".74" clip-path="url(#liquid-clip)"/>
+    </g>
+    <g id="front-masses">
+      <path d="M 57.4067 142.492 L 112.964 110.13 L 241.509 122.405 L 279.636 146.956 L 217.543 178.202 L 94.4449 191.594 Z" fill="none" stroke="#E8F0F4" stroke-width="7" stroke-linejoin="round"/>
+      <path d="M 73.7471 142.492 L 47.6024 121.289 L 71.5684 96.7387 L 112.964 110.13 L 94.4449 134.681 Z" fill="#B9CCD7" stroke="#294657" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M 31.262 102.318 L 55.228 90.0431 L 70.479 97.8546 L 70.479 116.826 L 46.5131 129.101 L 31.262 121.289 Z" fill="#B9CCD7" stroke="#294657" stroke-width="4" stroke-linejoin="round"/>
+      <path fill="#E8F0F4" stroke="#294657" stroke-width="4" d="M 34.1886 102.996 A 19.6956 8.88801 -25.8037 1 0 69.7312 86.0177 A 19.6956 8.88801 -25.8037 1 0 34.1886 102.996 Z"/>
+    </g>
+    <g id="contours" fill="none" stroke="#294657" stroke-linejoin="round">
+      <path d="M 57.4067 142.492 L 112.964 110.13 L 241.509 122.405 L 279.636 146.956 L 217.543 178.202 L 94.4449 191.594 Z" stroke-width="4"/>
+      <path d="M 94.4449 191.594 L 94.4449 231.767 L 217.543 210.565 L 279.636 178.202" stroke-width="4"/>
+      <path d="M 73.7471 142.492 L 47.6024 121.289 L 71.5684 96.7387" stroke-width="4"/>
+    </g>
+    <g id="anchors" fill="none" stroke="none">
+      <circle id="anchor-center" cx="160" cy="165" r="0"/><circle id="anchor-baseline" cx="160" cy="221" r="0"/><circle id="anchor-left" cx="33" cy="165" r="0"/><circle id="anchor-right" cx="287" cy="165" r="0"/>
+    </g>
+  </g>
+</svg>

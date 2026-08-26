@@ -69,6 +69,68 @@ function surface_scale_for_fill_percent(
   return Math.max(0, fill_percent / body_start_fill_percent);
 }
 
+// The surface calculation combines authored decimal geometry with a fill
+// fraction.  A mathematically exact endpoint can therefore land a few ULPs
+// beyond the reveal rectangle.  Snap only that representational roundoff;
+// a materially out-of-range request remains an error rather than being hidden.
+const FLOAT64_SIGN_BIT = 0x8000_0000_0000_0000n;
+const FLOAT64_MAGNITUDE_MASK = 0x7fff_ffff_ffff_ffffn;
+const float64_bits_buffer = new ArrayBuffer(Float64Array.BYTES_PER_ELEMENT);
+const float64_bits_view = new DataView(float64_bits_buffer);
+
+// Map finite IEEE-754 values to monotonically increasing integer positions.
+// Both signed zeroes deliberately share one position, while subnormal steps
+// and each step away from either endpoint remain individually countable.
+function ordered_float64_position(value: number): bigint {
+  float64_bits_view.setFloat64(0, value, false);
+  const bits = float64_bits_view.getBigUint64(0, false);
+  const magnitude = bits & FLOAT64_MAGNITUDE_MASK;
+  return (bits & FLOAT64_SIGN_BIT) === 0n
+    ? FLOAT64_SIGN_BIT + magnitude
+    : FLOAT64_SIGN_BIT - magnitude;
+}
+
+function ulp_distance(first: number, second: number): bigint {
+  const first_position = ordered_float64_position(first);
+  const second_position = ordered_float64_position(second);
+  return first_position >= second_position
+    ? first_position - second_position
+    : second_position - first_position;
+}
+
+const ENDPOINT_ROUNDOFF_ULPS = 32n;
+
+export function stabilize_liquid_reveal_top(
+  bounds_y: number,
+  bounds_height: number,
+  requested_y: number,
+): number {
+  if (
+    !Number.isFinite(bounds_y) ||
+    !Number.isFinite(bounds_height) ||
+    !Number.isFinite(requested_y)
+  ) {
+    throw new Error("liquid paint: reveal geometry must be finite with non-negative height");
+  }
+  const bounds_bottom = bounds_y + bounds_height;
+  if (!Number.isFinite(bounds_bottom) || bounds_height < 0) {
+    throw new Error("liquid paint: reveal geometry must be finite with non-negative height");
+  }
+  if (requested_y < bounds_y) {
+    if (ulp_distance(bounds_y, requested_y) <= ENDPOINT_ROUNDOFF_ULPS) {
+      return bounds_y;
+    }
+    throw new Error("liquid paint: reveal top must remain inside bounds");
+  }
+  if (requested_y > bounds_bottom) {
+    if (ulp_distance(bounds_bottom, requested_y) <= ENDPOINT_ROUNDOFF_ULPS) {
+      return bounds_bottom;
+    }
+    throw new Error("liquid paint: reveal top must remain inside bounds");
+  }
+  return requested_y;
+}
+
 // Returns false only for an ordinary SVG. Callers may accept that result when
 // no material effect is authored; an effect on an ordinary SVG is invalid.
 // A compiled SVG is fully owned here even when its effect list is empty.
@@ -106,8 +168,9 @@ export function render_liquid_material_effects(
   host.dataset.liquidFillPercent = String(fillPercent);
   host.dataset.liquidColor = effect.color ?? "transparent";
   const surfaceY = surface_y_for_fill_percent(region, fillPercent);
+  const revealTop = stabilize_liquid_reveal_top(region.bounds.y, region.bounds.height, surfaceY);
   const surfaceScale = surface_scale_for_fill_percent(region, fillPercent);
-  region.setRevealTop(surfaceY);
+  region.setRevealTop(revealTop);
   if (
     region.bodyAnchorY === null ||
     region.bodyJoinY === null ||

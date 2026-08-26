@@ -15,15 +15,6 @@ state_fields:
     type: bool
     default: false
     description: Whether the power supply is currently running.
-  - field_name: cathode_lead_attached
-    type: bool
-    default: false
-    description: Whether the black (negative) lead is attached to the cathode.
-  - field_name: anode_lead_attached
-    type: bool
-    default: false
-    description: Whether the red (positive) lead is attached to the anode.
-
 visual_states:
   set_voltage:
     kind: overlay
@@ -35,13 +26,6 @@ visual_states:
         output: { asset_name: power_supply_off }
       - when: true
         output: { asset_name: power_supply_on }
-  cathode_lead_attached:
-    kind: composite
-    composite: []
-  anode_lead_attached:
-    kind: composite
-    composite: []
-
 capabilities: [clickable, instrument_with_setpoint]
 
 layout:

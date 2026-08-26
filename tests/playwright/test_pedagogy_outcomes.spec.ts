@@ -78,7 +78,8 @@ async function walkToStep(page: Page, protocol: string, destinationStep: string)
     })
     .catch(() => {
       throw new Error(
-        `${protocol} did not mount its learner runtime: ${pageErrors.join(" | ") || "no page error captured"}`,
+        `${protocol} did not mount its learner runtime: ` +
+          (pageErrors.join(" | ") || "no page error captured"),
       );
     });
 
@@ -194,10 +195,12 @@ test("incorrect Trypan Blue viability choice gives specific visible recovery fee
     }
   }
   await expect(page.locator("[data-current-action-instruction]")).toContainText(
-    "Compare the displayed viability percentage with the stated downstream gate and choose the matching decision.",
+    "Compare the displayed viability percentage with the stated downstream " +
+      "gate and choose the matching decision.",
   );
   await expect(hintText).toHaveText(
-    "Use the counter's visible percentage and the threshold shown in the review screen as your evidence.",
+    "Use the counter's visible percentage and the threshold shown in the " +
+      "review screen as your evidence.",
   );
   await expect(page.locator("[data-current-action-instruction]")).not.toContainText(
     "Choose one blue outlined lab item.",
@@ -212,7 +215,8 @@ test("incorrect Trypan Blue viability choice gives specific visible recovery fee
   await expect(viabilityRecovery).toContainText("You chose: Stop and recount");
   await expect(viabilityRecovery).toContainText("Correct: Proceed: viability above 90%");
   await expect(viabilityRecovery).toContainText(
-    "Compare the displayed viability percentage with the stated threshold before deciding whether to proceed or recount.",
+    "Compare the displayed viability percentage with the stated threshold " +
+      "before deciding whether to proceed or recount.",
   );
   await expect(page.locator("[data-protocol-complete]")).toHaveCount(0);
 
@@ -242,7 +246,8 @@ test("cell-seeding select guidance is authored and advances after the real card 
   await actionHint.locator("summary").click();
   await expect(actionHint).toHaveAttribute("open", "");
   await expect(hintText).toHaveText(
-    "Use the visible stock concentration, target concentration, and 12 mL final volume to identify the card whose V1 is in milliliters.",
+    "Use the visible stock concentration, target concentration, and 12 mL " +
+      "final volume to identify the card whose V1 is in milliliters.",
   );
   await expect(actionMessage).not.toContainText("calculation_2_8_ml");
   await expect(hintText).not.toContainText("2.8 mL");
@@ -345,7 +350,9 @@ test("SDS-PAGE endpoint requires a stop decision before switching the supply off
   await walkToStep(page, "sdspage_run_electrophoresis", "stop_at_tracking_dye_endpoint");
 
   await expect(
-    page.locator("#scene-root [data-placement-name='center_electrophoresis_endpoint_display'] img"),
+    page.locator(
+      "#scene-root " + "[data-placement-name='center_electrophoresis_endpoint_display'] img",
+    ),
   ).toBeVisible();
   await expect(
     page.locator("#scene-root [data-placement-name='front_left_endpoint_stop_now']"),
@@ -365,7 +372,8 @@ test("SDS-PAGE endpoint requires a stop decision before switching the supply off
     "Correct: Stop now: dye front is at the safe endpoint",
   );
   await expect(endpointRecovery).toContainText(
-    "Do not continue this run: the visible dye front is already near the bottom of the gel. Select Stop now, then switch the supply off.",
+    "Do not continue this run: the visible dye front is already near the " +
+      "bottom of the gel. Select Stop now, then switch the supply off.",
   );
   await expect(page.locator("[data-protocol-complete]")).toHaveCount(0);
 
@@ -405,12 +413,14 @@ test("MTT reader shows a blank-corrected result before the dose-response conclus
   await expect(reader).toBeVisible();
   await expect(resultsDisplay).toBeVisible();
   await expect(resultsDisplay.locator("img")).toBeVisible();
-  await expect(reader.locator("[data-overlay-field='mean_absorbance']")).toHaveText(
-    "Selected blank-corrected A: 0.2",
-  );
-  await expect(reader.locator("[data-overlay-field='normalized_viability_percent']")).toHaveText(
-    "Selected viability: 22% of control",
-  );
+  const readerAnnotations =
+    "[data-scene-annotations] " + "[data-annotation-for='rear_center_plate_reader']";
+  await expect(
+    page.locator(readerAnnotations + "[data-annotation-field='mean_absorbance']"),
+  ).toContainText("Selected blank-corrected A: 0.2");
+  await expect(
+    page.locator(readerAnnotations + "[data-annotation-field='normalized_viability_percent']"),
+  ).toContainText("Selected viability: 22% of control");
   await expect(page.locator("[data-current-action]")).toContainText(
     "blank-corrected dose-response display",
   );
@@ -425,9 +435,7 @@ test("MTT reader shows a blank-corrected result before the dose-response conclus
   await expect(page.locator("[data-protocol-complete]")).toHaveCount(0);
 });
 
-test("SDS image exposes lane identity, capture metadata, and quality before interpretation", async ({
-  page,
-}) => {
+test("SDS image exposes lane identity and capture evidence", async ({ page }) => {
   await walkToStep(page, "sdspage_image_gel", "interpret_ladder_and_sample_lanes");
 
   const lightbox = page.locator("#scene-root [data-object-name='lightbox']");
@@ -436,15 +444,17 @@ test("SDS image exposes lane identity, capture metadata, and quality before inte
     page.locator("#scene-root [data-placement-name='center_gel_image_results_display'] img"),
   ).toBeVisible();
   await expect(lightbox.locator("[data-asset-layer='lightbox_image_bands_visible']")).toBeVisible();
-  await expect(lightbox.locator("[data-overlay-field='lane_pattern']")).toHaveText(
-    "Lanes: samples_1_to_3_ladder_5",
-  );
-  await expect(lightbox.locator("[data-overlay-field='archive_metadata_status']")).toHaveText(
-    "Archive record: group_a_lane_map_recorded",
-  );
-  await expect(lightbox.locator("[data-overlay-field='image_quality_status']")).toHaveText(
-    "Image quality: lanes_sharp_evenly_lit",
-  );
+  const imageAnnotations =
+    "[data-scene-annotations] " + "[data-annotation-for='rear_center_captured_lightbox']";
+  await expect(
+    page.locator(imageAnnotations + "[data-annotation-field='lane_pattern']"),
+  ).toContainText("Lanes: samples_1_to_3_ladder_5");
+  await expect(
+    page.locator(imageAnnotations + "[data-annotation-field='archive_metadata_status']"),
+  ).toContainText("Archive record: group_a_lane_map_recorded");
+  await expect(
+    page.locator(imageAnnotations + "[data-annotation-field='image_quality_status']"),
+  ).toContainText("Image quality: lanes_sharp_evenly_lit");
   await expect(page.locator("[data-current-step-goal]")).toContainText(
     "Review the visible captured image with the ladder",
   );

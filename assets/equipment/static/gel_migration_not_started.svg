@@ -1,10 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 214 308" preserveAspectRatio="xMidYMid meet">
-  <!-- Language-neutral gel evidence: a loaded gel before the tracking dye leaves the wells. -->
-  <rect x="30" y="28" width="154" height="252" rx="8" fill="#eaf7f8" stroke="#35454b" stroke-width="4"/>
-  <rect x="42" y="48" width="130" height="212" rx="3" fill="#cbe9ed" stroke="#7eaab4" stroke-width="2"/>
-  <path d="M43 91H171" fill="none" stroke="#35454b" stroke-width="5" stroke-linecap="round"/>
-  <g fill="#35454b"><rect x="52" y="69" width="14" height="15" rx="3"/><rect x="76" y="69" width="14" height="15" rx="3"/><rect x="100" y="69" width="14" height="15" rx="3"/><rect x="124" y="69" width="14" height="15" rx="3"/><rect x="148" y="69" width="14" height="15" rx="3"/></g>
-  <g fill="#5a7f8a" opacity=".45"><rect x="55" y="103" width="8" height="112" rx="4"/><rect x="79" y="103" width="8" height="112" rx="4"/><rect x="103" y="103" width="8" height="112" rx="4"/><rect x="127" y="103" width="8" height="112" rx="4"/><rect x="151" y="103" width="8" height="112" rx="4"/></g>
-  <path d="M48 98H166" fill="none" stroke="#2c9abb" stroke-width="5" stroke-linecap="round"/>
-  <path d="M107 247V266M100 260l7 8 7-8" fill="none" stroke="#35454b" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+  <g id="migration_not_started" fill="none" stroke-linecap="round">
+    <path d="M49 65h104" stroke="#f7fbfc" stroke-width="3" opacity=".82"/>
+    <path d="M48 62h110" stroke="#173b49" stroke-width="4"/>
+    <g fill="#356f9e" stroke="none"><rect x="48" y="62" width="8" height="4" rx="2"/><rect x="61" y="62" width="8" height="4" rx="2"/><rect x="74" y="62" width="8" height="4" rx="2"/><rect x="87" y="62" width="8" height="4" rx="2"/><rect x="100" y="62" width="8" height="4" rx="2"/><rect x="113" y="62" width="8" height="4" rx="2"/><rect x="126" y="62" width="8" height="4" rx="2"/><rect x="139" y="62" width="8" height="4" rx="2"/></g>
+  </g>
 </svg>

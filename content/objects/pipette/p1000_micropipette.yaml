@@ -40,30 +40,33 @@ visual_states:
     kind: svg
     cases:
       - when: empty
-        output: { asset_name: p1000_micropipette_empty }
+        output: { asset_name: p1000_micropipette }
       - when: carboplatin
-        output: { asset_name: p1000_micropipette_filled }
+        output: { asset_name: p1000_micropipette }
       - when: carboplatin_400umol
-        output: { asset_name: p1000_micropipette_filled }
+        output: { asset_name: p1000_micropipette }
       - when: metformin
-        output: { asset_name: p1000_micropipette_filled }
+        output: { asset_name: p1000_micropipette }
       - when: media
-        output: { asset_name: p1000_micropipette_filled }
+        output: { asset_name: p1000_micropipette }
       - when: cell_suspension
-        output: { asset_name: p1000_micropipette_filled }
+        output: { asset_name: p1000_micropipette }
       - when: pbs
-        output: { asset_name: p1000_micropipette_filled }
+        output: { asset_name: p1000_micropipette }
       - when: dmso
-        output: { asset_name: p1000_micropipette_filled }
+        output: { asset_name: p1000_micropipette }
       - when: mtt_solution_12mm
-        output: { asset_name: p1000_micropipette_filled }
+        output: { asset_name: p1000_micropipette }
       - when: running_buffer_1x
-        output: { asset_name: p1000_micropipette_filled }
+        output: { asset_name: p1000_micropipette }
       - when: ddh2o
-        output: { asset_name: p1000_micropipette_filled }
+        output: { asset_name: p1000_micropipette }
   held_material_volume:
-    kind: composite
-    composite: []
+    applies_to: object
+    render_effect: fill_height
+    target: anchor_liquid_bounds
+    clip: anchor_liquid_clip
+    capacity_ul: 1000
 
 capabilities: [clickable, material_container, instrument_with_setpoint, cursor_attachable]
 

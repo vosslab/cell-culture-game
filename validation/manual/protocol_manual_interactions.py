@@ -630,10 +630,6 @@ def _field_to_human_phrase(field_name: object, new_value: object, catalog: objec
 		return "is now powered on" if new_value is True else "is now powered off"
 	if field_name == "image_captured":
 		return "has captured an image" if new_value is True else "has not captured an image"
-	if field_name == "cathode_lead_attached":
-		return "cathode lead attached" if new_value is True else "cathode lead detached"
-	if field_name == "anode_lead_attached":
-		return "anode lead attached" if new_value is True else "anode lead detached"
 	if field_name == "side_clamps_locked":
 		return "side clamps locked" if new_value is True else "side clamps unlocked"
 	if field_name == "wing_clamps_locked":

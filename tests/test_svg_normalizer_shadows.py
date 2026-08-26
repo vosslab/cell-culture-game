@@ -30,10 +30,11 @@ def _write_raw_svg(path: pathlib.Path, raw: str) -> None:
 
 
 
-# Floor-shadow removal (D1)
+# Floor-shadow removal
 #
 # Test fixtures use a synthetic asset pattern: a tall object path (the "real"
-# object) plus a wide-flat low-opacity grey ellipse in the bottom band.
+# object) plus a wide-flat ellipse in the bottom band explicitly marked as an
+# editorial floor shadow.
 # The real object occupies the upper region; the shadow sits in the lowest ~20%
 # and is visually much wider than it is tall.
 #
@@ -74,29 +75,22 @@ _REAL_OBJECT_PATH = (
 
 # A wide-flat low-opacity grey ellipse in the bottom band (y=160..175, w=160, h=15).
 # width/height = 160/15 ~ 10.7 >> 3.0, center_y=167.5 > 200*0.8=160 -> bottom band.
-# fill-opacity=0.3 < 0.5 -> shadow signal.
+# The explicit semantic marker, not its opacity or colour, authorizes removal.
 _SHADOW_PATH_OPACITY = (
 	'<path d="M 20 160 A 80 7.5 0 1 0 180 160 A 80 7.5 0 1 0 20 160 Z"'
-	' fill="#888" fill-opacity="0.3"/>'
+	' fill="#888" fill-opacity="0.3" data-editorial-floor-shadow="true"/>'
 )
 
-# A wide-flat grey fill path (no explicit fill-opacity, uses grey colour signal).
-# fill=#808080 -> R=128,G=128,B=128: max=128 <= 180, max-min=0 <= 30 -> grey.
-_SHADOW_PATH_GREY = (
+# A wide-flat shadow may use any visual treatment once it has the exact marker.
+_SHADOW_PATH_MARKED = (
 	'<path d="M 20 160 A 80 7.5 0 1 0 180 160 A 80 7.5 0 1 0 20 160 Z"'
-	' fill="#808080"/>'
+	' id="floor-shadow-ellipse" fill="#4c97b1" data-editorial-floor-shadow="true"/>'
 )
 
-# A wide-flat path with id containing "shadow".
-_SHADOW_PATH_ID = (
+# A visually shadow-like bottom path that is not semantically a shadow.
+_UNMARKED_BASE_PATH = (
 	'<path d="M 20 160 A 80 7.5 0 1 0 180 160 A 80 7.5 0 1 0 20 160 Z"'
-	' id="floor_shadow_ellipse" fill="#ccc"/>'
-)
-
-# A wide-flat bottom path that is NOT a shadow: full-opacity saturated red.
-_NOT_SHADOW_PATH = (
-	'<path d="M 20 160 A 80 7.5 0 1 0 180 160 A 80 7.5 0 1 0 20 160 Z"'
-	' fill="#ff0000"/>'
+	' id="floor_shadow_ellipse" fill="#808080" fill-opacity="0.3"/>'
 )
 
 
@@ -109,49 +103,45 @@ def _parse_svg_root(svg_text: str) -> "lxml.etree._Element":
 # Detection-function unit tests (pure, no file I/O)
 #============================================
 
-@pytest.mark.parametrize("shadow_path,expected_signal", [
-	(_SHADOW_PATH_OPACITY, "fill_opacity"),
-	(_SHADOW_PATH_GREY, "grey_fill"),
-	(_SHADOW_PATH_ID, "id_class"),
-])
-def test_d1_detect_shadow_candidate_found(shadow_path: str, expected_signal: str) -> None:
+@pytest.mark.parametrize("shadow_path", [_SHADOW_PATH_OPACITY, _SHADOW_PATH_MARKED])
+def test_detect_explicitly_marked_shadow_candidate_found(shadow_path: str) -> None:
 	"""detect_floor_shadow_candidates finds the wide-flat bottom shadow element.
 
-	Three synthetic shadow signals are tested: fill-opacity, grey fill, id_class.
-	Each must produce exactly one candidate with the expected signal name.
+	The exact data attribute, not incidental presentation values, is the sole
+	removal signal.
 	"""
 	svg_text = _make_shadow_svg(_REAL_OBJECT_PATH, shadow_path)
 	root = _parse_svg_root(svg_text)
 	# Compute overall bbox from the two paths.
 	overall_bbox = tools.svg_normalizer.geometry.compute_bbox(root)
 	candidates = tools.svg_normalizer.shadows.detect_floor_shadow_candidates(root, overall_bbox)
-	assert len(candidates) == 1, f"expected 1 candidate for signal={expected_signal}, got {len(candidates)}"
-	assert candidates[0].signal == expected_signal
+	assert len(candidates) == 1
+	assert candidates[0].signal == "explicit_marker"
 
 
-def test_d1_detect_no_false_positive_saturated_color() -> None:
-	"""detect_floor_shadow_candidates must NOT flag a saturated-color bottom path.
+def test_detect_no_false_positive_for_unmarked_base_geometry() -> None:
+	"""A low-opacity grey bottom plinth is retained without the exact marker.
 
-	A wide-flat bottom element with full-opacity saturated red fill and no
-	shadow id/class is not a shadow -- no false positive.
+	This reproduces the pre-repair audit failure: grey, low, wide base geometry
+	must never be deleted based on visual resemblance to a floor shadow.
 	"""
-	svg_text = _make_shadow_svg(_REAL_OBJECT_PATH, _NOT_SHADOW_PATH)
+	svg_text = _make_shadow_svg(_REAL_OBJECT_PATH, _UNMARKED_BASE_PATH)
 	root = _parse_svg_root(svg_text)
 	overall_bbox = tools.svg_normalizer.geometry.compute_bbox(root)
 	candidates = tools.svg_normalizer.shadows.detect_floor_shadow_candidates(root, overall_bbox)
-	assert len(candidates) == 0, f"false positive: got {len(candidates)} candidate(s)"
+	assert candidates == []
 
 
-def test_d1_detect_no_candidate_when_not_bottom_band() -> None:
+def test_detect_no_candidate_when_not_bottom_band() -> None:
 	"""An element in the top half is not a floor-shadow candidate even if wide-flat.
 
 	The shadow shape is moved to y=10..25 (top region): its center_y is well
 	above the bottom-band threshold.
 	"""
-	# Wide-flat low-opacity path at the TOP (y=10..25, center_y=17.5).
+	# Wide-flat marked path at the TOP (y=10..25, center_y=17.5).
 	top_shadow = (
 		'<path d="M 20 10 A 80 7.5 0 1 0 180 10 A 80 7.5 0 1 0 20 10 Z"'
-		' fill="#888" fill-opacity="0.3"/>'
+		' fill="#888" data-editorial-floor-shadow="true"/>'
 	)
 	svg_text = _make_shadow_svg(_REAL_OBJECT_PATH, top_shadow)
 	root = _parse_svg_root(svg_text)
@@ -160,16 +150,16 @@ def test_d1_detect_no_candidate_when_not_bottom_band() -> None:
 	assert len(candidates) == 0, "wide-flat top element should not be a shadow candidate"
 
 
-def test_d1_detect_no_candidate_when_not_wide_flat() -> None:
-	"""A squarish bottom element is not a floor-shadow candidate even with low opacity.
+def test_detect_no_candidate_when_not_wide_flat() -> None:
+	"""A squarish marked bottom element is not a floor-shadow candidate.
 
-	A square-ish path (aspect ~1.0) in the bottom band with fill-opacity=0.2
-	should not be detected (fails the wide-flat criterion).
+	A square-ish path (aspect ~1.0) in the bottom band with the exact marker
+	still fails the wide-flat criterion.
 	"""
-	# A square-ish low-opacity path at the bottom (w=20, h=15, aspect=1.3 < 3).
+	# A square-ish marked path at the bottom (w=20, h=15, aspect=1.3 < 3).
 	squarish_bottom = (
 		'<path d="M 85 160 L 105 160 L 105 175 L 85 175 Z"'
-		' fill="#888" fill-opacity="0.2"/>'
+		' fill="#888" data-editorial-floor-shadow="true"/>'
 	)
 	svg_text = _make_shadow_svg(_REAL_OBJECT_PATH, squarish_bottom)
 	root = _parse_svg_root(svg_text)
@@ -179,73 +169,32 @@ def test_d1_detect_no_candidate_when_not_wide_flat() -> None:
 
 
 #============================================
-# Style-class no-guess test: shadow signal via <style> class only -> no candidate
+# Explicit-marker boundary tests
 #============================================
 
-def test_d1_no_guess_on_style_class_only_signal() -> None:
-	"""A shadow signal living ONLY in a <style> class rule is not used (no guessing).
-
-	A wide-flat bottom path whose fill-opacity:0.2 is set only by a <style> class
-	rule (no inline style, no presentation attribute) and whose id/class do NOT
-	contain "shadow" and whose fill is saturated (not grey) must produce NO
-	candidate: v3 reads only the inline cascade and never resolves a class rule.
-
-	The file would be rejected by _detect_style_geometry (fill-opacity in
-	<style>), so the detection function is exercised directly on a prepared root.
-	"""
+@pytest.mark.parametrize("marker_value", ["True", "1", "yes", " false ", ""], ids=[
+	"case_variant", "numeric", "word", "whitespace", "empty",
+])
+def test_requires_exact_explicit_marker_value(marker_value: str) -> None:
+	"""Only the exact allowlisted marker value may authorize removal."""
 	svg_text = (
 		f'<svg xmlns="{SVG_NS}" viewBox="0 0 200 200">'
-		'<style>.band { fill-opacity: 0.2; }</style>'
 		+ _REAL_OBJECT_PATH
 		+ '<path d="M 20 160 A 80 7.5 0 1 0 180 160 A 80 7.5 0 1 0 20 160 Z"'
-		' class="band" id="floorband" fill="#0044ff"/>'
+		f' fill="#808080" fill-opacity="0.2" data-editorial-floor-shadow="{marker_value}"/>'
 		'</svg>'
 	)
 	root = _parse_svg_root(svg_text)
 	overall_bbox = tools.svg_normalizer.geometry.compute_bbox(root)
 	candidates = tools.svg_normalizer.shadows.detect_floor_shadow_candidates(root, overall_bbox)
-	# fill-opacity is only in <style> (ignored); fill #0044ff is not grey; neither
-	# id nor class contains "shadow" -> the no-guess rule yields zero candidates.
-	assert len(candidates) == 0
-
-
-def test_d1_no_fill_opacity_signal_from_style_class() -> None:
-	"""fill-opacity from a <style> class rule is NOT used as a shadow signal.
-
-	A wide-flat bottom path with its fill-opacity set only via a <style> block
-	(the element itself has no inline fill-opacity and no presentation attribute)
-	must NOT trigger the fill_opacity sub-criterion.  The id and class are neutral
-	(no 'shadow' substring).  The fill colour is saturated blue (#0000ff) so
-	grey_fill is also absent.  Result: no candidate.
-	"""
-	# This SVG would normally be REJECTED by _detect_style_geometry (fill-opacity
-	# in a <style> block is in _STYLE_GEOMETRY_PROPS).  We test the detection
-	# function directly with a pre-prepared root (bypassing the classifier).
-	svg_text = (
-		f'<svg xmlns="{SVG_NS}" viewBox="0 0 200 200">'
-		'<style>.accent { fill-opacity: 0.1; }</style>'
-		+ _REAL_OBJECT_PATH
-		+ '<path d="M 20 160 A 80 7.5 0 1 0 180 160 A 80 7.5 0 1 0 20 160 Z"'
-		' class="accent" id="bottomband" fill="#0000ff"/>'
-		'</svg>'
-	)
-	root = _parse_svg_root(svg_text)
-	overall_bbox = tools.svg_normalizer.geometry.compute_bbox(root)
-	candidates = tools.svg_normalizer.shadows.detect_floor_shadow_candidates(root, overall_bbox)
-	# fill="#0000ff": max channel 255 > _SHADOW_GREY_MAX_VALUE -> not grey.
-	# fill-opacity is only in <style> -> no fill_opacity signal.
-	# id="bottomband", class="accent": neither contains "shadow" -> no id_class.
-	assert len(candidates) == 0, (
-		f"no shadow signal should fire on a saturated fill with "
-		f"fill-opacity only in <style>; got {len(candidates)} candidate(s)"
-	)
+	assert candidates == []
 
 
 #============================================
 # normalize_svg_file integration tests (flag-off vs flag-on)
 #============================================
 
-def test_d1_flag_off_shadow_retained(tmp_path: pathlib.Path) -> None:
+def test_flag_off_retains_shadow(tmp_path: pathlib.Path) -> None:
 	"""With remove_floor_shadow=False (default), the shadow element is NOT removed.
 
 	The viewBox must include the shadow's geometry (bbox includes the bottom band).
@@ -268,7 +217,7 @@ def test_d1_flag_off_shadow_retained(tmp_path: pathlib.Path) -> None:
 	)
 
 
-def test_d1_flag_on_shadow_removed_viewbox_tightens(tmp_path: pathlib.Path) -> None:
+def test_flag_on_removes_shadow_and_tightens_viewbox(tmp_path: pathlib.Path) -> None:
 	"""With remove_floor_shadow=True, the shadow is removed and the viewBox tightens.
 
 	After removal the bbox must NOT extend into the shadow's y-range; the tightened
@@ -300,7 +249,7 @@ def test_d1_flag_on_shadow_removed_viewbox_tightens(tmp_path: pathlib.Path) -> N
 	)
 
 
-def test_d1_dry_run_reports_numeric_geometry_without_mutating_input(
+def test_dry_run_reports_numeric_geometry_without_mutating_input(
 	tmp_path: pathlib.Path, capsys: pytest.CaptureFixture[str],
 ) -> None:
 	"""The dry-run report formats numeric bounds and preserves source bytes."""
@@ -321,35 +270,7 @@ def test_d1_dry_run_reports_numeric_geometry_without_mutating_input(
 	assert svg_in.read_bytes() == original_bytes
 
 
-@pytest.mark.parametrize(
-	"hex_fill",
-	[
-		"#808080",  # classic mid-grey
-		"#404040",  # dark grey
-		"#888",     # 3-hex grey -> #888888 (max=136 <= 180, delta=0 <= 30)
-	],
-	ids=["mid_grey", "dark_grey", "short_hex_grey"],
-)
-def test_d1_grey_fill_signal_true(hex_fill: str) -> None:
-	"""_fill_is_desaturated_grey accepts desaturated mid/low grey hex fills."""
-	assert tools.svg_normalizer.shadows._fill_is_desaturated_grey(hex_fill)
-
-
-@pytest.mark.parametrize(
-	"hex_fill",
-	[
-		"#f0f0f0",  # near-white: max channel 240 > 180
-		"#ff0000",  # saturated red: per-channel delta 255 >> 30
-		"grey",     # named colour, not a parseable hex value
-	],
-	ids=["near_white", "saturated_red", "named_colour"],
-)
-def test_d1_grey_fill_signal_false(hex_fill: str) -> None:
-	"""_fill_is_desaturated_grey rejects near-white, saturated, and non-hex fills."""
-	assert not tools.svg_normalizer.shadows._fill_is_desaturated_grey(hex_fill)
-
-
-def test_d1_output_passes_reference_integrity(tmp_path: pathlib.Path) -> None:
+def test_output_passes_reference_integrity(tmp_path: pathlib.Path) -> None:
 	"""After shadow removal the output still passes S1 reference integrity.
 
 	A shadow path that has no url(#) references; removing it must leave all
@@ -368,3 +289,35 @@ def test_d1_output_passes_reference_integrity(tmp_path: pathlib.Path) -> None:
 	ref_rejection = tools.svg_normalizer.document.check_reference_integrity(out_root)
 	assert ref_rejection is None, f"S1 reference integrity failed after shadow removal: {ref_rejection}"
 
+
+def test_rejects_marked_shadow_when_an_internal_reference_would_dangle(
+
+	tmp_path: pathlib.Path,
+) -> None:
+	"""Shadow removal fails closed when the selected path remains referenced.
+
+	The explicit marker and geometry gates select the detached shadow. The S1
+	gate must then reject the removal rather than serialize an SVG whose local
+	paint reference points to the detached id.
+	"""
+	shadow_with_id = _SHADOW_PATH_OPACITY.replace(
+		'data-editorial-floor-shadow="true"',
+		'id="editorial-shadow" data-editorial-floor-shadow="true"',
+	)
+	reference_holder = (
+		'<path d="M 120 20 L 140 20 L 140 40 L 120 40 Z" '
+		'fill="url(#editorial-shadow)"/>'
+	)
+	svg_in = tmp_path / "referenced_shadow.svg"
+	svg_out = tmp_path / "referenced_shadow.out.svg"
+	svg_in.write_text(
+		_make_shadow_svg(_REAL_OBJECT_PATH + reference_holder, shadow_with_id),
+		encoding="utf-8",
+	)
+
+	result = tools.svg_normalizer.workflow.normalize_svg_file(
+		svg_in, svg_out, padding=0.0, remove_floor_shadow=True,
+	)
+
+	assert result.rejection is not None and result.rejection.code == "UNRESOLVED_REFERENCE"
+	assert not result.output_written and not svg_out.exists()

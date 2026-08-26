@@ -1,9 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220">
-  <path d="M69 81h182v74H69z" fill="#6d9fa8" opacity=".3"/>
-  <path d="M84 86h63v61H84z" fill="#506d75" stroke="#2d444d" stroke-width="3"/>
-  <path d="M173 86h63v61h-63z" fill="#506d75" stroke="#2d444d" stroke-width="3"/>
-  <path d="M149 82h23v72h-23z" fill="#d4eff2" stroke="#527f89" stroke-width="3"/>
-  <path d="M153 93h15M153 104h15M153 115h15M153 126h15M153 137h15" stroke="#5a929d" stroke-width="2"/>
-  <path d="M89 92h52M89 141h52M178 92h52M178 141h52" fill="none" stroke="#eefcff" stroke-width="2" opacity=".8"/>
-  <path d="M77 158h166" stroke="#385862" stroke-width="4" stroke-linecap="round"/>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 220"><defs><linearGradient id="buffer" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#c4edf1"/><stop offset="1" stop-color="#5aa7b8"/></linearGradient></defs><path d="M45 54q0-10 10-10h210q10 0 10 10v112q0 10-10 10H55q-10 0-10-10z" fill="#e9f7f8" fill-opacity=".62" stroke="#3d7180" stroke-width="3.5"/><path d="M56 76h208v79q0 9-9 9H65q-9 0-9-9z" fill="url(#buffer)" fill-opacity=".72" stroke="#6395a2" stroke-width="2.5"/><path d="M69 83q0-7 7-7h168q7 0 7 7v65q0 7-7 7H76q-7 0-7-7z" fill="#305663" stroke="#3d7180" stroke-width="2.5"/><path d="M82 96q0-6 6-6h49q6 0 6 6v44q0 6-6 6H88q-6 0-6-6zM177 96q0-6 6-6h49q6 0 6 6v44q0 6-6 6h-49q-6 0-6-6z" fill="#cbe7eb" fill-opacity=".9" stroke="#5c909d" stroke-width="2"/><path d="M150 84q0-5 5-5h10q5 0 5 5v67q0 5-5 5h-10q-5 0-5-5z" fill="#effbfc" stroke="#6093a0" stroke-width="2"/><path d="M156 99h8m-8 10h8m-8 10h8m-8 10h8" stroke="#72adb9" stroke-width="1.8" stroke-linecap="round"/><path d="M59 61h202M60 87v55" stroke="#fff" stroke-width="3" opacity=".62" stroke-linecap="round"/></svg>

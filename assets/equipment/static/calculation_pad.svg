@@ -4,10 +4,12 @@
   <g id="calculation_pad" stroke="#263548" stroke-linecap="round" stroke-linejoin="round">
     <path d="M18 15h224l-12 150H30z" fill="#fffef5" stroke-width="5"/>
     <path d="M30 15h212l-4 16H32z" fill="#dceff2" stroke="#6daeb9" stroke-width="3"/>
+    <path d="M30 165h200l-5 8H35z" fill="#d7e6eb" stroke="none"/>
     <path d="M49 48h142M49 76h142M49 104h142M49 132h142" fill="none" stroke="#a7cad3" stroke-width="3"/>
     <path d="M55 35h14M80 35h14M105 35h14" fill="none" stroke="#5c9ca9" stroke-width="5"/>
     <g id="calculation_pad_pencil" transform="rotate(-12 207 94)">
       <path d="M200 28h17v111h-17z" fill="#f0c45e" stroke-width="4"/>
+      <path d="M212 32h5v102h-5z" fill="#d88943" stroke="none"/>
       <path d="M200 28h17v15h-17z" fill="#d18955" stroke-width="3"/>
       <path d="m200 139 8.5 22 8.5-22z" fill="#d9c2a5" stroke-width="4"/>
       <path d="m205 153 3.5 8 3.5-8z" fill="#263548" stroke="none"/>

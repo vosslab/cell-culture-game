@@ -532,36 +532,31 @@ function resolve_anchor_effect(
     if (typeof value !== "number") {
       throw new Error(`visual_state_resolver: fill_height field '${field_name}' is not numeric`);
     }
-    if (value === 0 && material.material_name !== "empty") {
-      throw new Error(
-        `visual_state_resolver: non-empty material '${material.material_name}' has zero ` +
-          `amount in '${field_name}'; use 'empty' with zero for no fill`,
-      );
-    }
     if (value > 0 && material.material_name === "empty") {
       throw new Error(
         `visual_state_resolver: empty material has positive amount in '${field_name}'; ` +
           `use a material name for a visible fill`,
       );
     }
-    const capacities = [def.capacity_ul, def.capacity_ml].filter(
+    const capacities = [def.capacity_ul, def.capacity_ml, def.capacity_mg].filter(
       (capacity): capacity is number => capacity !== undefined,
     );
-    if (capacities.length !== 1 || capacities[0] === undefined || capacities[0] <= 0) {
+    const capacity = capacities[0];
+    if (
+      capacities.length !== 1 ||
+      capacity === undefined ||
+      !Number.isFinite(capacity) ||
+      capacity <= 0
+    ) {
       throw new Error(
-        `visual_state_resolver: fill_height render effect '${field_name}' needs exactly one positive capacity`,
+        `visual_state_resolver: fill_height render effect '${field_name}' needs ` +
+          "exactly one finite positive capacity",
       );
     }
-    fill_percent = Math.max(0, Math.min(100, (value / capacities[0]) * 100));
+    fill_percent = Math.max(0, Math.min(100, (value / capacity) * 100));
   } else {
     const paired_volume = paired_volume_value(state, material.material_field);
     if (paired_volume !== null && paired_volume === 0) {
-      if (material.material_name !== "empty") {
-        throw new Error(
-          `visual_state_resolver: non-empty material '${material.material_name}' has zero ` +
-            `paired amount; use 'empty' with zero for no fill`,
-        );
-      }
       fill_percent = 0;
     }
   }

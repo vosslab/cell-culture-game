@@ -6,8 +6,13 @@
     <title>Virtual Lab Protocol Simulation</title>
     <link rel="stylesheet" href="./style.css" />
   </head>
-  <body>
-    <div id="scene-root"></div>
+  <body class="scene-bench-page">
+    <div class="scene-panel scene-bench-panel" data-region="scene-panel">
+      <div class="scene-panel-content">
+        <div class="scene-panel-inner"><div id="scene-root"></div></div>
+        <div id="scene-annotation-root"></div>
+      </div>
+    </div>
     <script type="module" src="./protocol_host.js"></script>
   </body>
 </html>

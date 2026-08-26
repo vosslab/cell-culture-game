@@ -1,23 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 160">
   <defs>
-    <linearGradient id="module_body" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#f3fcfd"/><stop offset="1" stop-color="#bddfe5"/></linearGradient>
-    <linearGradient id="cassette_slot" x1="0" x2="1"><stop offset="0" stop-color="#6a8992"/><stop offset="0.5" stop-color="#2a4149"/><stop offset="1" stop-color="#6a8992"/></linearGradient>
+    <linearGradient id="module_shell" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#f7fbfc"/><stop offset="1" stop-color="#b9cbd3"/></linearGradient>
+    <linearGradient id="module_well" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#355765"/><stop offset="1" stop-color="#18333f"/></linearGradient>
   </defs>
-  <rect x="25" y="35" width="190" height="98" rx="13" fill="#6b929a" stroke="#27383f" stroke-width="4"/>
-  <rect x="34" y="44" width="172" height="80" rx="8" fill="url(#module_body)" stroke="#86afb8" stroke-width="2"/>
-  <path d="M53 53v61M187 53v61" fill="none" stroke="#42636c" stroke-width="6" stroke-linecap="round"/>
-  <path d="M65 55v57M175 55v57" fill="none" stroke="#afd2d8" stroke-width="3" stroke-linecap="round"/>
-  <rect x="91" y="47" width="58" height="75" rx="5" fill="url(#cassette_slot)" stroke="#27383f" stroke-width="3"/>
-  <rect x="99" y="55" width="42" height="58" rx="2" fill="#12262d" stroke="#9ec8d0" stroke-width="2"/>
-  <path d="M105 62h30M105 73h30M105 84h30M105 95h30" stroke="#5c8c99" stroke-width="2"/>
-  <path d="M58 70 28 51 11 68l31 20" fill="#d4eaed" stroke="#3d5962" stroke-width="4" stroke-linejoin="round"/>
-  <circle cx="21" cy="60" r="8" fill="#fbffff" stroke="#3d5962" stroke-width="3"/>
-  <path d="M182 70 212 51l17 17-31 20" fill="#d4eaed" stroke="#3d5962" stroke-width="4" stroke-linejoin="round"/>
-  <circle cx="219" cy="60" r="8" fill="#fbffff" stroke="#3d5962" stroke-width="3"/>
-  <path d="M75 42V27c0-7-6-12-13-12H43" fill="none" stroke="#111827" stroke-width="6" stroke-linecap="round"/>
-  <circle cx="35" cy="15" r="9" fill="#111827" stroke="#475569" stroke-width="2"/>
-  <path d="M165 42V27c0-7 6-12 13-12h19" fill="none" stroke="#c81e1e" stroke-width="6" stroke-linecap="round"/>
-  <circle cx="205" cy="15" r="9" fill="#d92727" stroke="#7f1d1d" stroke-width="2"/>
-  <path d="M69 132v13h102v-13" fill="none" stroke="#354f58" stroke-width="7" stroke-linecap="round"/>
-  <path d="M79 145h82" stroke="#b8dbe1" stroke-width="3" stroke-linecap="round"/>
+  <path d="M35 60Q35 48 47 44H193Q205 48 205 60V126Q205 137 194 140H46Q35 137 35 126Z" fill="url(#module_shell)" stroke="#46636d" stroke-width="2.2"/>
+  <path d="M47 44Q51 35 61 35H179Q189 35 193 44L201 54H39Z" fill="#e7f1f4" stroke="#58717a" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M47 54H193Q198 54 198 59V121Q198 132 188 133H52Q42 132 42 121V59Q42 54 47 54Z" fill="#d9e8ec"/>
+  <path d="M68 65Q70 60 77 60H163Q170 60 172 65L180 113Q181 121 174 123H66Q59 121 60 113Z" fill="url(#module_well)" stroke="#486875" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M76 69H164L171 115H69Z" fill="#9ec6d2" stroke="#cbe5eb" stroke-width="1.5" stroke-linejoin="round"/>
+  <path d="M82 75H158L164 109H76Z" fill="#e9f6f7" stroke="#668997" stroke-width="1.2" stroke-linejoin="round"/>
+  <path d="M82 82H158M80 91H160M78 100H162" stroke="#bed8de" stroke-width="1" stroke-linecap="round"/>
+  <!-- Open clamps rotate outward on the same pivots, exposing cassette ears. -->
+  <path d="M65 73 31 58Q25 56 22 62L18 70Q17 75 23 78L60 91L67 82Z" fill="#d5e4e8" stroke="#53717c" stroke-width="1.8" stroke-linejoin="round"/>
+  <path d="M175 73 209 58Q215 56 218 62L222 70Q223 75 217 78L180 91L173 82Z" fill="#d5e4e8" stroke="#53717c" stroke-width="1.8" stroke-linejoin="round"/>
+  <circle cx="64" cy="77" r="5" fill="#f7fbfc" stroke="#53717c" stroke-width="1.5"/><circle cx="176" cy="77" r="5" fill="#f7fbfc" stroke="#53717c" stroke-width="1.5"/>
+  <path d="M67 48V29Q67 19 57 19H43" fill="none" stroke="#344d57" stroke-width="4" stroke-linecap="round"/><circle cx="35" cy="19" r="7.5" fill="#273d46" stroke="#516872" stroke-width="1.5"/>
+  <path d="M173 48V29Q173 19 183 19H197" fill="none" stroke="#9f3a3e" stroke-width="4" stroke-linecap="round"/><circle cx="205" cy="19" r="7.5" fill="#ca4b4d" stroke="#8d3639" stroke-width="1.5"/>
+  <path d="M52 133V140H188V133" fill="none" stroke="#59727b" stroke-width="4" stroke-linecap="round"/><path d="M62 140H178" stroke="#eef6f7" stroke-width="1.5" stroke-linecap="round"/>
 </svg>

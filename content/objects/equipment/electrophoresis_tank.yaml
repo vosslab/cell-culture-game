@@ -2,6 +2,18 @@ object_name: electrophoresis_tank
 kind: equipment
 label: Electrophoresis tank
 
+# The black and red lid terminals are the physical interaction targets.  Lead
+# connection is apparatus state: a cable does not become a different object
+# merely because its plug is seated.  Recorded geometry keeps the hit regions
+# on the two visible terminals in every scene that uses this tank.
+structure:
+  subpart_kind: slot
+  layout: grid
+  rows: 1
+  cols: 2
+  name_pattern: "terminal_{col}"
+  subpart_names: [black_terminal, red_terminal]
+
 state_fields:
   - field_name: lid_present
     type: bool
@@ -11,6 +23,14 @@ state_fields:
     type: bool
     default: false
     description: Whether the electrode module is mounted in the tank.
+  - field_name: black_lead_connected
+    type: bool
+    default: false
+    description: Whether the black cathode lead is seated in the black lid terminal.
+  - field_name: red_lead_connected
+    type: bool
+    default: false
+    description: Whether the red anode lead is seated in the red lid terminal.
 
 visual_states:
   lid_present:
@@ -29,8 +49,26 @@ visual_states:
         output:
           composite:
             - { asset_name: electrophoresis_tank_module_mounted }
+  black_lead_connected:
+    kind: composite
+    cases:
+      - when: false
+        output: { composite: [] }
+      - when: true
+        output:
+          composite:
+            - { asset_name: electrophoresis_tank_black_lead_connected }
+  red_lead_connected:
+    kind: composite
+    cases:
+      - when: false
+        output: { composite: [] }
+      - when: true
+        output:
+          composite:
+            - { asset_name: electrophoresis_tank_red_lead_connected }
 
-capabilities: [clickable]
+capabilities: [clickable, structured_surface]
 
 layout:
   default_width: 18

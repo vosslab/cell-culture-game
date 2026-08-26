@@ -15,6 +15,11 @@ visible interface; see
 The next protocol-quality work depends on explicit evidence or contract
 decisions rather than another generic shell milestone:
 
+- Reopen the equipment-art direction with new reference-backed archetypes. The
+  2026-08-26 human review rejected D01-D05 as cubist rather than realistic lab
+  equipment; retain the completed runtime contracts and validate the next
+  direction through the current production-art review workflow in
+  [USAGE.md](USAGE.md#equipment-svg-visual-review).
 - Supply the faculty-owned Bradford inputs, ladder product/load volume,
   one-gel apparatus values, and local microwave SOP recorded as B1-B4.
 - Approve a closed conditional step-graph vocabulary before implementing B5.

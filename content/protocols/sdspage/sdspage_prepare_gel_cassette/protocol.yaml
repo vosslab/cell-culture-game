@@ -2,16 +2,13 @@ protocol_type: mini_protocol
 protocol_name: sdspage_prepare_gel_cassette
 entry_step: unpack_cassette
 learning:
-  objectives:
-    Students completing this mini-protocol will have achieved fluency with
+  objectives: Students completing this mini-protocol will have achieved fluency with
     preparing a precast gel cassette for mounting without confusing cassette handling
     with the later clamping and buffer-seal steps.
-  outcomes:
-    Students completing this mini-protocol will be able to remove a precast gel
+  outcomes: Students completing this mini-protocol will be able to remove a precast gel
     from its package, remove the bottom tape, remove the comb straight upward, and
     recognize the exposed wells as ready for rinsing and sample loading.
-  goals:
-    Overall, this mini-protocol aims to accomplish making the gel cassette ready
+  goals: Overall, this mini-protocol aims to accomplish making the gel cassette ready
     for correct orientation and gasket sealing in the electrode module.
 steps:
   - step_name: unpack_cassette
@@ -41,8 +38,7 @@ steps:
       on_failure: retry
     next_step: remove_bottom_tape
   - step_name: remove_bottom_tape
-    prompt:
-      Remove the protective tape from the bottom of the cassette before mounting it.
+    prompt: Remove the protective tape from the bottom of the cassette before mounting it.
     sequence:
       - target: gel_cassette
         gesture: click
@@ -66,11 +62,10 @@ steps:
       on_failure: retry
     next_step: remove_comb
   - step_name: remove_comb
-    prompt:
-      Pull the comb straight upward to expose the wells. Rinse the wells with running
+    prompt: Pull the comb straight upward to expose the wells. Rinse the wells with running
       buffer after the cassette is mounted and the upper chamber has passed its leak check.
     sequence:
-      - target: gel_comb
+      - target: gel_cassette
         gesture: click
         instruction: Pull the gel comb straight upward.
         hint: Expose the wells without tilting or damaging the cassette.
@@ -82,10 +77,8 @@ steps:
               target: gel_cassette
               state:
                 comb_present: false
-            - type: ObjectStateChange
-              target: gel_comb
-              state:
-                position: not_in_cassette
+            - type: SceneChange
+              to_scene: sdspage_prepare_gel_cassette_comb_removed
           feedback:
             correct: The well openings are exposed and ready for the mounted-apparatus rinse.
             incorrect: Pull the gel comb straight up from the cassette.

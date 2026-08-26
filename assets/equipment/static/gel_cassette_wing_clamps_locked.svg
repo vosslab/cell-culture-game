@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 214 308">
-  <g stroke="#29495a" stroke-linejoin="round">
-    <path d="M12 140h31v28H12zM171 140h31v28h-31z" fill="#8faab5" stroke-width="3"/>
-    <path d="M16 144h23v6H16zm159 0h23v6h-23z" fill="#f7fcfd" stroke="none"/>
-    <path d="m20 154 6 6 10-12m149 6 6 6 10-12" fill="none" stroke="#27755f" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5"/>
+  <g id="locked_wing_clamps" stroke="#294657" stroke-linejoin="round">
+    <path d="M10 140h34v29H10zM166 140h34v29h-34z" fill="#7895a5" stroke-width="3"/>
+    <path d="M14 144h26v6H14zm156 0h26v6h-26z" fill="#f7fcfd" stroke="none"/>
+    <path d="m19 155 6 6 10-12m151 6 6 6 10-12" fill="none" stroke="#35b85a" stroke-linecap="round" stroke-linejoin="round" stroke-width="3.5"/>
   </g>
 </svg>

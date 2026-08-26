@@ -46,6 +46,19 @@ function get_root(): HTMLElement {
   return root;
 }
 
+// This disposable harness mounts the production renderer without a protocol
+// shell. Give resolved state facts their same explicit outside-stage root.
+function get_annotation_root(): HTMLElement {
+  const existing = document.getElementById("scene-annotation-root");
+  if (existing instanceof HTMLElement) {
+    return existing;
+  }
+  const root = document.createElement("div");
+  root.id = "scene-annotation-root";
+  document.body.append(root);
+  return root;
+}
+
 // This harness exercises the seeding protocol scene, so it must use that
 // protocol's generated material registry just as the student-facing host does.
 // A null registry intentionally means "diagnostic scene viewer": non-sentinel
@@ -68,7 +81,11 @@ function mount(scene_name: string): void {
     throw new Error(`harness: unknown scene ${scene_name}`);
   }
   const result = runPipeline(scene, { library: OBJECT_LIBRARY, assets: ASSET_SPECS });
-  current_dispose = mountScene(get_root(), result, { store, materialRegistry: material_registry });
+  current_dispose = mountScene(get_root(), result, {
+    store,
+    materialRegistry: material_registry,
+    annotationRoot: get_annotation_root(),
+  });
 }
 
 function dispose(): void {

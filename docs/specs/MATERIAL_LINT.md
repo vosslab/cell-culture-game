@@ -183,10 +183,11 @@ object's volume/capacity state. When paired material identity and amount
 complete SVG form. Different forms solely encoding that pair's material color or
 liquid level are forbidden.
 
-This is not a global ban on names or on complete discrete forms. A collection may
-select `mtt_powder_vial.svg` / `mtt_powder_vial_empty.svg` when they depict
-genuine content, geometry, or form states and no paired runtime material binding
-applies. Likewise, an `empty` or `full` filename alone proves nothing. The exact
+This is not a global ban on names or on complete discrete forms. A genuine
+change in physical form or geometry may select another complete form. Material
+identity or amount alone does not: pre-weighed MTT powder remains material state
+inside the canonical microtube form instead of selecting a dedicated powder
+vial. Likewise, an `empty` or `full` filename alone proves nothing. The exact
 per-form classification is owned by [SVG_PIPELINE.md](SVG_PIPELINE.md).
 
 - Violation outcome: an object/material-form validation error; no material or
@@ -330,7 +331,7 @@ an entry tagged **TODO** is a change to make when its workstream lands.
 | L5 (cross-protocol color agreement) | `validation/yaml_schema/material_validator.py:MaterialValidator.validate_cross_protocol` | EXISTS | Tracks `(label, display_color)` scalar tuples; divergence in either field emits `PALETTE_DIVERGENT`. Updated by WP-MAT-SWEEP. |
 | L6 (closed entry schema) | `validation/yaml_schema/material_validator.py:MaterialValidator._validate_entry` | EXISTS | Closure on `MATERIAL_ALL_KEYS` (currently `{label, display_color}`) and snake_case key check already reject unknown keys and bad names. Keep. |
 | L6 (sentinel not an entry) | `validation/yaml_schema/material_validator.py:MaterialValidator._validate_entry` | TODO | Add a check that rejects `empty` and `mixed` as registry keys (sentinels never appear in `materials.yaml`, per MATERIAL_YAML_FORMAT.md). Emit a closure-class error naming the offending key. |
-| L8 (no material or volume fan-out) | material-form validator and object `visual_states` validation | TODO | For paired identity/amount entries that use runtime material rendering, require all material cases to select one complete form. Do not infer a violation from filenames; preserve genuine complete-form selection, including `mtt_powder_vial_empty`. |
+| L8 (no material or volume fan-out) | material-form validator and object `visual_states` validation | TODO | For paired identity/amount entries that use runtime material rendering, require all material cases to select one complete form. Do not infer a violation from filenames; preserve genuine complete-form selection only when physical form or geometry changes. |
 | Constants (allowlist) | `validation/yaml_schema/constants.py` | EXISTS | `MATERIAL_REQUIRED_KEYS = {label, display_color}` and `MATERIAL_ALL_KEYS` are correct for the scalar schema; no nested-color key set is introduced. The `# spec:` comment now cites `MATERIAL_YAML_FORMAT.md "Material entry schema"` (updated by WP-MAT-CROSSREF). |
 
 ### Stepper (walk-time) validators

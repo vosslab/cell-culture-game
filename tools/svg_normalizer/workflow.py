@@ -25,13 +25,13 @@ def normalize_svg_file(
 
 	Pipeline: parse once (no recover) -> tools.svg_normalizer.document.classify ->
 	ASCII-clean ids -> flatten transforms (A1) -> shape->path (A2) ->
-	B1 editor-cruft removal -> [D1 floor-shadow removal when enabled] ->
+	B1 editor-cruft removal -> [optional floor-shadow removal] ->
 	compute bbox -> ordinary: shift to origin/rewrite viewBox; material: retain
 	authored root frame -> canonical serialize
 	(S4) -> write output.
 
-	D1 (floor-shadow removal) runs BEFORE tools.svg_normalizer.geometry.compute_bbox so the single crop
-	tightens around the real object.  It is gated by remove_floor_shadow; with
+	Floor-shadow removal runs BEFORE tools.svg_normalizer.geometry.compute_bbox,
+	so the single crop tightens around the real object. It is gated by remove_floor_shadow; with
 	that False (the default) the normal output path is unchanged.
 
 	On rejection no output is written and the input is left untouched, even when
@@ -43,7 +43,7 @@ def normalize_svg_file(
 		output_path: pathlib.Path to write the normalized SVG.
 		padding: Padding around drawn content, in user units. Default 2.
 		remove_floor_shadow: When True, detect and remove floor-shadow elements
-			before the bbox pass (D1).  Default False (no-op for gate verdict).
+			before the bbox pass. Default False (no-op for gate verdict).
 
 	Returns:
 		A tools.svg_normalizer.model.NormalizeResult: normalized (rejection is None, output_written True) or
@@ -357,20 +357,11 @@ def normalize_svg_file(
 #   2. Bottom-band: its own bbox center_y falls in the lowest _SHADOW_BAND_FRAC
 #      of the overall drawing bbox (i.e. center_y > overall_bbox.min_y +
 #      (1 - _SHADOW_BAND_FRAC) * overall_bbox.height).
-#   3. Shadow signal: AT LEAST ONE of:
-#      a. Resolved fill-opacity < _SHADOW_OPACITY_THRESHOLD (inline style or
-#         presentation attribute; inline wins).
-#      b. Desaturated near-grey fill: an #rrggbb or #rgb hex fill where each
-#         channel is approximately equal (max delta <= _SHADOW_GREY_TOLERANCE)
-#         AND the value is mid/low (max channel <= _SHADOW_GREY_MAX_VALUE).
-#      c. The element's id= or class= attribute contains the substring "shadow"
-#         (case-insensitive); editor-specific page shadows are already removed
-#         by B1.
-#   Blur filter alone is NOT sufficient (filters are rejected by the classifier
-#   before D1 can run; D1 is therefore never called when a filter is present).
-#   If the fill-opacity or fill signal would require reading a <style> class rule
-#   (i.e. the property is absent from inline style and presentation attribute),
-#   treat it as "no signal" from that sub-criterion -- do NOT guess.
+#   3. Explicit editorial marker: data-editorial-floor-shadow="true".
+#   Colour, opacity, id, class, and blur are never signals: real base geometry
+#   commonly shares those presentation properties. Filters are rejected by the
+#   classifier before floor-shadow removal can run, so volume must use overlap
+#   and face value.
 #
 # By this stage all shapes are <path>; detection uses
 # _element_geometry_bbox (pure geometry, no stroke pad) to avoid double-counting.

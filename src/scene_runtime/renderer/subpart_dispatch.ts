@@ -20,21 +20,26 @@ function is_subpart_target(vs: VisualStateDef, effect: "material_tint" | "fill_h
 }
 
 function amount_contract(field_name: string, vs: VisualStateDef): SubpartAmountContract {
-  const has_capacity_ul = Object.prototype.hasOwnProperty.call(vs, "capacity_ul");
-  const has_capacity_ml = Object.prototype.hasOwnProperty.call(vs, "capacity_ml");
-  if (has_capacity_ul === has_capacity_ml) {
+  const capacity_fields = [vs.capacity_ul, vs.capacity_ml, vs.capacity_mg].filter(
+    (capacity): capacity is number => capacity !== undefined,
+  );
+  if (capacity_fields.length !== 1) {
     return {
       field_name,
       capacity: null,
-      capacity_error: `fill_height '${field_name}' needs exactly one positive capacity_ul/capacity_ml`,
+      capacity_error:
+        `fill_height '${field_name}' needs exactly one positive ` +
+        "capacity_ul/capacity_ml/capacity_mg",
     };
   }
-  const capacity = has_capacity_ul ? vs.capacity_ul : vs.capacity_ml;
+  const capacity = capacity_fields[0];
   if (typeof capacity !== "number" || !Number.isFinite(capacity) || capacity <= 0) {
     return {
       field_name,
       capacity: null,
-      capacity_error: `fill_height '${field_name}' needs exactly one positive capacity_ul/capacity_ml`,
+      capacity_error:
+        `fill_height '${field_name}' needs exactly one positive ` +
+        "capacity_ul/capacity_ml/capacity_mg",
     };
   }
   return { field_name, capacity, capacity_error: "" };

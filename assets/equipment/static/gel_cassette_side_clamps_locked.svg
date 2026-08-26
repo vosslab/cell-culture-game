@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 214 308">
-  <g stroke="#29495a" stroke-linejoin="round">
-    <path d="M16 92h22v48H16zM176 92h22v48h-22z" fill="#9ab2bd" stroke-width="3"/>
-    <path d="M20 96h14v7H20zm160 0h14v7h-14z" fill="#f6fbfc" stroke="none"/>
-    <path d="M22 111h11m148 0h11" fill="none" stroke="#507486" stroke-linecap="round" stroke-width="2"/>
-    <path d="m21 128 5 5 9-10m158 5 5 5 9-10" fill="none" stroke="#27755f" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
+  <g id="locked_side_clamps" stroke="#294657" stroke-linejoin="round">
+    <path d="M18 90h24v50H18zM168 90h24v50h-24z" fill="#7895a5" stroke-width="3"/>
+    <path d="M22 94h16v8H22zm150 0h16v8h-16z" fill="#e8f0f4" stroke="none"/>
+    <path d="M24 112h12m140 0h12" fill="none" stroke="#3b5668" stroke-linecap="round" stroke-width="2"/>
+    <path d="m23 128 5 5 9-10m154 5 5 5 9-10" fill="none" stroke="#35b85a" stroke-linecap="round" stroke-linejoin="round" stroke-width="3"/>
   </g>
 </svg>

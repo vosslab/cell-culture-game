@@ -1,9 +1,14 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 220">
-  <path d="M23 15h44v22H23z" fill="#dff3f4" stroke="#334155" stroke-linejoin="round" stroke-width="3"/>
-  <path d="M27 37h36l-6 155H33z" fill="#f8fcfc" stroke="#334155" stroke-linejoin="round" stroke-width="3"/>
-  <path d="M33 111h24l-4 81H37z" fill="#72b9d0"/>
-  <path d="M33 111c7-2 14 2 24 0" fill="none" stroke="#c9f0f2" stroke-linecap="round" stroke-width="2"/>
-  <path d="M33 192h24l-12 18z" fill="#72b9d0" stroke="#334155" stroke-linejoin="round" stroke-width="3"/>
-  <path d="M32 46l-3 62" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="3" opacity=".9"/>
-  <path d="M31 61h28M30 93h26" fill="none" stroke="#8baeb4" stroke-linecap="round" stroke-width="1.5"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 90 220" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Matched centrifuge balance tube">
+  <g id="tube_back" stroke="#3d6273" stroke-linejoin="round">
+    <path d="M25 27 C25 22 29 19 34 19 H56 C61 19 65 22 65 27 V38 H25 Z" fill="#b8d5dc" stroke-width="2.3"/>
+    <path d="M29 38 H61 L59 175 C59 185 53 198 45 210 C37 198 31 185 31 175 Z" fill="#e7f2f3" stroke-width="2.3"/>
+    <path d="M55 40 H61 L59 175 C59 184 53 198 45 210 C49 195 51 184 51 174 Z" fill="#a9c5ce" stroke="none"/>
+  </g>
+  <ellipse cx="45" cy="38" rx="16" ry="3.6" fill="#f8fcfc" stroke="#3d6273" stroke-width="2"/>
+  <g id="matched_liquid"><path d="M32.5 112 C39 114 51 114 57.5 112 L56.8 175 C56.7 184 51 198 45 207 C39 198 33.3 184 33.2 175 Z" fill="#5b9bc5"/><path d="M32.5 112 C39 110 51 114 57.5 112" fill="none" stroke="#b6d9e6" stroke-linecap="round" stroke-width="1.6"/></g>
+  <g id="tube_front" fill="none" stroke-linecap="round">
+    <path d="M32 50 C33 83 33 127 34 168" stroke="#ffffff" stroke-width="2.3" opacity=".78"/>
+    <path d="M35 73 H54 M35 101 H54 M35 129 H53 M35 157 H52" stroke="#8aaab5" stroke-width="1.1"/>
+    <path d="M28 30 H62" stroke="#6f96a4" stroke-width="1.3" opacity=".8"/>
+  </g>
 </svg>

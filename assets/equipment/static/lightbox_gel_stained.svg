@@ -1,7 +1,7 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120">
-  <g stroke="#203743" stroke-linejoin="round">
-    <rect x="52" y="46" width="56" height="15" rx="1.5" fill="#3d73ad" stroke="#315a73" stroke-width="1.5"/>
-    <path d="M54 48h52" fill="none" stroke="#83b6dd" stroke-linecap="round" stroke-width="1.1"/>
-    <path d="M58 48v11M65 48v11M73 48v11M81 48v11M90 48v11M99 48v11M105 48v11" fill="none" stroke="#1e4d81" stroke-linecap="round" stroke-width="1.7"/>
+  <g id="lightbox_gel_stained" stroke="#294657" stroke-linejoin="round">
+    <path d="M51 59 107 54l4 4-4 13-56 5-4-4z" fill="#3d73ad" stroke="#315a73" stroke-width="1.5"/>
+    <path d="M53 61 105 56" fill="none" stroke="#83b6dd" stroke-linecap="round" stroke-width="1.1"/>
+    <path d="m58 60-1 11m7-12-1 11m8-12-1 11m8-12-1 11m8-12-1 11m8-12-1 11m8-12-1 11" fill="none" stroke="#1e4d81" stroke-linecap="round" stroke-width="1.7"/>
   </g>
 </svg>

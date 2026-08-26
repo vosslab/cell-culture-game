@@ -66,6 +66,13 @@ accent. Material colors remain owned by the material pipeline. A retained
 detail must clarify function or material at normal scene size: typical examples
 are a graduation band, cap ribs, lens, control, electrode, or pipette tip.
 
+Establish physical volume with an actual far plane, cavity, or overlap, then
+apply restraint: a dark value must name that physical relation rather than add
+decorative striping. At literal-minimum scene sizes, preserve silhouette, face
+separation, state, and the interaction envelope; remove sub-pixel detail rather
+than accumulating heavier strokes. Review new artwork at a normal task-relevant
+placement as well as at the literal minimum.
+
 When a Servier source is selected, preserve its object-part drawing order,
 projection, and functional overlaps. Apply source-faithful normalization and
 narrow repository adaptations to that layer stack. An original redraw is
@@ -79,6 +86,32 @@ read a cavity, glass, liquid, control, or physical depth. Avoid dense internal
 contours, repeated near-identical color steps, white backplates, chrome-like
 reflections, and other decorative modeling that does not survive scene-scale
 review.
+
+## Floor-shadow authoring
+
+Floor-shadow removal is an explicit, opt-in normalizer operation for ordinary
+SVG art. Mark only a detached editorial floor-shadow path with the exact
+attribute `data-editorial-floor-shadow="true"`, then run:
+
+```bash
+source source_me.sh && python3 tools/normalize_svg_v3.py --remove-floor-shadow -i assets/<category>/<name>.svg
+```
+
+Use `--shadow-dry-run` first to inspect the candidate and prospective crop
+without writing output.
+
+The marker authorizes removal only when all geometry gates also pass after
+normalization: the marked element is a path, is wider than three times its
+height, and its center lies in the lowest fifth of the complete drawing bbox.
+The exact marker, not resemblance, grants this authority. A `fill`, opacity,
+`id`, or `class` value never authorizes deletion. Keep structural plinths,
+local depth shades, liquid surfaces, and any material-rendered SVG unmarked.
+
+The normalizer validates internal references after removal and before writing.
+If another element still references the marked path, normalization rejects with
+`UNRESOLVED_REFERENCE` and writes no output; repair the reference or retain the
+referenced art before rerunning the operation. This preserves an all-or-nothing
+authoring boundary rather than publishing a dangling SVG.
 
 Every selected state family shares a stable silhouette, projection, viewBox,
 canvas, safe padding, and contour/fill roles. The visible state difference is

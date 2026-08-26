@@ -1,5 +1,8 @@
 """Behavioral coverage for object-library state lowering."""
 
+# Third Party
+import pytest
+
 # local repo modules
 import pipeline.gen_object_library as gen_object_library
 import pipeline.object_library_visual_states as object_library_visual_states
@@ -7,8 +10,8 @@ import pipeline.object_library_visual_states as object_library_visual_states
 
 #============================================
 
-def test_parse_visual_states_keeps_a_valid_fill_height_material_contract() -> None:
-	"""A typed liquid effect reaches the renderer with its semantic target intact."""
+def test_parse_visual_states_rejects_unknown_render_effect_keys() -> None:
+	"""A misspelled render-effect key cannot disappear during lowering."""
 	data = {
 		"visual_states": {
 			"held_material_volume": {
@@ -17,15 +20,13 @@ def test_parse_visual_states_keeps_a_valid_fill_height_material_contract() -> No
 				"target": "anchor_liquid_bounds",
 				"clip": "anchor_liquid_clip",
 				"capacity_ml": 10.0,
+				"capacity_milliliters": 10.0,
 			},
 		},
 	}
 
-	visual_states = object_library_visual_states.parse_visual_states(data, "inline_object.yaml")
-	effect = visual_states["held_material_volume"]
-
-	assert effect["render_effect"] == "fill_height"
-	assert effect["target"] == "anchor_liquid_bounds" and effect["clip"] == "anchor_liquid_clip"
+	with pytest.raises(ValueError, match="unknown render-effect keys"):
+		object_library_visual_states.parse_visual_states(data, "inline_object.yaml")
 
 
 #============================================

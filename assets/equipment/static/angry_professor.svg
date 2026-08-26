@@ -8,6 +8,7 @@
       </g>
       <g id="svga-group-clothes-single">
         <path d="M70 142h60l16 52H54z" fill="#f8fbf5" stroke-width="4"/>
+        <path d="M130 142l16 52h-13l-14-45z" fill="#d7e6eb" stroke="none"/>
         <path d="m76 145 24 30 24-30" fill="none" stroke="#6daeb9" stroke-width="4"/>
         <path d="M92 168h16" fill="none" stroke="#d18955" stroke-width="4"/>
       </g>

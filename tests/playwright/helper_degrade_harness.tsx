@@ -229,6 +229,20 @@ function get_scene_root(): HTMLElement {
   return el;
 }
 
+// The harness is state-free today, but it intentionally supplies the same
+// explicit mount boundary as browser hosts so future resolver facts cannot
+// disappear during a regression test.
+function get_annotation_root(): HTMLElement {
+  const existing = document.getElementById("scene-annotation-root");
+  if (existing instanceof HTMLElement) {
+    return existing;
+  }
+  const root = document.createElement("div");
+  root.id = "scene-annotation-root";
+  document.body.append(root);
+  return root;
+}
+
 // Mount via the production mountScene -> SceneView -> SceneItem path. SceneView
 // stamps data-scene-root and reactively owns data-scene-degraded; we do NOT
 // stamp data-scene-root manually here. The aspect guard uses the same viewport
@@ -243,6 +257,7 @@ function do_mount(): void {
     materialRegistry: null,
     seedMode: "none",
     viewport: HARNESS_VIEWPORT,
+    annotationRoot: get_annotation_root(),
   });
 }
 

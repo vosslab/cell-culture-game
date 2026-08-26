@@ -79,6 +79,11 @@ export interface MountSceneOptions {
   // context exists, so no highlight ring is computed. Passed by reference into
   // SceneItem.
   activeAffordance?: ActiveAffordanceAccessor;
+  // Host-owned sibling root for the SceneView's non-occluding state-text rail.
+  // Production browser hosts must provide it. It is optional only for
+  // deliberately state-free renderer harnesses; SceneView fails loudly if
+  // resolved state text would otherwise be omitted.
+  annotationRoot?: HTMLElement;
 }
 
 // Mount a Solid scene into root, returning a dispose handle. Clears root first,
@@ -135,6 +140,7 @@ export function mountScene(
         viewport={opts.viewport}
         activeAffordance={opts.activeAffordance}
         candidateTargets={candidate_targets}
+        annotationRoot={opts.annotationRoot}
       />
     ),
     root,
@@ -183,6 +189,7 @@ export function renderScene(
   root: HTMLElement,
   result: PipelineResult,
   viewport?: { w: number; h: number },
+  annotationRoot?: HTMLElement,
 ): void {
   // Fresh internal store per facade render. The state-free contract render
   // seeds declared object fields to their schema defaults.
@@ -195,6 +202,9 @@ export function renderScene(
   };
   if (viewport !== undefined) {
     options.viewport = viewport;
+  }
+  if (annotationRoot !== undefined) {
+    options.annotationRoot = annotationRoot;
   }
   mountScene(root, result, options);
 }

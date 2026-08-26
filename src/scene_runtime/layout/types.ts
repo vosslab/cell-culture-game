@@ -142,8 +142,11 @@ export interface VisualStateDef {
   // Optional capacity for fill_height normalization (microliters).
   capacity_ul?: number;
   // Optional capacity for fill_height normalization (milliliters). Exactly one
-  // liquid capacity unit is authored for an anchor fill effect.
+  // amount capacity unit is authored for an anchor fill effect.
   capacity_ml?: number;
+  // Optional capacity for fill_height normalization of mass-based material
+  // state such as a pre-weighed powder (milligrams).
+  capacity_mg?: number;
 }
 
 // Keyed by field_name

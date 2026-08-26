@@ -3,6 +3,7 @@
   <desc id="interpretation_choice_card_desc">A reusable card with a selected option and neutral response lines.</desc>
   <g id="choice_card" stroke="#263548" stroke-linecap="round" stroke-linejoin="round">
     <rect x="10" y="10" width="232" height="88" rx="13" fill="#f8fbf5" stroke-width="4"/>
+    <path d="M18 87h216l-7 7H25z" fill="#d7e6eb" stroke="none"/>
     <path d="M23 23h63v62H23z" fill="#dceff2" stroke="#6daeb9" stroke-width="3"/>
     <circle cx="54" cy="54" r="19" fill="#fffef5" stroke-width="4"/>
     <circle cx="54" cy="54" r="8" fill="#5c9ca9" stroke="none"/>

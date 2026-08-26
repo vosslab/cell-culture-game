@@ -216,10 +216,11 @@ a stationary lower shape, a middle body scaled only in Y, and a fixed-shape
 surface translated only in Y. Assets omit parts they do not need.
 It does not replace a runtime material-bound vessel with a per-material or
 per-volume SVG, stamp a generic runtime rectangle over the form, or make color a
-property of the artwork recipe. This does not prohibit ordinary complete discrete
-forms that genuinely differ in geometry, form, or depicted contents (for example
-an emptied MTT powder vial or a full sharps container); filename words such as
-`empty` and `full` do not determine rendering intent.
+property of the artwork recipe. This does not prohibit ordinary complete
+discrete forms that genuinely differ in geometry or physical form, such as an
+open versus closed instrument housing. Contents already carried by material
+state do not justify a second vessel form; filename words such as `empty` and
+`full` do not determine rendering intent.
 
 The canonical variable-volume shape is:
 

@@ -1,11 +1,8 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 260" role="img" aria-labelledby="funnel-title funnel-desc">
-  <title id="funnel-title">Laboratory funnel for buffer recovery</title>
-  <desc id="funnel-desc">A clean, wide-mouth laboratory funnel positioned upright for transferring used running buffer into a recycle bottle.</desc>
-  <defs><linearGradient id="funnel-glass" x1="0" x2="1" y1="0" y2="1"><stop offset="0" stop-color="#f8ffff"/><stop offset=".58" stop-color="#dff3f4"/><stop offset="1" stop-color="#9bcbd1"/></linearGradient></defs>
-  <ellipse cx="90" cy="38" rx="72" ry="22" fill="#e5f7f7" stroke="#334155" stroke-width="7"/>
-  <path d="M20 40L76 172H104L160 40C143 52 121 59 90 59C59 59 37 52 20 40Z" fill="url(#funnel-glass)" stroke="#334155" stroke-linejoin="round" stroke-width="7"/>
-  <path d="M75 172H105V242C105 251 98 257 90 257C82 257 75 251 75 242V172Z" fill="#d2edef" stroke="#334155" stroke-linejoin="round" stroke-width="7"/>
-  <path d="M42 54C52 111 70 146 82 163M138 54C128 111 110 146 98 163" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="7" opacity=".82"/>
-  <ellipse cx="90" cy="38" rx="49" ry="12" fill="none" stroke="#fff" stroke-width="5" opacity=".82"/>
-  <path d="M82 185V234M97 185V234" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="3.5" opacity=".78"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 260">
+  <defs><linearGradient id="funnel-glass" x1="0" x2="1"><stop stop-color="#f7ffff" stop-opacity=".9"/><stop offset=".55" stop-color="#d4eff0" stop-opacity=".72"/><stop offset="1" stop-color="#8fbfc6" stop-opacity=".76"/></linearGradient></defs>
+  <!-- Thin-wall glass/plastic funnel: nested ellipses, cone, and a continuous stem. -->
+  <path d="M18 38c6 14 30 24 72 24s66-10 72-24L105 174H75z" fill="url(#funnel-glass)" stroke="#547987" stroke-width="2.4" stroke-linejoin="round"/>
+  <ellipse cx="90" cy="38" rx="72" ry="22" fill="#dff2f2" fill-opacity=".68" stroke="#547987" stroke-width="2.4"/><ellipse cx="90" cy="38" rx="61" ry="16" fill="#fbffff" fill-opacity=".78" stroke="#83a9ad" stroke-width="1.4"/>
+  <path d="M75 172h30v69c0 10-6 16-15 16s-15-6-15-16z" fill="#cce9eb" fill-opacity=".78" stroke="#547987" stroke-width="2.4" stroke-linejoin="round"/><ellipse cx="90" cy="172" rx="15" ry="4.7" fill="#a3d0d5" fill-opacity=".75" stroke="#547987" stroke-width="1.5"/>
+  <path d="M42 50c11 48 26 92 40 115M138 50c-11 48-26 92-40 115" fill="none" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".8"/><path d="M82 184v55m16-55v55" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".72"/><path d="M34 39c10-7 26-11 43-11" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" opacity=".9"/>
 </svg>

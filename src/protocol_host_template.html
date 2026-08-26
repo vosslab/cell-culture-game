@@ -1,13 +1,13 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Virtual Lab Coach</title>
-<link rel="stylesheet" href="./style.css">
-</head>
-<body>
-<!--
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Virtual Lab Coach</title>
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+  <body>
+    <!--
   Protocol host layout.
 
   CSS grid regions (see style.css .protocol-page-grid):
@@ -21,34 +21,39 @@
   Shell mounts one composition root into #shell-root; scene renders into #scene-root.
   This preserves the asset-crop rule (PRIMARY_CONTRACT.md item 3).
 -->
-<div class="protocol-page-grid">
-
-  <!-- Center-left: bounded scene panel -->
-  <!-- .scene-panel is the grid cell; .scene-panel-inner enforces 16:9 aspect ratio
+    <div class="protocol-page-grid">
+      <!-- Center-left: bounded scene panel -->
+      <!-- .scene-panel is the grid cell; .scene-panel-inner enforces 16:9 aspect ratio
        on a non-scene-content element; #scene-root fills the inner panel 100%x100%.
        This two-layer approach keeps aspect-ratio off #scene-root (CSS policy). -->
-  <div class="scene-panel" data-region="scene-panel">
-    <div class="scene-panel-inner">
-      <div id="scene-root"></div>
-    </div>
-  </div>
+      <div class="scene-panel" data-region="scene-panel">
+        <div class="scene-panel-content">
+          <div class="scene-panel-inner">
+            <div id="scene-root"></div>
+          </div>
+          <div id="scene-annotation-root"></div>
+        </div>
+      </div>
 
-  <!-- Permanent in-flow hosts for the visible value-entry affordances.
+      <!-- Permanent in-flow hosts for the visible value-entry affordances.
        They remain available under ?shell=off because they are host structure,
        not optional HUD content. The inactive region collapses in CSS. -->
-  <section class="interaction-controls" data-region="interaction-controls" aria-label="Protocol controls">
-    <div id="type-input-root"></div>
-    <div id="adjust-editor-root"></div>
-  </section>
+      <section
+        class="interaction-controls"
+        data-region="interaction-controls"
+        aria-label="Protocol controls"
+      >
+        <div id="type-input-root"></div>
+        <div id="adjust-editor-root"></div>
+      </section>
 
-  <!-- The mounted shell emits header, outline, and action rail grid children. -->
-  <div id="shell-root"></div>
+      <!-- The mounted shell emits header, outline, and action rail grid children. -->
+      <div id="shell-root"></div>
+    </div>
 
-</div>
-
-<script>
-window.__PROTOCOL_NAME__ = "{{PROTOCOL_NAME}}";
-</script>
-<script type="module" src="./protocol_host.js"></script>
-</body>
+    <script>
+      window.__PROTOCOL_NAME__ = "{{PROTOCOL_NAME}}";
+    </script>
+    <script type="module" src="./protocol_host.js"></script>
+  </body>
 </html>

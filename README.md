@@ -26,7 +26,7 @@ Core docs:
 
 - [docs/INSTALL.md](docs/INSTALL.md): prerequisites and setup steps
 - [docs/USAGE.md](docs/USAGE.md): how to build, run, and author content
-- [docs/EQUIPMENT_SVG_CONTACT_SHEET.md](docs/EQUIPMENT_SVG_CONTACT_SHEET.md): labeled visual review of every retained equipment SVG
+- [docs/USAGE.md](docs/USAGE.md#equipment-svg-visual-review): current production-art review page, real-scene routes, and historical contact-sheet boundary
 - [docs/CODE_ARCHITECTURE.md](docs/CODE_ARCHITECTURE.md): system design and data flow
 - [docs/FILE_STRUCTURE.md](docs/FILE_STRUCTURE.md): directory map and file purposes
 - [docs/specs/PROTOCOL_AUTHORING_GUIDE.md](docs/specs/PROTOCOL_AUTHORING_GUIDE.md): worked example for authoring a new protocol

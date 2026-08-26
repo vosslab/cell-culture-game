@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 120">
-  <g stroke="#203743" stroke-linejoin="round">
-    <rect x="52" y="46" width="56" height="15" rx="1.5" fill="#ecf7f5" stroke="#4d7380" stroke-width="1.5"/>
-    <path d="M54 48h52" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="1.1"/>
+  <g id="lightbox_gel_destained" stroke="#294657" stroke-linejoin="round">
+    <path d="M51 59 107 54l4 4-4 13-56 5-4-4z" fill="#ecf7f5" stroke="#4d7380" stroke-width="1.5"/>
+    <path d="M53 61 105 56" fill="none" stroke="#fff" stroke-linecap="round" stroke-width="1.1"/>
     <g fill="#315a73" stroke="none">
-    <rect x="56" y="49" width="4" height="1.5" rx=".7"/><rect x="56" y="52" width="4" height="1.5" rx=".7"/><rect x="56" y="55" width="4" height="1.5" rx=".7"/><rect x="56" y="58" width="4" height="1.2" rx=".6"/>
-    <rect x="64" y="52" width="4" height="1.6" rx=".7"/><rect x="64" y="56" width="4" height="1.4" rx=".6"/>
-    <rect x="72" y="50" width="4" height="1.6" rx=".7"/><rect x="72" y="55" width="4" height="1.7" rx=".7"/>
-    <rect x="80" y="53" width="4" height="1.7" rx=".7"/><rect x="80" y="57" width="4" height="1.4" rx=".6"/>
-    <rect x="89" y="51" width="4" height="1.7" rx=".7"/><rect x="89" y="56" width="4" height="1.5" rx=".7"/>
-    <rect x="98" y="54" width="4" height="1.6" rx=".7"/>
+    <rect x="56" y="62" width="4" height="1.5" rx=".7"/><rect x="56" y="65" width="4" height="1.5" rx=".7"/><rect x="56" y="68" width="4" height="1.2" rx=".6"/>
+    <rect x="64" y="64" width="4" height="1.6" rx=".7"/><rect x="64" y="68" width="4" height="1.4" rx=".6"/>
+    <rect x="72" y="62" width="4" height="1.6" rx=".7"/><rect x="72" y="67" width="4" height="1.7" rx=".7"/>
+    <rect x="80" y="65" width="4" height="1.7" rx=".7"/><rect x="80" y="69" width="4" height="1.4" rx=".6"/>
+    <rect x="89" y="63" width="4" height="1.7" rx=".7"/><rect x="89" y="68" width="4" height="1.5" rx=".7"/>
+    <rect x="98" y="66" width="4" height="1.6" rx=".7"/>
     </g>
   </g>
 </svg>

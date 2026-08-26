@@ -183,8 +183,8 @@ function SubpartHitShape(props: {
     const kind = affordance_kind();
     if (kind === "active") {
       return {
-        fill: "rgba(245, 166, 35, 0.2)",
-        stroke: "#f5a623",
+        fill: "rgba(158, 101, 7, 0.2)",
+        stroke: "#9e6507",
         "stroke-width": "2px",
         "vector-effect": "non-scaling-stroke",
         "pointer-events": "none",

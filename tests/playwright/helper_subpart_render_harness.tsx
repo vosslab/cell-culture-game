@@ -62,6 +62,20 @@ function get_scene_root(): HTMLElement {
   return el;
 }
 
+// This disposable test-only page does not use a production shell template, so
+// create its explicit sibling rail mount rather than relying on a stateful
+// no-host fallback.
+function get_annotation_root(): HTMLElement {
+  const existing = document.getElementById("scene-annotation-root");
+  if (existing instanceof HTMLElement) {
+    return existing;
+  }
+  const root = document.createElement("div");
+  root.id = "scene-annotation-root";
+  document.body.append(root);
+  return root;
+}
+
 // Mount the real plate_focus_bench scene through the production path. seed_from_scene
 // (run inside mountScene) seeds object-level targets only; subpart targets are
 // seeded on demand by seed_subpart below, exactly as the scene-op layer will.
@@ -78,6 +92,7 @@ function do_mount(): void {
   dispose_fn = mountScene(get_scene_root(), result, {
     store,
     materialRegistry: MATERIAL_REGISTRY,
+    annotationRoot: get_annotation_root(),
   });
 }
 
