@@ -16,6 +16,7 @@ Validates all SVGs under assets/**/*.svg, then emits one output:
 import os
 import re
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -724,8 +725,20 @@ def _emit_ts_manifest(output_file: str, asset_keys: set,
 
 
 def _get_repo_root() -> str:
-	"""Resolve the repository from this pipeline module's stable location."""
-	return str(Path(__file__).resolve().parent.parent)
+	"""Resolve the repository root through Git."""
+	try:
+		result = subprocess.run(
+			["git", "rev-parse", "--show-toplevel"],
+			capture_output=True,
+			text=True,
+			timeout=5,
+		)
+		if result.returncode == 0:
+			return result.stdout.strip()
+	except (OSError, subprocess.TimeoutExpired, subprocess.SubprocessError):
+		pass
+
+	raise RuntimeError("Could not determine repo root via git")
 
 
 if __name__ == "__main__":

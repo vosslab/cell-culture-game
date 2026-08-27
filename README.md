@@ -40,7 +40,7 @@ Reference docs:
 
 ## License
 
-- Code: [LICENSE.LGPL_v3](LICENSE.LGPL_v3)
-- Non-code content: [LICENSE.CC_BY_4_0](LICENSE.CC_BY_4_0)
+- Code: [LICENSE.LGPL-3.0](LICENSE.LGPL-3.0)
+- Non-code content: [LICENSE.CC-BY-4.0](LICENSE.CC-BY-4.0)
 
 Maintained by Neil Voss, https://bsky.app/profile/neilvosslab.bsky.social

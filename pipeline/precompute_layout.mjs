@@ -25,7 +25,7 @@
 
 import fs from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 
 import { runPipeline } from "../src/scene_runtime/layout/index.ts";
 import { assert_valid_scene_interaction_geometry } from "../src/scene_runtime/layout/interaction_geometry.ts";
@@ -45,10 +45,13 @@ const PRECOMPUTE_VIEWPORT = { w: 1920, h: 1080 };
 // Repo root and output path
 //============================================
 
-// Resolve the repository from this pipeline module's stable location so the
-// output path does not depend on the current working directory.
+// Resolve the repo root from git so the output path does not depend on the
+// current working directory (repo style: never derive paths from cwd).
 function repo_root() {
-  return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+  const top = execFileSync("git", ["rev-parse", "--show-toplevel"], {
+    encoding: "utf8",
+  });
+  return top.trim();
 }
 
 //============================================

@@ -2,8 +2,8 @@
 
 > Superseded on 2026-08-26 by
 > [svg_visual_quality_rebuild_plan-v2.md](svg_visual_quality_rebuild_plan-v2.md).
-> This file retains the rejected D01-D05 rollout history because its path is
-> user-staged; current replacement-wave status and acceptance live in v2.
+> This file retains the rejected D01-D05 rollout as historical context;
+> current replacement-wave status and acceptance live in v2.
 
 ## Context
 
@@ -43,8 +43,8 @@ historical experiments rather than an approved direction pool, and the primary
 visual acceptance criterion is open. The current production-art review workflow
 is documented in [USAGE.md](../../USAGE.md#equipment-svg-visual-review).
 
-Keep this file in `active/`: its path is user-staged, so closing it records
-completion here rather than moving it and mutating the index boundary.
+Keep this superseded history beside v2 while human visual acceptance remains
+open; archive both plans after the current result is accepted.
 
 ## Design philosophy
 

@@ -359,9 +359,8 @@ def normalize_svg_file(
 #      (1 - _SHADOW_BAND_FRAC) * overall_bbox.height).
 #   3. Explicit editorial marker: data-editorial-floor-shadow="true".
 #   Colour, opacity, id, class, and blur are never signals: real base geometry
-#   commonly shares those presentation properties. Filters are rejected by the
-#   classifier before floor-shadow removal can run, so volume must use overlap
-#   and face value.
+#   commonly shares those presentation properties. Filter-bearing SVGs are
+#   rejected by the classifier before floor-shadow removal can run.
 #
 # By this stage all shapes are <path>; detection uses
 # _element_geometry_bbox (pure geometry, no stroke pad) to avoid double-counting.

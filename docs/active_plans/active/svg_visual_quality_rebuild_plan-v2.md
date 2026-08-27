@@ -35,11 +35,13 @@ historical implementation evidence only; they are not the current target or a
 selection pool.
 
 The active replacement wave preserves the established asset identities and
-runtime contracts while rebuilding the visual forms around physically
-credible rounded shells, molded surfaces, recesses, cylinders, transparent
-vessels, and functional overlaps. It takes detailed Servier geometry directly
-where that geometry is visually credible, and uses controlled repository
-adaptations where exact source projection is not. The human gallery is
+runtime contracts that remain semantically correct while rebuilding the visual
+forms around physically credible rounded shells, molded surfaces, recesses,
+cylinders, transparent vessels, and functional overlaps. Where review exposes
+an incorrect ownership boundary, the pre-production implementation replaces
+that contract directly without a compatibility shim. It takes detailed Servier
+geometry directly where that geometry is visually credible, and uses controlled
+repository adaptations where exact source projection is not. The human gallery is
 the generated complete equipment-library review at
 `docs/figures/equipment_kit/review.html`; regenerate it with
 `tools/render_svg_library_review.mjs`.
@@ -51,8 +53,8 @@ gates. The compact 546 x 307 set remains earlier one-time evidence: a fresh
 post-final-build compact recapture stalled before the bench ready marker without
 a Playwright exception. Record that residual evidence gap accurately rather
 than calling compact PNGs freshly regenerated. This plan remains in `active/`
-because its path is user-staged; documentation records progress in place
-without changing the index.
+because M12 human visual acceptance remains open; implementation evidence stays
+recorded here until the user accepts the current result.
 
 ### Current replacement-wave evidence and remaining gates
 

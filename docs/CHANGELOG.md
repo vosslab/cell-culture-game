@@ -54,6 +54,11 @@
   proves 60 DOM-SVG and 74 image assets through the production host with zero
   load, render-mode, namespacing, aspect-ratio, or browser failures. The final
   second-pass rerun covers 64 DOM-SVG and 66 image assets.
+- The independent post-implementation audit corrected the current 130-asset
+  contact-sheet routing, removed stale plan and normalizer commentary, and
+  restored Git-based repository-root discovery in pipeline entry points as
+  required by `docs/REPO_STYLE.md`. It also repaired README and file-structure
+  links after the committed license-filename normalization.
 - The recovered tree passed the build with 129 objects, 70 asset specs, 134
   SVGs, 60 DOM-required assets, and 57 scenes; all five codebase checks with 673
   Node passes and two skips; 7,682 pytest cases; and all 113 Playwright cases.
